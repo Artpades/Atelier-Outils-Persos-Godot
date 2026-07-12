@@ -3,6 +3,7 @@
 #include "gdextension_interface.h"
 #include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/godot.hpp"
+// Ajouter les Includes des classes que vous souhaitez enregistrer ici
 
 using namespace godot;
 
@@ -14,7 +15,7 @@ void initialize(ModuleInitializationLevel p_level)
     }
 
     // Implentation de la classe TestScript dans le registre de classes de Godot
-    // GDREGISTER_CLASS(TestScript);
+    // GDREGISTER_CLASS(Nom de classe);
 }
 
 void uninitialize(ModuleInitializationLevel p_level)
