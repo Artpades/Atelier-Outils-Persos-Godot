@@ -1,0 +1,40 @@
+import os
+
+env = SConscript("godot-cpp/SConstruct")
+
+env.Append(CPPPATH=["src/"])
+
+# 1. Récupérer les sources C++ de base
+sources = Glob("src/*.cpp")
+
+# 2. Gestion de la documentation
+# Vérifier d'abord si le dossier existe
+if os.path.isdir("doc_classes"):
+    xml_files = Glob("doc_classes/*.xml")
+    
+    # Vérifier si on a des fichiers XML et si on est en mode debug/éditeur
+    if xml_files and env["target"] in ["editor", "template_debug"]:
+        try:
+            # S'assurer que le dossier de sortie existe
+            if not os.path.isdir("src/gen"):
+                os.makedirs("src/gen")
+            
+            print(f"Inclusion de {len(xml_files)} fichiers de documentation...")
+            doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=xml_files)
+            sources.append(doc_data)
+        except AttributeError:
+            print("Attention: GodotCPPDocData non disponible (version godot-cpp < 4.3).")
+        except Exception as e:
+            print(f"Erreur lors de la génération de la doc: {e}")
+    else:
+        if not xml_files:
+            print("Avertissement: Aucun fichier .xml trouvé dans doc_classes/. La documentation ne sera pas incluse.")
+        else:
+            print(f"Avertissement: Cible '{env['target']}' non compatible pour la doc (requis: editor/template_debug).")
+else:
+    print("Avertissement: Le dossier doc_classes/ est introuvable.")
+
+# 3. Compilation de la bibliothèque avec la liste MIS À JOUR
+library = env.SharedLibrary("demo/bin/TestScript{}{}".format(env["suffix"], env["SHLIBSUFFIX"]), source=sources)
+
+Default(library)   
