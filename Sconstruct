@@ -1,24 +1,25 @@
 import os
 
+sources = []
+
+for root, dirs, files in os.walk("src"):
+    for file in files:
+        if file.endswith(".cpp"):
+            sources.append(os.path.join(root, file))
+
 env = SConscript("godot-cpp/SConstruct")
 
 env.Append(CPPPATH=["src/"])
 
-# 1. Récupérer les sources C++ de base
-sources = Glob("src/*.cpp")
-
-# 2. Gestion de la documentation
-# Vérifier d'abord si le dossier existe
+# 2. Gestion de la documentation (intégration des XML existants dans la lib)
 if os.path.isdir("doc_classes"):
     xml_files = Glob("doc_classes/*.xml")
-    
-    # Vérifier si on a des fichiers XML et si on est en mode debug/éditeur
+
     if xml_files and env["target"] in ["editor", "template_debug"]:
         try:
-            # S'assurer que le dossier de sortie existe
             if not os.path.isdir("src/gen"):
                 os.makedirs("src/gen")
-            
+
             print(f"Inclusion de {len(xml_files)} fichiers de documentation...")
             doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=xml_files)
             sources.append(doc_data)
@@ -32,9 +33,50 @@ if os.path.isdir("doc_classes"):
         else:
             print(f"Avertissement: Cible '{env['target']}' non compatible pour la doc (requis: editor/template_debug).")
 else:
-    print("Avertissement: Le dossier doc_classes/ est introuvable.")
+    os.makedirs("doc_classes")
+    print("doc_classes/ créé (vide). Lance 'scons gen_doc' après compilation pour générer les XML via --doc-tool.")
 
-# 3. Compilation de la bibliothèque avec la liste MIS À JOUR
-library = env.SharedLibrary("demo/bin/TestScript{}{}".format(env["suffix"], env["SHLIBSUFFIX"]), source=sources)
+# 3. Compilation de la bibliothèque
+library = env.SharedLibrary(
+    "GameplayToolkit/addons/bin/gameplaytoolkit{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+    source=sources
+)
 
-Default(library)   
+for s in sources:
+    print(s, " : ajouté à la compilation.")
+
+Default(library)
+
+# --- Cible séparée : génération des XML de doc via --doc-tool ---
+# NE s'exécute PAS par défaut. Lancer explicitement : scons gen_doc
+#
+# PLACEHOLDER : remplace GODOT_EXECUTABLE par le chemin réel de ton binaire Godot 4.7
+# (ex: "/home/{user_name}/godot/Godot_v4.7-stable_linux.x86_64")
+GODOT_EXECUTABLE = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
+
+# PLACEHOLDER : chemin vers un projet Godot minimal qui charge ce .gdextension
+# (souvent le dossier de projet (ex: "GameplayToolkit") lui-même, s'il contient un project.godot)
+GODOT_PROJECT_PATH = "GameplayToolkit"
+
+def generate_doc_action(target, source, env):
+    import subprocess
+    cmd = [
+        GODOT_EXECUTABLE,
+        "--headless",
+        "--path", GODOT_PROJECT_PATH,
+        "--doctool", "../doc_classes",  # chemin relatif au project.godot, à ajuster
+        "--no-docbase",  # exclut la doc du moteur, ne garde que tes classes custom
+    ]
+    print("Exécution :", " ".join(cmd))
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
+        print(f"Erreur : --doc-tool a retourné le code {result.returncode}")
+    return result.returncode
+
+gen_doc = env.Command(
+    target="gen_doc_dummy",  # cible factice, --doctool écrit directement dans doc_classes/
+    source=library,
+    action=generate_doc_action
+)
+
+env.Alias("gen_doc", gen_doc)
