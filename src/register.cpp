@@ -5,38 +5,39 @@
 #include "godot_cpp/godot.hpp"
 
 // Ajouter les Includes des classes que vous souhaitez enregistrer ici
+#include "test_example.hpp"
 #include "🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪛Objets d'édition/🪟Fenêtre d'édition/windoweditor.hpp"
 using namespace godot;
 
-void initialize(ModuleInitializationLevel p_level)
-{
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
-    {
-        return;
-    }
+void initialize(ModuleInitializationLevel p_level) {
+  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+    return;
+  }
 
-    // Implentation de la classe TestScript dans le registre de classes de Godot
-    GDREGISTER_CLASS(WindowEditor);
+  // Implentation de la classe TestScript dans le registre de classes de Godot
+  GDREGISTER_CLASS(WindowEditor);
+  GDREGISTER_CLASS(TestExample);
 }
 
-void uninitialize(ModuleInitializationLevel p_level)
-{
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
-    {
-        return;
-    }
+void uninitialize(ModuleInitializationLevel p_level) {
+  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+    return;
+  }
 }
 
-extern "C"
-{
-    GDExtensionBool GDE_EXPORT library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address, GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization)
-    {
-        GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
+extern "C" {
+GDExtensionBool GDE_EXPORT
+library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address,
+             GDExtensionClassLibraryPtr p_library,
+             GDExtensionInitialization *r_initialization) {
+  GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library,
+                                          r_initialization);
 
-        init_obj.register_initializer(initialize);
-        init_obj.register_terminator(uninitialize);
-        init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+  init_obj.register_initializer(initialize);
+  init_obj.register_terminator(uninitialize);
+  init_obj.set_minimum_library_initialization_level(
+      MODULE_INITIALIZATION_LEVEL_SCENE);
 
-        return init_obj.init();
-    }
+  return init_obj.init();
+}
 }

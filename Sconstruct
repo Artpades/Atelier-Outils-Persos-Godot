@@ -38,7 +38,7 @@ else:
 
 # 3. Compilation de la bibliothèque
 library = env.SharedLibrary(
-    "GameplayToolkit/addons/bin/gameplaytoolkit{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+    "GameplayToolkit/bin/gameplaytoolkit{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
     source=sources
 )
 

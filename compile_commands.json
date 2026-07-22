@@ -6456,6 +6456,12 @@
         "output": "src/register.os"
     },
     {
+        "command": "g++ -o src/test.os -c -fno-gnu-unique -std=c++17 -fno-exceptions -fPIC -Wwrite-strings -m64 -march=x86-64 -fvisibility=hidden -O2 -fPIC -DLINUX_ENABLED -DUNIX_ENABLED -DTHREADS_ENABLED -DHOT_RELOAD_ENABLED -DDEBUG_ENABLED -DNDEBUG -DGDEXTENSION -Igodot-cpp/include -Igodot-cpp/gen/include -Isrc src/test.cpp",
+        "directory": "/home/artpade/Bureau/Tiroirs/Projets Godot/Atelier-Outils-Persos-Godot",
+        "file": "src/test.cpp",
+        "output": "src/test.os"
+    },
+    {
         "command": "g++ -o \"src/\ud83e\uddf0Ensemble d'Outils/0.\ud83e\uddd1\u200d\ud83d\udcbb\u00c9dition et Debug\ud83e\udeb3/\ud83e\ude9bObjets d'\u00e9dition/\ud83e\ude9fFen\u00eatre d'\u00e9dition/windoweditor.os\" -c -fno-gnu-unique -std=c++17 -fno-exceptions -fPIC -Wwrite-strings -m64 -march=x86-64 -fvisibility=hidden -O2 -fPIC -DLINUX_ENABLED -DUNIX_ENABLED -DTHREADS_ENABLED -DHOT_RELOAD_ENABLED -DDEBUG_ENABLED -DNDEBUG -DGDEXTENSION -Igodot-cpp/include -Igodot-cpp/gen/include -Isrc \"src/\ud83e\uddf0Ensemble d'Outils/0.\ud83e\uddd1\u200d\ud83d\udcbb\u00c9dition et Debug\ud83e\udeb3/\ud83e\ude9bObjets d'\u00e9dition/\ud83e\ude9fFen\u00eatre d'\u00e9dition/windoweditor.cpp\"",
         "directory": "/home/artpade/Bureau/Tiroirs/Projets Godot/Atelier-Outils-Persos-Godot",
         "file": "src/\ud83e\uddf0Ensemble d'Outils/0.\ud83e\uddd1\u200d\ud83d\udcbb\u00c9dition et Debug\ud83e\udeb3/\ud83e\ude9bObjets d'\u00e9dition/\ud83e\ude9fFen\u00eatre d'\u00e9dition/windoweditor.cpp",

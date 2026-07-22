@@ -1,2 +1,3 @@
 CompileFlags:
   Compiler: /usr/bin/g++-13  # Adaptez ce chemin (ex: C:/mingw64/bin/g++.exe)   
+  Remove: [-fno-gnu-unique]

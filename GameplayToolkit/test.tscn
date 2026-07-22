@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cxkdipwfjuwki"]
+
+[ext_resource type="Script" uid="uid://bl657hn8huyv7" path="res://test.gd" id="1_37kl0"]
+
+[node name="Test" type="TestExample" unique_id=691648221]
+script = ExtResource("1_37kl0")
+
+[node name="Timer" type="Timer" parent="." unique_id=271568369]
