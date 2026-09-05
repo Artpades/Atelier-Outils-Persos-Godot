@@ -31,6 +31,9 @@ RID Gizmos::create_2D_gizmos(Viewport *viewport) {
   // runtime
 
   // if(!is_editor_hint()) {
+  //
+  // if(is_editor_hint()) {
+  // EditorInterface
 
   // Implémentation de la création d'un gizmo 2D ici
   // Vous pouvez utiliser les fonctions de Godot pour créer un gizmo 2D
