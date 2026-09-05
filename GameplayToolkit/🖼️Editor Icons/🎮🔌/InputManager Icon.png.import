@@ -3,20 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://daph8mkj3i5vv"
-path.s3tc="res://.godot/imported/InputManager Icon.png-b695bc1e4aeee0e825c3666d1ecb4998.s3tc.ctex"
+path="res://.godot/imported/InputManager Icon.png-b695bc1e4aeee0e825c3666d1ecb4998.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://🖼️Editor Icons/🎮🔌/InputManager Icon.png"
-dest_files=["res://.godot/imported/InputManager Icon.png-b695bc1e4aeee0e825c3666d1ecb4998.s3tc.ctex"]
+dest_files=["res://.godot/imported/InputManager Icon.png-b695bc1e4aeee0e825c3666d1ecb4998.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

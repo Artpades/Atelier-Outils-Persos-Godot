@@ -5,6 +5,7 @@ compatibility_minimum = "4.7"
 reloadable = true
 
 [icons]
+ManagerBuilder = "res://🖼️Editor Icons/🧰🧑‍💻/ManagerBase icon.png"
 WindowEditor = "res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png"
 
 [libraries]

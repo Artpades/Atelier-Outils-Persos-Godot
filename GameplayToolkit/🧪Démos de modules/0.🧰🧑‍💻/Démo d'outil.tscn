@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dgg4xercjodf8"]
+
+[ext_resource type="Script" uid="uid://cyiwrfi3ip0j6" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_tool_editor_creator.gd" id="1_cexgo"]
+
+[node name="DémoD\'outil" type="Node" unique_id=547730363]
+
+[node name="Node" type="Node" parent="." unique_id=384964403]
+script = ExtResource("1_cexgo")
