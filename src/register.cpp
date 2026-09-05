@@ -12,6 +12,7 @@
 // d'Outils/1.📁Intercepteurs de données/💾Manipulateur de données🔐/⚙️Générateur
 // de Gestionnaire/manager_builder_wrapper.hpp"
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪟Fenêtre d'édition/window_editor.hpp"
 
 using namespace godot;
@@ -23,6 +24,7 @@ void initialize(ModuleInitializationLevel p_level) {
 
   // Implentation de la classe TestScript dans le registre de classes de Godot
   GDREGISTER_CLASS(WindowEditor);
+  GDREGISTER_CLASS(Gizmos);
 
   GDREGISTER_CLASS(TestExample);
 
@@ -34,6 +36,9 @@ void uninitialize(ModuleInitializationLevel p_level) {
   if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
+
+  godot::print_line_rich(
+      "[color=dark_red]Module d'extension déchargé avec succès ![/color]");
 }
 
 extern "C" {

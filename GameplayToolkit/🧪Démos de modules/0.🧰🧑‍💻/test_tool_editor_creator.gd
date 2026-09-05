@@ -58,6 +58,19 @@ var object_value: Object
 @export var packed_vector4_array_value: PackedVector4Array
 @export var packed_color_array_value: PackedColorArray
 
+var gizmos
+
+func _ready() -> void:
+	call_deferred("initialize")
+	
+func initialize():
+	var viewport : Viewport = get_tree().root.get_viewport()
+	gizmos = Gizmos.create_2D_gizmos(viewport)
+	Gizmos.draw_2D_point(gizmos, Vector2(10, 20), Color.DARK_BLUE)
+
+func _exit_tree() -> void:
+	Gizmos.free_gizmos(gizmos)
+
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:
 	print("Fonction appelée sans paramètre")
