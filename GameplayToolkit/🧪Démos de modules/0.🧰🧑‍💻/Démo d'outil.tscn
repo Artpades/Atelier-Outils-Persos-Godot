@@ -6,6 +6,8 @@
 
 [node name="Node" type="Node" parent="." unique_id=384964403]
 script = ExtResource("1_cexgo")
+vector2_value = Vector2(96.335, 83.901)
+vector2i_value = Vector2i(187, 60)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1208829930]
 
