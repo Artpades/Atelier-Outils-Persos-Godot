@@ -136,6 +136,24 @@ void Gizmos::draw_2D_arrow(RID gizmo_rid, const Vector2 &from, const Vector2 &to
   RenderingServer::get_singleton()->canvas_item_add_primitive(gizmo_rid, PackedVector2Array{to, point1, point2}, PackedColorArray{color, color, color}, PackedVector2Array(), RID());
 }
 
+void Gizmos::draw_2D_circle(RID gizmo_rid, const Vector2 &center, float radius, const Color &color, bool filled, float thickness, bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin du cercle[/color]");
+    return;
+  }
+  RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid);
+  if (filled)
+  {
+    RenderingServer::get_singleton()->canvas_item_add_circle(gizmo_rid, center, radius, color, antialiasing);
+  }
+  else
+  {
+    _draw_2D_polyline_circle_2D(gizmo_rid, center, radius, color, thickness, 24, antialiasing);
+  }
+}
+
 void Gizmos::_bind_methods()
 {
   // Déclaration des méthodes et propriétés à exposer à Godot ici
@@ -150,4 +168,6 @@ void Gizmos::_bind_methods()
                               DEFVAL(false));
   ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_arrow", "gizmo_rid", "from", "to", "arrow_head_size", "width", "color", "antialiasing"), &Gizmos::draw_2D_arrow, DEFVAL(12.0f), DEFVAL(1.0f),
                               DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_circle", "gizmo_rid", "center", "radius", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_circle,
+                              DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
 }
