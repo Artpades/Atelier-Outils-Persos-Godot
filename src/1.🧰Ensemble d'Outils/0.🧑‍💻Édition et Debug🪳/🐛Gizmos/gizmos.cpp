@@ -11,89 +11,80 @@
 #include <godot_cpp/variant/rid.hpp>
 using namespace godot;
 
-Gizmos::Gizmos() {
+Gizmos::Gizmos()
+{
   // Initialisation des propriétés et variables ici
 }
-Gizmos::~Gizmos() {
+Gizmos::~Gizmos()
+{
   // Nettoyage des ressources ici
 }
+//------------------------------------------------------------------------------
 
-RID Gizmos::create_2D_gizmos(Viewport *viewport) {
+// Permet de créer un gizmo 2D
+RID Gizmos::create_2D_gizmos(Viewport *viewport)
+{
 
-  if (!viewport || viewport->find_world_2d() == nullptr) {
+  if (!viewport || viewport->find_world_2d() == nullptr)
+  {
+    print_line_rich("[color=red]Erreur : Viewport invalide pour la création du gizmo 2D[/color]");
+    return RID(); // Retourne un RID vide en cas d'erreur
+  }
+
+  // Implémentation de la création d'un gizmo 2D ici
+  // Vous pouvez utiliser les fonctions de Godot pour créer un gizmo 2D
+  // et retourner son RID.
+  RID gizmo_rid = RenderingServer::get_singleton()->canvas_item_create(); // Crée un RID vide pour l'instant
+  // Parenter le gizmo à la vue (viewport)
+
+  RID viewport_rid = viewport->get_viewport_rid();
+  RenderingServer::get_singleton()->canvas_item_set_parent(gizmo_rid, viewport->find_world_2d()->get_canvas());
+
+  return gizmo_rid; // Retourne le RID du gizmo créé
+}
+//------------------------------------------------------------------------------
+RID Gizmos::create_2D_gizmos(Node *node_to_apply_to)
+{
+  if (!node_to_apply_to)
+  {
+    print_line_rich("[color=red]Erreur : Node invalide pour la création du gizmo 2D[/color]");
+    return RID(); // Retourne un RID vide en cas d'erreur
+  }
+
+  Viewport *viewport = node_to_apply_to->get_viewport();
+  if (!viewport || viewport->find_world_2d() == nullptr)
+  {
     print_line_rich("[color=red]Erreur : Viewport invalide pour la création du "
                     "gizmo 2D[/color]");
     return RID(); // Retourne un RID vide en cas d'erreur
   }
 
-  // TODO : Séparer la création en création editeur et création runtime, pour
-  // éviter de parenter le gizmo au GUI de l'éditeur dans le cas d'un gizmo
-  // runtime
-
-  // if(!is_editor_hint()) {
-  //
-  // if(is_editor_hint()) {
-  // EditorInterface
-
-  // Implémentation de la création d'un gizmo 2D ici
-  // Vous pouvez utiliser les fonctions de Godot pour créer un gizmo 2D
-  // et retourner son RID.
-  RID gizmo_rid = RenderingServer::get_singleton()
-                      ->canvas_item_create(); // Crée un RID vide pour l'instant
-  // Parenter le gizmo à la vue (viewport)
-
-  RID viewport_rid = viewport->get_viewport_rid();
-  RenderingServer::get_singleton()->canvas_item_set_parent(
-      gizmo_rid, viewport->find_world_2d()->get_canvas());
-
-  return gizmo_rid; // Retourne le RID du gizmo créé
+  return create_2D_gizmos(viewport);
 }
 
-RID Gizmos::create_3D_gizmos(Viewport *viewport) {
-  // Implémentation de la création d'un gizmo 3D ici
-  // Vous pouvez utiliser les fonctions de Godot pour créer un gizmo 3D
-  // et retourner son RID.
-  return RID(); // Retourne un RID vide pour l'instant
-}
-
-void Gizmos::draw_2D_point(RID gizmo_rid, const Vector2 &position,
-                           const Color &color) {
-  // Implémentation du dessin d'un point 2D ici
-  // Vous pouvez utiliser les fonctions de dessin de Godot pour dessiner le
-  // point sur le gizmo spécifié par gizmo_rid.
-
-  // Si le RID du gizmo est invalide, afficher un message d'erreur
-  if (!gizmo_rid.is_valid()) {
-    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin "
-                    "du point 2D[/color]");
-    return;
-  }
-  RenderingServer::get_singleton()->canvas_item_clear(
-      gizmo_rid); // Efface le contenu précédent du gizmo
-                  // Si le RID est valide, continuer avec le dessin
-  RenderingServer::get_singleton()->canvas_item_add_circle(
-      gizmo_rid, Vector2(0, 0), 5.0, color);
-  RenderingServer::get_singleton()->canvas_item_set_transform(
-      gizmo_rid, Transform2D(0, position));
-}
-
-void Gizmos::clear_gizmos(RID gizmo_rid) {
+//------------------------------------------------------------------------------
+// Permet d'effacer tout visuel 2D du gizmo
+void Gizmos::clear_2D_gizmos(const RID gizmo_rid)
+{
   // Implémentation de la suppression des gizmos ici
   // Vous pouvez utiliser les fonctions de Godot pour supprimer le gizmo
   // spécifié par gizmo_rid.
-  if (!gizmo_rid.is_valid()) {
-    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour la "
-                    "suppression[/color]");
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour "
+                    "l'effacement de visuel 2D[/color]");
     return;
   }
   RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid);
 }
 
-void Gizmos::free_gizmos(RID gizmo_rid) {
+void Gizmos::free_gizmos(const RID gizmo_rid)
+{
   // Implémentation de la libération des ressources des gizmos ici
   // Vous pouvez utiliser les fonctions de Godot pour libérer les
   // ressources associées au gizmo spécifié par gizmo_rid.
-  if (!gizmo_rid.is_valid()) {
+  if (!gizmo_rid.is_valid())
+  {
     print_line_rich("[color=red]Erreur : RID du gizmo invalide pour la "
                     "libération[/color]");
     return;
@@ -101,20 +92,62 @@ void Gizmos::free_gizmos(RID gizmo_rid) {
   RenderingServer::get_singleton()->free_rid(gizmo_rid);
 }
 
-void Gizmos::_bind_methods() {
+void Gizmos::draw_2D_line(RID gizmo_rid, const Vector2 &from, const Vector2 &to, float width, const Color &color, bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin "
+                    "de la ligne[/color]");
+    return;
+  }
+  RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid); // Efface les dessins précédents du gizmo
+  RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, to, color, width);
+}
+
+void Gizmos::draw_2D_arrow(RID gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin de la flèche[/color]");
+    return;
+  }
+
+  RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid); // Efface les dessins précédents du gizmo
+
+  Vector2 direction = (to - from).normalized();
+  float distance = from.distance_to(to);
+
+  if (distance <= 0.001)
+  {
+    return; // Évite de dessiner une flèche si la distance est trop petite
+  }
+
+  float head_length = Math::min(arrow_size, distance);
+  Vector2 base_point = to - direction * head_length;
+
+  // Ligne jusqu'à la base du triangle de la flèche
+  RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, base_point, color, width);
+
+  // Pointe Isocèle du triangle de la flèche
+  Vector2 side = Vector2(-direction.y, direction.x) * (head_length * 0.5); // Crée un vecteur perpendiculaire pour les côtés du triangle
+  Vector2 point1 = base_point + side;
+  Vector2 point2 = base_point - side;
+
+  RenderingServer::get_singleton()->canvas_item_add_primitive(gizmo_rid, PackedVector2Array{to, point1, point2}, PackedColorArray{color, color, color}, PackedVector2Array(), RID());
+}
+
+void Gizmos::_bind_methods()
+{
   // Déclaration des méthodes et propriétés à exposer à Godot ici
 
-  ClassDB::bind_static_method("Gizmos",
-                              D_METHOD("create_2D_gizmos", "viewport"),
-                              &Gizmos::create_2D_gizmos);
-  ClassDB::bind_static_method(
-      "Gizmos", D_METHOD("draw_2D_point", "gizmo_rid", "position", "color"),
-      &Gizmos::draw_2D_point);
-  ClassDB::bind_static_method("Gizmos",
-                              D_METHOD("create_3D_gizmos", "viewport"),
-                              &Gizmos::create_3D_gizmos);
-  ClassDB::bind_static_method("Gizmos", D_METHOD("clear_gizmos", "gizmo_rid"),
-                              &Gizmos::clear_gizmos);
-  ClassDB::bind_static_method("Gizmos", D_METHOD("free_gizmos", "gizmo_rid"),
-                              &Gizmos::free_gizmos);
+  ClassDB::bind_static_method("Gizmos", D_METHOD("create_2D_gizmos", "viewport"), static_cast<RID (*)(Viewport *)>(&Gizmos::create_2D_gizmos));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("create_2D_gizmos", "node_to_apply_to"), static_cast<RID (*)(Node *)>(&Gizmos::create_2D_gizmos));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("clear_2D_gizmos", "gizmo_rid"), &Gizmos::clear_2D_gizmos);
+
+  ClassDB::bind_static_method("Gizmos", D_METHOD("free_gizmos", "gizmo_rid"), &Gizmos::free_gizmos);
+
+  ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_line", "gizmo_rid", "from", "to", "width", "color", "antialiasing"), &Gizmos::draw_2D_line, DEFVAL(2.0), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
+                              DEFVAL(false));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_arrow", "gizmo_rid", "from", "to", "arrow_head_size", "width", "color", "antialiasing"), &Gizmos::draw_2D_arrow, DEFVAL(12.0f), DEFVAL(1.0f),
+                              DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
 }

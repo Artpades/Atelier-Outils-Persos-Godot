@@ -58,23 +58,30 @@ var object_value: Object
 @export var packed_vector4_array_value: PackedVector4Array
 @export var packed_color_array_value: PackedColorArray
 
-var gizmos
+var arrow_gizmo
+var arrow_direction : Vector2
+var cosinus : float = 0
+var sinus : float = PI
 
-func _ready() -> void:
-	call_deferred("initialize")
-	
-func initialize():
-	var viewport : Viewport = get_tree().root.get_viewport()
-	gizmos = Gizmos.create_2D_gizmos(viewport)
-	Gizmos.draw_2D_point(gizmos, Vector2(10, 20), Color.DARK_BLUE)
+
+func _enter_tree() -> void:
+	arrow_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+
+func _process(delta: float) -> void:
+	cosinus += delta * 100
+	sinus += delta * 100
+	arrow_direction = 100 * Vector2(cos(delta * cosinus), sin(delta * sinus))
+	Gizmos.draw_2D_arrow(arrow_gizmo, Vector2.ZERO, arrow_direction)
 
 func _exit_tree() -> void:
-	Gizmos.free_gizmos(gizmos)
+	Gizmos.free_gizmos(arrow_gizmo)
+
 
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:
-	print("Fonction appelée sans paramètre")
-	window.open_window()
+	if window != null:
+		print("Fonction appelée sans paramètre")
+		window.open_window()
 	
 
 

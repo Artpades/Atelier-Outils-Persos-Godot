@@ -6,3 +6,7 @@
 
 [node name="Node" type="Node" parent="." unique_id=384964403]
 script = ExtResource("1_cexgo")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1208829930]
+
+[node name="Démo des Gizmos" type="Node" parent="." unique_id=413538120]
