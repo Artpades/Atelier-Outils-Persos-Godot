@@ -59,23 +59,23 @@ var object_value: Object
 @export var packed_color_array_value: PackedColorArray
 
 var arrow_gizmo
-var arrow_direction : Vector2
-var cosinus : float = 0
-var sinus : float = PI
+
+var circle_gizmo
+var fill_circle : bool
 
 
 func _enter_tree() -> void:
 	arrow_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	circle_gizmo = Gizmos.create_2D_gizmos(get_viewport())
 
-func _process(delta: float) -> void:
-	cosinus += delta * 100
-	sinus += delta * 100
-	arrow_direction = 100 * Vector2(cos(delta * cosinus), sin(delta * sinus))
-	Gizmos.draw_2D_arrow(arrow_gizmo, Vector2.ZERO, arrow_direction)
+func _process(_delta: float) -> void:
+	Gizmos.draw_2D_arrow(arrow_gizmo, Vector2.ZERO, vector2i_value)
+	Gizmos.draw_2D_circle(circle_gizmo, vector2_value, 5, Color.WHITE, false)
 
 func _exit_tree() -> void:
 	Gizmos.free_gizmos(arrow_gizmo)
-
+	Gizmos.free_gizmos(circle_gizmo)
+	
 
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:
