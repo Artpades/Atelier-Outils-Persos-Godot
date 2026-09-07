@@ -66,6 +66,9 @@ var rect_gizmo
 var capsule_gizmo
 var polygone_gizmo
 var path_gizmo
+var transform_gizmo
+var icon_gizmo
+var text_gizmo
 
 func _enter_tree() -> void:
 	arrow_gizmo = Gizmos.create_2D_gizmos(get_viewport())
@@ -74,6 +77,9 @@ func _enter_tree() -> void:
 	capsule_gizmo = Gizmos.create_2D_gizmos(get_viewport())
 	polygone_gizmo = Gizmos.create_2D_gizmos(get_viewport())
 	path_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	transform_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	icon_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	text_gizmo = Gizmos.create_2D_gizmos(get_viewport())
 
 func _process(_delta: float) -> void:
 	Gizmos.draw_2D_arrow(arrow_gizmo, Vector2.ZERO, vector2i_value)
@@ -82,8 +88,10 @@ func _process(_delta: float) -> void:
 	Gizmos.draw_2D_capsule(capsule_gizmo, vector2i_value * 2, vector2_value)
 	if packed_vector2_array_value != null || packed_vector2_array_value.size() <= 0:
 	#	Gizmos.draw_2D_polygon(polygone_gizmo, packed_vector2_array_value)
-		Gizmos.draw_2D_path(path_gizmo, packed_vector2_array_value, boolean_value, integer_value, float_value, true, true)
-
+		Gizmos.draw_2D_path(path_gizmo, packed_vector2_array_value, boolean_value, integer_value, float_value, true, true, 1)
+	Gizmos.draw_2D_origin(transform_gizmo, transform2d_value)
+	Gizmos.draw_2D_icon(icon_gizmo, vector2i_value * 3, load("res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"))
+	Gizmos.draw_2D_text(text_gizmo, vector2_value, string_value, Color.BROWN, integer_value)
 
 func _exit_tree() -> void:
 	Gizmos.free_gizmos(arrow_gizmo)
@@ -92,7 +100,9 @@ func _exit_tree() -> void:
 	Gizmos.free_gizmos(capsule_gizmo)
 	Gizmos.free_gizmos(polygone_gizmo)
 	Gizmos.free_gizmos(path_gizmo)
-	
+	Gizmos.free_gizmos(transform_gizmo)
+	Gizmos.free_gizmos(icon_gizmo)
+	Gizmos.free_gizmos(text_gizmo)
 
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:
