@@ -58,52 +58,6 @@ var object_value: Object
 @export var packed_vector4_array_value: PackedVector4Array
 @export var packed_color_array_value: PackedColorArray
 
-var arrow_gizmo
-
-var circle_gizmo
-var fill_circle : bool
-var rect_gizmo
-var capsule_gizmo
-var polygone_gizmo
-var path_gizmo
-var transform_gizmo
-var icon_gizmo
-var text_gizmo
-
-func _enter_tree() -> void:
-	arrow_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	circle_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	rect_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	capsule_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	polygone_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	path_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	transform_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	icon_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	text_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-
-func _process(_delta: float) -> void:
-	Gizmos2D.draw_2D_arrow(arrow_gizmo, Vector2.ZERO, vector2i_value)
-	Gizmos2D.draw_2D_circle(circle_gizmo, vector2_value, 5, Color.WHITE, false)
-	Gizmos2D.draw_2D_rectangle(rect_gizmo, rect2_value, Color.BLUE_VIOLET, false, 1)
-	Gizmos2D.draw_2D_capsule(capsule_gizmo, vector2i_value * 2, vector2_value)
-	if packed_vector2_array_value != null || packed_vector2_array_value.size() <= 0:
-	#	Gizmos2D.draw_2D_polygon(polygone_gizmo, packed_vector2_array_value)
-		Gizmos2D.draw_2D_path(path_gizmo, packed_vector2_array_value, boolean_value, integer_value, float_value, true, true, 1, 2, Color.AQUAMARINE)
-	Gizmos2D.draw_2D_origin(transform_gizmo, transform2d_value)
-	Gizmos2D.draw_2D_icon(icon_gizmo, vector2i_value * 3, load("res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"))
-	Gizmos2D.draw_2D_text(text_gizmo, vector2_value, string_value, Color.BROWN, integer_value)
-
-func _exit_tree() -> void:
-	Gizmos2D.free_gizmos(arrow_gizmo)
-	Gizmos2D.free_gizmos(circle_gizmo)
-	Gizmos2D.free_gizmos(rect_gizmo)
-	Gizmos2D.free_gizmos(capsule_gizmo)
-	Gizmos2D.free_gizmos(polygone_gizmo)
-	Gizmos2D.free_gizmos(path_gizmo)
-	Gizmos2D.free_gizmos(transform_gizmo)
-	Gizmos2D.free_gizmos(icon_gizmo)
-	Gizmos2D.free_gizmos(text_gizmo)
-
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:
 	if window != null:

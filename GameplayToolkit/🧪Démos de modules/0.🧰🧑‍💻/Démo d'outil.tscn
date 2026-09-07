@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://dgg4xercjodf8"]
 
 [ext_resource type="Script" uid="uid://cyiwrfi3ip0j6" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_tool_editor_creator.gd" id="1_cexgo"]
+[ext_resource type="Script" uid="uid://dbh42m8lubleo" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_2d_Gizmos.gd" id="2_gjktd"]
+[ext_resource type="Texture2D" uid="uid://ci7c2si2mp0ef" path="res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png" id="3_s0kbk"]
 
 [node name="DémoD\'outil" type="Node" unique_id=547730363]
 
@@ -15,3 +17,5 @@ vector2i_value = Vector2i(95, 4)
 packed_vector2_array_value = PackedVector2Array(33.97, 5.33, 20.42, 28.965, -38.74, 14.155, -3.72, -8.01, -14.045, -72.38, 38.425, -21.81)
 
 [node name="Démo des Gizmos" type="Node" parent="." unique_id=413538120]
+script = ExtResource("2_gjktd")
+test_texture = ExtResource("3_s0kbk")
