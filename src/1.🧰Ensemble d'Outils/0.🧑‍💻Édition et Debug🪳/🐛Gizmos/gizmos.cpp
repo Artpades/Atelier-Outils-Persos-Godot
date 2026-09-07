@@ -1,4 +1,8 @@
 #include "gizmos.hpp"
+#include "godot_cpp/core/math_defs.hpp"
+#include "godot_cpp/variant/packed_vector2_array.hpp"
+#include "godot_cpp/variant/rect2.hpp"
+#include <cstdint>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -92,7 +96,7 @@ void Gizmos::free_gizmos(const RID gizmo_rid)
   RenderingServer::get_singleton()->free_rid(gizmo_rid);
 }
 
-void Gizmos::draw_2D_line(RID gizmo_rid, const Vector2 &from, const Vector2 &to, float width, const Color &color, bool antialiasing)
+void Gizmos::draw_2D_line(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float width, const Color &color, bool antialiasing)
 {
   if (!gizmo_rid.is_valid())
   {
@@ -104,7 +108,7 @@ void Gizmos::draw_2D_line(RID gizmo_rid, const Vector2 &from, const Vector2 &to,
   RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, to, color, width);
 }
 
-void Gizmos::draw_2D_arrow(RID gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
+void Gizmos::draw_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
 {
   if (!gizmo_rid.is_valid())
   {
@@ -136,13 +140,14 @@ void Gizmos::draw_2D_arrow(RID gizmo_rid, const Vector2 &from, const Vector2 &to
   RenderingServer::get_singleton()->canvas_item_add_primitive(gizmo_rid, PackedVector2Array{to, point1, point2}, PackedColorArray{color, color, color}, PackedVector2Array(), RID());
 }
 
-void Gizmos::draw_2D_circle(RID gizmo_rid, const Vector2 &center, float radius, const Color &color, bool filled, float thickness, bool antialiasing)
+void Gizmos::draw_2D_circle(const RID &gizmo_rid, const Vector2 &center, float radius, const Color &color, bool filled, float thickness, bool antialiasing)
 {
   if (!gizmo_rid.is_valid())
   {
     print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin du cercle[/color]");
     return;
   }
+
   RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid);
   if (filled)
   {
@@ -153,7 +158,209 @@ void Gizmos::draw_2D_circle(RID gizmo_rid, const Vector2 &center, float radius, 
     _draw_2D_polyline_circle_2D(gizmo_rid, center, radius, color, thickness, 24, antialiasing);
   }
 }
+void Gizmos::draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, const Color &color, bool filled, float thickness, bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin du rectangle[/color]");
+    return;
+  }
+  RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid);
+  if (filled)
+  {
+    RenderingServer::get_singleton()->canvas_item_add_rect(gizmo_rid, rect, color, antialiasing);
+  }
+  else
+  {
+    PackedVector2Array points = {rect.position, Vector2(rect.get_end().x, rect.get_position().y), rect.get_end(), Vector2(rect.get_position().x, rect.get_end().y), rect.position};
+    RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness);
+  }
+}
 
+void Gizmos::draw_2D_capsule(const RID &gizmo_rid, const Vector2 &position, const Vector2 &size, const Color &color, float thickness, bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin de capsule[/color]");
+    return;
+  }
+
+  RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid);
+
+  RenderingServer::get_singleton()->canvas_item_set_transform(gizmo_rid, Transform2D(0, position));
+
+  float radius = size.x * 0.5;
+  float height = Math::max(size.y - size.x, 0.0f);
+  float half_height = height * 0.5;
+
+  PackedVector2Array points = PackedVector2Array{};
+  uint16_t steps = 12;
+
+  for (int i = 0; i < steps + 1; i++)
+  {
+    float angle = Math_PI + (i * Math_PI / steps);
+    points.append(Vector2(cos(angle) * radius, -half_height + sin(angle) * radius));
+  }
+
+  for (int i = 0; i < steps + 1; i++)
+  {
+    float angle = i * Math_PI / steps;
+    points.append(Vector2(cos(angle) * radius, half_height + sin(angle) * radius));
+  }
+  points.append(points[0]);
+  RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness);
+}
+
+void Gizmos::draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &points, const Color &color, bool filled, float thickness, bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin de polygone[/color]");
+    return;
+  }
+
+  if (points.size() < 2)
+  {
+    return;
+  }
+
+  RenderingServer *rs = RenderingServer::get_singleton();
+  rs->canvas_item_clear(gizmo_rid);
+
+  if (filled)
+  {
+    PackedColorArray colors = PackedColorArray();
+    colors.resize(points.size());
+    colors.fill(color);
+    rs->canvas_item_add_polygon(gizmo_rid, points, colors);
+  }
+  else
+  {
+    PackedVector2Array closed = points; // Duplication du tableau
+    if (points.size() > 0 && points[0] != points[points.size() - 1])
+    {
+      closed.append(points[0]);
+    }
+
+    PackedColorArray colors;
+    colors.push_back(color);
+    rs->canvas_item_add_polyline(gizmo_rid, closed, colors, thickness, antialiasing);
+  }
+}
+
+void Gizmos::draw_2D_path(const RID &gizmo_rid,
+                          const PackedVector2Array &points,
+                          bool as_arrows,
+                          int segments_per_line,
+                          float spacing,
+                          bool use_bezier,
+                          bool show_points,
+                          float point_radius,
+                          float width,
+                          const Color &color,
+                          float arrow_head_size,
+                          bool antialiasing)
+{
+  if (!gizmo_rid.is_valid())
+  {
+    print_line_rich("[color=red]Erreur : RID du gizmo invalide pour le dessin du chemin[/color]");
+    return;
+  }
+
+  if (points.size() < 2)
+  {
+    return;
+  }
+
+  RenderingServer *rs = RenderingServer::get_singleton();
+  rs->canvas_item_clear(gizmo_rid);
+
+  // Génération du tableau de points (lisse si use_bezier est vrai)
+  PackedVector2Array path_points;
+  int subdivisions = Math::max(1, segments_per_line);
+
+  if (use_bezier && points.size() >= 3)
+  {
+    path_points.append(points[0]);
+    for (int i = 0; i < points.size() - 1; ++i)
+    {
+      Vector2 p0 = (i == 0) ? points[0] : (points[i] + points[i + 1]) * 0.5f;
+      Vector2 p1 = points[i + 1];
+      Vector2 p2 = (i + 2 < points.size()) ? (points[i + 1] + points[i + 2]) * 0.5f : points[i + 1];
+
+      for (int s = 1; s <= subdivisions; ++s)
+      {
+        float t = static_cast<float>(s) / subdivisions;
+        float omt = 1.0f - t;
+        Vector2 interpolated = omt * omt * p0 + 2.0f * omt * t * p1 + t * t * p2;
+        path_points.append(interpolated);
+      }
+    }
+  }
+  else
+  {
+    path_points = points;
+  }
+
+  // Traçage des segments avec gestion de l'espacement et des sous-divisions
+  for (int i = 0; i < path_points.size() - 1; ++i)
+  {
+    Vector2 start = path_points[i];
+    Vector2 end = path_points[i + 1];
+
+    int steps = use_bezier ? 1 : subdivisions;
+
+    for (int s = 0; s < steps; ++s)
+    {
+      float t1 = static_cast<float>(s) / steps;
+      float t2 = static_cast<float>(s + 1) / steps;
+
+      Vector2 p1 = start.lerp(end, t1);
+      Vector2 p2 = start.lerp(end, t2);
+
+      Vector2 dir = (p2 - p1).normalized();
+      float dist = p1.distance_to(p2);
+
+      if (spacing > 0.0f)
+      {
+        dist = Math::max(0.0f, dist - spacing);
+        p2 = p1 + dir * dist;
+      }
+
+      if (dist <= 0.001f)
+      {
+        continue;
+      }
+
+      if (as_arrows)
+      {
+        float head_length = Math::min(arrow_head_size, dist);
+        Vector2 base_point = p2 - dir * head_length;
+
+        rs->canvas_item_add_line(gizmo_rid, p1, base_point, color, width);
+
+        Vector2 side = Vector2(-dir.y, dir.x) * (head_length * 0.5f);
+        Vector2 point1 = base_point + side;
+        Vector2 point2 = base_point - side;
+
+        rs->canvas_item_add_primitive(gizmo_rid, PackedVector2Array{p2, point1, point2}, PackedColorArray{color, color, color}, PackedVector2Array(), RID());
+      }
+      else
+      {
+        rs->canvas_item_add_line(gizmo_rid, p1, p2, color, width);
+      }
+    }
+  }
+
+  // Dessin des cercles sur les points d'origine du chemin
+  if (show_points)
+  {
+    for (int i = 0; i < points.size(); ++i)
+    {
+      rs->canvas_item_add_circle(gizmo_rid, points[i], point_radius, color, antialiasing);
+    }
+  }
+}
 void Gizmos::_bind_methods()
 {
   // Déclaration des méthodes et propriétés à exposer à Godot ici
@@ -170,4 +377,14 @@ void Gizmos::_bind_methods()
                               DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
   ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_circle", "gizmo_rid", "center", "radius", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_circle,
                               DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_rectangle", "gizmo_rid", "rect", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_rectangle,
+                              DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_capsule", "gizmo_rid", "position", "size", "color", "thickness", "antialiasing"), &Gizmos::draw_2D_capsule, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
+                              DEFVAL(2.0), DEFVAL(false));
+  ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_polygon", "gizmo_rid", "points", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_polygon, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
+                              DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
+  ClassDB::bind_static_method(
+      "Gizmos",
+      D_METHOD("draw_2D_path", "gizmo_rid", "points", "as_arrows", "segments_per_line", "spacing", "use_bezier", "show_points", "point_radius", "width", "color", "arrow_head_size", "antialiasing"),
+      &Gizmos::draw_2D_path, DEFVAL(false), DEFVAL(1), DEFVAL(0.0f), DEFVAL(false), DEFVAL(false), DEFVAL(4.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(12.0f), DEFVAL(false));
 }

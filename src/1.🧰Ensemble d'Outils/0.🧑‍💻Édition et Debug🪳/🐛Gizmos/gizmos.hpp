@@ -2,6 +2,7 @@
 #define GIZMOS_HPP
 
 #include "godot_cpp/variant/packed_vector2_array.hpp"
+#include "godot_cpp/variant/rect2.hpp"
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
@@ -19,7 +20,7 @@
 #include <godot_cpp/variant/vector2.hpp>
 namespace godot
 {
-
+// Gizmos2DServer
 class Gizmos : public RefCounted
 {
   GDCLASS(Gizmos, RefCounted)
@@ -90,13 +91,32 @@ public:
   static void free_gizmos(const RID gizmo_rid);     // Libère de la mémoire associée au gizmo, à appeler lorsque le gizmo n'est plus nécessaire (ex:dans un exit_tree d'un Node)
 
   // Dessine une ligne 2D
-  static void draw_2D_line(RID gizmo_rid, const Vector2 &from, const Vector2 &to, float width = 2.0, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool antialiasing = false);
+  static void draw_2D_line(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float width = 2.0, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool antialiasing = false);
   // Dessine une flèche 2D
-  static void
-  draw_2D_arrow(RID gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_head_size = 12.0f, float width = 1.0f, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool antialiasing = false);
+  static void draw_2D_arrow(
+      const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_head_size = 12.0f, float width = 1.0f, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool antialiasing = false);
   // Dessine un cercle 2D
-  static void draw_2D_circle(RID gizmo_rid, const Vector2 &center, float radius, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float thickness = 2.0, bool antialiasing = false);
+  static void
+  draw_2D_circle(const RID &gizmo_rid, const Vector2 &center, float radius, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float thickness = 2.0, bool antialiasing = false);
   // static void draw_2D_rectangle(RID gizmo_rid, const Vector2 &top_left, const Vector2 &bottom_right, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool antialiasing = false);
+  static void draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float thickness = 2.0, bool antialiasing = false);
+
+  static void draw_2D_capsule(const RID &gizmo_rid, const Vector2 &position, const Vector2 &size, const Color &color = Color(1.0, 1.0, 1.0, 1.0), float thickness = 2.0, bool antialiasing = false);
+  static void draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &points, const Color &color = Color(1, 1, 1, 1), bool filled = false, float width = 2.0f, bool antialiasing = false);
+
+  // Dessine un chemin 2D avec options d'espacement, Bézier et affichage des points
+  static void draw_2D_path(const RID &gizmo_rid,
+                           const PackedVector2Array &points,
+                           bool as_arrows = false,
+                           int segments_per_line = 1,
+                           float spacing = 0.0f,
+                           bool use_bezier = false,
+                           bool show_points = false,
+                           float point_radius = 4.0f,
+                           float width = 2.0f,
+                           const Color &color = Color(1.0, 1.0, 1.0, 1.0),
+                           float arrow_head_size = 12.0f,
+                           bool antialiasing = false);
 };
 
 } // namespace godot

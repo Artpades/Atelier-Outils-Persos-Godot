@@ -62,19 +62,36 @@ var arrow_gizmo
 
 var circle_gizmo
 var fill_circle : bool
-
+var rect_gizmo
+var capsule_gizmo
+var polygone_gizmo
+var path_gizmo
 
 func _enter_tree() -> void:
 	arrow_gizmo = Gizmos.create_2D_gizmos(get_viewport())
 	circle_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	rect_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	capsule_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	polygone_gizmo = Gizmos.create_2D_gizmos(get_viewport())
+	path_gizmo = Gizmos.create_2D_gizmos(get_viewport())
 
 func _process(_delta: float) -> void:
 	Gizmos.draw_2D_arrow(arrow_gizmo, Vector2.ZERO, vector2i_value)
 	Gizmos.draw_2D_circle(circle_gizmo, vector2_value, 5, Color.WHITE, false)
+	Gizmos.draw_2D_rectangle(rect_gizmo, rect2_value, Color.BLUE_VIOLET, false, 1)
+	Gizmos.draw_2D_capsule(capsule_gizmo, vector2i_value * 2, vector2_value)
+	if packed_vector2_array_value != null || packed_vector2_array_value.size() <= 0:
+	#	Gizmos.draw_2D_polygon(polygone_gizmo, packed_vector2_array_value)
+		Gizmos.draw_2D_path(path_gizmo, packed_vector2_array_value, boolean_value, integer_value, float_value, true, true)
+
 
 func _exit_tree() -> void:
 	Gizmos.free_gizmos(arrow_gizmo)
 	Gizmos.free_gizmos(circle_gizmo)
+	Gizmos.free_gizmos(rect_gizmo)
+	Gizmos.free_gizmos(capsule_gizmo)
+	Gizmos.free_gizmos(polygone_gizmo)
+	Gizmos.free_gizmos(path_gizmo)
 	
 
 var window : WindowEditor = WindowEditor.new()
