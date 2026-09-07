@@ -20,18 +20,18 @@
 #include <godot_cpp/variant/rid.hpp>
 using namespace godot;
 
-Gizmos::Gizmos()
+Gizmos2D::Gizmos2D()
 {
     // Initialisation des propriétés et variables ici
 }
-Gizmos::~Gizmos()
+Gizmos2D::~Gizmos2D()
 {
     // Nettoyage des ressources ici
 }
 //------------------------------------------------------------------------------
 
 // Permet de créer un gizmo 2D
-RID Gizmos::create_2D_gizmos(Viewport *viewport)
+RID Gizmos2D::create_2D_gizmos(Viewport *viewport)
 {
 
     if (!viewport || viewport->find_world_2d() == nullptr)
@@ -52,7 +52,7 @@ RID Gizmos::create_2D_gizmos(Viewport *viewport)
     return gizmo_rid; // Retourne le RID du gizmo créé
 }
 //------------------------------------------------------------------------------
-RID Gizmos::create_2D_gizmos(Node *node_to_apply_to)
+RID Gizmos2D::create_2D_gizmos(Node *node_to_apply_to)
 {
     if (!node_to_apply_to)
     {
@@ -73,7 +73,7 @@ RID Gizmos::create_2D_gizmos(Node *node_to_apply_to)
 
 //------------------------------------------------------------------------------
 // Permet d'effacer tout visuel 2D du gizmo
-void Gizmos::clear_2D_gizmos(const RID gizmo_rid)
+void Gizmos2D::clear_2D_gizmos(const RID gizmo_rid)
 {
     // Implémentation de la suppression des gizmos ici
     // Vous pouvez utiliser les fonctions de Godot pour supprimer le gizmo
@@ -87,7 +87,7 @@ void Gizmos::clear_2D_gizmos(const RID gizmo_rid)
     RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid);
 }
 
-void Gizmos::free_gizmos(const RID gizmo_rid)
+void Gizmos2D::free_gizmos(const RID gizmo_rid)
 {
     // Implémentation de la libération des ressources des gizmos ici
     // Vous pouvez utiliser les fonctions de Godot pour libérer les
@@ -101,7 +101,7 @@ void Gizmos::free_gizmos(const RID gizmo_rid)
     RenderingServer::get_singleton()->free_rid(gizmo_rid);
 }
 
-void Gizmos::draw_2D_line(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float width, const Color &color, bool antialiasing)
+void Gizmos2D::draw_2D_line(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float width, const Color &color, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -113,7 +113,7 @@ void Gizmos::draw_2D_line(const RID &gizmo_rid, const Vector2 &from, const Vecto
     RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, to, color, width);
 }
 
-void Gizmos::draw_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
+void Gizmos2D::draw_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -145,7 +145,7 @@ void Gizmos::draw_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vect
     RenderingServer::get_singleton()->canvas_item_add_primitive(gizmo_rid, PackedVector2Array{to, point1, point2}, PackedColorArray{color, color, color}, PackedVector2Array(), RID());
 }
 
-void Gizmos::draw_2D_circle(const RID &gizmo_rid, const Vector2 &center, float radius, const Color &color, bool filled, float thickness, bool antialiasing)
+void Gizmos2D::draw_2D_circle(const RID &gizmo_rid, const Vector2 &center, float radius, const Color &color, bool filled, float thickness, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -163,7 +163,7 @@ void Gizmos::draw_2D_circle(const RID &gizmo_rid, const Vector2 &center, float r
         _draw_2D_polyline_circle_2D(gizmo_rid, center, radius, color, thickness, 24, antialiasing);
     }
 }
-void Gizmos::draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, const Color &color, bool filled, float thickness, bool antialiasing)
+void Gizmos2D::draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, const Color &color, bool filled, float thickness, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -182,7 +182,7 @@ void Gizmos::draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, const Co
     }
 }
 
-void Gizmos::draw_2D_capsule(const RID &gizmo_rid, const Vector2 &position, const Vector2 &size, const Color &color, float thickness, bool antialiasing)
+void Gizmos2D::draw_2D_capsule(const RID &gizmo_rid, const Vector2 &position, const Vector2 &size, const Color &color, float thickness, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -216,7 +216,7 @@ void Gizmos::draw_2D_capsule(const RID &gizmo_rid, const Vector2 &position, cons
     RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness);
 }
 
-void Gizmos::draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &points, const Color &color, bool filled, float thickness, bool antialiasing)
+void Gizmos2D::draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &points, const Color &color, bool filled, float thickness, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -253,18 +253,18 @@ void Gizmos::draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &poi
     }
 }
 
-void Gizmos::draw_2D_path(const RID &gizmo_rid,
-                          const PackedVector2Array &points,
-                          bool as_arrows,
-                          int segments_per_line,
-                          float spacing,
-                          bool use_bezier,
-                          bool show_points,
-                          float point_radius,
-                          float width,
-                          const Color &color,
-                          float arrow_head_size,
-                          bool antialiasing)
+void Gizmos2D::draw_2D_path(const RID &gizmo_rid,
+                            const PackedVector2Array &points,
+                            bool as_arrows,
+                            int segments_per_line,
+                            float spacing,
+                            bool use_bezier,
+                            bool show_points,
+                            float point_radius,
+                            float width,
+                            const Color &color,
+                            float arrow_head_size,
+                            bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -362,7 +362,8 @@ void Gizmos::draw_2D_path(const RID &gizmo_rid,
     {
         for (int i = 0; i < points.size(); ++i)
         {
-            rs->canvas_item_add_circle(gizmo_rid, points[i], point_radius, color, antialiasing);
+            rs->canvas_item_add_circle(gizmo_rid, points[i], point_radius * 1.5, color, antialiasing);
+            rs->canvas_item_add_circle(gizmo_rid, points[i], point_radius, Color(1, 1, 1, 1), antialiasing);
         }
     }
 }
@@ -390,7 +391,7 @@ static void _draw_arrow_primitive(const RID &gizmo_rid, const Vector2 &from, con
     RenderingServer::get_singleton()->canvas_item_add_primitive(gizmo_rid, PackedVector2Array{to, point1, point2}, PackedColorArray{color, color, color}, PackedVector2Array(), RID());
 }
 
-void Gizmos::draw_2D_origin(const RID &gizmo_rid, const Transform2D &transform, float length, float arrow_head_size, float cross_size, float width, const Color &cross_color, bool antialiasing)
+void Gizmos2D::draw_2D_origin(const RID &gizmo_rid, const Transform2D &transform, float length, float arrow_head_size, float cross_size, float width, const Color &cross_color, bool antialiasing)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -420,7 +421,7 @@ void Gizmos::draw_2D_origin(const RID &gizmo_rid, const Transform2D &transform, 
     }
 }
 
-void Gizmos::draw_2D_icon(const RID &gizmo_rid, const Vector2 &position, Ref<Texture2D> icon, const Vector2 &size, RenderingServer::CanvasItemTextureFilter filter)
+void Gizmos2D::draw_2D_icon(const RID &gizmo_rid, const Vector2 &position, Ref<Texture2D> icon, const Vector2 &size, RenderingServer::CanvasItemTextureFilter filter)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -452,7 +453,7 @@ void Gizmos::draw_2D_icon(const RID &gizmo_rid, const Vector2 &position, Ref<Tex
     }
 }
 
-void Gizmos::draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const String &text, const Color &color, int font_size)
+void Gizmos2D::draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const String &text, const Color &color, int font_size)
 {
     if (!gizmo_rid.is_valid())
     {
@@ -473,35 +474,47 @@ void Gizmos::draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const S
     }
 }
 
-void Gizmos::_bind_methods()
+void Gizmos2D::apply_shader_on_gizmo(const RID &gizmo_rid, Ref<Material> &material)
+{
+    if (!gizmo_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID du gizmo invalide pour l'application de matériau[/color]");
+        return;
+    }
+
+    RenderingServer::get_singleton()->canvas_item_set_material(gizmo_rid, material->_get_shader_rid());
+}
+void Gizmos2D::_bind_methods()
 {
     // Déclaration des méthodes et propriétés à exposer à Godot ici
 
-    ClassDB::bind_static_method("Gizmos", D_METHOD("create_2D_gizmos", "viewport"), static_cast<RID (*)(Viewport *)>(&Gizmos::create_2D_gizmos));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("create_2D_gizmos", "node_to_apply_to"), static_cast<RID (*)(Node *)>(&Gizmos::create_2D_gizmos));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("clear_2D_gizmos", "gizmo_rid"), &Gizmos::clear_2D_gizmos);
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("create_2D_gizmos", "viewport"), static_cast<RID (*)(Viewport *)>(&Gizmos2D::create_2D_gizmos));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("create_2D_gizmos", "node_to_apply_to"), static_cast<RID (*)(Node *)>(&Gizmos2D::create_2D_gizmos));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("clear_2D_gizmos", "gizmo_rid"), &Gizmos2D::clear_2D_gizmos);
 
-    ClassDB::bind_static_method("Gizmos", D_METHOD("free_gizmos", "gizmo_rid"), &Gizmos::free_gizmos);
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("free_gizmos", "gizmo_rid"), &Gizmos2D::free_gizmos);
 
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_line", "gizmo_rid", "from", "to", "width", "color", "antialiasing"), &Gizmos::draw_2D_line, DEFVAL(2.0), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
-                                DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_arrow", "gizmo_rid", "from", "to", "arrow_head_size", "width", "color", "antialiasing"), &Gizmos::draw_2D_arrow, DEFVAL(12.0f),
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_line", "gizmo_rid", "from", "to", "width", "color", "antialiasing"), &Gizmos2D::draw_2D_line, DEFVAL(2.0),
+                                DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_arrow", "gizmo_rid", "from", "to", "arrow_head_size", "width", "color", "antialiasing"), &Gizmos2D::draw_2D_arrow, DEFVAL(12.0f),
                                 DEFVAL(1.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_circle", "gizmo_rid", "center", "radius", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_circle,
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_circle", "gizmo_rid", "center", "radius", "color", "filled", "thickness", "antialiasing"), &Gizmos2D::draw_2D_circle,
                                 DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_rectangle", "gizmo_rid", "rect", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_rectangle,
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_rectangle", "gizmo_rid", "rect", "color", "filled", "thickness", "antialiasing"), &Gizmos2D::draw_2D_rectangle,
                                 DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_capsule", "gizmo_rid", "position", "size", "color", "thickness", "antialiasing"), &Gizmos::draw_2D_capsule,
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_capsule", "gizmo_rid", "position", "size", "color", "thickness", "antialiasing"), &Gizmos2D::draw_2D_capsule,
                                 DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(2.0), DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_polygon", "gizmo_rid", "points", "color", "filled", "thickness", "antialiasing"), &Gizmos::draw_2D_polygon,
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_polygon", "gizmo_rid", "points", "color", "filled", "thickness", "antialiasing"), &Gizmos2D::draw_2D_polygon,
                                 DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(2.0), DEFVAL(false));
     ClassDB::bind_static_method(
-        "Gizmos",
+        "Gizmos2D",
         D_METHOD("draw_2D_path", "gizmo_rid", "points", "as_arrows", "segments_per_line", "spacing", "use_bezier", "show_points", "point_radius", "width", "color", "arrow_head_size", "antialiasing"),
-        &Gizmos::draw_2D_path, DEFVAL(false), DEFVAL(1), DEFVAL(0.0f), DEFVAL(false), DEFVAL(false), DEFVAL(4.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(12.0f), DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_origin", "gizmo_rid", "transform", "length", "arrow_head_size", "cross_size", "width", "cross_color", "antialiasing"),
-                                &Gizmos::draw_2D_origin, DEFVAL(Transform2D()), DEFVAL(32.0f), DEFVAL(8.0f), DEFVAL(8.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_icon", "gizmo_rid", "position", "icon", "size", "filter"), &Gizmos::draw_2D_icon, DEFVAL(Vector2(0, 0)),
+        &Gizmos2D::draw_2D_path, DEFVAL(false), DEFVAL(1), DEFVAL(0.0f), DEFVAL(false), DEFVAL(false), DEFVAL(4.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(12.0f), DEFVAL(false));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_origin", "gizmo_rid", "transform", "length", "arrow_head_size", "cross_size", "width", "cross_color", "antialiasing"),
+                                &Gizmos2D::draw_2D_origin, DEFVAL(Transform2D()), DEFVAL(32.0f), DEFVAL(8.0f), DEFVAL(8.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_icon", "gizmo_rid", "position", "icon", "size", "filter"), &Gizmos2D::draw_2D_icon, DEFVAL(Vector2(0, 0)),
                                 DEFVAL(RenderingServer::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST));
-    ClassDB::bind_static_method("Gizmos", D_METHOD("draw_2D_text", "gizmo_rid", "position", "text", "color", "font_size"), &Gizmos::draw_2D_text, DEFVAL(Color(1.0f, 1.0f, 1.0f, 1.0f)), DEFVAL(12));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_text", "gizmo_rid", "position", "text", "color", "font_size"), &Gizmos2D::draw_2D_text, DEFVAL(Color(1.0f, 1.0f, 1.0f, 1.0f)),
+                                DEFVAL(12));
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("apply_shader_on_gizmo", "gizmo_rid", "material"), &Gizmos2D::apply_shader_on_gizmo);
 }

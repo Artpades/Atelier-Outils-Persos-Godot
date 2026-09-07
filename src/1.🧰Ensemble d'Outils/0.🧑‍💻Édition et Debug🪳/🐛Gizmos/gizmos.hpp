@@ -1,6 +1,7 @@
 #ifndef GIZMOS_HPP
 #define GIZMOS_HPP
 
+#include "godot_cpp/classes/canvas_item.hpp"
 #include "godot_cpp/variant/packed_vector2_array.hpp"
 #include "godot_cpp/variant/rect2.hpp"
 #include "godot_cpp/variant/transform2d.hpp"
@@ -24,9 +25,9 @@
 namespace godot
 {
 // Gizmos2DServer
-class Gizmos : public RefCounted
+class Gizmos2D : public RefCounted
 {
-    GDCLASS(Gizmos, RefCounted)
+    GDCLASS(Gizmos2D, RefCounted)
   private:
     static Ref<StandardMaterial3D> _default_material;
     static Ref<StandardMaterial3D> get_default_material()
@@ -85,8 +86,8 @@ class Gizmos : public RefCounted
     static void _bind_methods();
 
   public:
-    Gizmos();
-    ~Gizmos();
+    Gizmos2D();
+    ~Gizmos2D();
 
     static RID create_2D_gizmos(Node *node_to_apply_to);
     static RID create_2D_gizmos(Viewport *viewport);
@@ -136,6 +137,8 @@ class Gizmos : public RefCounted
                              const Vector2 &size = Vector2(0, 0),
                              RenderingServer::CanvasItemTextureFilter filter = RenderingServer::CANVAS_ITEM_TEXTURE_FILTER_NEAREST);
     static void draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const String &text, const Color &color = Color(1.0f, 1.0f, 1.0f, 1.0f), int font_size = 12);
+
+    static void apply_shader_on_gizmo(const RID &gizmo_rid, Ref<Material> &material);
 };
 
 } // namespace godot
