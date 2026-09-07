@@ -1,4 +1,4 @@
-#include "gizmos.hpp"
+#include "gizmos_2d.hpp"
 #include "godot_cpp/classes/theme_db.hpp"
 #include "godot_cpp/core/math_defs.hpp"
 #include "godot_cpp/core/print_string.hpp"
@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/font.hpp>
+#include <godot_cpp/classes/material.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
@@ -474,7 +475,7 @@ void Gizmos2D::draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const
     }
 }
 
-void Gizmos2D::apply_shader_on_gizmo(const RID &gizmo_rid, Ref<Material> &material)
+void Gizmos2D::apply_shader_on_gizmo(const RID &gizmo_rid, const Ref<Material> &material)
 {
     if (!gizmo_rid.is_valid())
     {

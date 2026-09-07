@@ -138,7 +138,7 @@ class Gizmos2D : public RefCounted
                              RenderingServer::CanvasItemTextureFilter filter = RenderingServer::CANVAS_ITEM_TEXTURE_FILTER_NEAREST);
     static void draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const String &text, const Color &color = Color(1.0f, 1.0f, 1.0f, 1.0f), int font_size = 12);
 
-    static void apply_shader_on_gizmo(const RID &gizmo_rid, Ref<Material> &material);
+    static void apply_shader_on_gizmo(const RID &gizmo_rid, const Ref<Material> &material);
 };
 
 } // namespace godot

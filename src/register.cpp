@@ -12,7 +12,7 @@
 // d'Outils/1.📁Intercepteurs de données/💾Manipulateur de données🔐/⚙️Générateur
 // de Gestionnaire/manager_builder_wrapper.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪟Fenêtre d'édition/window_editor.hpp"
 
 using namespace godot;
