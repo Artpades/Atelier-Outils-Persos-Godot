@@ -1,0 +1,913 @@
+#include "gizmos_3d.hpp"
+#include <godot_cpp/core/math.hpp>
+
+using namespace godot;
+
+// Les variables static locales sont construites à la première exécution de la fonction,
+// une fois que le moteur Godot est déjà entièrement chargé.
+Dictionary &Gizmos3D::_get_mesh_rids()
+{
+    static Dictionary mesh_rids;
+    return mesh_rids;
+}
+
+Dictionary &Gizmos3D::_get_materials()
+{
+    static Dictionary materials;
+    return materials;
+}
+
+Dictionary &Gizmos3D::_get_text_viewports()
+{
+    static Dictionary text_viewports;
+    return text_viewports;
+}
+
+Ref<StandardMaterial3D> &Gizmos3D::_get_default_3D_material()
+{
+    static Ref<StandardMaterial3D> default_material;
+    if (default_material.is_null())
+    {
+        default_material.instantiate();
+        default_material->set_shading_mode(BaseMaterial3D::SHADING_MODE_UNSHADED);
+        default_material->set_flag(BaseMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+        default_material->set_cull_mode(BaseMaterial3D::CULL_DISABLED);
+    }
+    return default_material;
+}
+
+Gizmos3D::Gizmos3D() {}
+Gizmos3D::~Gizmos3D() {}
+
+RID Gizmos3D::create_3D_gizmo(Viewport *viewport)
+{
+    RenderingServer *rs = RenderingServer::get_singleton();
+    RID scenario = _get_scenario(viewport);
+
+    if (!scenario.is_valid())
+    {
+        print_error("Erreur : scenario invalide à cause du viewport invalide !");
+        return RID();
+    }
+
+    RID instance_rid = rs->instance_create();
+    rs->instance_set_scenario(instance_rid, scenario);
+    rs->instance_geometry_set_material_override(instance_rid, _get_default_3D_material()->get_rid());
+
+    return instance_rid;
+}
+
+void Gizmos3D::clear_3D_gizmo(const RID &gizmo_rid)
+{
+    if (!gizmo_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID du gizmo invalide pour l'effacement de visuel 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_mesh_rids().get(gizmo_rid, RID());
+    if (mesh_rid.is_valid() && RenderingServer::get_singleton()->mesh_get_surface_count(mesh_rid) > 0)
+    {
+        RenderingServer::get_singleton()->mesh_clear(mesh_rid);
+    }
+}
+
+void Gizmos3D::free_3D_gizmo(const RID &gizmo_rid)
+{
+    if (gizmo_rid.is_valid())
+    {
+        _get_materials().erase(gizmo_rid);
+        if (_get_text_viewports().has(gizmo_rid))
+        {
+            _get_text_viewports().erase(gizmo_rid);
+        }
+
+        RID mesh_rid = _get_mesh_rids().get(gizmo_rid, RID());
+        if (mesh_rid.is_valid())
+        {
+            RenderingServer::get_singleton()->free_rid(mesh_rid);
+            _get_mesh_rids().erase(gizmo_rid);
+        }
+
+        RenderingServer::get_singleton()->free_rid(gizmo_rid);
+    }
+}
+
+RID Gizmos3D::_get_scenario(Viewport *viewport)
+{
+    if (viewport)
+    {
+        Ref<World3D> world = viewport->find_world_3d();
+        if (world != nullptr)
+        {
+            return world->get_scenario();
+        }
+
+        if (Engine::get_singleton()->is_editor_hint())
+        {
+            SubViewport *editor_viewport = EditorInterface::get_singleton()->get_editor_viewport_3d(0);
+            if (editor_viewport != nullptr && editor_viewport->find_world_3d() != nullptr)
+            {
+                return editor_viewport->find_world_3d()->get_scenario();
+            }
+        }
+    }
+
+    print_line_rich("[color=red]Erreur : Impossible de trouver le monde 3D[/color]");
+    return RID();
+}
+
+//------------------------------------------------------------------------------
+// Helpers internes (portage direct de _get_or_create_mesh_rid / _add_3d_thick_line /
+// _add_3d_arrow_to_surfacetool depuis gizmos_manager.gd)
+//------------------------------------------------------------------------------
+
+RID Gizmos3D::_get_or_create_mesh_rid(const RID &instance_rid)
+{
+    RenderingServer *rs = RenderingServer::get_singleton();
+    RID mesh_rid = _get_mesh_rids().get(instance_rid, RID());
+    if (!mesh_rid.is_valid())
+    {
+        mesh_rid = rs->mesh_create();
+        _get_mesh_rids()[instance_rid] = mesh_rid;
+        rs->instance_set_base(instance_rid, mesh_rid);
+    }
+    else
+    {
+        rs->mesh_clear(mesh_rid);
+    }
+    return mesh_rid;
+}
+
+void Gizmos3D::_add_3D_thick_line(Ref<SurfaceTool> &st, const Vector3 &from, const Vector3 &to, const Color &color, float width)
+{
+    if (width <= 1.0f)
+    {
+        st->set_color(color);
+        st->add_vertex(from);
+        st->set_color(color);
+        st->add_vertex(to);
+        return;
+    }
+
+    float radius = width * 0.005f;
+    Vector3 dir = (to - from).normalized();
+    if (dir == Vector3(0, 0, 0))
+    {
+        return;
+    }
+
+    Vector3 up = Math::abs(dir.y) < 0.99f ? Vector3(0, 1, 0) : Vector3(1, 0, 0);
+    Vector3 side = dir.cross(up).normalized() * radius;
+    Vector3 normal = dir.cross(side).normalized() * radius;
+
+    const int sides = 6;
+    for (int i = 0; i < sides; i++)
+    {
+        float a1 = i * 2.0f * Math_PI / sides;
+        float a2 = (i + 1) * 2.0f * Math_PI / sides;
+
+        Vector3 offset1 = side * Math::cos(a1) + normal * Math::sin(a1);
+        Vector3 offset2 = side * Math::cos(a2) + normal * Math::sin(a2);
+
+        st->set_color(color);
+        st->add_vertex(from + offset1);
+        st->set_color(color);
+        st->add_vertex(to + offset1);
+        st->set_color(color);
+        st->add_vertex(to + offset2);
+
+        st->set_color(color);
+        st->add_vertex(from + offset1);
+        st->set_color(color);
+        st->add_vertex(to + offset2);
+        st->set_color(color);
+        st->add_vertex(from + offset2);
+    }
+}
+
+void Gizmos3D::_add_3D_arrow_to_surfacetool(Ref<SurfaceTool> &st, const Vector3 &from, const Vector3 &to, const Color &color, float head_size, float width)
+{
+    Vector3 dir = (to - from).normalized();
+    float dist = from.distance_to(to);
+    if (dist <= 0.001f)
+    {
+        return;
+    }
+    float actual_head = Math::min(head_size, dist);
+    Vector3 base_pt = to - dir * actual_head;
+    // Ce SurfaceTool est TOUJOURS ouvert en PRIMITIVE_TRIANGLES par l'appelant (à cause du
+    // cône ci-dessous) : on force donc _add_3D_thick_line à produire un tube (>1.0f) plutôt
+    // qu'une ligne à 2 sommets, sinon on casse la règle "multiple de 3" du buffer.
+    _add_3D_thick_line(st, from, base_pt, color, width <= 1.0f ? 1.5f : width);
+
+    Vector3 ortho = dir.cross(Vector3(0, 1, 0));
+    if (ortho.length_squared() < 0.001f)
+    {
+        ortho = dir.cross(Vector3(1, 0, 0));
+    }
+    ortho = ortho.normalized() * (actual_head * 0.3f);
+    Vector3 ortho2 = dir.cross(ortho).normalized() * (actual_head * 0.3f);
+
+    for (int j = 0; j < 6; j++)
+    {
+        float a1 = j * 2.0f * Math_PI / 6.0f;
+        float a2 = (j + 1) * 2.0f * Math_PI / 6.0f;
+        Vector3 cp1 = base_pt + ortho * Math::cos(a1) + ortho2 * Math::sin(a1);
+        Vector3 cp2 = base_pt + ortho * Math::cos(a2) + ortho2 * Math::sin(a2);
+        st->set_color(color);
+        st->add_vertex(to);
+        st->set_color(color);
+        st->add_vertex(cp2);
+        st->set_color(color);
+        st->add_vertex(cp1);
+    }
+}
+
+//------------------------------------------------------------------------------
+// Primitives 3D
+//------------------------------------------------------------------------------
+
+void Gizmos3D::draw_3D_line(const RID &instance_rid, const Vector3 &from, const Vector3 &to, const Color &color, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin de la ligne 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+
+    bool thin = width <= 1.0f;
+    st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+    _add_3D_thick_line(st, from, to, color, width);
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_arrow(const RID &instance_rid, const Vector3 &from, const Vector3 &to, const Color &color, float head_size, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin de la flèche 3D[/color]");
+        return;
+    }
+
+    Vector3 dir = (to - from).normalized();
+    float dist = from.distance_to(to);
+    if (dist <= 0.001f)
+    {
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+
+    float actual_head = Math::min(head_size, dist);
+    Vector3 base_pt = to - dir * actual_head;
+
+    // Ligne (peut être fine ou tube, mais le cône est toujours en triangles ; on ouvre
+    // donc systématiquement le SurfaceTool en PRIMITIVE_TRIANGLES, comme dans le GDScript d'origine)
+    st->begin(Mesh::PRIMITIVE_TRIANGLES);
+    _add_3D_thick_line(st, from, base_pt, color, width <= 1.0f ? 1.5f : width); // évite une ligne PRIMITIVE_LINES mélangée à des triangles
+
+    Vector3 ortho = dir.cross(Vector3(0, 1, 0));
+    if (ortho.length_squared() < 0.001f)
+    {
+        ortho = dir.cross(Vector3(1, 0, 0));
+    }
+    ortho = ortho.normalized() * (actual_head * 0.4f);
+    Vector3 ortho2 = dir.cross(ortho).normalized() * (actual_head * 0.4f);
+
+    const int segments = 8;
+    for (int i = 0; i < segments; i++)
+    {
+        float a1 = i * 2.0f * Math_PI / segments;
+        float a2 = (i + 1) * 2.0f * Math_PI / segments;
+        Vector3 p1 = base_pt + ortho * Math::cos(a1) + ortho2 * Math::sin(a1);
+        Vector3 p2 = base_pt + ortho * Math::cos(a2) + ortho2 * Math::sin(a2);
+
+        // Cône
+        st->set_color(color);
+        st->add_vertex(to);
+        st->set_color(color);
+        st->add_vertex(p2);
+        st->set_color(color);
+        st->add_vertex(p1);
+        // Base du cône
+        st->set_color(color);
+        st->add_vertex(base_pt);
+        st->set_color(color);
+        st->add_vertex(p1);
+        st->set_color(color);
+        st->add_vertex(p2);
+    }
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_cube(const RID &instance_rid, const Vector3 &center, const Vector3 &size, const Color &color, bool filled, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du cube 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    Vector3 ext = size * 0.5f;
+
+    if (!filled)
+    {
+        bool thin = width <= 1.0f;
+        st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+
+        Vector3 corners[8] = {center + Vector3(-ext.x, -ext.y, -ext.z), center + Vector3(ext.x, -ext.y, -ext.z), center + Vector3(ext.x, -ext.y, ext.z), center + Vector3(-ext.x, -ext.y, ext.z),
+                              center + Vector3(-ext.x, ext.y, -ext.z),  center + Vector3(ext.x, ext.y, -ext.z),  center + Vector3(ext.x, ext.y, ext.z),  center + Vector3(-ext.x, ext.y, ext.z)};
+        const int pairs[12][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+        for (int i = 0; i < 12; i++)
+        {
+            _add_3D_thick_line(st, corners[pairs[i][0]], corners[pairs[i][1]], color, width);
+        }
+
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+    else
+    {
+        st->begin(Mesh::PRIMITIVE_TRIANGLES);
+        Vector3 faces[6][4] = {
+            {Vector3(-ext.x, -ext.y, ext.z), Vector3(ext.x, -ext.y, ext.z), Vector3(ext.x, ext.y, ext.z), Vector3(-ext.x, ext.y, ext.z)},     // Avant
+            {Vector3(ext.x, -ext.y, -ext.z), Vector3(-ext.x, -ext.y, -ext.z), Vector3(-ext.x, ext.y, -ext.z), Vector3(ext.x, ext.y, -ext.z)}, // Arrière
+            {Vector3(-ext.x, ext.y, -ext.z), Vector3(-ext.x, ext.y, ext.z), Vector3(ext.x, ext.y, ext.z), Vector3(ext.x, ext.y, -ext.z)},     // Haut
+            {Vector3(-ext.x, -ext.y, ext.z), Vector3(-ext.x, -ext.y, -ext.z), Vector3(ext.x, -ext.y, -ext.z), Vector3(ext.x, -ext.y, ext.z)}, // Bas
+            {Vector3(ext.x, -ext.y, ext.z), Vector3(ext.x, -ext.y, -ext.z), Vector3(ext.x, ext.y, -ext.z), Vector3(ext.x, ext.y, ext.z)},     // Droite
+            {Vector3(-ext.x, -ext.y, -ext.z), Vector3(-ext.x, -ext.y, ext.z), Vector3(-ext.x, ext.y, ext.z), Vector3(-ext.x, ext.y, -ext.z)}  // Gauche
+        };
+
+        for (int f = 0; f < 6; f++)
+        {
+            st->set_color(color);
+            st->add_vertex(center + faces[f][0]);
+            st->set_color(color);
+            st->add_vertex(center + faces[f][1]);
+            st->set_color(color);
+            st->add_vertex(center + faces[f][2]);
+            st->set_color(color);
+            st->add_vertex(center + faces[f][0]);
+            st->set_color(color);
+            st->add_vertex(center + faces[f][2]);
+            st->set_color(color);
+            st->add_vertex(center + faces[f][3]);
+        }
+
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+}
+
+void Gizmos3D::draw_3D_sphere(const RID &instance_rid, const Vector3 &center, float radius, const Color &color, bool filled, int segments, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin de la sphère 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+
+    if (!filled)
+    {
+        bool thin = width <= 1.0f;
+        st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+
+        for (int i = 0; i < segments; i++)
+        {
+            float a1 = i * 2.0f * Math_PI / segments;
+            float a2 = (i + 1) * 2.0f * Math_PI / segments;
+
+            _add_3D_thick_line(st, center + Vector3(Math::cos(a1), Math::sin(a1), 0) * radius, center + Vector3(Math::cos(a2), Math::sin(a2), 0) * radius, color, width);
+            _add_3D_thick_line(st, center + Vector3(Math::cos(a1), 0, Math::sin(a1)) * radius, center + Vector3(Math::cos(a2), 0, Math::sin(a2)) * radius, color, width);
+            _add_3D_thick_line(st, center + Vector3(0, Math::cos(a1), Math::sin(a1)) * radius, center + Vector3(0, Math::cos(a2), Math::sin(a2)) * radius, color, width);
+        }
+
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+    else
+    {
+        st->begin(Mesh::PRIMITIVE_TRIANGLES);
+        int rings = segments / 2;
+        for (int i = 0; i < rings; i++)
+        {
+            float v1 = static_cast<float>(i) / rings;
+            float v2 = static_cast<float>(i + 1) / rings;
+            float lat1 = Math_PI * (v1 - 0.5f);
+            float lat2 = Math_PI * (v2 - 0.5f);
+
+            for (int j = 0; j < segments; j++)
+            {
+                float u1 = static_cast<float>(j) / segments;
+                float u2 = static_cast<float>(j + 1) / segments;
+                float lon1 = 2.0f * Math_PI * u1;
+                float lon2 = 2.0f * Math_PI * u2;
+
+                Vector3 p1 = center + Vector3(Math::cos(lat1) * Math::cos(lon1), Math::sin(lat1), Math::cos(lat1) * Math::sin(lon1)) * radius;
+                Vector3 p2 = center + Vector3(Math::cos(lat1) * Math::cos(lon2), Math::sin(lat1), Math::cos(lat1) * Math::sin(lon2)) * radius;
+                Vector3 p3 = center + Vector3(Math::cos(lat2) * Math::cos(lon2), Math::sin(lat2), Math::cos(lat2) * Math::sin(lon2)) * radius;
+                Vector3 p4 = center + Vector3(Math::cos(lat2) * Math::cos(lon1), Math::sin(lat2), Math::cos(lat2) * Math::sin(lon1)) * radius;
+
+                st->set_color(color);
+                st->add_vertex(p1);
+                st->set_color(color);
+                st->add_vertex(p2);
+                st->set_color(color);
+                st->add_vertex(p3);
+                st->set_color(color);
+                st->add_vertex(p1);
+                st->set_color(color);
+                st->add_vertex(p3);
+                st->set_color(color);
+                st->add_vertex(p4);
+            }
+        }
+
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+}
+
+void Gizmos3D::draw_3D_circle(const RID &instance_rid, const Vector3 &center, float radius, const Vector3 &normal, const Color &color, bool filled, int segments, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du cercle 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+
+    Vector3 norm = normal.normalized();
+    Vector3 up = Math::abs(norm.y) < 0.99f ? Vector3(0, 1, 0) : Vector3(1, 0, 0);
+    Vector3 tangent = norm.cross(up).normalized();
+    Vector3 bitangent = norm.cross(tangent).normalized();
+
+    if (!filled)
+    {
+        bool thin = width <= 1.0f;
+        st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+        for (int i = 0; i < segments; i++)
+        {
+            float a1 = i * 2.0f * Math_PI / segments;
+            float a2 = (i + 1) * 2.0f * Math_PI / segments;
+            Vector3 p1 = center + (tangent * Math::cos(a1) + bitangent * Math::sin(a1)) * radius;
+            Vector3 p2 = center + (tangent * Math::cos(a2) + bitangent * Math::sin(a2)) * radius;
+            _add_3D_thick_line(st, p1, p2, color, width);
+        }
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+    else
+    {
+        st->begin(Mesh::PRIMITIVE_TRIANGLES);
+        for (int i = 0; i < segments; i++)
+        {
+            float a1 = i * 2.0f * Math_PI / segments;
+            float a2 = (i + 1) * 2.0f * Math_PI / segments;
+            Vector3 p1 = center + (tangent * Math::cos(a1) + bitangent * Math::sin(a1)) * radius;
+            Vector3 p2 = center + (tangent * Math::cos(a2) + bitangent * Math::sin(a2)) * radius;
+            st->set_color(color);
+            st->add_vertex(center);
+            st->set_color(color);
+            st->add_vertex(p1);
+            st->set_color(color);
+            st->add_vertex(p2);
+        }
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+}
+
+void Gizmos3D::draw_3D_rectangle(const RID &instance_rid, const Vector3 &center, const Vector2 &size, const Vector3 &normal, const Color &color, bool filled, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du rectangle 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+
+    Vector3 norm = normal.normalized();
+    Vector3 up = Math::abs(norm.y) < 0.99f ? Vector3(0, 1, 0) : Vector3(1, 0, 0);
+    Vector3 tangent = norm.cross(up).normalized() * (size.x * 0.5f);
+    Vector3 bitangent = norm.cross(tangent).normalized() * (size.y * 0.5f);
+
+    Vector3 p1 = center - tangent - bitangent;
+    Vector3 p2 = center + tangent - bitangent;
+    Vector3 p3 = center + tangent + bitangent;
+    Vector3 p4 = center - tangent + bitangent;
+
+    if (!filled)
+    {
+        bool thin = width <= 1.0f;
+        st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+        _add_3D_thick_line(st, p1, p2, color, width);
+        _add_3D_thick_line(st, p2, p3, color, width);
+        _add_3D_thick_line(st, p3, p4, color, width);
+        _add_3D_thick_line(st, p4, p1, color, width);
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+    else
+    {
+        st->begin(Mesh::PRIMITIVE_TRIANGLES);
+        st->set_color(color);
+        st->add_vertex(p1);
+        st->set_color(color);
+        st->add_vertex(p2);
+        st->set_color(color);
+        st->add_vertex(p3);
+        st->set_color(color);
+        st->add_vertex(p1);
+        st->set_color(color);
+        st->add_vertex(p3);
+        st->set_color(color);
+        st->add_vertex(p4);
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+}
+
+void Gizmos3D::draw_3D_capsule(const RID &instance_rid, const Vector3 &center, float radius, float height, const Color &color, bool filled, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin de la capsule 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    float half_h = Math::max(height - radius * 2.0f, 0.0f) * 0.5f;
+
+    // IMPORTANT : le choix de primitive doit suivre EXACTEMENT la même règle que
+    // _add_3D_thick_line() en interne (width <= 1.0f => 2 sommets "ligne"), sinon on
+    // obtient un nombre de sommets non multiple de 3 dans un buffer TRIANGLES
+    // (ex. "Vertex amount must be a multiple of 3"). "filled" n'a ici aucun effet
+    // géométrique réel (pas de dômes générés, fidèle au GDScript d'origine) : on
+    // l'ignore volontairement dans ce choix.
+    bool as_lines = (width <= 1.0f);
+    st->begin(as_lines ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+
+    Vector3 top = center + Vector3(0, half_h, 0);
+    Vector3 bot = center - Vector3(0, half_h, 0);
+    const int segs = 12;
+
+    for (int i = 0; i < segs; i++)
+    {
+        float a1 = i * 2.0f * Math_PI / segs;
+        float a2 = (i + 1) * 2.0f * Math_PI / segs;
+        _add_3D_thick_line(st, top + Vector3(Math::cos(a1), 0, Math::sin(a1)) * radius, top + Vector3(Math::cos(a2), 0, Math::sin(a2)) * radius, color, width);
+        _add_3D_thick_line(st, bot + Vector3(Math::cos(a1), 0, Math::sin(a1)) * radius, bot + Vector3(Math::cos(a2), 0, Math::sin(a2)) * radius, color, width);
+    }
+
+    _add_3D_thick_line(st, top + Vector3(radius, 0, 0), bot + Vector3(radius, 0, 0), color, width);
+    _add_3D_thick_line(st, top + Vector3(-radius, 0, 0), bot + Vector3(-radius, 0, 0), color, width);
+    _add_3D_thick_line(st, top + Vector3(0, 0, radius), bot + Vector3(0, 0, radius), color, width);
+    _add_3D_thick_line(st, top + Vector3(0, 0, -radius), bot + Vector3(0, 0, -radius), color, width);
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, as_lines ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_polygon(const RID &instance_rid, const PackedVector3Array &points, const Color &color, bool filled, float width)
+{
+    if (!instance_rid.is_valid() || points.size() < 3)
+    {
+        if (instance_rid.is_valid())
+        {
+            print_line_rich("[color=red]Erreur : au moins 3 points sont nécessaires pour le dessin du polygone 3D[/color]");
+        }
+        else
+        {
+            print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du polygone 3D[/color]");
+        }
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+
+    if (!filled)
+    {
+        bool thin = width <= 1.0f;
+        st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+        for (int i = 0; i < points.size(); i++)
+        {
+            Vector3 p1 = points[i];
+            Vector3 p2 = points[(i + 1) % points.size()];
+            _add_3D_thick_line(st, p1, p2, color, width);
+        }
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+    else
+    {
+        st->begin(Mesh::PRIMITIVE_TRIANGLES);
+        Vector3 p0 = points[0];
+        for (int i = 1; i < points.size() - 1; i++)
+        {
+            st->set_color(color);
+            st->add_vertex(p0);
+            st->set_color(color);
+            st->add_vertex(points[i]);
+            st->set_color(color);
+            st->add_vertex(points[i + 1]);
+        }
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    }
+}
+
+void Gizmos3D::draw_3D_path(const RID &instance_rid, const PackedVector3Array &points, const Color &color, float width)
+{
+    if (!instance_rid.is_valid() || points.size() < 2)
+    {
+        if (instance_rid.is_valid())
+        {
+            print_line_rich("[color=red]Erreur : au moins 2 points sont nécessaires pour le dessin du chemin 3D[/color]");
+        }
+        else
+        {
+            print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du chemin 3D[/color]");
+        }
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    bool thin = width <= 1.0f;
+    st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
+
+    for (int i = 0; i < points.size() - 1; i++)
+    {
+        _add_3D_thick_line(st, points[i], points[i + 1], color, width);
+    }
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_arrow_path(const RID &instance_rid, const PackedVector3Array &points, const Color &color, float head_size, float width)
+{
+    if (!instance_rid.is_valid() || points.size() < 2)
+    {
+        if (instance_rid.is_valid())
+        {
+            print_line_rich("[color=red]Erreur : au moins 2 points sont nécessaires pour le dessin du chemin fléché 3D[/color]");
+        }
+        else
+        {
+            print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du chemin fléché 3D[/color]");
+        }
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    st->begin(Mesh::PRIMITIVE_TRIANGLES);
+
+    for (int i = 0; i < points.size() - 1; i++)
+    {
+        Vector3 p1 = points[i];
+        Vector3 p2 = points[i + 1];
+        Vector3 dir = (p2 - p1).normalized();
+        float dist = p1.distance_to(p2);
+        if (dist <= 0.001f)
+        {
+            continue;
+        }
+
+        float actual_head = Math::min(head_size, dist);
+        Vector3 base_pt = p2 - dir * actual_head;
+
+        // Même remarque que dans _add_3D_arrow_to_surfacetool : ce SurfaceTool est ouvert en
+        // PRIMITIVE_TRIANGLES (cônes), donc on force le tube plutôt qu'une ligne à 2 sommets.
+        _add_3D_thick_line(st, p1, base_pt, color, width <= 1.0f ? 1.5f : width);
+
+        Vector3 ortho = dir.cross(Vector3(0, 1, 0));
+        if (ortho.length_squared() < 0.001f)
+        {
+            ortho = dir.cross(Vector3(1, 0, 0));
+        }
+        ortho = ortho.normalized() * (actual_head * 0.3f);
+        Vector3 ortho2 = dir.cross(ortho).normalized() * (actual_head * 0.3f);
+
+        for (int j = 0; j < 6; j++)
+        {
+            float a1 = j * 2.0f * Math_PI / 6.0f;
+            float a2 = (j + 1) * 2.0f * Math_PI / 6.0f;
+            Vector3 cp1 = base_pt + ortho * Math::cos(a1) + ortho2 * Math::sin(a1);
+            Vector3 cp2 = base_pt + ortho * Math::cos(a2) + ortho2 * Math::sin(a2);
+            st->set_color(color);
+            st->add_vertex(p2);
+            st->set_color(color);
+            st->add_vertex(cp2);
+            st->set_color(color);
+            st->add_vertex(cp1);
+        }
+    }
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_origin(const RID &instance_rid, const Transform3D &transform, float size, float head_size, float width)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin de l'origine 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    st->begin(Mesh::PRIMITIVE_TRIANGLES);
+
+    Vector3 pos = transform.origin;
+    Vector3 x_end = pos + transform.basis.get_column(0) * size;
+    Vector3 y_end = pos + transform.basis.get_column(1) * size;
+    Vector3 z_end = pos + transform.basis.get_column(2) * size;
+
+    _add_3D_arrow_to_surfacetool(st, pos, x_end, Color(1.0, 0.0, 0.0), head_size, width);
+    _add_3D_arrow_to_surfacetool(st, pos, y_end, Color(0.0, 1.0, 0.0), head_size, width);
+    _add_3D_arrow_to_surfacetool(st, pos, z_end, Color(0.0, 0.0, 1.0), head_size, width);
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_camera_frustum(const RID &instance_rid, const Transform3D &transform, float fov, float z_near, float z_far, float aspect, const Color &color)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du frustum de caméra 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    st->begin(Mesh::PRIMITIVE_LINES);
+
+    float h_near = Math::tan(Math::deg_to_rad(fov) * 0.5f) * z_near;
+    float w_near = h_near * aspect;
+    float h_far = Math::tan(Math::deg_to_rad(fov) * 0.5f) * z_far;
+    float w_far = h_far * aspect;
+
+    Vector3 n_tl = transform.xform(Vector3(-w_near, h_near, -z_near));
+    Vector3 n_tr = transform.xform(Vector3(w_near, h_near, -z_near));
+    Vector3 n_br = transform.xform(Vector3(w_near, -h_near, -z_near));
+    Vector3 n_bl = transform.xform(Vector3(-w_near, -h_near, -z_near));
+
+    Vector3 f_tl = transform.xform(Vector3(-w_far, h_far, -z_far));
+    Vector3 f_tr = transform.xform(Vector3(w_far, h_far, -z_far));
+    Vector3 f_br = transform.xform(Vector3(w_far, -h_far, -z_far));
+    Vector3 f_bl = transform.xform(Vector3(-w_far, -h_far, -z_far));
+
+    Vector3 lines[24] = {n_tl, n_tr, n_tr, n_br, n_br, n_bl, n_bl, n_tl, f_tl, f_tr, f_tr, f_br, f_br, f_bl, f_bl, f_tl, n_tl, f_tl, n_tr, f_tr, n_br, f_br, n_bl, f_bl};
+
+    for (int i = 0; i < 24; i++)
+    {
+        st->set_color(color);
+        st->add_vertex(lines[i]);
+    }
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_LINES, st->commit_to_arrays());
+}
+
+void Gizmos3D::draw_3D_icon(const RID &instance_rid, const Vector3 &position, Ref<Texture2D> texture, const Vector2 &size, BaseMaterial3D::TextureFilter filter)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin de l'icône 3D[/color]");
+        return;
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    Vector2 ext = size * 0.5f;
+
+    Ref<SurfaceTool> st;
+    st.instantiate();
+    st->begin(Mesh::PRIMITIVE_TRIANGLES);
+
+    st->set_uv(Vector2(0, 1));
+    st->add_vertex(Vector3(-ext.x, -ext.y, 0));
+    st->set_uv(Vector2(1, 1));
+    st->add_vertex(Vector3(ext.x, -ext.y, 0));
+    st->set_uv(Vector2(1, 0));
+    st->add_vertex(Vector3(ext.x, ext.y, 0));
+
+    st->set_uv(Vector2(0, 1));
+    st->add_vertex(Vector3(-ext.x, -ext.y, 0));
+    st->set_uv(Vector2(1, 0));
+    st->add_vertex(Vector3(ext.x, ext.y, 0));
+    st->set_uv(Vector2(0, 0));
+    st->add_vertex(Vector3(-ext.x, ext.y, 0));
+
+    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+
+    if (texture.is_valid())
+    {
+        Ref<StandardMaterial3D> mat;
+        if (_get_materials().has(instance_rid))
+        {
+            mat = _get_materials()[instance_rid];
+        }
+        if (mat.is_null())
+        {
+            mat.instantiate();
+            mat->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA);
+            mat->set_billboard_mode(BaseMaterial3D::BILLBOARD_ENABLED);
+            mat->set_shading_mode(BaseMaterial3D::SHADING_MODE_UNSHADED);
+            mat->set_cull_mode(BaseMaterial3D::CULL_DISABLED);
+            mat->set_flag(BaseMaterial3D::FLAG_DISABLE_DEPTH_TEST, true); // Rend l'icône toujours visible à travers les maillages
+            mat->set_texture_filter(filter);
+            _get_materials()[instance_rid] = mat;
+        }
+
+        mat->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, texture);
+        RenderingServer::get_singleton()->instance_geometry_set_material_override(instance_rid, mat->get_rid());
+    }
+    else
+    {
+        print_line_rich("[color=red]Erreur : la texture de l'icône n'est pas valide ou est null[/color]");
+    }
+
+    RenderingServer::get_singleton()->instance_set_transform(instance_rid, Transform3D(Basis(), position));
+}
+
+void Gizmos3D::apply_shader_on_gizmo(const RID &instance_rid, const Ref<Material> &material)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour l'application de matériau[/color]");
+        return;
+    }
+
+    RenderingServer::get_singleton()->instance_geometry_set_material_override(instance_rid, material.is_valid() ? material->get_rid() : RID());
+}
+
+//------------------------------------------------------------------------------
+// Enregistrement des méthodes auprès de Godot
+//------------------------------------------------------------------------------
+
+void Gizmos3D::_bind_methods()
+{
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("create_3D_gizmo", "viewport"), &Gizmos3D::create_3D_gizmo);
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("clear_3D_gizmo", "gizmo_rid"), &Gizmos3D::clear_3D_gizmo);
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("free_3D_gizmo", "gizmo_rid"), &Gizmos3D::free_3D_gizmo);
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_line", "instance_rid", "from", "to", "color", "width"), &Gizmos3D::draw_3D_line, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_arrow", "instance_rid", "from", "to", "color", "head_size", "width"), &Gizmos3D::draw_3D_arrow, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
+                                DEFVAL(0.3f), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_cube", "instance_rid", "center", "size", "color", "filled", "width"), &Gizmos3D::draw_3D_cube, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
+                                DEFVAL(false), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_sphere", "instance_rid", "center", "radius", "color", "filled", "segments", "width"), &Gizmos3D::draw_3D_sphere,
+                                DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(16), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_circle", "instance_rid", "center", "radius", "normal", "color", "filled", "segments", "width"), &Gizmos3D::draw_3D_circle,
+                                DEFVAL(Vector3(0, 1, 0)), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(24), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_rectangle", "instance_rid", "center", "size", "normal", "color", "filled", "width"), &Gizmos3D::draw_3D_rectangle,
+                                DEFVAL(Vector3(0, 1, 0)), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_capsule", "instance_rid", "center", "radius", "height", "color", "filled", "width"), &Gizmos3D::draw_3D_capsule,
+                                DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_polygon", "instance_rid", "points", "color", "filled", "width"), &Gizmos3D::draw_3D_polygon, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
+                                DEFVAL(false), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_path", "instance_rid", "points", "color", "width"), &Gizmos3D::draw_3D_path, DEFVAL(Color(0.0, 1.0, 0.0, 1.0)), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_arrow_path", "instance_rid", "points", "color", "head_size", "width"), &Gizmos3D::draw_3D_arrow_path, DEFVAL(Color(0.0, 1.0, 0.0, 1.0)),
+                                DEFVAL(0.3f), DEFVAL(1.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_origin", "instance_rid", "transform", "size", "head_size", "width"), &Gizmos3D::draw_3D_origin, DEFVAL(Transform3D()), DEFVAL(1.0f),
+                                DEFVAL(0.2f), DEFVAL(2.0f));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_camera_frustum", "instance_rid", "transform", "fov", "z_near", "z_far", "aspect", "color"), &Gizmos3D::draw_3D_camera_frustum,
+                                DEFVAL(Color(1.0, 0.0, 1.0, 1.0)));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_icon", "instance_rid", "position", "texture", "size", "filter"), &Gizmos3D::draw_3D_icon, DEFVAL(Vector2(1, 1)),
+                                DEFVAL(BaseMaterial3D::TEXTURE_FILTER_NEAREST));
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("apply_shader_on_gizmo", "instance_rid", "material"), &Gizmos3D::apply_shader_on_gizmo);
+}

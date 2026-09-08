@@ -53,26 +53,6 @@ RID Gizmos2D::create_2D_gizmos(Viewport *viewport)
     return gizmo_rid; // Retourne le RID du gizmo créé
 }
 //------------------------------------------------------------------------------
-RID Gizmos2D::create_2D_gizmos(Node *node_to_apply_to)
-{
-    if (!node_to_apply_to)
-    {
-        print_line_rich("[color=red]Erreur : Node invalide pour la création du gizmo 2D[/color]");
-        return RID(); // Retourne un RID vide en cas d'erreur
-    }
-
-    Viewport *viewport = node_to_apply_to->get_viewport();
-    if (!viewport || viewport->find_world_2d() == nullptr)
-    {
-        print_line_rich("[color=red]Erreur : Viewport invalide pour la création du "
-                        "gizmo 2D[/color]");
-        return RID(); // Retourne un RID vide en cas d'erreur
-    }
-
-    return create_2D_gizmos(viewport);
-}
-
-//------------------------------------------------------------------------------
 // Permet d'effacer tout visuel 2D du gizmo
 void Gizmos2D::clear_2D_gizmos(const RID gizmo_rid)
 {
@@ -490,7 +470,7 @@ void Gizmos2D::_bind_methods()
     // Déclaration des méthodes et propriétés à exposer à Godot ici
 
     ClassDB::bind_static_method("Gizmos2D", D_METHOD("create_2D_gizmos", "viewport"), static_cast<RID (*)(Viewport *)>(&Gizmos2D::create_2D_gizmos));
-    ClassDB::bind_static_method("Gizmos2D", D_METHOD("create_2D_gizmos", "node_to_apply_to"), static_cast<RID (*)(Node *)>(&Gizmos2D::create_2D_gizmos));
+
     ClassDB::bind_static_method("Gizmos2D", D_METHOD("clear_2D_gizmos", "gizmo_rid"), &Gizmos2D::clear_2D_gizmos);
 
     ClassDB::bind_static_method("Gizmos2D", D_METHOD("free_gizmos", "gizmo_rid"), &Gizmos2D::free_gizmos);

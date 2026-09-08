@@ -58,6 +58,12 @@ var object_value: Object
 @export var packed_vector4_array_value: PackedVector4Array
 @export var packed_color_array_value: PackedColorArray
 
+
+@export var control: Control
+
+func _ready() -> void:
+	WidgetPropertyModifierBuilder.create_bool_check_box(self, "boolean_value", control)
+
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:
 	if window != null:
