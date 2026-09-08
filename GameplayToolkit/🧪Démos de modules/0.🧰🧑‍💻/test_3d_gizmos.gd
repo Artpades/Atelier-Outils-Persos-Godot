@@ -90,16 +90,12 @@ func _process(delta: float) -> void:
 	var path_points := PackedVector3Array([
 		Vector3(0, 0, -3),
 		Vector3(0.5, offset, -3),
-		Vector3(1, 0, -3)
-	])
-	Gizmos3D.draw_3D_path(_rid_path, path_points, Color.LIME_GREEN, 2.0)
-
-	var arrow_path_points := PackedVector3Array([
+		Vector3(1, 0, -3),
 		Vector3(2, 0, -3),
 		Vector3(2.5, -offset, -3),
 		Vector3(3, 0, -3)
 	])
-	Gizmos3D.draw_3D_arrow_path(_rid_arrow_path, arrow_path_points, Color.GOLD, 0.3, 2.0)
+	Gizmos3D.draw_3D_path(_rid_path, path_points, false, 30, 0, true, true, 0.1)
 
 	var origin_transform := Transform3D(Basis().rotated(Vector3.UP, _time), Vector3(5, 2 + offset, -3))
 	Gizmos3D.draw_3D_origin(_rid_origin, origin_transform, 1.0, 0.2, 2.0)

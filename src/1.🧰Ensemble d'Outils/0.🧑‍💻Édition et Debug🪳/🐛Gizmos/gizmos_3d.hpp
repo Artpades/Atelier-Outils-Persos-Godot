@@ -17,6 +17,7 @@
 #include <godot_cpp/classes/world3d.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/print_string.hpp>
+#include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/color.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
@@ -56,9 +57,14 @@ class Gizmos3D : public RefCounted
     static void _add_3D_thick_line(Ref<SurfaceTool> &st, const Vector3 &from, const Vector3 &to, const Color &color, float width);
 
     // Ajoute une flèche (ligne + cône) directement dans un SurfaceTool déjà ouvert en
-    // PRIMITIVE_TRIANGLES — utilisé par draw_3D_origin. Équivalent de
-    // _add_3d_arrow_to_surfacetool().
+    // PRIMITIVE_TRIANGLES — utilisé par draw_3D_origin et draw_3D_path (as_arrows = true).
+    // Équivalent de _add_3d_arrow_to_surfacetool(). Force elle-même une largeur de tube
+    // minimale (1.5) si width <= 1.0, car le SurfaceTool appelant est toujours en triangles.
     static void _add_3D_arrow_to_surfacetool(Ref<SurfaceTool> &st, const Vector3 &from, const Vector3 &to, const Color &color, float head_size, float width);
+
+    // Ajoute une petite sphère UV pleine (marqueur de point) dans un SurfaceTool déjà ouvert
+    // en PRIMITIVE_TRIANGLES — utilisée par draw_3D_path (show_points = true).
+    static void _add_3D_point_marker(Ref<SurfaceTool> &st, const Vector3 &center, float radius, const Color &color);
 
   protected:
     static void _bind_methods();
@@ -111,11 +117,20 @@ class Gizmos3D : public RefCounted
     // Dessine un polygone 3D coplanaire et convexe : contour fermé, ou plein (triangulation en éventail depuis points[0]).
     static void draw_3D_polygon(const RID &instance_rid, const PackedVector3Array &points, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float width = 1.0f);
 
-    // Dessine un chemin 3D : polyligne reliant les points, segment par segment.
-    static void draw_3D_path(const RID &instance_rid, const PackedVector3Array &points, const Color &color = Color(0.0, 1.0, 0.0, 1.0), float width = 1.0f);
-
-    // Variante de draw_3D_path où chaque segment se termine par un cône indiquant le sens de parcours.
-    static void draw_3D_arrow_path(const RID &instance_rid, const PackedVector3Array &points, const Color &color = Color(0.0, 1.0, 0.0, 1.0), float head_size = 0.3f, float width = 1.0f);
+    // Dessine un chemin 3D avec les mêmes options que draw_2D_path (à l'exception de
+    // l'antialiasing, qui n'a pas de sens ici) : flèches au lieu de lignes, sous-division
+    // par segment, espacement, lissage Bézier, affichage de sphères sur les points d'origine.
+    static void draw_3D_path(const RID &instance_rid,
+                             const PackedVector3Array &points,
+                             bool as_arrows = false,
+                             int segments_per_line = 1,
+                             float spacing = 0.0f,
+                             bool use_bezier = false,
+                             bool show_points = false,
+                             float point_radius = 4.0f,
+                             float width = 2.0f,
+                             const Color &color = Color(1.0, 1.0, 1.0, 1.0),
+                             float arrow_head_size = 12.0f);
 
     // Dessine un repère d'origine 3D : 3 flèches représentant les axes locaux de "transform"
     // (X rouge, Y vert, Z bleu).

@@ -224,6 +224,47 @@ void Gizmos3D::_add_3D_arrow_to_surfacetool(Ref<SurfaceTool> &st, const Vector3 
     }
 }
 
+void Gizmos3D::_add_3D_point_marker(Ref<SurfaceTool> &st, const Vector3 &center, float radius, const Color &color)
+{
+    // Sphère UV basse résolution, suffisante pour un simple marqueur de point.
+    const int segments = 8;
+    const int rings = 4;
+
+    for (int i = 0; i < rings; i++)
+    {
+        float v1 = static_cast<float>(i) / rings;
+        float v2 = static_cast<float>(i + 1) / rings;
+        float lat1 = Math_PI * (v1 - 0.5f);
+        float lat2 = Math_PI * (v2 - 0.5f);
+
+        for (int j = 0; j < segments; j++)
+        {
+            float u1 = static_cast<float>(j) / segments;
+            float u2 = static_cast<float>(j + 1) / segments;
+            float lon1 = 2.0f * Math_PI * u1;
+            float lon2 = 2.0f * Math_PI * u2;
+
+            Vector3 p1 = center + Vector3(Math::cos(lat1) * Math::cos(lon1), Math::sin(lat1), Math::cos(lat1) * Math::sin(lon1)) * radius;
+            Vector3 p2 = center + Vector3(Math::cos(lat1) * Math::cos(lon2), Math::sin(lat1), Math::cos(lat1) * Math::sin(lon2)) * radius;
+            Vector3 p3 = center + Vector3(Math::cos(lat2) * Math::cos(lon2), Math::sin(lat2), Math::cos(lat2) * Math::sin(lon2)) * radius;
+            Vector3 p4 = center + Vector3(Math::cos(lat2) * Math::cos(lon1), Math::sin(lat2), Math::cos(lat2) * Math::sin(lon1)) * radius;
+
+            st->set_color(color);
+            st->add_vertex(p1);
+            st->set_color(color);
+            st->add_vertex(p2);
+            st->set_color(color);
+            st->add_vertex(p3);
+            st->set_color(color);
+            st->add_vertex(p1);
+            st->set_color(color);
+            st->add_vertex(p3);
+            st->set_color(color);
+            st->add_vertex(p4);
+        }
+    }
+}
+
 //------------------------------------------------------------------------------
 // Primitives 3D
 //------------------------------------------------------------------------------
@@ -244,7 +285,14 @@ void Gizmos3D::draw_3D_line(const RID &instance_rid, const Vector3 &from, const 
     st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
     _add_3D_thick_line(st, from, to, color, width);
 
-    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    // Cas dégénéré : from == to avec width > 1.0f => _add_3D_thick_line ne produit aucun
+    // sommet (direction nulle). Éviter d'envoyer une surface vide à RenderingServer.
+    Array arr = st->commit_to_arrays();
+    PackedVector3Array verts = arr[Mesh::ARRAY_VERTEX];
+    if (verts.size() > 0)
+    {
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, arr);
+    }
 }
 
 void Gizmos3D::draw_3D_arrow(const RID &instance_rid, const Vector3 &from, const Vector3 &to, const Color &color, float head_size, float width)
@@ -633,97 +681,134 @@ void Gizmos3D::draw_3D_polygon(const RID &instance_rid, const PackedVector3Array
     }
 }
 
-void Gizmos3D::draw_3D_path(const RID &instance_rid, const PackedVector3Array &points, const Color &color, float width)
+void Gizmos3D::draw_3D_path(const RID &instance_rid,
+                            const PackedVector3Array &points,
+                            bool as_arrows,
+                            int segments_per_line,
+                            float spacing,
+                            bool use_bezier,
+                            bool show_points,
+                            float point_radius,
+                            float width,
+                            const Color &color,
+                            float arrow_head_size)
 {
-    if (!instance_rid.is_valid() || points.size() < 2)
+    if (!instance_rid.is_valid())
     {
-        if (instance_rid.is_valid())
-        {
-            print_line_rich("[color=red]Erreur : au moins 2 points sont nécessaires pour le dessin du chemin 3D[/color]");
-        }
-        else
-        {
-            print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du chemin 3D[/color]");
-        }
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du chemin 3D[/color]");
+        return;
+    }
+
+    if (points.size() < 2)
+    {
         return;
     }
 
     RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+
+    // Génération du tableau de points (lissé si use_bezier est vrai) — logique identique à draw_2D_path.
+    PackedVector3Array path_points;
+    int subdivisions = Math::max(1, segments_per_line);
+
+    if (use_bezier && points.size() >= 3)
+    {
+        path_points.append(points[0]);
+        for (int i = 0; i < points.size() - 1; ++i)
+        {
+            Vector3 p0 = (i == 0) ? points[0] : (points[i] + points[i + 1]) * 0.5f;
+            Vector3 p1 = points[i + 1];
+            Vector3 p2 = (i + 2 < points.size()) ? (points[i + 1] + points[i + 2]) * 0.5f : points[i + 1];
+
+            for (int s = 1; s <= subdivisions; ++s)
+            {
+                float t = static_cast<float>(s) / subdivisions;
+                float omt = 1.0f - t;
+                Vector3 interpolated = omt * omt * p0 + 2.0f * omt * t * p1 + t * t * p2;
+                path_points.append(interpolated);
+            }
+        }
+    }
+    else
+    {
+        path_points = points;
+    }
+
+    // Géométrie principale (lignes ou flèches). as_arrows force PRIMITIVE_TRIANGLES (cônes) ;
+    // sinon le choix suit "width", comme les autres primitives de ce fichier.
     Ref<SurfaceTool> st;
     st.instantiate();
-    bool thin = width <= 1.0f;
+    bool thin = (!as_arrows) && (width <= 1.0f);
     st->begin(thin ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
 
-    for (int i = 0; i < points.size() - 1; i++)
+    // Traçage des segments avec gestion de l'espacement et des sous-divisions
+    for (int i = 0; i < path_points.size() - 1; ++i)
     {
-        _add_3D_thick_line(st, points[i], points[i + 1], color, width);
-    }
+        Vector3 start = path_points[i];
+        Vector3 end = path_points[i + 1];
 
-    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
-}
+        int steps = use_bezier ? 1 : subdivisions;
 
-void Gizmos3D::draw_3D_arrow_path(const RID &instance_rid, const PackedVector3Array &points, const Color &color, float head_size, float width)
-{
-    if (!instance_rid.is_valid() || points.size() < 2)
-    {
-        if (instance_rid.is_valid())
+        for (int s = 0; s < steps; ++s)
         {
-            print_line_rich("[color=red]Erreur : au moins 2 points sont nécessaires pour le dessin du chemin fléché 3D[/color]");
-        }
-        else
-        {
-            print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du chemin fléché 3D[/color]");
-        }
-        return;
-    }
+            float t1 = static_cast<float>(s) / steps;
+            float t2 = static_cast<float>(s + 1) / steps;
 
-    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
-    Ref<SurfaceTool> st;
-    st.instantiate();
-    st->begin(Mesh::PRIMITIVE_TRIANGLES);
+            Vector3 p1 = start.lerp(end, t1);
+            Vector3 p2 = start.lerp(end, t2);
 
-    for (int i = 0; i < points.size() - 1; i++)
-    {
-        Vector3 p1 = points[i];
-        Vector3 p2 = points[i + 1];
-        Vector3 dir = (p2 - p1).normalized();
-        float dist = p1.distance_to(p2);
-        if (dist <= 0.001f)
-        {
-            continue;
-        }
+            Vector3 dir = (p2 - p1).normalized();
+            float dist = p1.distance_to(p2);
 
-        float actual_head = Math::min(head_size, dist);
-        Vector3 base_pt = p2 - dir * actual_head;
+            if (spacing > 0.0f)
+            {
+                dist = Math::max(0.0f, dist - spacing);
+                p2 = p1 + dir * dist;
+            }
 
-        // Même remarque que dans _add_3D_arrow_to_surfacetool : ce SurfaceTool est ouvert en
-        // PRIMITIVE_TRIANGLES (cônes), donc on force le tube plutôt qu'une ligne à 2 sommets.
-        _add_3D_thick_line(st, p1, base_pt, color, width <= 1.0f ? 1.5f : width);
+            if (dist <= 0.001f)
+            {
+                continue;
+            }
 
-        Vector3 ortho = dir.cross(Vector3(0, 1, 0));
-        if (ortho.length_squared() < 0.001f)
-        {
-            ortho = dir.cross(Vector3(1, 0, 0));
-        }
-        ortho = ortho.normalized() * (actual_head * 0.3f);
-        Vector3 ortho2 = dir.cross(ortho).normalized() * (actual_head * 0.3f);
-
-        for (int j = 0; j < 6; j++)
-        {
-            float a1 = j * 2.0f * Math_PI / 6.0f;
-            float a2 = (j + 1) * 2.0f * Math_PI / 6.0f;
-            Vector3 cp1 = base_pt + ortho * Math::cos(a1) + ortho2 * Math::sin(a1);
-            Vector3 cp2 = base_pt + ortho * Math::cos(a2) + ortho2 * Math::sin(a2);
-            st->set_color(color);
-            st->add_vertex(p2);
-            st->set_color(color);
-            st->add_vertex(cp2);
-            st->set_color(color);
-            st->add_vertex(cp1);
+            if (as_arrows)
+            {
+                // _add_3D_arrow_to_surfacetool force elle-même une largeur de tube minimale
+                // si width <= 1.0f, car ce SurfaceTool est ouvert en triangles.
+                _add_3D_arrow_to_surfacetool(st, p1, p2, color, arrow_head_size, width);
+            }
+            else
+            {
+                _add_3D_thick_line(st, p1, p2, color, width);
+            }
         }
     }
 
-    RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+    // Si spacing (ou d'autres paramètres) fait que tous les segments sont ignorés (dist <=
+    // 0.001f), le SurfaceTool ne contient aucun sommet : ne PAS appeler
+    // mesh_add_surface_from_arrays dans ce cas, sinon RenderingServer refuse la surface
+    // ("Mesh created without vertex array").
+    Array path_arrays = st->commit_to_arrays();
+    PackedVector3Array path_vertices = path_arrays[Mesh::ARRAY_VERTEX];
+    if (path_vertices.size() > 0)
+    {
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, path_arrays);
+    }
+    // sur les points d'ORIGINE du chemin (pas les points interpolés par le Bézier), comme les cercles de draw_2D_path. Ajoutés en tant que 2e surface du même
+    // mesh (toujours en triangles) pour ne jamais mélanger deux types de primitives dans un
+    // seul buffer.
+    if (show_points)
+    {
+        Ref<SurfaceTool> st_points;
+        st_points.instantiate();
+        st_points->begin(Mesh::PRIMITIVE_TRIANGLES);
+
+        for (int i = 0; i < points.size(); ++i)
+        {
+            _add_3D_point_marker(st_points, points[i], point_radius, color);
+        }
+
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st_points->commit_to_arrays());
+    }
 }
 
 void Gizmos3D::draw_3D_origin(const RID &instance_rid, const Transform3D &transform, float size, float head_size, float width)
@@ -895,10 +980,9 @@ void Gizmos3D::_bind_methods()
     ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_polygon", "instance_rid", "points", "color", "filled", "width"), &Gizmos3D::draw_3D_polygon, DEFVAL(Color(1.0, 1.0, 1.0, 1.0)),
                                 DEFVAL(false), DEFVAL(1.0f));
 
-    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_path", "instance_rid", "points", "color", "width"), &Gizmos3D::draw_3D_path, DEFVAL(Color(0.0, 1.0, 0.0, 1.0)), DEFVAL(1.0f));
-
-    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_arrow_path", "instance_rid", "points", "color", "head_size", "width"), &Gizmos3D::draw_3D_arrow_path, DEFVAL(Color(0.0, 1.0, 0.0, 1.0)),
-                                DEFVAL(0.3f), DEFVAL(1.0f));
+    ClassDB::bind_static_method(
+        "Gizmos3D", D_METHOD("draw_3D_path", "instance_rid", "points", "as_arrows", "segments_per_line", "spacing", "use_bezier", "show_points", "point_radius", "width", "color", "arrow_head_size"),
+        &Gizmos3D::draw_3D_path, DEFVAL(false), DEFVAL(1), DEFVAL(0.0f), DEFVAL(false), DEFVAL(false), DEFVAL(4.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(12.0f));
 
     ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_origin", "instance_rid", "transform", "size", "head_size", "width"), &Gizmos3D::draw_3D_origin, DEFVAL(Transform3D()), DEFVAL(1.0f),
                                 DEFVAL(0.2f), DEFVAL(2.0f));
