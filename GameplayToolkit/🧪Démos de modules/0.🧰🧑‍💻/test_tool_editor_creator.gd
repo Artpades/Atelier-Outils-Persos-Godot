@@ -59,7 +59,7 @@ var object_value: Object
 @export var packed_color_array_value: PackedColorArray
 
 
-@export var control: Control
+@onready var control: Control = $"../Control"
 
 func _ready() -> void:
 	WidgetPropertyModifierBuilder.create_bool_check_box(self, "boolean_value", control)

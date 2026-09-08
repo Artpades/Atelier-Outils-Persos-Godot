@@ -24,6 +24,9 @@ CheckBox *WidgetPropertyModifierBuilder::create_bool_check_box(Object *obj, cons
     Ref<PropertyBoolCallback> callback = memnew(PropertyBoolCallback);
     callback->setup(obj, property_name);
 
+    // Sauvegarde la référence dans les métadonnées du node pour maintenir le RefCounted en vie
+    checkbox->set_meta("_property_callback", callback);
+
     // Connecter le signal "toggled" à la méthode du callback
     checkbox->connect("toggled", Callable(callback.ptr(), "on_toggled"));
 

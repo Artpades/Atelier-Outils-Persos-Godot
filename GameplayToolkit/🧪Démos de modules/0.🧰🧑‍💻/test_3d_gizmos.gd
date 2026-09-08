@@ -20,6 +20,7 @@ var _rid_arrow_path: RID
 var _rid_origin: RID
 var _rid_frustum: RID
 var _rid_icon: RID
+var _rid_text : RID
 var _rid_shader: RID
 
 var _time: float = 0.0
@@ -42,13 +43,14 @@ func _enter_tree() -> void:
 	_rid_frustum = Gizmos3D.create_3D_gizmo(vp)
 	_rid_icon = Gizmos3D.create_3D_gizmo(vp)
 	_rid_shader = Gizmos3D.create_3D_gizmo(vp)
+	_rid_text = Gizmos3D.create_3D_gizmo(vp)
 
 	# Registre pour la libération automatique en fin de vie
 	_gizmos = [
 		_rid_line, _rid_arrow, _rid_cube, _rid_sphere,
 		_rid_circle, _rid_rectangle, _rid_capsule, _rid_polygon,
 		_rid_path, _rid_arrow_path, _rid_origin, _rid_frustum,
-		_rid_icon, _rid_shader
+		_rid_icon, _rid_text, _rid_shader
 	]
 
 	# Fallbacks pour les ressources de démonstration
@@ -105,6 +107,7 @@ func _process(delta: float) -> void:
 
 	Gizmos3D.draw_3D_icon(_rid_icon, Vector3(0, 3, offset), icon_texture, Vector2(1, 1), BaseMaterial3D.TEXTURE_FILTER_NEAREST)
 	Gizmos3D.draw_3D_cube(_rid_shader, Vector3(3, 3, offset), Vector3(0.8, 0.8, 0.8), Color.WHITE, true)
+	Gizmos3D.draw_3D_text(_rid_text, Vector3.ONE * 3,  "Gizmos3D Active - Temps : %.2f" % _time, Color.BROWN, 32)
 
 # Exemple de vidage ponctuel de géométrie sans détruire l'instance du RenderingServer
 func clear_single_gizmo(gizmo_rid: RID) -> void:

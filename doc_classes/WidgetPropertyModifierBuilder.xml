@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WidgetPropertyModifierBuilder" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="create_base_visual" qualifiers="static">
+			<return type="BoxContainer" />
+			<description>
+			</description>
+		</method>
+		<method name="create_bool_check_box" qualifiers="static">
+			<return type="CheckBox" />
+			<param index="0" name="obj" type="Object" />
+			<param index="1" name="property_name" type="String" />
+			<param index="2" name="control_for_adding_widget" type="Control" default="null" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

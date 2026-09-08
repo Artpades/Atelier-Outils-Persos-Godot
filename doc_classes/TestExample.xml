@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TestExample" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="test2_method">
+			<return type="int" />
+			<param index="0" name="d" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="test_method">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="test_print_node">
+			<return type="Node" />
+			<param index="0" name="n" type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="test_enum" type="int" setter="set_test_enum" getter="get_test_enum" enum="TestEnum" default="212832288">
+		</member>
+		<member name="test_property" type="Vector2" setter="set_test_property" getter="get_test_property" default="Vector2(0, 0)">
+		</member>
+	</members>
+	<signals>
+		<signal name="emitted">
+			<param index="0" name="node_parameter" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="TestEnum::ENUM_1" value="0" enum="TestEnum">
+		</constant>
+		<constant name="TestEnum::ENUM_2" value="1" enum="TestEnum">
+		</constant>
+		<constant name="TestEnum::ENUM_3" value="2" enum="TestEnum">
+		</constant>
+	</constants>
+</class>

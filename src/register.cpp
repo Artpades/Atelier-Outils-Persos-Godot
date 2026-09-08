@@ -16,6 +16,9 @@
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_3d.hpp"
+
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/✋Handlers/handlers_manager.hpp"
+
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/widget_property_modifier_builder.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_bool_callback.hpp"
@@ -33,6 +36,9 @@ void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(WindowEditor);
     GDREGISTER_CLASS(Gizmos2D);
     GDREGISTER_CLASS(Gizmos3D);
+
+    GDREGISTER_CLASS(HandlersManager);
+
     GDREGISTER_CLASS(WidgetPropertyModifierBuilder);
 
     GDREGISTER_CLASS(PropertyBoolCallback);

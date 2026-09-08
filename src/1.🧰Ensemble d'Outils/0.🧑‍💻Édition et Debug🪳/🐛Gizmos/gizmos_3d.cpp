@@ -17,10 +17,36 @@ Dictionary &Gizmos3D::_get_materials()
     return materials;
 }
 
-Dictionary &Gizmos3D::_get_text_viewports()
+Dictionary &Gizmos3D::_get_text_materials()
 {
-    static Dictionary text_viewports;
-    return text_viewports;
+    static Dictionary text_materials;
+    return text_materials;
+}
+
+RID &Gizmos3D::_get_text_shader()
+{
+    static RID text_shader;
+    if (!text_shader.is_valid())
+    {
+        text_shader = RenderingServer::get_singleton()->shader_create();
+        // Shader minimal : échantillonne directement l'atlas de glyphes de la police (une
+        // "page" de police = une texture) et multiplie par la couleur des sommets. "billboard"
+        // n'est PAS un render_mode valide en GDShader (contrairement à la propriété du même nom
+        // sur StandardMaterial3D) : le billboard complet est reproduit à la main dans vertex()
+        // via la matrice de vue inversée, technique standard pour ce cas en shader spatial custom.
+        RenderingServer::get_singleton()->shader_set_code(text_shader, "shader_type spatial;\n"
+                                                                       "render_mode unshaded, cull_disabled, depth_draw_always, blend_mix;\n"
+                                                                       "uniform sampler2D font_texture : source_color, filter_linear;\n"
+                                                                       "void vertex() {\n"
+                                                                       "    MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);\n"
+                                                                       "}\n"
+                                                                       "void fragment() {\n"
+                                                                       "    vec4 tex_color = texture(font_texture, UV);\n"
+                                                                       "    ALBEDO = tex_color.rgb * COLOR.rgb;\n"
+                                                                       "    ALPHA = tex_color.a * COLOR.a;\n"
+                                                                       "}\n");
+    }
+    return text_shader;
 }
 
 Ref<StandardMaterial3D> &Gizmos3D::_get_default_3D_material()
@@ -77,19 +103,34 @@ void Gizmos3D::free_3D_gizmo(const RID &gizmo_rid)
     if (gizmo_rid.is_valid())
     {
         _get_materials().erase(gizmo_rid);
-        if (_get_text_viewports().has(gizmo_rid))
+
+        RenderingServer *rs = RenderingServer::get_singleton();
+
+        // draw_3D_text : un matériau par page d'atlas de police utilisée par le dernier texte
+        // dessiné sur ce gizmo. Le shader (_get_text_shader) est partagé entre tous les gizmos
+        // et n'est jamais libéré ici (il vit pour toute la durée du module).
+        if (_get_text_materials().has(gizmo_rid))
         {
-            _get_text_viewports().erase(gizmo_rid);
+            Array glyph_materials = _get_text_materials()[gizmo_rid];
+            for (int i = 0; i < glyph_materials.size(); i++)
+            {
+                RID material_rid = glyph_materials[i];
+                if (material_rid.is_valid())
+                {
+                    rs->free_rid(material_rid);
+                }
+            }
+            _get_text_materials().erase(gizmo_rid);
         }
 
         RID mesh_rid = _get_mesh_rids().get(gizmo_rid, RID());
         if (mesh_rid.is_valid())
         {
-            RenderingServer::get_singleton()->free_rid(mesh_rid);
+            rs->free_rid(mesh_rid);
             _get_mesh_rids().erase(gizmo_rid);
         }
 
-        RenderingServer::get_singleton()->free_rid(gizmo_rid);
+        rs->free_rid(gizmo_rid);
     }
 }
 
@@ -793,7 +834,8 @@ void Gizmos3D::draw_3D_path(const RID &instance_rid,
     {
         RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, thin ? RenderingServer::PRIMITIVE_LINES : RenderingServer::PRIMITIVE_TRIANGLES, path_arrays);
     }
-    // sur les points d'ORIGINE du chemin (pas les points interpolés par le Bézier), comme les cercles de draw_2D_path. Ajoutés en tant que 2e surface du même
+    // sur les points d'ORIGINE du chemin (pas les points interpolés par
+    // le Bézier), comme les cercles de draw_2D_path. Ajoutés en tant que 2e surface du même
     // mesh (toujours en triangles) pour ne jamais mélanger deux types de primitives dans un
     // seul buffer.
     if (show_points)
@@ -936,6 +978,214 @@ void Gizmos3D::draw_3D_icon(const RID &instance_rid, const Vector3 &position, Re
     RenderingServer::get_singleton()->instance_set_transform(instance_rid, Transform3D(Basis(), position));
 }
 
+void Gizmos3D::draw_3D_text(const RID &instance_rid, const Vector3 &position, const String &text, const Color &color, int font_size, float pixel_size)
+{
+    if (!instance_rid.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : RID de l'instance invalide pour le dessin du texte 3D[/color]");
+        return;
+    }
+
+    Ref<Font> font = ThemeDB::get_singleton()->get_fallback_font();
+    if (!font.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : la police par défaut n'est pas valide[/color]");
+        return;
+    }
+
+    Ref<TextServer> ts = TextServerManager::get_singleton()->get_primary_interface();
+    if (!ts.is_valid())
+    {
+        print_line_rich("[color=red]Erreur : aucune interface TextServer active[/color]");
+        return;
+    }
+
+    RenderingServer *rs = RenderingServer::get_singleton();
+
+    // Mise en forme du texte (une seule ligne) : shaped_text_add_string fait le travail de
+    // shaping (kerning, ligatures, choix de police de repli si un glyphe manque), exactement
+    // comme le fait Label3D en interne — mais ici sans jamais créer de nœud.
+    RID shaped = ts->create_shaped_text();
+    ts->shaped_text_add_string(shaped, text, font->get_rids(), font_size);
+    ts->shaped_text_shape(shaped);
+
+    Array glyphs = ts->shaped_text_get_glyphs(shaped);
+    float ascent = ts->shaped_text_get_ascent(shaped);
+    float total_width = ts->shaped_text_get_width(shaped);
+
+    // Libère les matériaux de glyphes créés lors du DERNIER appel sur ce gizmo (un par page
+    // d'atlas utilisée) avant d'en recréer : ces RID de matériau ne sont jamais partagés ni
+    // réutilisés d'un texte à l'autre, contrairement au mesh_rid.
+    if (_get_text_materials().has(instance_rid))
+    {
+        Array old_materials = _get_text_materials()[instance_rid];
+        for (int i = 0; i < old_materials.size(); i++)
+        {
+            RID old_mat = old_materials[i];
+            if (old_mat.is_valid())
+            {
+                rs->free_rid(old_mat);
+            }
+        }
+        _get_text_materials().erase(instance_rid);
+    }
+
+    RID mesh_rid = _get_or_create_mesh_rid(instance_rid);
+    // Un matériau par surface (par page d'atlas) est utilisé ci-dessous : il ne faut donc PAS
+    // qu'un material_override (mis en place par create_3D_gizmo, ou par un appel précédent à
+    // apply_shader_on_gizmo) masque ces matériaux par-surface.
+    rs->instance_geometry_set_material_override(instance_rid, RID());
+
+    // Regroupe les glyphes par page d'atlas de police (RID de texture) : un SurfaceTool et,
+    // au final, une surface de mesh + un matériau par page, car un même mesh ne peut pas
+    // échantillonner plusieurs textures dans une seule surface.
+    Vector<RID> page_textures;
+    Vector<Ref<SurfaceTool>> page_tools;
+
+    float pen_x = 0.0f;
+
+    for (int i = 0; i < glyphs.size(); i++)
+    {
+        Dictionary g = glyphs[i];
+        int glyph_index = g["index"];
+        RID glyph_font_rid = g["font_rid"];
+        int glyph_font_size = g["font_size"];
+        float advance = g["advance"];
+        int repeat = g.has("repeat") ? static_cast<int>(g["repeat"]) : 1;
+        if (repeat < 1)
+        {
+            repeat = 1;
+        }
+
+        // Glyphe non visuel (espace, caractère de contrôle...) : on avance juste le curseur.
+        if (glyph_index == 0 || !glyph_font_rid.is_valid())
+        {
+            pen_x += advance * repeat;
+            continue;
+        }
+
+        Vector2i ts_size(glyph_font_size, 0);
+        RID glyph_tex = ts->font_get_glyph_texture_rid(glyph_font_rid, ts_size, glyph_index);
+        if (!glyph_tex.is_valid())
+        {
+            pen_x += advance * repeat;
+            continue;
+        }
+
+        Vector2 gl_offset = ts->font_get_glyph_offset(glyph_font_rid, ts_size, glyph_index);
+        Vector2 gl_size = ts->font_get_glyph_size(glyph_font_rid, ts_size, glyph_index);
+        Rect2 gl_uv = ts->font_get_glyph_uv_rect(glyph_font_rid, ts_size, glyph_index);
+        Vector2 atlas_size = ts->font_get_glyph_texture_size(glyph_font_rid, ts_size, glyph_index);
+
+        if (atlas_size.x <= 0.0f || atlas_size.y <= 0.0f || gl_size.x <= 0.0f || gl_size.y <= 0.0f)
+        {
+            pen_x += advance * repeat;
+            continue;
+        }
+
+        // Trouve (ou crée) le SurfaceTool associé à cette page d'atlas.
+        int page_idx = -1;
+        for (int p = 0; p < page_textures.size(); p++)
+        {
+            if (page_textures[p] == glyph_tex)
+            {
+                page_idx = p;
+                break;
+            }
+        }
+        if (page_idx < 0)
+        {
+            Ref<SurfaceTool> new_st;
+            new_st.instantiate();
+            new_st->begin(Mesh::PRIMITIVE_TRIANGLES);
+            page_textures.push_back(glyph_tex);
+            page_tools.push_back(new_st);
+            page_idx = page_textures.size() - 1;
+        }
+        Ref<SurfaceTool> st = page_tools[page_idx];
+
+        Vector2 uv_tl = Vector2(gl_uv.position.x / atlas_size.x, gl_uv.position.y / atlas_size.y);
+        Vector2 uv_br = Vector2((gl_uv.position.x + gl_uv.size.x) / atlas_size.x, (gl_uv.position.y + gl_uv.size.y) / atlas_size.y);
+
+        for (int r = 0; r < repeat; r++)
+        {
+            // Repère 3D : Y vers le haut. La police exprime ses coordonnées Y vers le bas
+            // (comme un canvas_item), d'où l'inversion via "ascent - gl_offset.y - ...".
+            float left = (pen_x + gl_offset.x) * pixel_size;
+            float right = (pen_x + gl_offset.x + gl_size.x) * pixel_size;
+            float top = (ascent - gl_offset.y) * pixel_size;
+            float bottom = (ascent - gl_offset.y - gl_size.y) * pixel_size;
+
+            st->set_color(color);
+            st->set_uv(Vector2(uv_tl.x, uv_br.y));
+            st->add_vertex(Vector3(left, bottom, 0));
+
+            st->set_color(color);
+            st->set_uv(Vector2(uv_br.x, uv_br.y));
+            st->add_vertex(Vector3(right, bottom, 0));
+
+            st->set_color(color);
+            st->set_uv(Vector2(uv_br.x, uv_tl.y));
+            st->add_vertex(Vector3(right, top, 0));
+
+            st->set_color(color);
+            st->set_uv(Vector2(uv_tl.x, uv_br.y));
+            st->add_vertex(Vector3(left, bottom, 0));
+
+            st->set_color(color);
+            st->set_uv(Vector2(uv_br.x, uv_tl.y));
+            st->add_vertex(Vector3(right, top, 0));
+
+            st->set_color(color);
+            st->set_uv(Vector2(uv_tl.x, uv_tl.y));
+            st->add_vertex(Vector3(left, top, 0));
+
+            pen_x += advance;
+        }
+    }
+
+    ts->free_rid(shaped);
+
+    // Centre le texte horizontalement sur "position" plutôt que de le poser à sa droite —
+    // cohérent avec le reste des gizmos, qui sont centrés sur leur point d'ancrage.
+    float center_offset_x = -(total_width * pixel_size) * 0.5f;
+
+    Array new_materials;
+    for (int p = 0; p < page_textures.size(); p++)
+    {
+        Array arrays = page_tools[p]->commit_to_arrays();
+        PackedVector3Array verts = arrays[Mesh::ARRAY_VERTEX];
+        if (verts.size() == 0)
+        {
+            continue;
+        }
+
+        for (int v = 0; v < verts.size(); v++)
+        {
+            verts.set(v, verts[v] + Vector3(center_offset_x, 0, 0));
+        }
+        arrays[Mesh::ARRAY_VERTEX] = verts;
+
+        int surface_idx = rs->mesh_get_surface_count(mesh_rid);
+        rs->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, arrays);
+
+        // Un matériau RID brut par page d'atlas, jamais partagé entre gizmos ni entre pages :
+        // seul le shader (RID unique, _get_text_shader) est commun à tous.
+        RID material_rid = rs->material_create();
+        rs->material_set_shader(material_rid, _get_text_shader());
+        rs->material_set_param(material_rid, "font_texture", page_textures[p]);
+        rs->mesh_surface_set_material(mesh_rid, surface_idx, material_rid);
+
+        new_materials.push_back(material_rid);
+    }
+
+    if (new_materials.size() > 0)
+    {
+        _get_text_materials()[instance_rid] = new_materials;
+    }
+
+    rs->instance_set_transform(instance_rid, Transform3D(Basis(), position));
+}
 void Gizmos3D::apply_shader_on_gizmo(const RID &instance_rid, const Ref<Material> &material)
 {
     if (!instance_rid.is_valid())
@@ -982,7 +1232,7 @@ void Gizmos3D::_bind_methods()
 
     ClassDB::bind_static_method(
         "Gizmos3D", D_METHOD("draw_3D_path", "instance_rid", "points", "as_arrows", "segments_per_line", "spacing", "use_bezier", "show_points", "point_radius", "width", "color", "arrow_head_size"),
-        &Gizmos3D::draw_3D_path, DEFVAL(false), DEFVAL(1), DEFVAL(0.0f), DEFVAL(false), DEFVAL(false), DEFVAL(4.0f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(12.0f));
+        &Gizmos3D::draw_3D_path, DEFVAL(false), DEFVAL(1), DEFVAL(0.0f), DEFVAL(false), DEFVAL(false), DEFVAL(0.1f), DEFVAL(2.0f), DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(12.0f));
 
     ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_origin", "instance_rid", "transform", "size", "head_size", "width"), &Gizmos3D::draw_3D_origin, DEFVAL(Transform3D()), DEFVAL(1.0f),
                                 DEFVAL(0.2f), DEFVAL(2.0f));
@@ -994,4 +1244,7 @@ void Gizmos3D::_bind_methods()
                                 DEFVAL(BaseMaterial3D::TEXTURE_FILTER_NEAREST));
 
     ClassDB::bind_static_method("Gizmos3D", D_METHOD("apply_shader_on_gizmo", "instance_rid", "material"), &Gizmos3D::apply_shader_on_gizmo);
+
+    ClassDB::bind_static_method("Gizmos3D", D_METHOD("draw_3D_text", "instance_rid", "position", "text", "color", "font_size", "pixel_size"), &Gizmos3D::draw_3D_text,
+                                DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(32), DEFVAL(0.01f));
 }

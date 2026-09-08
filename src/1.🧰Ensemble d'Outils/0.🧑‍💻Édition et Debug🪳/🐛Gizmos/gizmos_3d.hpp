@@ -4,6 +4,7 @@
 #include <godot_cpp/classes/base_material3d.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/material.hpp>
 #include <godot_cpp/classes/mesh.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -12,28 +13,32 @@
 #include <godot_cpp/classes/standard_material3d.hpp>
 #include <godot_cpp/classes/sub_viewport.hpp>
 #include <godot_cpp/classes/surface_tool.hpp>
+#include <godot_cpp/classes/text_server.hpp>
+#include <godot_cpp/classes/text_server_manager.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/world3d.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/print_string.hpp>
+#include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/color.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
+#include <godot_cpp/variant/rect2.hpp>
 #include <godot_cpp/variant/rid.hpp>
+#include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/transform3d.hpp>
 #include <godot_cpp/variant/vector2.hpp>
+#include <godot_cpp/variant/vector2i.hpp>
 #include <godot_cpp/variant/vector3.hpp>
 
 namespace godot
 {
 
-// NOTE (portage depuis gizmos_manager.gd) : la grille 3D (update_grid_3d) et le texte 3D
-// (update_text_3d, qui nécessite un SubViewport offscreen par gizmo) ont été explicitement
-// exclus de ce portage à la demande de l'utilisateur. _get_text_viewports() reste présent
-// (et vidé dans free_3D_gizmo) pour ne pas casser l'API existante, mais n'est alimenté par
-// aucune méthode dans cette version.
+// NOTE (portage depuis gizmos_manager.gd) : la grille 3D (update_grid_3d) a été explicitement
+// exclue de ce portage à la demande de l'utilisateur.
 class Gizmos3D : public RefCounted
 {
     GDCLASS(Gizmos3D, RefCounted)
@@ -42,7 +47,16 @@ class Gizmos3D : public RefCounted
     // Getters statiques : les objets seront créés uniquement lors de leur premier appel
     static Dictionary &_get_mesh_rids();
     static Dictionary &_get_materials();
-    static Dictionary &_get_text_viewports();
+
+    // draw_3D_text : liste (Array de RID) des matériaux de glyphes créés pour le dernier appel
+    // sur un gizmo donné (un matériau par page d'atlas de police utilisée). Libérés et
+    // recréés à chaque appel, car le texte peut changer.
+    static Dictionary &_get_text_materials();
+
+    // Shader RID unique et partagé par tous les gizmos de texte (aucune donnée par-instance
+    // dans le shader lui-même, seul le paramètre de texture change par matériau).
+    static RID &_get_text_shader();
+
     static Ref<StandardMaterial3D> &_get_default_3D_material();
 
     static RID _get_scenario(Viewport *viewport);
@@ -127,7 +141,7 @@ class Gizmos3D : public RefCounted
                              float spacing = 0.0f,
                              bool use_bezier = false,
                              bool show_points = false,
-                             float point_radius = 4.0f,
+                             float point_radius = 0.1f,
                              float width = 2.0f,
                              const Color &color = Color(1.0, 1.0, 1.0, 1.0),
                              float arrow_head_size = 12.0f);
@@ -145,6 +159,18 @@ class Gizmos3D : public RefCounted
 
     // Remplace le matériau par défaut d'un gizmo 3D par un matériau personnalisé (shader inclus).
     static void apply_shader_on_gizmo(const RID &instance_rid, const Ref<Material> &material);
+
+    // Dessine du texte 3D en billboard, SANS AUCUN nœud/ressource "afficheur" de texte (pas de
+    // Label, RichTextLabel, Label3D, TextMesh...) : contrairement à la première version de
+    // cette méthode, il n'y a même plus de Viewport/CanvasItem offscreen. À la place, on
+    // utilise directement TextServer (le service bas niveau qui gère la mise en forme et les
+    // atlas de glyphes, et sur lequel Label3D lui-même s'appuie en interne) : le texte est mis
+    // en forme via shaped_text_add_string(), puis chaque glyphe est placé comme un quad dont
+    // l'UV pointe directement dans l'atlas de textures de la police (font_get_glyph_uv_rect /
+    // font_get_glyph_texture_rid), sans jamais dessiner sur un canvas ni passer par un viewport.
+    // Limites assumées : une seule ligne (pas de retour à la ligne automatique), texte de
+    // gauche à droite (pas de prise en charge RTL/bidi).
+    static void draw_3D_text(const RID &instance_rid, const Vector3 &position, const String &text, const Color &color = Color(1.0, 1.0, 1.0, 1.0), int font_size = 32, float pixel_size = 0.01f);
 };
 
 } // namespace godot

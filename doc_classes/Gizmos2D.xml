@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Gizmos2D" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_shader_on_gizmo" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="material" type="Material" />
+			<description>
+			</description>
+		</method>
+		<method name="clear_2D_gizmos" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="create_2D_gizmos" qualifiers="static">
+			<return type="RID" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_arrow" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="from" type="Vector2" />
+			<param index="2" name="to" type="Vector2" />
+			<param index="3" name="arrow_head_size" type="float" default="12.0" />
+			<param index="4" name="width" type="float" default="1.0" />
+			<param index="5" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="6" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_capsule" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="position" type="Vector2" />
+			<param index="2" name="size" type="Vector2" />
+			<param index="3" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="4" name="thickness" type="float" default="2.0" />
+			<param index="5" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_circle" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="center" type="Vector2" />
+			<param index="2" name="radius" type="float" />
+			<param index="3" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="4" name="filled" type="bool" default="false" />
+			<param index="5" name="thickness" type="float" default="2.0" />
+			<param index="6" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_icon" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="position" type="Vector2" />
+			<param index="2" name="icon" type="Texture2D" />
+			<param index="3" name="size" type="Vector2" default="Vector2(0, 0)" />
+			<param index="4" name="filter" type="int" enum="RenderingServer.CanvasItemTextureFilter" default="1" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_line" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="from" type="Vector2" />
+			<param index="2" name="to" type="Vector2" />
+			<param index="3" name="width" type="float" default="2.0" />
+			<param index="4" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="5" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_origin" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="transform" type="Transform2D" default="Transform2D(1, 0, 0, 1, 0, 0)" />
+			<param index="2" name="length" type="float" default="32.0" />
+			<param index="3" name="arrow_head_size" type="float" default="8.0" />
+			<param index="4" name="cross_size" type="float" default="8.0" />
+			<param index="5" name="width" type="float" default="2.0" />
+			<param index="6" name="cross_color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="7" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_path" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="points" type="PackedVector2Array" />
+			<param index="2" name="as_arrows" type="bool" default="false" />
+			<param index="3" name="segments_per_line" type="int" default="1" />
+			<param index="4" name="spacing" type="float" default="0.0" />
+			<param index="5" name="use_bezier" type="bool" default="false" />
+			<param index="6" name="show_points" type="bool" default="false" />
+			<param index="7" name="point_radius" type="float" default="4.0" />
+			<param index="8" name="width" type="float" default="2.0" />
+			<param index="9" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="10" name="arrow_head_size" type="float" default="12.0" />
+			<param index="11" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_polygon" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="points" type="PackedVector2Array" />
+			<param index="2" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="3" name="filled" type="bool" default="false" />
+			<param index="4" name="thickness" type="float" default="2.0" />
+			<param index="5" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_rectangle" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="rect" type="Rect2" />
+			<param index="2" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="3" name="filled" type="bool" default="false" />
+			<param index="4" name="thickness" type="float" default="2.0" />
+			<param index="5" name="antialiasing" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_2D_text" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<param index="1" name="position" type="Vector2" />
+			<param index="2" name="text" type="String" />
+			<param index="3" name="color" type="Color" default="Color(1, 1, 1, 1)" />
+			<param index="4" name="font_size" type="int" default="12" />
+			<description>
+			</description>
+		</method>
+		<method name="free_gizmos" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="gizmo_rid" type="RID" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>
