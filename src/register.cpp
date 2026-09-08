@@ -1,5 +1,6 @@
 #include "register.hpp"
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_bool_callback.hpp"
 #include "gdextension_interface.h"
 #include "godot_cpp/core/defs.hpp"
@@ -33,6 +34,7 @@ void initialize(ModuleInitializationLevel p_level)
     }
 
     // Implentation de la classe TestScript dans le registre de classes de Godot
+    GDREGISTER_CLASS(ManagerBuilder);
     GDREGISTER_CLASS(WindowEditor);
     GDREGISTER_CLASS(Gizmos2D);
     GDREGISTER_CLASS(Gizmos3D);

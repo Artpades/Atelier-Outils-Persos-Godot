@@ -61,6 +61,7 @@ var object_value: Object
 
 @onready var control: Control = $"../Control"
 
+
 func _ready() -> void:
 	WidgetPropertyModifierBuilder.create_bool_check_box(self, "boolean_value", control)
 
