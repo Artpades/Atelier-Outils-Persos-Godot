@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cyiwrfi3ip0j6" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_tool_editor_creator.gd" id="1_cexgo"]
 [ext_resource type="Script" uid="uid://dbh42m8lubleo" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_2d_Gizmos.gd" id="2_gjktd"]
+[ext_resource type="Script" uid="uid://dkl631knw10f0" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_handlers.gd" id="2_ppycd"]
 [ext_resource type="Texture2D" uid="uid://ci7c2si2mp0ef" path="res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png" id="3_s0kbk"]
 [ext_resource type="Script" uid="uid://5evrhlnguvt" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_3d_gizmos.gd" id="4_ojb3b"]
 
@@ -29,11 +30,27 @@ script = ExtResource("4_ojb3b")
 icon_texture = ExtResource("3_s0kbk")
 custom_material = SubResource("StandardMaterial3D_ojb3b")
 
-[node name="Control" type="Control" parent="." unique_id=1869276035]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 313.0
-offset_bottom = 101.0
+[node name="Control" type="BoxContainer" parent="." unique_id=64618787]
+offset_right = 140.0
+offset_bottom = 24.0
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1368422186]
 transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 4, 7)
+
+[node name="Test Handler" type="Node" parent="." unique_id=1224893540]
+script = ExtResource("2_ppycd")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=20952760]
+offset_left = 575.0
+offset_top = 117.0
+offset_right = 987.0
+offset_bottom = 246.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="HBoxContainer" unique_id=652527321]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Test ediofgkzbnofgik etT"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer" unique_id=679866763]
+layout_mode = 2
+text = "Test"

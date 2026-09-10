@@ -69,7 +69,7 @@ func _enter_tree() -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	var offset := sin(_time * 2.0)
-	var cos_offset := cos(_time * 2.0)
+#	var cos_offset := cos(_time * 2.0)
 
 	# 3. Exécution de toutes les méthodes de dessin avec géométrie animée
 	Gizmos3D.draw_3D_line(_rid_line, Vector3(-6, offset, 0), Vector3(-4, -offset, 0), Color.RED, 3.0)

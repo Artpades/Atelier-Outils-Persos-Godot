@@ -63,7 +63,7 @@ var object_value: Object
 
 
 func _ready() -> void:
-	WidgetPropertyModifierBuilder.create_bool_check_box(self, "boolean_value", control)
+	WidgetPropertyModifierBuilder.create_bool_check_box(self, "boolean_value", true,control)
 
 var window : WindowEditor = WindowEditor.new()
 func function() -> void:

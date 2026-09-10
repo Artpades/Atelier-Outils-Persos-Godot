@@ -13,9 +13,9 @@
 using namespace godot;
 
 // Renommer WidgetPropertyCallback
-class PropertyBoolCallback : public RefCounted
+class PropertyCallback : public RefCounted
 {
-    GDCLASS(PropertyBoolCallback, RefCounted)
+    GDCLASS(PropertyCallback, RefCounted)
 
   private:
     Object *target_obj = nullptr;
@@ -24,8 +24,8 @@ class PropertyBoolCallback : public RefCounted
   public:
     static void _bind_methods()
     {
-        ClassDB::bind_method(D_METHOD("setup", "obj", "prop"), &PropertyBoolCallback::setup);
-        ClassDB::bind_method(D_METHOD("on_toggled", "pressed"), &PropertyBoolCallback::on_toggled);
+        ClassDB::bind_method(D_METHOD("setup", "obj", "prop"), &PropertyCallback::setup);
+        ClassDB::bind_method(D_METHOD("on_toggled", "pressed"), &PropertyCallback::on_toggled);
     }
 
     void setup(Object *obj, const String &prop)

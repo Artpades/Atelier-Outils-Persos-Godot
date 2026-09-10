@@ -3,10 +3,14 @@
 
 #include <godot_cpp/classes/box_container.hpp>
 #include <godot_cpp/classes/check_box.hpp>
+#include <godot_cpp/classes/container.hpp>
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/viewport.hpp>
+
 namespace godot
 {
 class WidgetPropertyModifierBuilder : public RefCounted
@@ -20,8 +24,14 @@ class WidgetPropertyModifierBuilder : public RefCounted
     WidgetPropertyModifierBuilder();
     ~WidgetPropertyModifierBuilder();
 
-    static BoxContainer *create_base_visual();
-    static CheckBox *create_bool_check_box(Object *obj, const String &property_name, Control *control_for_adding_widget = nullptr);
+    static BoxContainer *create_visual_base();
+    static Label *create_label_name_widget(Control *base_visual, const String &name);
+
+    // Type de widget
+    // Booléen : CheckBox, CheckButton
+    // Décimaux : SpinBox, Slider V/H, ProgresBar, TextureProgressBar
+
+    static CheckBox *create_bool_widget(Object *obj, const String &property_name, bool vertical = false, Control *control_for_adding_widget = nullptr);
 };
 } // namespace godot
 #endif // WIDGET_PROPERTY_MODIFIER_BUILDER

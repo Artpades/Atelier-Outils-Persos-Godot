@@ -1,7 +1,7 @@
 #include "register.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_bool_callback.hpp"
+
 #include "gdextension_interface.h"
 #include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/core/print_string.hpp"
@@ -22,7 +22,7 @@
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/widget_property_modifier_builder.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_bool_callback.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_callback.hpp"
 
 using namespace godot;
 
@@ -43,7 +43,7 @@ void initialize(ModuleInitializationLevel p_level)
 
     GDREGISTER_CLASS(WidgetPropertyModifierBuilder);
 
-    GDREGISTER_CLASS(PropertyBoolCallback);
+    GDREGISTER_CLASS(PropertyCallback);
 
     GDREGISTER_CLASS(TestExample);
 
