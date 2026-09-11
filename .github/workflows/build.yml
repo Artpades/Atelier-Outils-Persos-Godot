@@ -13,17 +13,16 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             arch: x86_64
-            ext: so
           - os: windows-latest
             platform: windows
             arch: x86_64
-            ext: dll
           - os: macos-latest
             platform: macos
             arch: x86_64
-            ext: dylib
 
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: 1          # ← force Python en mode UTF-8
 
     steps:
       - name: Checkout code
@@ -47,10 +46,6 @@ jobs:
         run: |
           scons platform=${{ matrix.platform }} target=template_release arch=${{ matrix.arch }}
           scons platform=${{ matrix.platform }} target=template_debug arch=${{ matrix.arch }}
-
-      - name: List output files
-        shell: bash
-        run: ls -la bin/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
