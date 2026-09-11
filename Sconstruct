@@ -3,6 +3,8 @@ import os
 sources = []
 
 for root, dirs, files in os.walk("src"):
+    if "gen" in dirs:
+        dirs.remove("gen")  # ne pas descendre dans src/gen : doc_data.gen.cpp y est déjà ajouté explicitement plus bas
     for file in files:
         if file.endswith(".cpp"):
             sources.append(os.path.join(root, file))
