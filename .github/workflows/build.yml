@@ -1,0 +1,54 @@
+name: Build GDExtension
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x86_64
+          - os: windows-latest
+            platform: windows
+            arch: x86_64
+          - os: macos-latest
+            platform: macos
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: 1          # ← force Python en mode UTF-8
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install SCons
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update && sudo apt-get install -y scons
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            brew install scons
+          else
+            python -m pip install scons
+          fi
+        shell: bash
+
+      - name: Build
+        shell: bash
+        run: |
+          scons platform=${{ matrix.platform }} target=template_release arch=${{ matrix.arch }}
+          scons platform=${{ matrix.platform }} target=template_debug arch=${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}
+          path: bin/   
