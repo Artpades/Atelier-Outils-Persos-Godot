@@ -1,8 +1,10 @@
 #include "register.hpp"
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/editor_test.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
 
 #include "gdextension_interface.h"
+#include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/core/print_string.hpp"
 #include "godot_cpp/godot.hpp"
@@ -28,6 +30,14 @@ using namespace godot;
 
 void initialize(ModuleInitializationLevel p_level)
 {
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
+    {
+        GDREGISTER_CLASS(EditorTest);
+
+        // Création de l'instance pour exécuter la méthode
+        EditorTest *test_instance = memnew(EditorTest);
+        godot::Callable(test_instance, "creer_bouton_editeur").call_deferred();
+    }
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     {
         return;
@@ -47,7 +57,7 @@ void initialize(ModuleInitializationLevel p_level)
 
     GDREGISTER_CLASS(TestExample);
 
-    godot::print_line_rich("[color=dark_green]Module d'extension chargé avec succès ![/color]");
+    godot::print_line_rich("[color=dark_green]Module d'extension pour scène chargé avec succès ![/color]");
 }
 
 void uninitialize(ModuleInitializationLevel p_level)
