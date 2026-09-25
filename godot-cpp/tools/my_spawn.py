@@ -27,7 +27,7 @@ def configure(env):
         rv = proc.wait()
         if rv:
             print("=====")
-            print(err.decode("utf-8"))
+            print(err.decode("utf-8", errors="replace"))
             print("=====")
         return rv
 
