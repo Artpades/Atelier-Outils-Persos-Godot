@@ -42,6 +42,7 @@
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_context.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_joy_gyro_action.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_mouse_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_touch_action.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_rebinder.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_sphere_action.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/player_input.hpp"
@@ -53,6 +54,8 @@
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_file_access.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_manager.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_serializer.hpp"
+
+#include "1.🧰Ensemble d'Outils/2.🧭Widgets & Spatialité🌍/🎞️Gestion de Caméras🎛️/camera_manager.hpp"
 
 using namespace godot;
 
@@ -105,6 +108,7 @@ void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(InputSphereAction);
     GDREGISTER_CLASS(InputJoyGyroAction);
     GDREGISTER_CLASS(InputMouseAction);
+    GDREGISTER_CLASS(InputTouchAction);
     GDREGISTER_CLASS(InputContext);
     GDREGISTER_CLASS(PlayerInput);
     GDREGISTER_CLASS(InputRebinder);
@@ -116,6 +120,8 @@ void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_ABSTRACT_CLASS(SaveSerializer);
     GDREGISTER_ABSTRACT_CLASS(SaveFileAccess);
     GDREGISTER_ABSTRACT_CLASS(SaveManager);
+
+    GDREGISTER_CLASS(CameraManager);
 
     GDREGISTER_CLASS(TestExample);
 

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CameraManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🎥 Gestionnaire singleton qui change la caméra active, instantanément ou avec une transition fluide, en 2D comme en 3D.
+	</brief_description>
+	<description>
+		[CameraManager] rend une [Camera2D] ou une [Camera3D] active dans son [Viewport]. Le changement peut être instantané ou passer par une transition interpolée : position, rotation, zoom et décalage en 2D ; position, rotation, [member Camera3D.fov], [member Camera3D.size], [member Camera3D.near], [member Camera3D.far] et décalages en 3D.
+		On y accède par [method get_singleton]. Le gestionnaire est créé automatiquement au premier appel ; vous pouvez aussi le placer dans une scène ou en Autoload pour régler ses propriétés dans l'inspecteur. S'il en existe plusieurs, seul le premier est conservé.
+		[codeblock]
+		@onready var camera_joueur: Camera3D = $Joueur/Camera3D
+		@onready var camera_cinematique: Camera3D = $Cinematique/Camera3D
+
+		func _ready():
+		    CameraManager.get_singleton().camera_3d_switched.connect(_on_camera_changee)
+
+		func lancer_cinematique():
+		    # Transition de 2 secondes, avec la courbe par défaut du gestionnaire.
+		    CameraManager.get_singleton().switch_camera_3d(camera_cinematique, true, 2.0)
+
+		func couper_cinematique():
+		    # Retour immédiat, sans transition.
+		    CameraManager.get_singleton().switch_camera_3d(camera_joueur, false)
+
+		func _on_camera_changee(camera: Camera3D):
+		    print("Caméra active : ", camera.name)
+		[/codeblock]
+		[b]Fonctionnement de la transition :[/b] une caméra interne, la « transitoire », est ajoutée au [Viewport] et rendue active. Elle part de l'état de la caméra qui était active, puis se rapproche de la caméra cible à chaque frame. Aucune de vos caméras n'est déplacée ni modifiée. La cible est relue à chaque frame : si elle bouge pendant la transition (caméra qui suit un personnage, par exemple), la transition la suit. À la fin, la cible devient la caméra active et la transitoire est supprimée.
+		Chaque [Viewport] a sa propre transition : plusieurs transitions peuvent avoir lieu en même temps, par exemple en écran partagé avec des [SubViewport].
+		[b]Note :[/b] les transitions avancent dans [method Node._process] du gestionnaire. Elles se figent donc quand le jeu est en pause, sauf si le [member Node.process_mode] du gestionnaire est réglé sur [constant Node.PROCESS_MODE_ALWAYS].
+		[b]Note :[/b] en 2D, la transitoire ne reprend ni les limites ([member Camera2D.limit_left], etc.), ni le lissage, ni les marges de déplacement de la cible. Si la cible utilise ces réglages, un léger saut peut apparaître au moment où elle devient active.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_current_camera_2d" qualifiers="const">
+			<return type="Camera2D" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+				Renvoie la caméra 2D qui est active, ou qui va le devenir, dans [param viewport] : la cible si une transition est en cours, sinon [method Viewport.get_camera_2d]. Ne renvoie jamais la caméra transitoire interne.
+				Renvoie [code]null[/code] si aucune caméra 2D n'est active.
+			</description>
+		</method>
+		<method name="get_current_camera_3d" qualifiers="const">
+			<return type="Camera3D" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+				Renvoie la caméra 3D qui est active, ou qui va le devenir, dans [param viewport] : la cible si une transition est en cours, sinon [method Viewport.get_camera_3d]. Ne renvoie jamais la caméra transitoire interne.
+				Renvoie [code]null[/code] si aucune caméra 3D n'est active.
+			</description>
+		</method>
+		<method name="get_singleton" qualifiers="static">
+			<return type="CameraManager" />
+			<description>
+				Renvoie l'instance unique du gestionnaire. Si aucune n'existe, elle est créée et ajoutée à la racine de l'arbre de scène, où elle survit aux changements de scène.
+				[b]Note :[/b] l'ajout d'une instance créée par cet appel est différé à la fin de la frame. Les transitions lancées entre-temps démarrent dès qu'elle est dans l'arbre.
+			</description>
+		</method>
+		<method name="is_transitioning_2d" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+				Renvoie [code]true[/code] si une transition 2D est en cours dans [param viewport].
+			</description>
+		</method>
+		<method name="is_transitioning_3d" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+				Renvoie [code]true[/code] si une transition 3D est en cours dans [param viewport].
+			</description>
+		</method>
+		<method name="switch_camera_2d">
+			<return type="void" />
+			<param index="0" name="camera" type="Camera2D" />
+			<param index="1" name="use_transition" type="bool" default="true" />
+			<param index="2" name="duration" type="float" default="-1.0" />
+			<description>
+				Rend [param camera] active dans son [Viewport]. [param camera] doit être dans l'arbre de scène ; elle est activée ([member Camera2D.enabled]) si elle ne l'était pas.
+				Si [param use_transition] vaut [code]true[/code], la vue glisse de la caméra active vers [param camera] en [param duration] secondes, en suivant [member transition_type] et [member ease_type]. Une [param duration] négative utilise [member transition_duration]. Une durée nulle, [param use_transition] à [code]false[/code] ou l'absence de caméra active donnent un changement instantané.
+				Si une transition est déjà en cours dans ce [Viewport] :
+				- vers la même caméra : l'appel est ignoré et la transition continue ;
+				- vers une autre caméra : la transition repart de la vue actuelle vers la nouvelle cible, sans à-coup ;
+				- avec un changement instantané : la transition est annulée.
+				[signal camera_2d_switched] est émis quand [param camera] est active, c'est-à-dire à la fin de la transition, ou tout de suite pour un changement instantané.
+			</description>
+		</method>
+		<method name="switch_camera_3d">
+			<return type="void" />
+			<param index="0" name="camera" type="Camera3D" />
+			<param index="1" name="use_transition" type="bool" default="true" />
+			<param index="2" name="duration" type="float" default="-1.0" />
+			<description>
+				Rend [param camera] active dans son [Viewport]. [param camera] doit être dans l'arbre de scène.
+				Si [param use_transition] vaut [code]true[/code], la vue glisse de la caméra active vers [param camera] en [param duration] secondes, en suivant [member transition_type] et [member ease_type]. Une [param duration] négative utilise [member transition_duration]. Une durée nulle, [param use_transition] à [code]false[/code] ou l'absence de caméra active donnent un changement instantané.
+				La rotation est interpolée par le plus court chemin (quaternions). Pendant la transition, la projection, l'[member Camera3D.environment], les [member Camera3D.attributes], le [member Camera3D.compositor] et le [member Camera3D.cull_mask] restent ceux de la caméra de départ ; ceux de [param camera] s'appliquent quand elle devient active.
+				Si une transition est déjà en cours dans ce [Viewport] :
+				- vers la même caméra : l'appel est ignoré et la transition continue ;
+				- vers une autre caméra : la transition repart de la vue actuelle vers la nouvelle cible, sans à-coup ;
+				- avec un changement instantané : la transition est annulée.
+				[signal camera_3d_switched] est émis quand [param camera] est active, c'est-à-dire à la fin de la transition, ou tout de suite pour un changement instantané.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="2">
+			Accélération appliquée à [member transition_type] : au début ([constant Tween.EASE_IN]), à la fin ([constant Tween.EASE_OUT]), aux deux ([constant Tween.EASE_IN_OUT]), ou au milieu ([constant Tween.EASE_OUT_IN]).
+			Une modification s'applique aux transitions lancées ensuite, pas à celle en cours.
+		</member>
+		<member name="transition_duration" type="float" setter="set_transition_duration" getter="get_transition_duration" default="1.0">
+			Durée des transitions en secondes, quand [method switch_camera_2d] ou [method switch_camera_3d] sont appelées sans durée. Les valeurs négatives sont ramenées à [code]0.0[/code] ; [code]0.0[/code] rend tous les changements instantanés.
+		</member>
+		<member name="transition_type" type="int" setter="set_transition_type" getter="get_transition_type" enum="Tween.TransitionType" default="7">
+			Courbe utilisée pour les transitions, identique à celles de [Tween]. Par défaut [constant Tween.TRANS_CUBIC].
+			Une modification s'applique aux transitions lancées ensuite, pas à celle en cours.
+		</member>
+	</members>
+	<signals>
+		<signal name="camera_2d_switched">
+			<param index="0" name="camera" type="Camera2D" />
+			<description>
+				Émis quand [param camera] vient de devenir la caméra 2D active, à la fin d'une transition ou juste après un changement instantané.
+				Il n'est pas émis si la transition est abandonnée : caméra cible supprimée ou sortie de l'arbre, ou autre caméra rendue active par un autre moyen que ce gestionnaire.
+			</description>
+		</signal>
+		<signal name="camera_3d_switched">
+			<param index="0" name="camera" type="Camera3D" />
+			<description>
+				Émis quand [param camera] vient de devenir la caméra 3D active, à la fin d'une transition ou juste après un changement instantané.
+				Il n'est pas émis si la transition est abandonnée : caméra cible supprimée ou sortie de l'arbre, ou autre caméra rendue active par un autre moyen que ce gestionnaire.
+			</description>
+		</signal>
+	</signals>
+</class>

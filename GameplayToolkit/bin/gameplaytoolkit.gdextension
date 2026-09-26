@@ -23,10 +23,12 @@ InputCircleAction = "res://🖼️Editor Icons/🎮🔌/InputVector2Action Icon.
 InputSphereAction = "res://🖼️Editor Icons/🎮🔌/InputVector3Action Icon-export.png"
 InputJoyGyroAction = "res://🖼️Editor Icons/🎮🔌/JoyPadMotion Icon.png"
 InputMouseAction = "res://🖼️Editor Icons/🎮🔌/InputMouseAction Icon.png"
+InputTouchAction = "res://🖼️Editor Icons/🎮🔌/InputScreenSphere Icon.png"
 InputContext = "res://🖼️Editor Icons/🎮🔌/InputContexte Icon.png"
 PlayerInput = "res://🖼️Editor Icons/🎮🔌/InputManager Icon.png"
 InputRebinder = "res://🖼️Editor Icons/🎮🔌/InputMapBinding Icon.png"
 PlayerInputUI = "res://🖼️Editor Icons/🎮🔌/ButtonAssigned Icon.png"
+CameraManager = "res://🖼️Editor Icons/🎥🎞️/CameraManager Icon.png"
 [libraries]
 
 macos.debug = "res://bin/libgameplaytoolkit.macos.template_debug.dylib"

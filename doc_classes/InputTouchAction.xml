@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputTouchAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📱 Écran tactile : touchers, glissements, multi-touch et gestes.
+	</brief_description>
+	<description>
+		Suit jusqu'à [member max_fingers] doigts ([signal touch_pressed], [signal drag], [signal touch_released]) et reconnaît les gestes courants : [signal tap], [signal double_tap], [signal long_press], [signal swipe] et [signal pinch]. Les gestes de pavé tactile ([signal pan], [signal magnify]) sont aussi relayés.
+		Dès que deux doigts sont posés ensemble, le geste est considéré comme multi-touch jusqu'au relâchement du dernier doigt : il ne produit alors ni tap, ni appui long, ni swipe.
+		Le tactile est un périphérique à part : [member InputAction.detector_type] et [member InputAction.device_id] sont ignorés. Pour tester à la souris sur PC, activez [code]input_devices/pointing/emulate_touch_from_mouse[/code] dans les paramètres du projet.
+		Désactivée, l'action oublie les doigts et gestes en cours.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_finger_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Renvoie le nombre de doigts actuellement suivis.
+			</description>
+		</method>
+		<method name="get_finger_indices" qualifiers="const">
+			<return type="PackedInt32Array" />
+			<description>
+				Renvoie les index des doigts actuellement suivis.
+			</description>
+		</method>
+		<method name="get_finger_position" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="finger" type="int" />
+			<description>
+				Renvoie la position du doigt [param finger], ou [constant Vector2.ZERO] s'il n'est pas posé.
+			</description>
+		</method>
+		<method name="get_pinch_scale" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie le rapport entre l'écart actuel des deux doigts du pincement et leur écart au début du geste ([code]1.0[/code] hors pincement).
+			</description>
+		</method>
+		<method name="get_primary_finger_position" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Renvoie la position du plus ancien doigt encore posé, ou [constant Vector2.ZERO] si aucun.
+			</description>
+		</method>
+		<method name="is_finger_active" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="finger" type="int" />
+			<description>
+				Renvoie [code]true[/code] si le doigt [param finger] est posé et suivi.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="detect_double_tap" type="bool" setter="set_detect_double_tap" getter="get_detect_double_tap" default="true">
+			Si [code]true[/code], un tap attend [member double_tap_delay] avant d'être émis, le temps de savoir si un second tap suit. Désactivez-le pour des taps sans délai.
+		</member>
+		<member name="double_tap_delay" type="float" setter="set_double_tap_delay" getter="get_double_tap_delay" default="0.3">
+			Délai maximal, en secondes, entre deux taps pour former un double tap.
+		</member>
+		<member name="long_press_duration" type="float" setter="set_long_press_duration" getter="get_long_press_duration" default="0.5">
+			Durée, en secondes, au bout de laquelle un doigt resté immobile déclenche [signal long_press].
+		</member>
+		<member name="max_fingers" type="int" setter="set_max_fingers" getter="get_max_fingers" default="5">
+			Nombre maximal de doigts suivis simultanément ; les suivants sont ignorés.
+		</member>
+		<member name="swipe_min_distance" type="float" setter="set_swipe_min_distance" getter="get_swipe_min_distance" default="100.0">
+			Distance minimale, en pixels, entre le début et la fin du geste pour un swipe.
+		</member>
+		<member name="swipe_min_velocity" type="float" setter="set_swipe_min_velocity" getter="get_swipe_min_velocity" default="500.0">
+			Vitesse moyenne minimale du geste, en pixels par seconde, pour un swipe.
+		</member>
+		<member name="tap_max_distance" type="float" setter="set_tap_max_distance" getter="get_tap_max_distance" default="20.0">
+			Déplacement maximal, en pixels, d'un doigt pour compter comme tap ou appui long.
+		</member>
+		<member name="tap_max_duration" type="float" setter="set_tap_max_duration" getter="get_tap_max_duration" default="0.3">
+			Durée maximale, en secondes, entre l'appui et le relâchement pour un tap.
+		</member>
+	</members>
+	<signals>
+		<signal name="double_tap">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+				Émis au second tap rapproché (dans [member double_tap_delay] et à moins de deux fois [member tap_max_distance] du premier).
+			</description>
+		</signal>
+		<signal name="drag">
+			<param index="0" name="finger" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<param index="2" name="relative" type="Vector2" />
+			<param index="3" name="pressure" type="float" />
+			<description>
+				Émis quand un doigt suivi glisse sur l'écran.
+			</description>
+		</signal>
+		<signal name="finger_count_changed">
+			<param index="0" name="count" type="int" />
+			<description>
+				Émis quand le nombre de doigts suivis change.
+			</description>
+		</signal>
+		<signal name="long_press">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+				Émis une fois quand un doigt reste immobile pendant [member long_press_duration]. Le relâchement qui suit ne produit pas de tap.
+			</description>
+		</signal>
+		<signal name="magnify">
+			<param index="0" name="factor" type="float" />
+			<description>
+				Émis une fois par frame avec le facteur de zoom cumulé d'un geste de pavé tactile.
+			</description>
+		</signal>
+		<signal name="pan">
+			<param index="0" name="delta" type="Vector2" />
+			<description>
+				Émis une fois par frame avec le déplacement cumulé d'un geste de défilement de pavé tactile.
+			</description>
+		</signal>
+		<signal name="pinch">
+			<param index="0" name="scale" type="float" />
+			<param index="1" name="center" type="Vector2" />
+			<description>
+				Émis quand l'écart des deux plus anciens doigts change d'au moins [member InputAction.dirty_threshold]. [param scale] est relatif au début du pincement ([code]&gt; 1[/code] : écartement, [code]&lt; 1[/code] : rapprochement).
+			</description>
+		</signal>
+		<signal name="swipe">
+			<param index="0" name="direction" type="int" enum="InputTouchAction.SwipeDirection" />
+			<param index="1" name="start_position" type="Vector2" />
+			<param index="2" name="velocity" type="Vector2" />
+			<description>
+				Émis au relâchement d'un doigt qui a parcouru au moins [member swipe_min_distance] à une vitesse moyenne d'au moins [member swipe_min_velocity]. [param velocity] est cette vitesse moyenne.
+			</description>
+		</signal>
+		<signal name="tap">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+				Émis pour un toucher bref et immobile. Avec [member detect_double_tap], il n'est émis qu'après [member double_tap_delay], si aucun second tap n'a suivi.
+			</description>
+		</signal>
+		<signal name="touch_pressed">
+			<param index="0" name="finger" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<description>
+				Émis quand un doigt touche l'écran.
+			</description>
+		</signal>
+		<signal name="touch_released">
+			<param index="0" name="finger" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<description>
+				Émis quand un doigt suivi quitte l'écran.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="SWIPE_NONE" value="0" enum="SwipeDirection">
+		</constant>
+		<constant name="SWIPE_LEFT" value="1" enum="SwipeDirection">
+		</constant>
+		<constant name="SWIPE_RIGHT" value="2" enum="SwipeDirection">
+		</constant>
+		<constant name="SWIPE_UP" value="3" enum="SwipeDirection">
+		</constant>
+		<constant name="SWIPE_DOWN" value="4" enum="SwipeDirection">
+			Vers le bas de l'écran (Y croissant).
+		</constant>
+	</constants>
+</class>
