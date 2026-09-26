@@ -10,6 +10,7 @@ WindowEditor = "res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png"
 Gizmos2D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
 Gizmos3D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
 WidgetPropertyModifierBuilder = "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png"
+ProceduralInspector = "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png"
 [libraries]
 
 macos.debug = "res://bin/libgameplaytoolkit.macos.template_debug.dylib"

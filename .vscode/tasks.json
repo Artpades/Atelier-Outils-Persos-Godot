@@ -8,7 +8,8 @@
 			"command": "scons",
 			"args": [
 				"platform=linux",
-				"dev_build=yes"
+				"dev_build=yes",
+				"compiledb=yes"
 			],
 			"problemMatcher": "$msCompile"
 		}

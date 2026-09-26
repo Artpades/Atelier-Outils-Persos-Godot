@@ -4,6 +4,7 @@
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
 
 #include "gdextension_interface.h"
+#include "godot_cpp/classes/engine.hpp"
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/defs.hpp"
 #include "godot_cpp/core/print_string.hpp"
@@ -26,6 +27,9 @@
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_callback.hpp"
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/inspector_binding.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/procedural_inspector.hpp"
+
 using namespace godot;
 
 void initialize(ModuleInitializationLevel p_level)
@@ -33,6 +37,13 @@ void initialize(ModuleInitializationLevel p_level)
     if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
         GDREGISTER_CLASS(EditorTest);
+
+        // Le niveau EDITOR est aussi initialisé quand on lance une scène depuis l'éditeur (même binaire, sans
+        // éditeur) : un EditorPlugin n'y est pas instanciable, et memnew planterait le jeu.
+        if (!Engine::get_singleton()->is_editor_hint())
+        {
+            return;
+        }
 
         // Création de l'instance pour exécuter la méthode
         EditorTest *test_instance = memnew(EditorTest);
@@ -54,6 +65,9 @@ void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(WidgetPropertyModifierBuilder);
 
     GDREGISTER_CLASS(PropertyCallback);
+
+    GDREGISTER_INTERNAL_CLASS(InspectorBinding);
+    GDREGISTER_CLASS(ProceduralInspector);
 
     GDREGISTER_CLASS(TestExample);
 

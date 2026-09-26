@@ -1,0 +1,9 @@
+{
+    // clangd s'occupe de l'analyse C++ (via compile_commands.json) : on coupe l'IntelliSense de l'extension
+    // Microsoft pour éviter les erreurs en double et contradictoires.
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}",
+        "--header-insertion=never"
+    ]
+}
