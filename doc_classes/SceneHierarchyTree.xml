@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SceneHierarchyTree" inherits="Tree" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🌳 Un [Tree] qui affiche la hiérarchie des noeuds de la scène, et optionnellement ceux de l'éditeur.
+	</brief_description>
+	<description>
+		[SceneHierarchyTree] construit automatiquement, dans [method Node._ready], un arbre représentant les noeuds à partir d'une racine. Chaque noeud est affiché avec son nom, sa couleur selon son type et, dans l'éditeur, son icône de classe.
+		La racine est choisie ainsi :
+		- si [member scene_root_path] est défini, le noeud ciblé par ce chemin ;
+		- sinon, dans l'éditeur avec [member show_editor_nodes] désactivé, la scène actuellement éditée ;
+		- sinon, la racine de l'arbre de scène ([method SceneTree.get_root]) ou son premier enfant qui n'est pas un noeud interne (voir [member show_all_non_editor_nodes]).
+		Code couleur des noeuds :
+		- [color=#b3e6ff]bleu clair[/color] : [Node3D] ;
+		- [color=#b3ffb3]vert clair[/color] : [Node2D] ;
+		- [color=#ffe6b3]orange clair[/color] : [Control] ;
+		- [color=#ffb3e6]rose[/color] : [Timer] ;
+		- [color=#e6e6e6]gris[/color] : [Viewport] et [Window] ;
+		- blanc : les autres noeuds.
+		Sélectionner un élément émet [signal node_selected] et écrit le nom, le type et le chemin du noeud dans le journal [CustomLogger].
+		[b]Note :[/b] l'arbre est une image de la scène à l'instant où il est construit. Appelez [method refresh_tree] pour le mettre à jour après avoir ajouté ou supprimé des noeuds.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="collapse_all">
+			<return type="void" />
+			<description>
+				Replie tous les éléments de l'arbre.
+			</description>
+		</method>
+		<method name="expand_all">
+			<return type="void" />
+			<description>
+				Déplie tous les éléments de l'arbre.
+			</description>
+		</method>
+		<method name="get_selected_node">
+			<return type="Node" />
+			<description>
+				Renvoie le noeud correspondant à l'élément sélectionné, ou [code]null[/code] si rien n'est sélectionné ou si le noeud a été libéré depuis la construction de l'arbre.
+			</description>
+		</method>
+		<method name="refresh_tree">
+			<return type="void" />
+			<description>
+				Recalcule la racine (voir la description de la classe) puis reconstruit entièrement l'arbre. Si aucune racine n'est trouvée, une erreur est affichée et l'arbre n'est pas modifié.
+			</description>
+		</method>
+		<method name="select_node">
+			<return type="void" />
+			<param index="0" name="node" type="Node" />
+			<description>
+				Sélectionne l'élément correspondant à [param node], déplie ses parents et fait défiler l'arbre jusqu'à lui. Ne fait rien si le noeud n'est pas présent dans l'arbre.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_expand_all" type="bool" setter="set_auto_expand_all" getter="get_auto_expand_all" default="false">
+			Si [code]true[/code], tous les éléments sont dépliés à chaque construction de l'arbre.
+		</member>
+		<member name="scene_root_path" type="NodePath" setter="set_scene_root_path" getter="get_scene_root_path" default="NodePath(&quot;&quot;)">
+			Chemin vers le noeud à utiliser comme racine de l'arbre. S'il est vide, la racine est déterminée automatiquement (voir la description de la classe).
+		</member>
+		<member name="show_all_non_editor_nodes" type="bool" setter="set_show_all_non_editor_nodes" getter="get_show_all_non_editor_nodes" default="true">
+			Si [code]true[/code], l'arbre part de la racine de la fenêtre et affiche tous ses enfants qui ne sont pas des noeuds de l'éditeur (autoloads compris).
+			Si [code]false[/code], l'arbre part du premier enfant de la racine dont le nom ne commence pas par [code]@[/code], ce qui correspond généralement à la scène principale.
+			N'a pas d'effet si [member scene_root_path] est défini.
+		</member>
+		<member name="show_editor_nodes" type="bool" setter="set_show_editor_nodes" getter="get_show_editor_nodes" default="false">
+			Si [code]true[/code], les noeuds internes (dont le nom commence par [code]@[/code] ou contient [code]EditorNode[/code]) sont affichés. Utilisé dans l'éditeur, cela permet d'explorer l'arborescence de l'éditeur Godot lui-même.
+			Si [code]false[/code], ces noeuds sont masqués ; dans l'éditeur, l'arbre affiche alors la scène en cours d'édition.
+		</member>
+	</members>
+	<signals>
+		<signal name="node_selected">
+			<param index="0" name="node" type="Node" />
+			<description>
+				Émis quand un élément de l'arbre est sélectionné. [param node] est le noeud correspondant.
+			</description>
+		</signal>
+	</signals>
+</class>

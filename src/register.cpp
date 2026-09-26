@@ -23,12 +23,22 @@
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/✋Handlers/handlers_manager.hpp"
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🌳Hiérarchie de scène/scene_hierarchy_tree.hpp"
+
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/widget_property_modifier_builder.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/Callback pour les type/property_callback.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/inspector_binding.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/procedural_inspector.hpp"
+
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_config.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_data.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_data_binder.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_file_access.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_manager.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_serializer.hpp"
 
 using namespace godot;
 
@@ -62,12 +72,22 @@ void initialize(ModuleInitializationLevel p_level)
 
     GDREGISTER_CLASS(HandlersManager);
 
+    GDREGISTER_ABSTRACT_CLASS(CustomLogger);
+    GDREGISTER_CLASS(SceneHierarchyTree);
+
     GDREGISTER_CLASS(WidgetPropertyModifierBuilder);
 
     GDREGISTER_CLASS(PropertyCallback);
 
     GDREGISTER_INTERNAL_CLASS(InspectorBinding);
     GDREGISTER_CLASS(ProceduralInspector);
+
+    GDREGISTER_CLASS(SaveConfig);
+    GDREGISTER_CLASS(SaveData);
+    GDREGISTER_CLASS(SaveDataBinder);
+    GDREGISTER_ABSTRACT_CLASS(SaveSerializer);
+    GDREGISTER_ABSTRACT_CLASS(SaveFileAccess);
+    GDREGISTER_ABSTRACT_CLASS(SaveManager);
 
     GDREGISTER_CLASS(TestExample);
 

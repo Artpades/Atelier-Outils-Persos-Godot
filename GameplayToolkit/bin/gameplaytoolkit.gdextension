@@ -11,6 +11,10 @@ Gizmos2D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
 Gizmos3D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
 WidgetPropertyModifierBuilder = "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png"
 ProceduralInspector = "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png"
+SaveConfig = "res://🖼️Editor Icons/💾🔐/SaveConfig Icon.png"
+SaveData = "res://🖼️Editor Icons/💾🔐/FloppyDisk Icon.png"
+SaveDataBinder = "res://🖼️Editor Icons/💾🔐/SaveManager Icon.png"
+SaveManager = "res://🖼️Editor Icons/💾🔐/SaveManager Icon.png"
 [libraries]
 
 macos.debug = "res://bin/libgameplaytoolkit.macos.template_debug.dylib"

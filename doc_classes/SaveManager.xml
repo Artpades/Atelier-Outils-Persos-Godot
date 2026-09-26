@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveManager" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		💾 Point d'entrée unique pour sauvegarder, charger et supprimer des données de jeu.
+	</brief_description>
+	<description>
+		[SaveManager] est une classe utilitaire statique : elle ne s'instancie pas, toutes ses méthodes s'appellent directement sur la classe.
+		Elle s'appuie sur [SaveFileAccess] pour l'accès au disque et écrit le résultat de chaque opération dans le journal ([CustomLogger]).
+		[codeblock]
+		var sauvegarde: SaveData = preload("res://sauvegardes/joueur.tres")
+		sauvegarde.data["vie"] = 80
+		SaveManager.save(sauvegarde, sauvegarde.file_config)
+
+		var chargee := SaveManager.load(sauvegarde, sauvegarde.file_config)
+		if chargee:
+		    sauvegarde.data = chargee.data
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="delete" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
+			<description>
+				Supprime le fichier correspondant à [member SaveData.system_id] et [member SaveData.is_encrypted] dans le dossier de [param config]. Ne fait rien si le fichier n'existe pas.
+			</description>
+		</method>
+		<method name="load" qualifiers="static">
+			<return type="SaveData" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
+			<description>
+				Lit le fichier correspondant à [param save_data] (identifiant, chiffrement et clé) dans le dossier de [param config], et renvoie un [b]nouveau[/b] [SaveData] contenant les données lues. [param save_data] n'est pas modifié.
+				Renvoie [code]null[/code] et écrit un message dans le journal si aucune sauvegarde n'est trouvée ou si le fichier est illisible (par exemple avec une mauvaise clé).
+				[b]Note :[/b] seuls [member SaveData.system_id] et [member SaveData.data] sont restaurés. Les autres propriétés du [SaveData] renvoyé gardent leur valeur par défaut.
+			</description>
+		</method>
+		<method name="save" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
+			<description>
+				Écrit [param save_data] sur le disque, dans le dossier de [param config], en le chiffrant si [member SaveData.is_encrypted] vaut [code]true[/code]. Un fichier existant est remplacé.
+				Le journal indique si la sauvegarde a réussi, ou le code [enum Error] en cas d'échec.
+			</description>
+		</method>
+	</methods>
+</class>

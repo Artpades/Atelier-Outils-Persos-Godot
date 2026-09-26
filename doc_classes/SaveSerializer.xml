@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveSerializer" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🧾 Convertit un [SaveData] en JSON, et inversement.
+	</brief_description>
+	<description>
+		[SaveSerializer] est une classe utilitaire statique : elle ne s'instancie pas, toutes ses méthodes s'appellent directement sur la classe.
+		Le JSON produit contient deux clés : [code]system_id[/code] ([member SaveData.system_id]) et [code]data[/code] ([member SaveData.data]).
+		[codeblock]
+		{"data":{"niveau":3,"vie":100},"system_id":"joueur"}
+		[/codeblock]
+		Les autres propriétés de [SaveData] (chiffrement, configuration) ne sont pas sérialisées.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="deserialize" qualifiers="static">
+			<return type="SaveData" />
+			<param index="0" name="json" type="String" />
+			<description>
+				Crée un nouveau [SaveData] à partir d'une chaîne produite par [method serialize]. Une clé absente donne une valeur vide.
+				Renvoie [code]null[/code] si [param json] n'est pas un JSON valide ou ne représente pas un dictionnaire.
+				[b]Note :[/b] comme avec [method JSON.parse_string], les nombres sont relus comme des [float].
+			</description>
+		</method>
+		<method name="serialize" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="save_data" type="SaveData" />
+			<description>
+				Renvoie la représentation JSON de [param save_data] (clés triées, sans indentation). Renvoie une chaîne vide si [param save_data] est [code]null[/code].
+			</description>
+		</method>
+	</methods>
+</class>

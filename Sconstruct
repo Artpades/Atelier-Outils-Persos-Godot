@@ -13,6 +13,12 @@ env = SConscript("godot-cpp/SConstruct")
 
 env.Append(CPPPATH=["src/"])
 
+# Windows : au-delà de MAXLINELENGTH (2048 par défaut), SCons passe par un fichier de réponse que link.exe
+# relit dans le mauvais encodage, ce qui casse les chemins contenant des emojis. On reste sous la limite
+# de CreateProcess (32767 caractères) pour garder une ligne de commande directe.
+if env["platform"] == "windows":
+    env["MAXLINELENGTH"] = 32000
+
 # 2. Gestion de la documentation (intégration des XML existants dans la lib)
 if os.path.isdir("doc_classes"):
     xml_files = Glob("doc_classes/*.xml")

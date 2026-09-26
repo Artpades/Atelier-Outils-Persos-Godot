@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveFileAccess" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📁 Lit, écrit et supprime les fichiers de sauvegarde, avec chiffrement AES-256 optionnel.
+	</brief_description>
+	<description>
+		[SaveFileAccess] est une classe utilitaire statique : elle ne s'instancie pas, toutes ses méthodes s'appellent directement sur la classe.
+		C'est la couche bas niveau utilisée par [SaveManager]. Préférez [SaveManager], qui écrit aussi le résultat des opérations dans le journal.
+		Les données sont converties en JSON par [SaveSerializer], puis encodées en UTF-8. Le fichier se trouve à [code]save_directory + system_id + extension[/code] (voir [SaveConfig]).
+		En mode chiffré, les données sont chiffrées en AES-256 CBC. Les 16 premiers octets du fichier contiennent le vecteur d'initialisation, suivis des données chiffrées complétées par des zéros jusqu'à un multiple de 16 octets. Ce format est identique à celui de l'ancienne version C# du module.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="delete" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="system_id" type="String" />
+			<param index="1" name="config" type="SaveConfig" />
+			<param index="2" name="encrypted" type="bool" default="false" />
+			<description>
+				Supprime le fichier de sauvegarde de [param system_id]. [param encrypted] détermine l'extension recherchée ([member SaveConfig.encrypted_extension] ou [member SaveConfig.extension]). Ne fait rien si le fichier n'existe pas.
+			</description>
+		</method>
+		<method name="read" qualifiers="static">
+			<return type="SaveData" />
+			<param index="0" name="system_id" type="String" />
+			<param index="1" name="config" type="SaveConfig" />
+			<param index="2" name="encrypted" type="bool" default="false" />
+			<param index="3" name="encryption_key" type="String" default="&quot;&quot;" />
+			<description>
+				Lit le fichier de sauvegarde de [param system_id] et renvoie un nouveau [SaveData] contenant son identifiant et ses données. Si [param encrypted] vaut [code]true[/code], le fichier est déchiffré avec [param encryption_key].
+				Renvoie [code]null[/code] si le fichier n'existe pas, ne peut pas être ouvert, a une taille invalide ou ne contient pas de JSON valide (par exemple à cause d'une mauvaise clé).
+			</description>
+		</method>
+		<method name="write" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
+			<description>
+				Écrit [param save_data] dans le dossier de [param config], en créant ce dossier au besoin. Les données sont chiffrées avec [member SaveData.encryption_key] si [member SaveData.is_encrypted] vaut [code]true[/code].
+				Renvoie [constant @GlobalScope.OK] en cas de succès, [constant @GlobalScope.ERR_INVALID_PARAMETER] si un paramètre est [code]null[/code], ou l'erreur de [method FileAccess.get_open_error] si le fichier ne peut pas être ouvert.
+			</description>
+		</method>
+	</methods>
+</class>

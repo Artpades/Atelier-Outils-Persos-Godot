@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveConfig" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		⚙️ Configuration des chemins et extensions des fichiers de sauvegarde.
+	</brief_description>
+	<description>
+		[SaveConfig] indique où et sous quel nom un [SaveData] est écrit sur le disque. Le chemin complet d'un fichier de sauvegarde est :
+		[codeblock]
+		save_directory + system_id + extension          # sauvegarde non chiffrée
+		save_directory + system_id + encrypted_extension  # sauvegarde chiffrée
+		[/codeblock]
+		Par exemple, avec la configuration par défaut, un [SaveData] d'identifiant [code]"joueur"[/code] chiffré est écrit dans [code]user://saves/joueur.sav[/code].
+		Chaque [SaveData] possède sa propre configuration ([member SaveData.file_config]). Enregistrez un [SaveConfig] en tant que ressource [code].tres[/code] pour le partager entre plusieurs systèmes.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="encrypted_extension" type="String" setter="set_encrypted_extension" getter="get_encrypted_extension" default="&quot;.sav&quot;">
+			Extension des fichiers de sauvegarde chiffrés (quand [member SaveData.is_encrypted] vaut [code]true[/code]).
+		</member>
+		<member name="extension" type="String" setter="set_extension" getter="get_extension" default="&quot;.json&quot;">
+			Extension des fichiers de sauvegarde non chiffrés. Ces fichiers contiennent du JSON lisible, pratique pour déboguer.
+		</member>
+		<member name="save_directory" type="String" setter="set_save_directory" getter="get_save_directory" default="&quot;user://saves/&quot;">
+			Dossier dans lequel les fichiers de sauvegarde sont écrits. Il est créé automatiquement (avec ses dossiers parents) lors de la première sauvegarde.
+			[b]Note :[/b] le chemin doit se terminer par [code]/[/code], car le nom du fichier y est directement concaténé. Utilisez [code]user://[/code] : [code]res://[/code] est en lecture seule dans un jeu exporté.
+		</member>
+	</members>
+</class>

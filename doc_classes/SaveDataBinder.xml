@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveDataBinder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🔗 Sauvegarde et restaure les propriétés choisies d'un nœud ou d'une ressource, sans écrire de code de sérialisation.
+	</brief_description>
+	<description>
+		[SaveDataBinder] relie un [SaveData] à un objet cible. Listez dans [member tracked_properties] les noms des propriétés à conserver : [method save] les copie dans [member SaveData.data] puis écrit le fichier, et [method load] relit le fichier puis réapplique les valeurs sur la cible.
+		La cible est [member node_target] s'il est défini, sinon [member resource_target].
+		[codeblock]
+		# Configuration dans l'inspecteur :
+		#   save_data          = un SaveData avec system_id = "joueur"
+		#   node_target        = le nœud Joueur
+		#   tracked_properties = ["position", "vie"]
+
+		func _ready():
+		    $SaveDataBinder.load()
+
+		func _on_point_de_sauvegarde_atteint():
+		    $SaveDataBinder.save()
+		[/codeblock]
+		[b]Note :[/b] les valeurs passent par du JSON (voir [SaveData]). Une propriété typée comme [member Node2D.position] ([Vector2]) est relue sous forme de [String] : sa réaffectation échoue silencieusement. Privilégiez des propriétés de type [bool], [int], [float], [String], [Array] ou [Dictionary].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="delete">
+			<return type="void" />
+			<description>
+				Supprime le fichier de sauvegarde associé à [member save_data]. Les valeurs en mémoire et celles de la cible ne sont pas modifiées.
+			</description>
+		</method>
+		<method name="load">
+			<return type="void" />
+			<description>
+				Relit le fichier de sauvegarde avec [method SaveManager.load], remplace [member SaveData.data] par les données lues, puis appelle [method push_from_save_data].
+				Si aucun fichier n'existe, un message est écrit dans le journal ([CustomLogger]) et ni les données ni la cible ne sont modifiées.
+			</description>
+		</method>
+		<method name="pull_to_save_data">
+			<return type="void" />
+			<description>
+				Lit chaque propriété de [member tracked_properties] sur la cible et écrit sa valeur dans [member SaveData.data], sous le nom de la propriété. Rien n'est écrit sur le disque.
+				Ne fait rien si aucune cible ou aucun [member save_data] n'est défini.
+			</description>
+		</method>
+		<method name="push_from_save_data">
+			<return type="void" />
+			<description>
+				Applique sur la cible les valeurs de [member SaveData.data] correspondant à [member tracked_properties]. Les propriétés absentes des données sont ignorées. Rien n'est lu sur le disque.
+				Ne fait rien si aucune cible ou aucun [member save_data] n'est défini.
+			</description>
+		</method>
+		<method name="save">
+			<return type="void" />
+			<description>
+				Appelle [method pull_to_save_data], puis écrit [member save_data] sur le disque avec [method SaveManager.save], en utilisant [member SaveData.file_config].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="node_target" type="Node" setter="set_node_target" getter="get_node_target">
+			Nœud dont les propriétés sont sauvegardées. Prioritaire sur [member resource_target] si les deux sont définis.
+			Si le nœud est libéré, cette propriété revient automatiquement à [code]null[/code].
+		</member>
+		<member name="resource_target" type="Resource" setter="set_resource_target" getter="get_resource_target">
+			Ressource dont les propriétés sont sauvegardées. Utilisée uniquement si [member node_target] est [code]null[/code].
+		</member>
+		<member name="save_data" type="SaveData" setter="set_save_data" getter="get_save_data">
+			[SaveData] qui reçoit les valeurs lues et détermine le fichier écrit (identifiant, chiffrement, configuration). Obligatoire pour [method save], [method load] et [method delete].
+		</member>
+		<member name="tracked_properties" type="PackedStringArray" setter="set_tracked_properties" getter="get_tracked_properties" default="PackedStringArray()">
+			Noms des propriétés de la cible à sauvegarder et restaurer, par exemple [code]["vie", "niveau"][/code]. Les propriétés de script ([code]@export var[/code] ou non) sont acceptées.
+		</member>
+	</members>
+</class>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveData" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		💾 Données de sauvegarde d'un système de jeu : un identifiant et un dictionnaire de valeurs.
+	</brief_description>
+	<description>
+		[SaveData] regroupe tout ce qu'un système de jeu (joueur, inventaire, monde...) doit conserver entre deux sessions. Son identifiant [member system_id] sert de nom au fichier, et son dictionnaire [member data] contient les valeurs à sauvegarder.
+		Les données sont converties en JSON lors de l'écriture, puis éventuellement chiffrées en AES-256. Utilisez [SaveManager] pour écrire, relire ou supprimer le fichier, ou [SaveDataBinder] pour remplir [member data] automatiquement à partir des propriétés d'un nœud.
+		[codeblock]
+		var sauvegarde := SaveData.new()
+		sauvegarde.system_id = "joueur"
+		sauvegarde.data = {"vie": 100, "niveau": 3}
+		SaveManager.save(sauvegarde, sauvegarde.file_config)
+
+		var chargee := SaveManager.load(sauvegarde, sauvegarde.file_config)
+		if chargee:
+		    print(chargee.data["niveau"])
+		[/codeblock]
+		[b]Note :[/b] le JSON ne conserve que les types simples. Les nombres entiers sont relus comme des [float], et les types comme [Vector2] ou [Color] sont relus sous forme de [String]. Convertissez-les vous-même au chargement si nécessaire.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="data" type="Dictionary" setter="set_data" getter="get_data" default="{}">
+			Valeurs à sauvegarder (statistiques, état du monde, objets possédés...). Utilisez des clés [String] : les clés sont converties en texte dans le JSON.
+			[b]Note :[/b] le dictionnaire est partagé par référence. Modifier le résultat de [code]get_data()[/code] modifie directement les données de ce [SaveData].
+		</member>
+		<member name="encryption_key" type="String" setter="set_encryption_key" getter="get_encryption_key" default="&quot;REMPLACER_PAR_UNE_CLE_SECRETE_32&quot;">
+			Clé de chiffrement AES-256 de ce système, utilisée quand [member is_encrypted] vaut [code]true[/code]. Elle doit faire 32 caractères : une clé plus courte est complétée par des zéros, une clé plus longue est tronquée.
+			[b]Attention :[/b] remplacez la valeur par défaut. Changer la clé rend illisibles les sauvegardes existantes. Le chiffrement dissuade la modification des fichiers par les joueurs, mais ne constitue pas une protection forte : la clé est stockée dans la ressource du jeu.
+		</member>
+		<member name="file_config" type="SaveConfig" setter="set_file_config" getter="get_file_config">
+			Dossier et extensions utilisés pour le fichier de ce système. Un [SaveConfig] par défaut est créé avec chaque [SaveData].
+		</member>
+		<member name="is_encrypted" type="bool" setter="set_is_encrypted" getter="get_is_encrypted" default="true">
+			Si [code]true[/code], les données sont chiffrées avec [member encryption_key] et écrites avec [member SaveConfig.encrypted_extension]. Sinon, le JSON est écrit en clair avec [member SaveConfig.extension].
+			[b]Note :[/b] l'extension dépend de cette valeur. Après l'avoir changée, les fichiers écrits avec l'ancienne valeur ne sont plus retrouvés.
+		</member>
+		<member name="system_id" type="String" setter="set_system_id" getter="get_system_id" default="&quot;&quot;">
+			Identifiant unique du système de jeu. Il sert de nom au fichier de sauvegarde : deux [SaveData] qui ont le même identifiant (et le même [member file_config]) écrivent dans le même fichier.
+		</member>
+	</members>
+</class>

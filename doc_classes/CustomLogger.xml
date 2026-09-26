@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CustomLogger" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📰 Journal : affiche des messages détaillés (classe, icône, message) dans un [RichTextLabel] ou dans la console.
+	</brief_description>
+	<description>
+		[CustomLogger] est une classe utilitaire statique : elle ne s'instancie pas, toutes ses méthodes s'appellent directement sur la classe.
+		Chaque entrée du journal indique quel objet l'a émise, ce qui permet par exemple de suivre l'appel d'une méthode, d'un signal ou d'une propriété.
+		Par défaut, les messages sont écrits dans la console de Godot. Pour les afficher dans votre propre interface (avec l'icône), définissez une sortie avec [method set_output].
+		[codeblock]
+		func _ready():
+		    CustomLogger.set_output($JournalLabel)
+		    CustomLogger.log(name, "res://icon.svg", "Noeud prêt !")
+		[/codeblock]
+		[b]Note :[/b] la sortie est mémorisée par son identifiant d'objet. Si le [RichTextLabel] est libéré, le journal revient automatiquement à la console.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_output" qualifiers="static">
+			<return type="RichTextLabel" />
+			<description>
+				Renvoie le [RichTextLabel] qui reçoit actuellement les messages, ou [code]null[/code] si les messages sont écrits dans la console.
+			</description>
+		</method>
+		<method name="log" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="class_name" type="String" />
+			<param index="1" name="icon_path" type="String" />
+			<param index="2" name="custom_message" type="String" default="&quot;[Message non spécifié !]&quot;" />
+			<description>
+				Écrit une entrée dans le journal.
+				- [param class_name] : nom de l'objet ou de la classe qui émet le message (souvent [member Node.name]).
+				- [param icon_path] : chemin d'une image ([code]res://...[/code]) affichée à côté du nom pour distinguer visuellement les journaux. Peut être vide.
+				- [param custom_message] : le message. Il accepte le BBCode ([code][color][/code], [code][b][/code], etc.).
+				Si une sortie est définie avec [method set_output], la ligne [code]class_name [img]icon_path[/img] : custom_message[/code] y est ajoutée. Sinon, le message est affiché dans la console avec [method @GlobalScope.print_rich], sans l'icône, car la console ne gère pas la balise [code][img][/code].
+			</description>
+		</method>
+		<method name="set_output" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="label" type="RichTextLabel" />
+			<description>
+				Définit le [RichTextLabel] dans lequel [method log] écrit les messages. Passez [code]null[/code] pour revenir à la console.
+				Pensez à activer [member RichTextLabel.bbcode_enabled] sur le label pour que les couleurs et les icônes s'affichent.
+			</description>
+		</method>
+	</methods>
+</class>
