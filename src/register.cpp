@@ -33,6 +33,8 @@
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/inspector_binding.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/procedural_inspector.hpp"
 
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/gauge.hpp"
+
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_config.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_data.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_data_binder.hpp"
@@ -81,6 +83,8 @@ void initialize(ModuleInitializationLevel p_level)
 
     GDREGISTER_INTERNAL_CLASS(InspectorBinding);
     GDREGISTER_CLASS(ProceduralInspector);
+
+    GDREGISTER_CLASS(Gauge);
 
     GDREGISTER_CLASS(SaveConfig);
     GDREGISTER_CLASS(SaveData);

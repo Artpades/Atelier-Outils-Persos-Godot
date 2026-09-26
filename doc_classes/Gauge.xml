@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Gauge" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📊 Jauge bornée entre un minimum et un maximum, qui signale ses changements et les seuils franchis.
+	</brief_description>
+	<description>
+		[Gauge] stocke une valeur toujours comprise entre [member min_value] et [member max_value]. Elle convient aux barres de vie, de mana ou d'endurance, aux compteurs de ressources, et à tout système qui a besoin d'une valeur bornée et d'être prévenu quand elle change.
+		Chaque modification de [member current_value] émet [signal current_value_changed], puis vérifie les [member thresholds] : un seuil franchi en montant émet [signal threshold_crossed_up], un seuil franchi en descendant émet [signal threshold_crossed_down]. Les seuils sont exprimés en pourcentage de la plage, ils restent donc valables si les bornes changent.
+		[codeblock]
+		@export var vie: Gauge
+
+		func _ready():
+		    vie.thresholds = PackedFloat32Array([25.0, 50.0])
+		    vie.threshold_crossed_down.connect(_on_vie_seuil_bas)
+		    vie.current_value_changed.connect(func(valeur): $BarreDeVie.value = vie.get_percentage())
+
+		func _on_vie_seuil_bas(seuil: float):
+		    if seuil == 25.0:
+		        print("Vie critique !")
+
+		func prendre_degats(montant: float):
+		    vie.current_value -= montant  # Jamais en dessous de min_value.
+		[/codeblock]
+		Une [Gauge] est une [Resource] : enregistrée en [code].tres[/code], elle peut être partagée entre plusieurs nœuds (l'interface et la logique de jeu écoutent alors la même jauge). Pour qu'une instance ait sa propre jauge, cochez [member Resource.resource_local_to_scene] ou utilisez [method Resource.duplicate].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_percentage" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie la position de [member current_value] dans la plage [[member min_value], [member max_value]], en pourcentage de [code]0.0[/code] à [code]100.0[/code]. Pratique pour alimenter directement un [ProgressBar] réglé de 0 à 100.
+				Si [member min_value] et [member max_value] sont égales, renvoie [code]100.0[/code].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="current_value" type="float" setter="set_current_value" getter="get_current_value" default="100.0">
+			Valeur actuelle de la jauge. Toute valeur assignée est ramenée (clampée) entre [member min_value] et [member max_value].
+			Si la valeur obtenue diffère de l'ancienne, [signal current_value_changed] est émis puis les [member thresholds] sont vérifiés. Assigner la même valeur n'émet rien.
+		</member>
+		<member name="max_value" type="float" setter="set_max_value" getter="get_max_value" default="100.0">
+			Borne haute de la jauge. Si elle devient inférieure à [member min_value], [member min_value] est abaissée à la même valeur (et [signal min_value_changed] est émis).
+			[member current_value] est ensuite ramenée dans la nouvelle plage, ce qui peut émettre [signal current_value_changed] et des signaux de seuil. Émet [signal max_value_changed].
+		</member>
+		<member name="min_value" type="float" setter="set_min_value" getter="get_min_value" default="0.0">
+			Borne basse de la jauge. Si elle dépasse [member max_value], [member max_value] est relevée à la même valeur (et [signal max_value_changed] est émis).
+			[member current_value] est ensuite ramenée dans la nouvelle plage, ce qui peut émettre [signal current_value_changed] et des signaux de seuil. Émet [signal min_value_changed].
+		</member>
+		<member name="thresholds" type="PackedFloat32Array" setter="set_thresholds" getter="get_thresholds" default="PackedFloat32Array()">
+			Seuils surveillés, en pourcentage de la plage (de [code]0[/code] à [code]100[/code]). Par exemple, avec [member min_value] à [code]0[/code] et [member max_value] à [code]200[/code], un seuil de [code]25[/code] correspond à la valeur [code]50[/code].
+			Ils sont vérifiés à chaque changement de [member current_value] : un seuil est franchi en montant quand la valeur passe de strictement en dessous à au-dessus ou égale, et en descendant quand elle passe de strictement au-dessus à en dessous ou égale. Un même changement peut franchir plusieurs seuils ; un signal est alors émis pour chacun, dans l'ordre du tableau.
+		</member>
+	</members>
+	<signals>
+		<signal name="current_value_changed">
+			<param index="0" name="new_value" type="float" />
+			<description>
+				Émis quand [member current_value] change réellement, avec sa nouvelle valeur (déjà clampée). Émis avant les signaux de seuil.
+			</description>
+		</signal>
+		<signal name="max_value_changed">
+			<param index="0" name="new_value" type="float" />
+			<description>
+				Émis quand [member max_value] est modifiée, directement ou parce que [member min_value] l'a dépassée.
+			</description>
+		</signal>
+		<signal name="min_value_changed">
+			<param index="0" name="new_value" type="float" />
+			<description>
+				Émis quand [member min_value] est modifiée, directement ou parce que [member max_value] est passée en dessous.
+			</description>
+		</signal>
+		<signal name="threshold_crossed_down">
+			<param index="0" name="threshold_percent" type="float" />
+			<description>
+				Émis quand [member current_value] descend jusqu'à un seuil de [member thresholds] ou le traverse. [param threshold_percent] est le seuil franchi, en pourcentage de la plage.
+			</description>
+		</signal>
+		<signal name="threshold_crossed_up">
+			<param index="0" name="threshold_percent" type="float" />
+			<description>
+				Émis quand [member current_value] monte jusqu'à un seuil de [member thresholds] ou le traverse. [param threshold_percent] est le seuil franchi, en pourcentage de la plage.
+			</description>
+		</signal>
+	</signals>
+</class>
