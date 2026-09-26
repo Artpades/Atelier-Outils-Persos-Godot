@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputRebinder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🔁 Réaffectation à chaud : écoute la prochaine entrée du joueur et l'affecte à un emplacement d'une action.
+	</brief_description>
+	<description>
+		Appelez [method start_rebind] avec une action et un emplacement ([enum TargetSlot]) : la prochaine entrée compatible (touche pour un emplacement clavier, bouton ou axe pour un emplacement manette) y est écrite, puis [signal rebind_completed] est émis. [member cancel_key] ou l'expiration de [member listening_timeout] annulent l'écoute ([signal rebind_cancelled]).
+		L'écoute se fait dans [method Node._input], avant l'interface : les clics et les touches de navigation (flèches, Entrée, Tab) peuvent donc être affectés, et l'entrée capturée n'atteint pas l'interface.
+		[codeblock]
+		$InputRebinder.rebind_completed.connect(func(action, slot): print(action.action_name, " réaffectée"))
+		$InputRebinder.start_rebind($PlayerInput/Gameplay/Sauter, InputRebinder.SLOT_BUTTON_KBM)
+		[/codeblock]
+		[PlayerInputUI] fournit une interface complète construite sur ce nœud.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_event" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="int" enum="InputRebinder.TargetSlot" />
+			<param index="2" name="event" type="InputEvent" />
+			<description>
+				Affecte [param event] à l'emplacement [param slot] de [param action], sans passer par l'écoute. Renvoie [code]true[/code] si l'affectation a été faite, [code]false[/code] si l'entrée ne convient pas (mauvais type, touche relâchée ou répétée, axe sous [member joy_motion_threshold]) ou si l'emplacement n'existe pas pour ce type d'action.
+				Effets de bord : sur [InputCircleAction], le préréglage correspondant repasse en « Custom ». Sur [InputButtonAction] et [InputAxisAction], les entrées concurrentes du même périphérique sont effacées (ex. affecter un bouton efface l'axe).
+			</description>
+		</method>
+		<method name="cancel_rebind">
+			<return type="void" />
+			<description>
+				Arrête l'écoute en cours et émet [signal rebind_cancelled]. Sans effet si aucune écoute n'est en cours.
+			</description>
+		</method>
+		<method name="get_current_action" qualifiers="const">
+			<return type="InputAction" />
+			<description>
+				Renvoie l'action en cours de réaffectation, ou [code]null[/code] si aucune écoute n'est en cours.
+			</description>
+		</method>
+		<method name="get_current_slot" qualifiers="const">
+			<return type="int" enum="InputRebinder.TargetSlot" />
+			<description>
+				Renvoie l'emplacement de la dernière écoute démarrée.
+			</description>
+		</method>
+		<method name="is_listening" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si une écoute est en cours.
+			</description>
+		</method>
+		<method name="start_rebind">
+			<return type="void" />
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="int" enum="InputRebinder.TargetSlot" />
+			<description>
+				Commence à écouter pour [param slot] de [param action] et émet [signal rebind_started]. Une écoute déjà en cours est remplacée (son délai d'expiration n'aura plus d'effet).
+				Si l'emplacement n'existe pas pour ce type d'action (ex. [constant SLOT_JOY_AXIS_Z] sur une [InputCircleAction]), rien ne démarre et un message est écrit dans le journal ([CustomLogger]).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="cancel_key" type="int" setter="set_cancel_key" getter="get_cancel_key" enum="Key" default="4194305">
+			Touche qui annule l'écoute. Elle ne peut donc pas être affectée. [constant KEY_ESCAPE] par défaut.
+		</member>
+		<member name="joy_motion_threshold" type="float" setter="set_joy_motion_threshold" getter="get_joy_motion_threshold" default="0.5">
+			Amplitude minimale d'un axe de manette pour qu'il soit capturé. Évite de capturer un stick qui dérive au repos.
+		</member>
+		<member name="listening_timeout" type="float" setter="set_listening_timeout" getter="get_listening_timeout" default="3.0">
+			Durée maximale d'écoute, en secondes, avant annulation automatique. [code]0[/code] pour écouter sans limite.
+		</member>
+	</members>
+	<signals>
+		<signal name="rebind_cancelled">
+			<description>
+				Émis quand l'écoute s'arrête sans affectation : [member cancel_key], expiration de [member listening_timeout], [method cancel_rebind], ou action libérée pendant l'écoute.
+			</description>
+		</signal>
+		<signal name="rebind_completed">
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="int" />
+			<description>
+				Émis après l'affectation d'une entrée à [param slot] de [param action]. [param slot] est une valeur de [enum TargetSlot].
+			</description>
+		</signal>
+		<signal name="rebind_started">
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="int" />
+			<description>
+				Émis quand l'écoute commence. [param slot] est une valeur de [enum TargetSlot].
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="SLOT_BUTTON_KBM" value="0" enum="TargetSlot">
+			[InputButtonAction] : touche ou bouton de souris ([member InputButtonAction.key] / [member InputButtonAction.mouse_button]).
+		</constant>
+		<constant name="SLOT_BUTTON_GAMEPAD" value="1" enum="TargetSlot">
+			[InputButtonAction] : bouton ou axe de manette ([member InputButtonAction.gamepad_button] / [member InputButtonAction.gamepad_axis]).
+		</constant>
+		<constant name="SLOT_AXIS_POSITIVE_KEY" value="2" enum="TargetSlot">
+			[InputAxisAction] : [member InputAxisAction.positive_key].
+		</constant>
+		<constant name="SLOT_AXIS_NEGATIVE_KEY" value="3" enum="TargetSlot">
+			[InputAxisAction] : [member InputAxisAction.negative_key].
+		</constant>
+		<constant name="SLOT_AXIS_GAMEPAD_AXIS" value="4" enum="TargetSlot">
+			[InputAxisAction] : [member InputAxisAction.gamepad_axis] (efface les deux boutons de manette).
+		</constant>
+		<constant name="SLOT_AXIS_POSITIVE_GAMEPAD_BUTTON" value="5" enum="TargetSlot">
+			[InputAxisAction] : [member InputAxisAction.positive_gamepad_button] (efface l'axe de manette).
+		</constant>
+		<constant name="SLOT_AXIS_NEGATIVE_GAMEPAD_BUTTON" value="6" enum="TargetSlot">
+			[InputAxisAction] : [member InputAxisAction.negative_gamepad_button] (efface l'axe de manette).
+		</constant>
+		<constant name="SLOT_UP_KEY" value="7" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : touche vers le haut.
+		</constant>
+		<constant name="SLOT_DOWN_KEY" value="8" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : touche vers le bas.
+		</constant>
+		<constant name="SLOT_LEFT_KEY" value="9" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : touche vers la gauche.
+		</constant>
+		<constant name="SLOT_RIGHT_KEY" value="10" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : touche vers la droite.
+		</constant>
+		<constant name="SLOT_FORWARD_KEY" value="11" enum="TargetSlot">
+			[InputSphereAction] : touche vers l'avant.
+		</constant>
+		<constant name="SLOT_BACKWARD_KEY" value="12" enum="TargetSlot">
+			[InputSphereAction] : touche vers l'arrière.
+		</constant>
+		<constant name="SLOT_DPAD_UP" value="13" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : bouton de manette vers le haut.
+		</constant>
+		<constant name="SLOT_DPAD_DOWN" value="14" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : bouton de manette vers le bas.
+		</constant>
+		<constant name="SLOT_DPAD_LEFT" value="15" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : bouton de manette vers la gauche.
+		</constant>
+		<constant name="SLOT_DPAD_RIGHT" value="16" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : bouton de manette vers la droite.
+		</constant>
+		<constant name="SLOT_DPAD_FORWARD" value="17" enum="TargetSlot">
+			[InputSphereAction] : bouton de manette vers l'avant.
+		</constant>
+		<constant name="SLOT_DPAD_BACKWARD" value="18" enum="TargetSlot">
+			[InputSphereAction] : bouton de manette vers l'arrière.
+		</constant>
+		<constant name="SLOT_JOY_AXIS_X" value="19" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : axe de manette X.
+		</constant>
+		<constant name="SLOT_JOY_AXIS_Y" value="20" enum="TargetSlot">
+			[InputCircleAction] / [InputSphereAction] : axe de manette Y.
+		</constant>
+		<constant name="SLOT_JOY_AXIS_Z" value="21" enum="TargetSlot">
+			[InputSphereAction] : axe de manette Z.
+		</constant>
+	</constants>
+</class>

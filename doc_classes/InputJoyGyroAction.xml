@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputJoyGyroAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🌀 Capteurs de mouvement d'une manette : gyroscope, et accéléromètre en option.
+	</brief_description>
+	<description>
+		Lit le gyroscope de la manette [member InputAction.device_id] (DualShock 4, DualSense, Switch Pro...) et émet [signal gyroscope_emitted] quand la vitesse de rotation change. Typiquement utilisé pour la visée gyroscopique : ajoutez la vitesse de rotation, multipliée par le temps écoulé, à l'orientation de la caméra.
+		[codeblock]
+		func _on_gyroscope_emitted(gyro: Vector3):
+		    rotation.y -= gyro.y * get_process_delta_time()
+		    rotation.x -= gyro.x * get_process_delta_time()
+		[/codeblock]
+		Ne lit que la manette : rien n'est émis si [member InputAction.detector_type] exclut la manette. Si la manette n'a pas de capteurs, un message est écrit une fois dans le journal ([CustomLogger]) et l'action reste muette.
+		[b]Note :[/b] requiert Godot 4.7 ou plus (API des capteurs de manette).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_accelerometer" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Renvoie l'accélération mesurée par la manette, en m/s² (gravité comprise). Renvoie [constant Vector3.ZERO] si l'action est désactivée ou si la manette n'est pas autorisée.
+			</description>
+		</method>
+		<method name="get_gyroscope" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Renvoie la vitesse de rotation de la manette, en radians par seconde, multipliée par [member gyro_sensitivity]. Renvoie [constant Vector3.ZERO] si l'action est désactivée ou si la manette n'est pas autorisée.
+			</description>
+		</method>
+		<method name="has_sensors" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si la manette [member InputAction.device_id] possède des capteurs de mouvement.
+			</description>
+		</method>
+		<method name="set_sensors_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Active ou coupe les capteurs de la manette [member InputAction.device_id]. Inutile si [member auto_enable_sensors] est actif. Les couper économise la batterie de la manette.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_enable_sensors" type="bool" setter="set_auto_enable_sensors" getter="get_auto_enable_sensors" default="true">
+			Si [code]true[/code], les capteurs sont activés automatiquement dès qu'ils sont éteints, y compris après un changement de manette ([member InputAction.device_id]).
+		</member>
+		<member name="gyro_sensitivity" type="float" setter="set_gyro_sensitivity" getter="get_gyro_sensitivity" default="1.0">
+			Multiplicateur appliqué à la vitesse de rotation.
+		</member>
+		<member name="track_accelerometer" type="bool" setter="set_track_accelerometer" getter="get_track_accelerometer" default="false">
+			Si [code]true[/code], l'accéléromètre est lu aussi et [signal accelerometer_emitted] est émis.
+		</member>
+	</members>
+	<signals>
+		<signal name="accelerometer_emitted">
+			<param index="0" name="accel" type="Vector3" />
+			<description>
+				Émis à la première lecture, puis quand l'accélération change d'au moins [member InputAction.dirty_threshold]. Seulement si [member track_accelerometer] est actif.
+			</description>
+		</signal>
+		<signal name="gyroscope_emitted">
+			<param index="0" name="gyro" type="Vector3" />
+			<description>
+				Émis à la première lecture, puis quand la vitesse de rotation (déjà multipliée par [member gyro_sensitivity]) change d'au moins [member InputAction.dirty_threshold].
+			</description>
+		</signal>
+	</signals>
+</class>

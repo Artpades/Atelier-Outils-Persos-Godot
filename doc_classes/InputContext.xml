@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputContext" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🗂️ Groupe d'actions d'entrée activé ou désactivé d'un bloc (menu, gameplay, pause...).
+	</brief_description>
+	<description>
+		Placez sous un [InputContext] les [InputAction] qui n'ont de sens que dans une phase de jeu. Changer [member context_enabled] active ou désactive toutes ces actions à la fois : par exemple, désactiver le contexte « Gameplay » à l'ouverture du menu pause.
+		[codeblock]
+		func ouvrir_pause():
+		    $PlayerInput/Gameplay.context_enabled = false
+		    $PlayerInput/Menu.context_enabled = true
+		[/codeblock]
+		Dans [PlayerInputUI], [member context_name] sert d'intertitre au-dessus des actions du contexte.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="context_enabled" type="bool" setter="set_context_enabled" getter="is_context_enabled" default="true">
+			Recopié dans [member InputAction.action_enabled] de chaque [InputAction] enfant [b]direct[/b] à chaque modification. Les actions plus profondes (sous un autre nœud) ne sont pas concernées.
+			Au chargement de la scène, les actions gardent leur propre valeur enregistrée : elle reflète déjà ce réglage s'il a été fait dans l'éditeur.
+		</member>
+		<member name="context_name" type="String" setter="set_context_name" getter="get_context_name" default="&quot;[Insérer le nom du contexte ici]&quot;">
+			Nom affiché par [PlayerInputUI] au-dessus des actions de ce contexte.
+		</member>
+	</members>
+</class>

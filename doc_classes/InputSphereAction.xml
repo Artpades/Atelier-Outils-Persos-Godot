@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputSphereAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🌐 Action 3D : un vecteur de longueur au plus 1, venant de trois axes de manette, de 6 touches ou de 6 boutons.
+	</brief_description>
+	<description>
+		Convient aux déplacements libres en 3D (vol, nage, caméra libre). Convention : [code]+X[/code] à droite, [code]+Y[/code] en haut, [code]+Z[/code] vers [member forward_key] / [member dpad_forward].
+		Les trois axes de manette sont prioritaires dès que leur vecteur sort de [member InputAction.dead_zone] ; ils ne sont lus que si [member joy_axis_x], [member joy_axis_y] et [member joy_axis_z] sont tous définis. Sinon, touches et boutons sont additionnés puis normalisés.
+		[b]Note :[/b] le vecteur [code]+Z[/code] désigne « avant » pour l'entrée, alors que l'avant d'un [Node3D] est [code]-Z[/code]. Pour déplacer un nœud, utilisez par exemple [code]basis * Vector3(v.x, v.y, -v.z)[/code].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_vector" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="device" type="int" default="-1" />
+			<description>
+				Renvoie le vecteur actuel, de longueur au plus [code]1.0[/code], sur la manette [param device] ([member InputAction.device_id] si négatif). Renvoie [constant Vector3.ZERO] si l'action est désactivée.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="backward_key" type="int" setter="set_backward_key" getter="get_backward_key" enum="Key" default="0">
+			Touche vers l'arrière ([code]-Z[/code]).
+		</member>
+		<member name="down_key" type="int" setter="set_down_key" getter="get_down_key" enum="Key" default="0">
+			Touche vers le bas ([code]-Y[/code]).
+		</member>
+		<member name="dpad_backward" type="int" setter="set_dpad_backward" getter="get_dpad_backward" enum="JoyButton" default="-1">
+			Bouton de manette vers l'arrière ([code]-Z[/code]).
+		</member>
+		<member name="dpad_down" type="int" setter="set_dpad_down" getter="get_dpad_down" enum="JoyButton" default="-1">
+			Bouton de manette vers le bas ([code]-Y[/code]).
+		</member>
+		<member name="dpad_forward" type="int" setter="set_dpad_forward" getter="get_dpad_forward" enum="JoyButton" default="-1">
+			Bouton de manette vers l'avant ([code]+Z[/code]).
+		</member>
+		<member name="dpad_left" type="int" setter="set_dpad_left" getter="get_dpad_left" enum="JoyButton" default="-1">
+			Bouton de manette vers la gauche ([code]-X[/code]).
+		</member>
+		<member name="dpad_right" type="int" setter="set_dpad_right" getter="get_dpad_right" enum="JoyButton" default="-1">
+			Bouton de manette vers la droite ([code]+X[/code]).
+		</member>
+		<member name="dpad_up" type="int" setter="set_dpad_up" getter="get_dpad_up" enum="JoyButton" default="-1">
+			Bouton de manette vers le haut ([code]+Y[/code]).
+		</member>
+		<member name="forward_key" type="int" setter="set_forward_key" getter="get_forward_key" enum="Key" default="0">
+			Touche vers l'avant ([code]+Z[/code]).
+		</member>
+		<member name="joy_axis_x" type="int" setter="set_joy_axis_x" getter="get_joy_axis_x" enum="JoyAxis" default="-1">
+			Axe de manette pour [code]X[/code].
+		</member>
+		<member name="joy_axis_y" type="int" setter="set_joy_axis_y" getter="get_joy_axis_y" enum="JoyAxis" default="-1">
+			Axe de manette pour [code]Y[/code].
+		</member>
+		<member name="joy_axis_z" type="int" setter="set_joy_axis_z" getter="get_joy_axis_z" enum="JoyAxis" default="-1">
+			Axe de manette pour [code]Z[/code].
+		</member>
+		<member name="left_key" type="int" setter="set_left_key" getter="get_left_key" enum="Key" default="0">
+			Touche vers la gauche ([code]-X[/code]).
+		</member>
+		<member name="right_key" type="int" setter="set_right_key" getter="get_right_key" enum="Key" default="0">
+			Touche vers la droite ([code]+X[/code]).
+		</member>
+		<member name="up_key" type="int" setter="set_up_key" getter="get_up_key" enum="Key" default="0">
+			Touche vers le haut ([code]+Y[/code]).
+		</member>
+	</members>
+	<signals>
+		<signal name="orientation_changed">
+			<param index="0" name="orientation" type="Vector3" />
+			<description>
+				Émis quand la direction du vecteur change d'au moins [member InputAction.dirty_threshold], sous forme d'angles d'Euler en radians : [code]x[/code] = tangage (élévation), [code]y[/code] = lacet [code]atan2(x, -z)[/code], [code]z[/code] = [code]0[/code]. Pas émis quand le vecteur est nul.
+			</description>
+		</signal>
+		<signal name="sphere_emitted">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis quand le vecteur s'éloigne d'au moins [member InputAction.dirty_threshold] de la dernière valeur émise, y compris quand il revient à [constant Vector3.ZERO].
+			</description>
+		</signal>
+		<signal name="velocity_changed">
+			<param index="0" name="velocity" type="Vector3" />
+			<description>
+				Émis quand la vitesse de variation du vecteur (en unités par seconde) change d'au moins [member InputAction.dirty_threshold].
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputMouseAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🖱️ Position, mouvement relatif et pression (stylet) de la souris.
+	</brief_description>
+	<description>
+		Émet la position de la souris dans le viewport de l'action ([signal position_emitted]), son mouvement relatif accumulé sur la frame ([signal motion_emitted], idéal pour une caméra à la souris, y compris avec le curseur capturé) et la pression d'un stylet ([signal pressure_changed]).
+		Les boutons de la souris se gèrent avec [InputButtonAction] ([member InputButtonAction.mouse_button]).
+		Désactivée, l'action émet une dernière fois des valeurs nulles.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_accumulated_motion" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Renvoie le mouvement relatif accumulé depuis la dernière frame, multiplié par [member motion_sensitivity]. Renvoie [constant Vector2.ZERO] si l'action est désactivée.
+			</description>
+		</method>
+		<method name="get_mouse_position" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Renvoie la position de la souris dans le viewport de l'action, en pixels, ou entre [code]0[/code] et [code]1[/code] si [member normalize_position] est actif. Renvoie [constant Vector2.ZERO] si l'action est désactivée ou hors de l'arbre.
+			</description>
+		</method>
+		<method name="get_pressure" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie la pression du stylet, de [code]0.0[/code] à [code]1.0[/code] (toujours [code]0.0[/code] avec une souris classique).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="motion_sensitivity" type="float" setter="set_motion_sensitivity" getter="get_motion_sensitivity" default="1.0">
+			Multiplicateur appliqué au mouvement relatif.
+		</member>
+		<member name="normalize_position" type="bool" setter="set_normalize_position" getter="get_normalize_position" default="false">
+			Si [code]true[/code], la position est exprimée entre [code]0[/code] et [code]1[/code] par rapport à la taille visible du viewport, ce qui la rend indépendante de la résolution.
+		</member>
+		<member name="position_threshold" type="float" setter="set_position_threshold" getter="get_position_threshold" default="0.5">
+			Déplacement minimal, dans l'unité de la position (pixels, ou fraction si [member normalize_position]), pour émettre à nouveau [signal position_emitted].
+		</member>
+	</members>
+	<signals>
+		<signal name="motion_emitted">
+			<param index="0" name="motion" type="Vector2" />
+			<description>
+				Émis quand le mouvement accumulé sur la frame diffère de celui émis précédemment. Une souris immobile émet donc une fois [constant Vector2.ZERO], puis plus rien.
+			</description>
+		</signal>
+		<signal name="position_emitted">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+				Émis quand la souris s'est déplacée de plus de [member position_threshold] depuis la dernière émission.
+			</description>
+		</signal>
+		<signal name="pressure_changed">
+			<param index="0" name="pressure" type="float" />
+			<description>
+				Émis quand la pression du stylet change.
+			</description>
+		</signal>
+	</signals>
+</class>

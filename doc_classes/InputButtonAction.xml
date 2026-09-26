@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputButtonAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🔘 Action tout-ou-rien : appui, maintien, appuis multiples et relâchement d'une touche ou d'un bouton.
+	</brief_description>
+	<description>
+		L'action est considérée enfoncée si l'une de ses entrées l'est : [member key] ou [member mouse_button] (si le clavier/souris est autorisé), [member gamepad_button], ou [member gamepad_axis] au-delà de [member InputAction.dead_zone] (si la manette est autorisée). Un axe permet par exemple d'utiliser une gâchette analogique comme un bouton.
+		Cycle des signaux pour un appui : [signal pressed], puis [signal held] après [member held_delay], puis [signal released]. Si [member multi_press_count] appuis ont lieu en moins de [member multi_press_delay] secondes chacun, [signal multi_pressed] est émis juste après le dernier [signal pressed].
+		[codeblock]
+		func _ready():
+		    $PlayerInput/Gameplay/Sauter.pressed.connect(sauter)
+		    $PlayerInput/Gameplay/Sauter.multi_pressed.connect(double_saut)
+		[/codeblock]
+		Si l'action est désactivée pendant un appui, [signal released] est émis immédiatement.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="is_button_pressed" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" default="-1" />
+			<description>
+				Renvoie [code]true[/code] si l'une des entrées affectées est enfoncée en ce moment, sur la manette [param device] ([member InputAction.device_id] si négatif). Lecture directe, indépendante des signaux.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="gamepad_axis" type="int" setter="set_gamepad_axis" getter="get_gamepad_axis" enum="JoyAxis" default="-1">
+			Axe de manette traité comme un bouton : enfoncé quand sa valeur absolue dépasse [member InputAction.dead_zone]. [constant JOY_AXIS_INVALID] pour aucun.
+		</member>
+		<member name="gamepad_button" type="int" setter="set_gamepad_button" getter="get_gamepad_button" enum="JoyButton" default="-1">
+			Bouton de manette. [constant JOY_BUTTON_INVALID] pour aucun.
+		</member>
+		<member name="held_delay" type="float" setter="set_held_delay" getter="get_held_delay" default="0.0">
+			Durée d'appui, en secondes, avant l'émission de [signal held]. À [code]0[/code], [signal held] est émis dans la même frame que [signal pressed]. Émis une seule fois par appui.
+		</member>
+		<member name="key" type="int" setter="set_key" getter="get_key" enum="Key" default="0">
+			Touche du clavier. [constant KEY_NONE] pour aucune.
+		</member>
+		<member name="mouse_button" type="int" setter="set_mouse_button" getter="get_mouse_button" enum="MouseButton" default="0">
+			Bouton de la souris. [constant MOUSE_BUTTON_NONE] pour aucun.
+		</member>
+		<member name="multi_press_count" type="int" setter="set_multi_press_count" getter="get_multi_press_count" default="2">
+			Nombre d'appuis successifs nécessaires pour émettre [signal multi_pressed] ([code]2[/code] : double appui). Le compteur repart de zéro après chaque émission.
+		</member>
+		<member name="multi_press_delay" type="float" setter="set_multi_press_delay" getter="get_multi_press_delay" default="0.3">
+			Délai maximal, en secondes, entre deux appuis pour qu'ils comptent dans la même série. Passé ce délai, le compteur d'appuis repart de zéro.
+		</member>
+	</members>
+	<signals>
+		<signal name="held">
+			<description>
+				Émis une fois par appui, quand l'entrée est restée enfoncée [member held_delay] secondes.
+			</description>
+		</signal>
+		<signal name="multi_pressed">
+			<description>
+				Émis quand [member multi_press_count] appuis ont eu lieu, chacun moins de [member multi_press_delay] secondes après le précédent.
+			</description>
+		</signal>
+		<signal name="pressed">
+			<description>
+				Émis à la frame où l'entrée passe de relâchée à enfoncée.
+			</description>
+		</signal>
+		<signal name="released">
+			<description>
+				Émis à la frame où l'entrée passe d'enfoncée à relâchée, ou quand l'action est désactivée pendant un appui.
+			</description>
+		</signal>
+	</signals>
+</class>

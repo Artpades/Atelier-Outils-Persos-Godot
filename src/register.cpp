@@ -33,7 +33,19 @@
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/inspector_binding.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/procedural_inspector.hpp"
 
-#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/gauge.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/📉Jauge/gauge.hpp"
+
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_axis_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_button_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_circle_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_context.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_joy_gyro_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_mouse_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_rebinder.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/input_sphere_action.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/player_input.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🎮Périphériques d'entrée/player_input_ui.hpp"
 
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_config.hpp"
 #include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_data.hpp"
@@ -85,6 +97,18 @@ void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(ProceduralInspector);
 
     GDREGISTER_CLASS(Gauge);
+
+    GDREGISTER_ABSTRACT_CLASS(InputAction);
+    GDREGISTER_CLASS(InputButtonAction);
+    GDREGISTER_CLASS(InputAxisAction);
+    GDREGISTER_CLASS(InputCircleAction);
+    GDREGISTER_CLASS(InputSphereAction);
+    GDREGISTER_CLASS(InputJoyGyroAction);
+    GDREGISTER_CLASS(InputMouseAction);
+    GDREGISTER_CLASS(InputContext);
+    GDREGISTER_CLASS(PlayerInput);
+    GDREGISTER_CLASS(InputRebinder);
+    GDREGISTER_CLASS(PlayerInputUI);
 
     GDREGISTER_CLASS(SaveConfig);
     GDREGISTER_CLASS(SaveData);

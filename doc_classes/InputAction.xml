@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputAction" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🎮 Base abstraite des actions d'entrée : une valeur lue sur un périphérique et émise par signal quand elle change.
+	</brief_description>
+	<description>
+		[InputAction] est la base commune de [InputButtonAction], [InputAxisAction], [InputCircleAction], [InputSphereAction], [InputJoyGyroAction] et [InputMouseAction]. Chaque action lit elle-même son périphérique à chaque frame et émet ses propres signaux : il n'y a pas besoin de déclarer quoi que ce soit dans la Input Map du projet.
+		Placez les actions sous un [PlayerInput], éventuellement regroupées dans des [InputContext]. Le [PlayerInput] leur fournit [member device_id] (quelle manette) et [member detector_type] (quels périphériques sont écoutés).
+		[codeblock]
+		PlayerInput
+		├── InputContext "Gameplay"
+		│   ├── InputButtonAction "Sauter"
+		│   └── InputCircleAction "Bouger"
+		└── InputContext "Menu"
+		    └── InputButtonAction "Valider"
+		[/codeblock]
+		[b]Debug :[/b] chaque action peut tracer ses événements dans le journal ([member debug_log], via [CustomLogger]) et dessiner son état à l'écran ([member debug_draw], via [Gizmos2D]).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_binding_properties" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Renvoie les noms des propriétés qui décrivent l'affectation de l'action (touches, boutons, axes). C'est la liste que [PlayerInputUI] sauvegarde, recharge et réinitialise.
+				Les préréglages (ex. [member InputCircleAction.key_axis_preset]) sont placés en tête : les rétablir réécrit des touches, qui sont rétablies juste après. Renvoie un tableau vide pour les actions sans affectation ([InputMouseAction], [InputJoyGyroAction]).
+			</description>
+		</method>
+		<method name="is_gamepad_allowed" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si [member detector_type] autorise la manette ([constant DETECTOR_ALL_DEVICES] ou [constant DETECTOR_GAMEPAD]).
+			</description>
+		</method>
+		<method name="is_keyboard_mouse_allowed" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si [member detector_type] autorise le clavier et la souris ([constant DETECTOR_ALL_DEVICES] ou [constant DETECTOR_KEYBOARD_MOUSE]).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="action_enabled" type="bool" setter="set_action_enabled" getter="is_action_enabled" default="true">
+			Si [code]false[/code], l'action ne lit plus son périphérique : ses méthodes de lecture renvoient une valeur nulle. Les actions à valeur continue émettent une dernière fois la valeur nulle, pour relâcher proprement ce qui les écoute. Généralement piloté par [member InputContext.context_enabled].
+		</member>
+		<member name="action_name" type="StringName" setter="set_action_name" getter="get_action_name" default="&amp;&quot;[Insérer le nom de l\&apos;action ici]&quot;">
+			Nom de l'action, affiché par [PlayerInputUI] et utilisé comme préfixe des clés de sauvegarde. Il doit être unique sous un même [PlayerInput] pour que la sauvegarde ne mélange pas deux actions.
+		</member>
+		<member name="dead_zone" type="float" setter="set_dead_zone" getter="get_dead_zone" default="0.2">
+			Zone morte des axes de manette : en dessous de cette amplitude, l'axe est ignoré (et les touches ou boutons prennent le relais).
+		</member>
+		<member name="debug_draw" type="bool" setter="set_debug_draw" getter="get_debug_draw" default="false">
+			Si [code]true[/code], dessine l'état de l'action dans le canvas du viewport avec [Gizmos2D] pendant le jeu : nom de l'action, puis une représentation propre à chaque type (carré plein si appuyé, jauge d'axe, flèche du stick avec sa zone morte...). Les gizmos sont libérés dès que l'option est désactivée ou que l'action quitte l'arbre.
+		</member>
+		<member name="debug_draw_position" type="Vector2" setter="set_debug_draw_position" getter="get_debug_draw_position" default="Vector2(64, 64)">
+			Centre du dessin de debug, en coordonnées du canvas du [World2D] du viewport (une [Camera2D] le déplace donc avec la scène).
+		</member>
+		<member name="debug_draw_size" type="float" setter="set_debug_draw_size" getter="get_debug_draw_size" default="48.0">
+			Taille du dessin de debug, en pixels.
+		</member>
+		<member name="debug_log" type="bool" setter="set_debug_log" getter="get_debug_log" default="false">
+			Si [code]true[/code], chaque signal émis est tracé dans le journal ([CustomLogger]) avec le nom du nœud et de l'action. Pratique pour vérifier une affectation sans écrire de script.
+		</member>
+		<member name="detector_type" type="int" setter="set_detector_type" getter="get_detector_type" enum="InputAction.DeviceDetectorType" default="1">
+			Périphériques écoutés par l'action. Écrasé par [member PlayerInput.detector_type] au lancement.
+		</member>
+		<member name="device_id" type="int" setter="set_device_id" getter="get_device_id" default="0">
+			Index de la manette lue par l'action. Fourni par [member PlayerInput.device_number] : visible dans l'inspecteur, mais pas enregistré avec la scène.
+		</member>
+		<member name="dirty_threshold" type="float" setter="set_dirty_threshold" getter="get_dirty_threshold" default="0.01">
+			Variation minimale d'une valeur continue (axe, vecteur, vitesse, orientation) pour qu'elle soit à nouveau émise. Évite d'émettre un signal à chaque frame pour du bruit de capteur.
+		</member>
+	</members>
+	<constants>
+		<constant name="DETECTOR_ALL_DEVICES" value="1" enum="DeviceDetectorType">
+			Clavier, souris et manette sont écoutés en même temps.
+		</constant>
+		<constant name="DETECTOR_KEYBOARD_MOUSE" value="2" enum="DeviceDetectorType">
+			Seuls le clavier et la souris sont écoutés.
+		</constant>
+		<constant name="DETECTOR_GAMEPAD" value="3" enum="DeviceDetectorType">
+			Seule la manette [member device_id] est écoutée.
+		</constant>
+	</constants>
+</class>

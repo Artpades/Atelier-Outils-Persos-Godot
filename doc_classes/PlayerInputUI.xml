@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PlayerInputUI" inherits="Control" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		⚙️ Écran de configuration des contrôles, généré automatiquement à partir des actions d'un [PlayerInput].
+	</brief_description>
+	<description>
+		Au [method Node._ready], [PlayerInputUI] parcourt les actions de [member target_player_input] et construit un onglet « Clavier &amp; Souris » et un onglet « Manette ». Chaque action y a une ligne : son nom, un bouton par emplacement réaffectable, et un bouton ↺ pour rétablir ses valeurs d'origine. Les actions sont regroupées sous le nom de leur [InputContext].
+		Cliquer un emplacement lance [member rebinder] sur cet emplacement. Côté manette, une [InputCircleAction] se règle avec un sélecteur (stick gauche, stick droit, croix, ABXY) plutôt qu'emplacement par emplacement.
+		Chaque bouton est relié à la valeur de l'action par un [code]InspectorBinding[/code] (outil de l'inspecteur procédural) : son texte suit la valeur réelle, quelle que soit la source du changement (réaffectation, réinitialisation, chargement, script, [ProceduralInspector]).
+		« Appliquer &amp; Sauvegarder » écrit les affectations dans [member save_data] (une clé [code]"&lt;action_name&gt;_&lt;propriété&gt;"[/code] par valeur de [method InputAction.get_binding_properties]) puis sur disque via [SaveManager]. Au lancement, la sauvegarde existante est relue et appliquée avant la construction de l'interface.
+		Les nœuds de l'interface sont internes : ils n'apparaissent pas dans le dock Scène et ne sont pas enregistrés avec la scène. Dans l'éditeur, l'interface est construite en aperçu, sans charger la sauvegarde (qui modifierait la scène éditée).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_and_save">
+			<return type="void" />
+			<description>
+				Écrit les affectations actuelles de toutes les actions dans [member save_data], puis enregistre le fichier avec [SaveManager]. Appelé par le bouton « Appliquer &amp; Sauvegarder ».
+			</description>
+		</method>
+		<method name="describe_slot" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="int" enum="InputRebinder.TargetSlot" />
+			<description>
+				Renvoie le texte affiché pour un emplacement, ex. [code]"Haut : Z"[/code] ou [code]"Touche : Space"[/code]. Utile pour construire une interface personnalisée ou afficher une invite de commande.
+			</description>
+		</method>
+		<method name="load_saved_bindings">
+			<return type="bool" />
+			<description>
+				Relit la sauvegarde de [member save_data] et l'applique aux actions. Renvoie [code]false[/code] s'il n'y a pas de sauvegarde, de [member save_data] ou de [member target_player_input]. Appelé automatiquement au lancement.
+			</description>
+		</method>
+		<method name="rebuild">
+			<return type="void" />
+			<description>
+				Reconstruit toutes les lignes. À appeler si des actions ont été ajoutées ou retirées du [PlayerInput] après le lancement. Les valeurs d'origine utilisées par la réinitialisation ne sont pas recapturées.
+			</description>
+		</method>
+		<method name="reset_action">
+			<return type="void" />
+			<param index="0" name="action" type="InputAction" />
+			<description>
+				Rétablit les affectations de [param action] telles qu'elles étaient au lancement, avant le chargement de la sauvegarde (c'est-à-dire celles de la scène). Ne sauvegarde pas.
+			</description>
+		</method>
+		<method name="reset_all">
+			<return type="void" />
+			<description>
+				Appelle [method reset_action] sur toutes les actions. Ne sauvegarde pas : appelez [method apply_and_save] pour rendre la réinitialisation définitive.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="minimum_list_size" type="Vector2" setter="set_minimum_list_size" getter="get_minimum_list_size" default="Vector2(600, 350)">
+			Taille minimale de la zone défilante de chaque onglet. Lue à la construction de l'interface.
+		</member>
+		<member name="rebinder" type="InputRebinder" setter="set_rebinder" getter="get_rebinder">
+			[InputRebinder] utilisé pour la réaffectation. Sans lui, les boutons d'emplacement affichent un message d'erreur au lieu de lancer l'écoute.
+		</member>
+		<member name="save_data" type="SaveData" setter="set_save_data" getter="get_save_data">
+			Données de sauvegarde des affectations. Le fichier est nommé d'après [member SaveData.system_id] et placé selon [member SaveData.file_config]. D'autres données peuvent cohabiter dans le même [member SaveData.data] : seules les clés des actions sont écrites.
+		</member>
+		<member name="show_gamepad_tab" type="bool" setter="set_show_gamepad_tab" getter="get_show_gamepad_tab" default="true">
+			Affiche l'onglet « Manette ». S'il est le seul, la barre d'onglets est masquée. Lu à la construction de l'interface.
+		</member>
+		<member name="show_kbm_tab" type="bool" setter="set_show_kbm_tab" getter="get_show_kbm_tab" default="true">
+			Affiche l'onglet « Clavier &amp; Souris ». S'il est le seul, la barre d'onglets est masquée. Lu à la construction de l'interface.
+		</member>
+		<member name="target_player_input" type="PlayerInput" setter="set_target_player_input" getter="get_target_player_input">
+			[PlayerInput] dont les actions sont affichées. Sans lui, l'interface reste vide et un avertissement est écrit dans le journal ([CustomLogger]).
+		</member>
+	</members>
+</class>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputAxisAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		↔️ Action à un axe, de [code]-1[/code] à [code]1[/code] : axe de manette, ou paire de touches / boutons.
+	</brief_description>
+	<description>
+		Convient aux déplacements sur une seule dimension (accélérer/freiner, zoom, rotation...). La valeur provient de [member gamepad_axis] dès qu'il dépasse [member InputAction.dead_zone] ; sinon elle est calculée à partir des touches ([member positive_key] donne [code]+1[/code], [member negative_key] donne [code]-1[/code]) et des boutons de manette, additionnés puis bornés à [code][-1, 1][/code]. Deux entrées opposées enfoncées ensemble s'annulent.
+		[signal value_changed] est émis quand la valeur varie d'au moins [member InputAction.dirty_threshold], [signal velocity_changed] quand sa vitesse de variation change.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_axis_value" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="device" type="int" default="-1" />
+			<description>
+				Renvoie la valeur actuelle de l'axe, entre [code]-1.0[/code] et [code]1.0[/code], sur la manette [param device] ([member InputAction.device_id] si négatif). Déjà inversée si [member invert_axis] est actif. Renvoie [code]0.0[/code] si l'action est désactivée.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="gamepad_axis" type="int" setter="set_gamepad_axis" getter="get_gamepad_axis" enum="JoyAxis" default="-1">
+			Axe de manette, prioritaire sur les touches et boutons dès qu'il sort de la zone morte. [constant JOY_AXIS_INVALID] pour aucun.
+		</member>
+		<member name="invert_axis" type="bool" setter="set_invert_axis" getter="get_invert_axis" default="false">
+			Si [code]true[/code], la valeur est inversée : pour [method get_axis_value], [signal value_changed] et [signal velocity_changed].
+		</member>
+		<member name="negative_gamepad_button" type="int" setter="set_negative_gamepad_button" getter="get_negative_gamepad_button" enum="JoyButton" default="-1">
+			Bouton de manette qui donne [code]-1[/code].
+		</member>
+		<member name="negative_key" type="int" setter="set_negative_key" getter="get_negative_key" enum="Key" default="0">
+			Touche qui donne [code]-1[/code].
+		</member>
+		<member name="positive_gamepad_button" type="int" setter="set_positive_gamepad_button" getter="get_positive_gamepad_button" enum="JoyButton" default="-1">
+			Bouton de manette qui donne [code]+1[/code].
+		</member>
+		<member name="positive_key" type="int" setter="set_positive_key" getter="get_positive_key" enum="Key" default="0">
+			Touche qui donne [code]+1[/code].
+		</member>
+	</members>
+	<signals>
+		<signal name="value_changed">
+			<param index="0" name="value" type="float" />
+			<description>
+				Émis quand la valeur de l'axe varie d'au moins [member InputAction.dirty_threshold] depuis la dernière émission.
+			</description>
+		</signal>
+		<signal name="velocity_changed">
+			<param index="0" name="velocity" type="float" />
+			<description>
+				Émis quand la vitesse de variation de l'axe (en unités par seconde) change d'au moins [member InputAction.dirty_threshold]. Utile pour détecter un geste brusque, comme un stick lâché ou poussé d'un coup.
+			</description>
+		</signal>
+	</signals>
+</class>

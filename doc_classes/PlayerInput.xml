@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PlayerInput" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🕹️ Un joueur : fixe la manette et les périphériques écoutés par toutes ses actions d'entrée, et pilote la vibration.
+	</brief_description>
+	<description>
+		[PlayerInput] est la racine des [InputAction] d'un joueur. Il transmet [member device_number] et [member detector_type] à toutes les actions descendantes, à n'importe quelle profondeur (y compris sous des [InputContext]). Pour un jeu multijoueur local, créez un [PlayerInput] par joueur avec un [member device_number] différent.
+		Avec [member switch_detector_on_device_input], il bascule tout seul entre clavier/souris et manette selon le dernier périphérique touché : pratique pour n'afficher que les invites du périphérique en cours d'utilisation (écoutez les actions et lisez [member detector_type]).
+		[codeblock]
+		func prendre_degats():
+		    $PlayerInput.start_vibration(0.3, 0.8, 0.2)
+		[/codeblock]
+		La transmission initiale est différée d'une frame après [method Node._ready], le temps que toutes les actions soient prêtes. Elle est aussi faite dans l'éditeur, qui affiche donc les valeurs transmises dans l'inspecteur des actions.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_all_actions" qualifiers="const">
+			<return type="InputAction[]" />
+			<description>
+				Renvoie toutes les [InputAction] descendantes, dans l'ordre de l'arbre de scène.
+			</description>
+		</method>
+		<method name="get_joy_guid" qualifiers="const">
+			<return type="String" />
+			<description>
+				Renvoie le GUID SDL de la manette [member device_number]. Voir [method Input.get_joy_guid].
+			</description>
+		</method>
+		<method name="get_joy_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Renvoie les informations de la manette [member device_number] fournies par la plateforme. Voir [method Input.get_joy_info].
+			</description>
+		</method>
+		<method name="start_vibration">
+			<return type="void" />
+			<param index="0" name="weak_magnitude" type="float" default="1.0" />
+			<param index="1" name="strong_magnitude" type="float" default="1.0" />
+			<param index="2" name="duration" type="float" default="0.0" />
+			<description>
+				Fait vibrer la manette [member device_number]. [param weak_magnitude] règle le moteur léger (haute fréquence), [param strong_magnitude] le moteur lourd (basse fréquence), de [code]0.0[/code] à [code]1.0[/code]. À [code]0.0[/code], [param duration] fait vibrer jusqu'à [method stop_vibration].
+			</description>
+		</method>
+		<method name="stop_vibration">
+			<return type="void" />
+			<description>
+				Arrête la vibration de la manette [member device_number].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="controller_name" type="String" setter="" getter="get_controller_name" default="&quot;&quot;">
+			Nom de la manette branchée sur [member device_number], en lecture seule. Affiché dans l'inspecteur pour vérifier d'un coup d'œil quelle manette est associée au joueur. Renvoie une chaîne vide si aucune manette n'est branchée.
+		</member>
+		<member name="debug_log" type="bool" setter="set_debug_log" getter="get_debug_log" default="false">
+			Si [code]true[/code], chaque changement de [member detector_type] est tracé dans le journal ([CustomLogger]).
+		</member>
+		<member name="detector_type" type="int" setter="set_detector_type" getter="get_detector_type" enum="InputAction.DeviceDetectorType" default="1">
+			Périphériques écoutés par toutes les actions du joueur. Chaque changement est transmis immédiatement aux actions.
+		</member>
+		<member name="device_number" type="int" setter="set_device_number" getter="get_device_number" default="0">
+			Index de la manette du joueur ([code]0[/code] pour la première branchée). Chaque changement est transmis immédiatement aux actions ([member InputAction.device_id]).
+		</member>
+		<member name="joy_input_threshold" type="float" setter="set_joy_input_threshold" getter="get_joy_input_threshold" default="0.2">
+			Amplitude minimale d'un axe de manette pour déclencher la bascule vers la manette avec [member switch_detector_on_device_input]. Évite qu'un stick qui dérive légèrement ne reprenne la main sur le clavier.
+		</member>
+		<member name="switch_detector_on_device_input" type="bool" setter="set_switch_detector_on_device_input" getter="get_switch_detector_on_device_input" default="false">
+			Si [code]true[/code], [member detector_type] passe à [constant InputAction.DETECTOR_KEYBOARD_MOUSE] dès qu'une touche ou la souris est utilisée, et à [constant InputAction.DETECTOR_GAMEPAD] dès qu'un bouton de manette est pressé ou qu'un axe dépasse [member joy_input_threshold].
+		</member>
+	</members>
+</class>
