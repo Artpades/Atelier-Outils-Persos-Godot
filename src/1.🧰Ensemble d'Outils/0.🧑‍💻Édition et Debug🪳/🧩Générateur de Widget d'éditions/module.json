@@ -1,0 +1,14 @@
+{
+    "id": "widgets",
+    "name": "🧩 Générateur de Widget d'éditions",
+    "dependencies": {
+        "requires": {},
+        "optional": {}
+    },
+    "classes": {
+        "WidgetPropertyModifierBuilder": "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png",
+        "PropertyCallback": "",
+        "InspectorBinding": "",
+        "ProceduralInspector": "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png"
+    }
+}

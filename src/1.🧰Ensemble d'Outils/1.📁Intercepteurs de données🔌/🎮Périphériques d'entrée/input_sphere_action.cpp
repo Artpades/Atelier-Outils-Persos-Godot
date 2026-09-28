@@ -2,7 +2,7 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -105,12 +105,12 @@ void InputSphereAction::draw_debug(const Vector3 &p_value)
     draw_debug_label();
     // Plan XY vu de face (Y écran inversé) + jauge verticale pour Z, à droite du cercle.
     float radius = debug_draw_size * 0.5f;
-    Gizmos2D::draw_2D_circle(debug_gizmo(1), debug_draw_position, radius, Color(1, 1, 1, 0.5f), false, 2.0f);
-    Gizmos2D::draw_2D_arrow(debug_gizmo(2), debug_draw_position, debug_draw_position + Vector2(p_value.x, -p_value.y) * radius, 8.0f, 2.0f, Color(0.3f, 0.8f, 1.0f));
+    gizmos_2d_api::draw_2D_circle(debug_gizmo(1), debug_draw_position, radius, Color(1, 1, 1, 0.5f), false, 2.0f);
+    gizmos_2d_api::draw_2D_arrow(debug_gizmo(2), debug_draw_position, debug_draw_position + Vector2(p_value.x, -p_value.y) * radius, 8.0f, 2.0f, Color(0.3f, 0.8f, 1.0f));
 
     Vector2 z_origin = debug_draw_position + Vector2(radius + 12.0f, 0.0f);
-    Gizmos2D::draw_2D_rectangle(debug_gizmo(3), Rect2(z_origin - Vector2(4.0f, radius), Vector2(8.0f, radius * 2.0f)), Color(1, 1, 1, 0.5f), false, 1.0f);
-    Gizmos2D::draw_2D_rectangle(debug_gizmo(4), Rect2(z_origin.x - 4.0f, z_origin.y, 8.0f, -p_value.z * radius).abs(), Color(1.0f, 0.7f, 0.2f), true);
+    gizmos_2d_api::draw_2D_rectangle(debug_gizmo(3), Rect2(z_origin - Vector2(4.0f, radius), Vector2(8.0f, radius * 2.0f)), Color(1, 1, 1, 0.5f), false, 1.0f);
+    gizmos_2d_api::draw_2D_rectangle(debug_gizmo(4), Rect2(z_origin.x - 4.0f, z_origin.y, 8.0f, -p_value.z * radius).abs(), Color(1.0f, 0.7f, 0.2f), true);
 }
 
 void InputSphereAction::_bind_methods()

@@ -1,0 +1,13 @@
+{
+    "id": "camera",
+    "name": "🎞️ Gestion de Caméras",
+    "dependencies": {
+        "requires": {
+            "manager_builder": "CameraManager (singleton)"
+        },
+        "optional": {}
+    },
+    "classes": {
+        "CameraManager": "res://🖼️Editor Icons/🎥🎞️/CameraManager Icon.png"
+    }
+}

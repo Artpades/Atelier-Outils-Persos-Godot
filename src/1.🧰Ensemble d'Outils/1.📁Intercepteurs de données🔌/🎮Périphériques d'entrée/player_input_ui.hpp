@@ -4,11 +4,10 @@
 #include "input_rebinder.hpp"
 #include "player_input.hpp"
 
-#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_data.hpp"
-
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/label.hpp>
+#include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -22,12 +21,17 @@ namespace godot
 /// Chaque bouton est relié à sa valeur par un 🔗 InspectorBinding (outil de l'inspecteur procédural) : son
 /// texte suit la valeur réelle de l'action, quelle que soit la source du changement (rebinder, réinitialisation,
 /// chargement, script).
+///
+/// Modules requis : 🧩 Générateur de Widget d'éditions (liaisons) et 💾 Manipulateur de données (sauvegarde).
+/// S'il en manque un, l'interface n'est pas générée. Le SaveData est manipulé comme une Resource : sa classe
+/// appartient au module de sauvegarde.
 class PlayerInputUI : public Control
 {
     GDCLASS(PlayerInputUI, Control)
 
   public:
     void _ready() override;
+    PackedStringArray _get_configuration_warnings() const override;
 
     /// Régénère les lignes (à appeler si des actions sont ajoutées ou retirées du PlayerInput).
     void rebuild();
@@ -49,8 +53,8 @@ class PlayerInputUI : public Control
     void set_rebinder(InputRebinder *p_rebinder);
     InputRebinder *get_rebinder() const;
 
-    void set_save_data(const Ref<SaveData> &p_save_data) { save_data = p_save_data; }
-    Ref<SaveData> get_save_data() const { return save_data; }
+    void set_save_data(const Ref<Resource> &p_save_data) { save_data = p_save_data; }
+    Ref<Resource> get_save_data() const { return save_data; }
 
     void set_minimum_list_size(const Vector2 &p_size) { minimum_list_size = p_size; }
     Vector2 get_minimum_list_size() const { return minimum_list_size; }
@@ -81,7 +85,7 @@ class PlayerInputUI : public Control
 
     ObjectID target_player_input_id;
     ObjectID rebinder_id;
-    Ref<SaveData> save_data;
+    Ref<Resource> save_data;
     Vector2 minimum_list_size = Vector2(600, 350);
     bool show_kbm_tab = true;
     bool show_gamepad_tab = true;

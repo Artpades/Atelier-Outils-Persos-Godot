@@ -7,9 +7,9 @@
 #include "input_names.hpp"
 #include "input_sphere_action.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/inspector_binding.hpp"
-#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_manager.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger_api.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🧩Générateur de Widget d'éditions/🔍Inspecteur procédural/procedural_inspector_api.hpp"
+#include "1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Manipulateur de données🔐/save_manager_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
@@ -21,6 +21,8 @@ using namespace godot;
 
 namespace
 {
+const modules::Dependency REQUIRED_MODULES[] = {procedural_inspector_api::DEPENDENCY, save_manager_api::DEPENDENCY};
+
 /// Emplacements affichés pour une action, par onglet.
 Vector<InputRebinder::TargetSlot> slots_for(const InputAction *p_action, bool p_kbm)
 {
@@ -90,20 +92,20 @@ void apply_circle_preset(InputCircleAction *p_circle, int p_index)
     }
 }
 
-/// Accès à une valeur calculée sur une action, pour InspectorBinding. Invalide dès que l'action est libérée.
-ValueAccessor action_accessor(InputAction *p_action, std::function<Variant(InputAction *)> p_get, std::function<void(InputAction *, const Variant &)> p_set = nullptr)
+/// Lie `p_widget` à une valeur calculée sur une action (InspectorBinding, via le module de l'inspecteur).
+/// La liaison s'arrête dès que l'action est libérée.
+Node *bind_to_action(Control *p_widget, InputAction *p_action, std::function<Variant(InputAction *)> p_get, std::function<void(const Variant &)> p_pull,
+                     std::function<void(InputAction *, const Variant &)> p_set = nullptr)
 {
     ObjectID action_id = ObjectID(p_action->get_instance_id());
     auto resolve = [action_id]() { return Object::cast_to<InputAction>(ObjectDB::get_instance(action_id)); };
 
-    ValueAccessor accessor;
-    accessor.is_alive = [resolve]() { return resolve() != nullptr; };
-    accessor.get = [resolve, p_get]() { return p_get(resolve()); };
+    Callable setter;
     if (p_set)
     {
-        accessor.set = [resolve, p_set](const Variant &p_value) { p_set(resolve(), p_value); };
+        setter = lambda_callable_1(p_action, [resolve, p_set](const Variant &p_value) { p_set(resolve(), p_value); });
     }
-    return accessor;
+    return procedural_inspector_api::bind_value(p_widget, p_action, [resolve, p_get]() { return p_get(resolve()); }, p_pull, setter);
 }
 } // namespace
 
@@ -111,6 +113,10 @@ ValueAccessor action_accessor(InputAction *p_action, std::function<Variant(Input
 
 void PlayerInputUI::_ready()
 {
+    if (!modules::require("PlayerInputUI", REQUIRED_MODULES))
+    {
+        return;
+    }
     build_structure();
 
     bool editor = Engine::get_singleton()->is_editor_hint();
@@ -125,7 +131,7 @@ void PlayerInputUI::_ready()
     {
         if (!editor)
         {
-            CustomLogger::log(get_name(), InputNames::ICON_UI, "[color=orange]Aucun PlayerInput cible : l'interface reste vide.[/color]");
+            custom_logger_api::log(get_name(), InputNames::ICON_UI, "[color=orange]Aucun PlayerInput cible : l'interface reste vide.[/color]");
         }
         return;
     }
@@ -277,7 +283,7 @@ void PlayerInputUI::add_action_row(VBoxContainer *p_list, InputAction *p_action,
     label->set_custom_minimum_size(Vector2(180, 0));
     row->add_child(label);
     // Le nom aussi est lié : renommer l'action (script, inspecteur en jeu) met la ligne à jour.
-    InspectorBinding::attach(label, action_accessor(p_action, [](InputAction *a) { return String(a->get_action_name()); }), [label](const Variant &v) { label->set_text(v); });
+    bind_to_action(label, p_action, [](InputAction *a) { return String(a->get_action_name()); }, [label](const Variant &v) { label->set_text(v); });
 
     HBoxContainer *slots = memnew(HBoxContainer);
     slots->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -308,7 +314,7 @@ void PlayerInputUI::add_slot_button(Control *p_parent, InputAction *p_action, In
     p_parent->add_child(button);
     row_controls.push_back(ObjectID(button->get_instance_id()));
 
-    InspectorBinding::attach(button, action_accessor(p_action, [p_slot](InputAction *a) { return describe_slot(a, p_slot); }), [button](const Variant &v) { button->set_text(v); });
+    bind_to_action(button, p_action, [p_slot](InputAction *a) { return describe_slot(a, p_slot); }, [button](const Variant &v) { button->set_text(v); });
 
     ObjectID action_id = ObjectID(p_action->get_instance_id());
     button->connect("pressed", lambda_callable(button, [this, button, action_id, p_slot]() {
@@ -337,12 +343,11 @@ void PlayerInputUI::add_circle_preset_selector(Control *p_parent, InputAction *p
     row_controls.push_back(ObjectID(selector->get_instance_id()));
 
     // Liaison bidirectionnelle : lecture = préréglage courant, écriture = application d'un préréglage.
-    ValueAccessor accessor = action_accessor(
-        p_action, [](InputAction *a) { return circle_preset_index(Object::cast_to<InputCircleAction>(a)); },
+    Node *binding = bind_to_action(
+        selector, p_action, [](InputAction *a) { return circle_preset_index(Object::cast_to<InputCircleAction>(a)); }, [selector](const Variant &v) { selector->select(v); },
         [](InputAction *a, const Variant &v) { apply_circle_preset(Object::cast_to<InputCircleAction>(a), v); });
-    InspectorBinding *binding = InspectorBinding::attach(selector, accessor, [selector](const Variant &v) { selector->select(v); });
 
-    selector->connect("item_selected", lambda_callable_1(selector, [binding](const Variant &v) { binding->commit(v); }));
+    selector->connect("item_selected", lambda_callable_1(selector, [binding](const Variant &v) { binding->call("commit", v); }));
 }
 
 String PlayerInputUI::describe_slot(const InputAction *p_action, InputRebinder::TargetSlot p_slot)
@@ -449,7 +454,7 @@ void PlayerInputUI::end_rebind(const String &p_status)
     set_status(p_status);
     set_controls_enabled(true);
     // Forcé : après une annulation la valeur n'a pas changé, et le bouton afficherait encore « Appuyez... ».
-    InspectorBinding::refresh_all(this);
+    procedural_inspector_api::refresh_bindings(this);
     if (Button *button = Object::cast_to<Button>(ObjectDB::get_instance(rebinding_button_id)))
     {
         button->grab_focus();
@@ -490,7 +495,7 @@ void PlayerInputUI::apply_and_save()
     }
 
     // Clé « nom de l'action _ propriété » : lisible dans le fichier, et stable si l'arbre est réorganisé.
-    Dictionary data = save_data->get_data();
+    Dictionary data = save_data->get("data");
     TypedArray<InputAction> actions = player->get_all_actions();
     for (int i = 0; i < actions.size(); i++)
     {
@@ -501,11 +506,11 @@ void PlayerInputUI::apply_and_save()
             data[prefix + property] = action->get(property);
         }
     }
-    save_data->set_data(data);
+    save_data->set("data", data);
 
-    SaveManager::save(save_data, save_data->get_file_config());
+    save_manager_api::save(save_data, Ref<Resource>(save_data->get("file_config")));
     set_status(U"Configuration enregistrée avec succès !");
-    CustomLogger::log(get_name(), InputNames::ICON_UI, String(U"Affectations sauvegardées (") + itos(actions.size()) + " actions)");
+    custom_logger_api::log(get_name(), InputNames::ICON_UI, String(U"Affectations sauvegardées (") + itos(actions.size()) + " actions)");
 }
 
 bool PlayerInputUI::load_saved_bindings()
@@ -516,13 +521,13 @@ bool PlayerInputUI::load_saved_bindings()
         return false;
     }
 
-    Ref<SaveData> loaded = SaveManager::load(save_data, save_data->get_file_config());
+    Ref<Resource> loaded = save_manager_api::load(save_data, Ref<Resource>(save_data->get("file_config")));
     if (loaded.is_null())
     {
         return false;
     }
-    save_data->set_data(loaded->get_data());
-    Dictionary data = save_data->get_data();
+    save_data->set("data", loaded->get("data"));
+    Dictionary data = save_data->get("data");
 
     TypedArray<InputAction> actions = player->get_all_actions();
     for (int i = 0; i < actions.size(); i++)
@@ -539,7 +544,7 @@ bool PlayerInputUI::load_saved_bindings()
             }
         }
     }
-    InspectorBinding::refresh_all(this);
+    procedural_inspector_api::refresh_bindings(this);
     return true;
 }
 
@@ -575,12 +580,14 @@ void PlayerInputUI::reset_action(InputAction *p_action)
     {
         p_action->set(properties[i], it->value[properties[i]]);
     }
-    InspectorBinding::refresh_all(this);
+    procedural_inspector_api::refresh_bindings(this);
 }
 
 // ─── Propriétés ─────────────────────────────────────────────────────────────────────────────────────────
 
 void PlayerInputUI::set_target_player_input(PlayerInput *p_player) { target_player_input_id = p_player ? ObjectID(p_player->get_instance_id()) : ObjectID(); }
+
+PackedStringArray PlayerInputUI::_get_configuration_warnings() const { return modules::missing_warnings("PlayerInputUI", REQUIRED_MODULES); }
 
 PlayerInput *PlayerInputUI::get_target_player_input() const { return Object::cast_to<PlayerInput>(ObjectDB::get_instance(target_player_input_id)); }
 

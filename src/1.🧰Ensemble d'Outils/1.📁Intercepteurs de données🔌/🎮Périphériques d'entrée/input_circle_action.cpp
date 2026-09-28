@@ -2,7 +2,7 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -159,10 +159,10 @@ void InputCircleAction::draw_debug(const Vector2 &p_value)
         return;
     }
     draw_debug_label();
-    Gizmos2D::draw_2D_circle(debug_gizmo(1), debug_draw_position, debug_draw_size * 0.5f, Color(1, 1, 1, 0.5f), false, 2.0f);
+    gizmos_2d_api::draw_2D_circle(debug_gizmo(1), debug_draw_position, debug_draw_size * 0.5f, Color(1, 1, 1, 0.5f), false, 2.0f);
     // Cercle de zone morte : le stick est ignoré tant qu'il reste à l'intérieur.
-    Gizmos2D::draw_2D_circle(debug_gizmo(2), debug_draw_position, debug_draw_size * 0.5f * dead_zone, Color(1, 0.4f, 0.3f, 0.4f), false, 1.0f);
-    Gizmos2D::draw_2D_arrow(debug_gizmo(3), debug_draw_position, debug_draw_position + p_value * debug_draw_size * 0.5f, 8.0f, 2.0f, Color(0.3f, 0.8f, 1.0f));
+    gizmos_2d_api::draw_2D_circle(debug_gizmo(2), debug_draw_position, debug_draw_size * 0.5f * dead_zone, Color(1, 0.4f, 0.3f, 0.4f), false, 1.0f);
+    gizmos_2d_api::draw_2D_arrow(debug_gizmo(3), debug_draw_position, debug_draw_position + p_value * debug_draw_size * 0.5f, 8.0f, 2.0f, Color(0.3f, 0.8f, 1.0f));
 }
 
 void InputCircleAction::_bind_methods()

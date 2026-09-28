@@ -1,0 +1,11 @@
+{
+    "id": "manager_builder",
+    "name": "⚙️ Générateur de Gestionnaire",
+    "dependencies": {
+        "requires": {},
+        "optional": {}
+    },
+    "classes": {
+        "ManagerBuilder": "res://🖼️Editor Icons/🧰🧑‍💻/ManagerBase icon.png"
+    }
+}

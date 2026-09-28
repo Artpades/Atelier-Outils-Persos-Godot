@@ -120,6 +120,22 @@ void ProceduralInspector::refresh()
     InspectorBinding::refresh_all(content);
 }
 
+Node *ProceduralInspector::bind_value(Control *p_owner, const Callable &p_getter, const Callable &p_pull, const Callable &p_setter)
+{
+    ERR_FAIL_NULL_V(p_owner, nullptr);
+
+    ValueAccessor accessor;
+    accessor.get = [p_getter]() { return p_getter.call(); };
+    accessor.is_alive = [p_getter]() { return p_getter.is_valid(); };
+    if (p_setter.is_valid())
+    {
+        accessor.set = [p_setter](const Variant &p_value) { p_setter.call(p_value); };
+    }
+    return InspectorBinding::attach(p_owner, accessor, [p_pull](const Variant &p_value) { p_pull.call(p_value); });
+}
+
+void ProceduralInspector::refresh_bindings(Node *p_root) { InspectorBinding::refresh_all(p_root); }
+
 void ProceduralInspector::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("set_target", "target"), &ProceduralInspector::set_target);
@@ -139,6 +155,8 @@ void ProceduralInspector::_bind_methods()
     ClassDB::bind_method(D_METHOD("resolve_target"), &ProceduralInspector::resolve_target);
     ClassDB::bind_method(D_METHOD("rebuild"), &ProceduralInspector::rebuild);
     ClassDB::bind_method(D_METHOD("refresh"), &ProceduralInspector::refresh);
+    ClassDB::bind_static_method("ProceduralInspector", D_METHOD("bind_value", "owner", "getter", "pull", "setter"), &ProceduralInspector::bind_value, DEFVAL(Callable()));
+    ClassDB::bind_static_method("ProceduralInspector", D_METHOD("refresh_bindings", "root"), &ProceduralInspector::refresh_bindings);
 
     ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "target_path"), "set_target_path", "get_target_path");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "target_resource", PROPERTY_HINT_RESOURCE_TYPE, "Resource"), "set_target_resource", "get_target_resource");

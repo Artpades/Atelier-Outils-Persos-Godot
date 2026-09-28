@@ -1,0 +1,31 @@
+; 🪟 Fenêtre d'édition
+; Généré par le Sconstruct depuis module.json : ne pas modifier à la main.
+
+[configuration]
+
+entry_symbol = "gameplaytoolkit_window_editor_init"
+compatibility_minimum = "4.7"
+reloadable = true
+
+[icons]
+
+WindowEditor = "res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png"
+
+[libraries]
+
+macos.debug = "res://bin/window_editor/libgameplaytoolkit_window_editor.macos.template_debug.dylib"
+macos.release = "res://bin/window_editor/libgameplaytoolkit_window_editor.macos.template_release.dylib"
+windows.debug.x86_32 = "res://bin/window_editor/gameplaytoolkit_window_editor.windows.template_debug.x86_32.dll"
+windows.release.x86_32 = "res://bin/window_editor/gameplaytoolkit_window_editor.windows.template_release.x86_32.dll"
+windows.debug.x86_64 = "res://bin/window_editor/gameplaytoolkit_window_editor.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://bin/window_editor/gameplaytoolkit_window_editor.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.linux.template_release.x86_64.so"
+linux.debug.arm64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.linux.template_debug.arm64.so"
+linux.release.arm64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.linux.template_release.arm64.so"
+linux.debug.rv64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.linux.template_debug.rv64.so"
+linux.release.rv64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.linux.template_release.rv64.so"
+android.debug.arm64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.android.debug.arm64.so"
+android.release.arm64 = "res://bin/window_editor/libgameplaytoolkit_window_editor.android.release.arm64.so"
+android.debug.arm32 = "res://bin/window_editor/libgameplaytoolkit_window_editor.android.debug.arm32.so"
+android.release.arm32 = "res://bin/window_editor/libgameplaytoolkit_window_editor.android.release.arm32.so"

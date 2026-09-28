@@ -1,5 +1,5 @@
 #include "camera_manager.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder_api.hpp"
 
 #include <godot_cpp/classes/camera_attributes.hpp>
 #include <godot_cpp/classes/compositor.hpp>
@@ -11,6 +11,12 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
+
+namespace
+{
+// Sans ManagerBuilder, pas de singleton : le manager se désactive.
+const modules::Dependency REQUIRED_MODULES[] = {manager_builder_api::DEPENDENCY};
+} // namespace
 
 CameraManager::CameraManager() {}
 CameraManager::~CameraManager() {}
@@ -44,8 +50,13 @@ void CameraManager::_bind_methods()
 
 void CameraManager::_enter_tree()
 {
+    if (!modules::require("CameraManager", REQUIRED_MODULES))
+    {
+        set_process_mode(PROCESS_MODE_DISABLED);
+        return;
+    }
     // S'enregistre comme instance canonique du singleton (ou se détruit si un doublon existe déjà).
-    ManagerBuilder::init_instance("CameraManager", this);
+    manager_builder_api::init_instance("CameraManager", this);
 }
 
 void CameraManager::_exit_tree()
@@ -63,7 +74,7 @@ void CameraManager::_exit_tree()
     _transitions_2d.clear();
     _transitions_3d.clear();
 
-    ManagerBuilder::unregister_instance("CameraManager", this);
+    manager_builder_api::unregister_instance("CameraManager", this);
 }
 
 void CameraManager::_process(double p_delta)
@@ -72,7 +83,16 @@ void CameraManager::_process(double p_delta)
     _process_transitions_3d(p_delta);
 }
 
-CameraManager *CameraManager::get_singleton() { return Object::cast_to<CameraManager>(ManagerBuilder::make_getter("CameraManager")); }
+CameraManager *CameraManager::get_singleton()
+{
+    if (!modules::require("CameraManager", REQUIRED_MODULES))
+    {
+        return nullptr;
+    }
+    return Object::cast_to<CameraManager>(manager_builder_api::make_getter("CameraManager"));
+}
+
+PackedStringArray CameraManager::_get_configuration_warnings() const { return modules::missing_warnings("CameraManager", REQUIRED_MODULES); }
 
 // --- Paramètres par défaut ---
 

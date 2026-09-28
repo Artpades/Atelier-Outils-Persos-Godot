@@ -58,6 +58,15 @@ class ProceduralInspector : public Control
     /// Relit immédiatement toutes les valeurs, sans attendre le prochain sondage.
     void refresh();
 
+    /// 🔗 Liaison widget ⇄ valeur (InspectorBinding) pilotée par des Callable : point d'entrée utilisable
+    /// depuis GDScript et depuis les autres modules GDExtension (qui ne peuvent pas appeler la version C++).
+    /// `getter()` lit la valeur, `pull(valeur)` met le widget à jour, `setter(valeur)` (optionnel) écrit
+    /// la valeur quand on appelle `commit(valeur)` sur la liaison retournée.
+    /// La liaison s'arrête quand `getter` devient invalide (objet source libéré).
+    static Node *bind_value(Control *p_owner, const Callable &p_getter, const Callable &p_pull, const Callable &p_setter = Callable());
+    /// Force la relecture de toutes les liaisons sous `p_root`.
+    static void refresh_bindings(Node *p_root);
+
   protected:
     static void _bind_methods();
 

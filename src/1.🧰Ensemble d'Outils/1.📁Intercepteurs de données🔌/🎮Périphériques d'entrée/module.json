@@ -1,0 +1,28 @@
+{
+    "id": "input",
+    "name": "🎮 Périphériques d'entrée",
+    "dependencies": {
+        "requires": {
+            "widgets": "PlayerInputUI (liaisons InspectorBinding)",
+            "save": "PlayerInputUI (sauvegarde des affectations)"
+        },
+        "optional": {
+            "gizmos": "dessin de debug des InputAction",
+            "journal": "messages dans le Journal (sinon console)"
+        }
+    },
+    "classes": {
+        "InputAction": "res://🖼️Editor Icons/🎮🔌/InputAction Icon.png",
+        "InputButtonAction": "res://🖼️Editor Icons/🎮🔌/InputButtonAction Icon.png",
+        "InputAxisAction": "res://🖼️Editor Icons/🎮🔌/InputAxisAction Icon.png",
+        "InputCircleAction": "res://🖼️Editor Icons/🎮🔌/InputVector2Action Icon.png",
+        "InputSphereAction": "res://🖼️Editor Icons/🎮🔌/InputVector3Action Icon-export.png",
+        "InputJoyGyroAction": "res://🖼️Editor Icons/🎮🔌/JoyPadMotion Icon.png",
+        "InputMouseAction": "res://🖼️Editor Icons/🎮🔌/InputMouseAction Icon.png",
+        "InputTouchAction": "res://🖼️Editor Icons/🎮🔌/InputScreenSphere Icon.png",
+        "InputContext": "res://🖼️Editor Icons/🎮🔌/InputContexte Icon.png",
+        "PlayerInput": "res://🖼️Editor Icons/🎮🔌/InputManager Icon.png",
+        "InputRebinder": "res://🖼️Editor Icons/🎮🔌/InputMapBinding Icon.png",
+        "PlayerInputUI": "res://🖼️Editor Icons/🎮🔌/ButtonAssigned Icon.png"
+    }
+}

@@ -2,7 +2,7 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -128,7 +128,7 @@ void InputButtonAction::draw_debug()
     }
     draw_debug_label();
     Rect2 rect(debug_draw_position - Vector2(debug_draw_size, debug_draw_size) * 0.5f, Vector2(debug_draw_size, debug_draw_size));
-    Gizmos2D::draw_2D_rectangle(debug_gizmo(1), rect, was_pressed ? Color(0.3f, 1.0f, 0.4f) : Color(1, 1, 1, 0.5f), was_pressed, 2.0f);
+    gizmos_2d_api::draw_2D_rectangle(debug_gizmo(1), rect, was_pressed ? Color(0.3f, 1.0f, 0.4f) : Color(1, 1, 1, 0.5f), was_pressed, 2.0f);
 }
 
 void InputButtonAction::_bind_methods()

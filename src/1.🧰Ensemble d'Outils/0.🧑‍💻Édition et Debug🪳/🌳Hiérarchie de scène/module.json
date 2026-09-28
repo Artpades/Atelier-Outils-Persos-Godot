@@ -1,0 +1,13 @@
+{
+    "id": "scene_hierarchy",
+    "name": "🌳 Hiérarchie de scène",
+    "dependencies": {
+        "requires": {},
+        "optional": {
+            "journal": "messages dans le Journal (sinon console)"
+        }
+    },
+    "classes": {
+        "SceneHierarchyTree": ""
+    }
+}

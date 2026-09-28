@@ -1,0 +1,11 @@
+{
+    "id": "gauge",
+    "name": "📉 Jauge",
+    "dependencies": {
+        "requires": {},
+        "optional": {}
+    },
+    "classes": {
+        "Gauge": "res://🖼️Editor Icons/💾🔐/Gauge Icon.png"
+    }
+}

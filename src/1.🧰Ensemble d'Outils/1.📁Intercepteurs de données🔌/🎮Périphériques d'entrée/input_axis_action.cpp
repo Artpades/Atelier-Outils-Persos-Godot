@@ -2,7 +2,7 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -100,9 +100,9 @@ void InputAxisAction::draw_debug(float p_value)
     draw_debug_label();
     // Jauge horizontale : cadre de [-1, 1], barre pleine du centre jusqu'à la valeur.
     Vector2 half(debug_draw_size, debug_draw_size * 0.15f);
-    Gizmos2D::draw_2D_rectangle(debug_gizmo(1), Rect2(debug_draw_position - half, half * 2.0f), Color(1, 1, 1, 0.5f), false, 2.0f);
+    gizmos_2d_api::draw_2D_rectangle(debug_gizmo(1), Rect2(debug_draw_position - half, half * 2.0f), Color(1, 1, 1, 0.5f), false, 2.0f);
     Rect2 bar(debug_draw_position.x, debug_draw_position.y - half.y, p_value * debug_draw_size, half.y * 2.0f);
-    Gizmos2D::draw_2D_rectangle(debug_gizmo(2), bar.abs(), Color(0.3f, 0.8f, 1.0f), true);
+    gizmos_2d_api::draw_2D_rectangle(debug_gizmo(2), bar.abs(), Color(0.3f, 0.8f, 1.0f), true);
 }
 
 void InputAxisAction::_bind_methods()

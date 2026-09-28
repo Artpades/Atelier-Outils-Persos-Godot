@@ -1,0 +1,12 @@
+{
+    "id": "exemples",
+    "name": "🧪 Exemples",
+    "dependencies": {
+        "requires": {},
+        "optional": {}
+    },
+    "classes": {
+        "TestExample": "",
+        "EditorTest": ""
+    }
+}

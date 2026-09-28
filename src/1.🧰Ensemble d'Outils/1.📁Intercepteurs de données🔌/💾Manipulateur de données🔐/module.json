@@ -1,0 +1,18 @@
+{
+    "id": "save",
+    "name": "💾 Manipulateur de données",
+    "dependencies": {
+        "requires": {},
+        "optional": {
+            "journal": "messages dans le Journal (sinon console)"
+        }
+    },
+    "classes": {
+        "SaveConfig": "res://🖼️Editor Icons/💾🔐/SaveConfig Icon.png",
+        "SaveData": "res://🖼️Editor Icons/💾🔐/FloppyDisk Icon.png",
+        "SaveDataBinder": "res://🖼️Editor Icons/💾🔐/SaveManager Icon.png",
+        "SaveSerializer": "",
+        "SaveFileAccess": "",
+        "SaveManager": "res://🖼️Editor Icons/💾🔐/SaveManager Icon.png"
+    }
+}

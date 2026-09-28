@@ -2,7 +2,7 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -67,7 +67,7 @@ void PlayerInput::set_detector_type(InputAction::DeviceDetectorType p_type)
     if (debug_log)
     {
         const char *names[] = {"", "tous les périphériques", "clavier & souris", "manette"};
-        CustomLogger::log(get_name(), InputNames::ICON_PLAYER, String::utf8("Détection : ") + String::utf8(names[CLAMP((int)p_type, 0, 3)]));
+        custom_logger_api::log(get_name(), InputNames::ICON_PLAYER, String::utf8("Détection : ") + String::utf8(names[CLAMP((int)p_type, 0, 3)]));
     }
 }
 

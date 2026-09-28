@@ -98,6 +98,7 @@ class HandlersManager : public Node
 
     void _enter_tree() override;
     void _exit_tree() override;
+    PackedStringArray _get_configuration_warnings() const override;
     void _process(double p_delta) override;
 
     // Instance singleton (créée via ManagerBuilder au premier appel).

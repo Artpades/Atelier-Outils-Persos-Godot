@@ -1,6 +1,6 @@
 #include "input_touch_action.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_magnify_gesture.hpp>
@@ -355,21 +355,21 @@ void InputTouchAction::draw_debug()
     for (const KeyValue<int, Finger> &E : fingers)
     {
         Color color = E.value.long_pressed ? Color(1.0f, 0.6f, 0.2f) : Color(0.3f, 0.8f, 1.0f);
-        Gizmos2D::draw_2D_circle(debug_gizmo(1 + slot), E.value.position, debug_draw_size * 0.5f, color, false, 3.0f);
+        gizmos_2d_api::draw_2D_circle(debug_gizmo(1 + slot), E.value.position, debug_draw_size * 0.5f, color, false, 3.0f);
         slot++;
     }
     for (; slot < MAX_TRACKED_FINGERS; slot++)
     {
-        Gizmos2D::clear_2D_gizmos(debug_gizmo(1 + slot));
+        gizmos_2d_api::clear_2D_gizmos(debug_gizmo(1 + slot));
     }
 
     if (pinching)
     {
-        Gizmos2D::draw_2D_line(debug_gizmo(PINCH_GIZMO), fingers[pinch_finger_a].position, fingers[pinch_finger_b].position, 2.0f, Color(1, 1, 1, 0.6f));
+        gizmos_2d_api::draw_2D_line(debug_gizmo(PINCH_GIZMO), fingers[pinch_finger_a].position, fingers[pinch_finger_b].position, 2.0f, Color(1, 1, 1, 0.6f));
     }
     else
     {
-        Gizmos2D::clear_2D_gizmos(debug_gizmo(PINCH_GIZMO));
+        gizmos_2d_api::clear_2D_gizmos(debug_gizmo(PINCH_GIZMO));
     }
 }
 

@@ -1,14 +1,49 @@
+import json
 import os
 
-sources = []
+# Chaque module (dossier de src/ contenant un module.json) est compilé en une GDExtension séparée :
+#   GameplayToolkit/bin/<id>/gameplaytoolkit_<id>.gdextension + ses bibliothèques
+# Pour choisir ses modules dans un projet, il suffit de copier (ou supprimer) les dossiers bin/<id>/.
+#
+# Compiler seulement certains modules : scons modules=input,gizmos,save
+# (les dépendances manquantes sont signalées, pas ajoutées : un objet qui en a besoin se désactivera en jeu.)
 
+BIN_DIR = "GameplayToolkit/bin"
+
+# Retiré d'ARGUMENTS avant de charger godot-cpp, qui avertirait d'une variable inconnue.
+requested_modules = [m.strip() for m in ARGUMENTS.pop("modules", "").split(",") if m.strip()]
+
+# --- 1. Découverte des modules ---
+modules = {}
 for root, dirs, files in os.walk("src"):
+    dirs.sort()
     if "gen" in dirs:
-        dirs.remove("gen")  # ne pas descendre dans src/gen : doc_data.gen.cpp y est déjà ajouté explicitement plus bas
-    for file in files:
-        if file.endswith(".cpp"):
-            sources.append(os.path.join(root, file))
+        dirs.remove("gen")  # src/gen : fichiers de documentation générés
+    if "module.json" not in files:
+        continue
+    with open(os.path.join(root, "module.json"), encoding="utf-8") as f:
+        meta = json.load(f)
+    meta["dir"] = root
+    if meta["id"] in modules:
+        raise Exception("Module '{}' défini deux fois : {} et {}".format(meta["id"], modules[meta["id"]]["dir"], root))
+    modules[meta["id"]] = meta
+    dirs[:] = []  # pas de module imbriqué : tout le dossier appartient à ce module
 
+unknown_modules = [m for m in requested_modules if m not in modules]
+if unknown_modules:
+    raise Exception("Modules inconnus : {}. Disponibles : {}".format(", ".join(unknown_modules), ", ".join(sorted(modules))))
+selected = [m for m in sorted(modules) if not requested_modules or m in requested_modules]
+
+for module_id in selected:
+    dependencies = modules[module_id]["dependencies"]
+    for kind, label in (("requires", "requise"), ("optional", "optionnelle")):
+        for dependency, reason in dependencies.get(kind, {}).items():
+            if dependency not in modules:
+                raise Exception("Module '{}' : dépendance '{}' inconnue".format(module_id, dependency))
+            if dependency not in selected:
+                print("Avertissement : '{}' compilé sans '{}' (dépendance {}) — {}".format(module_id, dependency, label, reason))
+
+# --- 2. Environnement godot-cpp ---
 env = SConscript("godot-cpp/SConstruct")
 
 env.Append(CPPPATH=["src/"])
@@ -19,41 +54,98 @@ env.Append(CPPPATH=["src/"])
 if env["platform"] == "windows":
     env["MAXLINELENGTH"] = 32000
 
-# 2. Gestion de la documentation (intégration des XML existants dans la lib)
-if os.path.isdir("doc_classes"):
-    xml_files = Glob("doc_classes/*.xml")
+# --- 3. Fichier .gdextension de chaque module ---
+# Même liste de plateformes que l'ancien gameplaytoolkit.gdextension unique.
+LIBRARY_PATTERNS = [
+    ("macos.debug", "lib{name}.macos.template_debug.dylib"),
+    ("macos.release", "lib{name}.macos.template_release.dylib"),
+    ("windows.debug.x86_32", "{name}.windows.template_debug.x86_32.dll"),
+    ("windows.release.x86_32", "{name}.windows.template_release.x86_32.dll"),
+    ("windows.debug.x86_64", "{name}.windows.template_debug.x86_64.dll"),
+    ("windows.release.x86_64", "{name}.windows.template_release.x86_64.dll"),
+    ("linux.debug.x86_64", "lib{name}.linux.template_debug.x86_64.so"),
+    ("linux.release.x86_64", "lib{name}.linux.template_release.x86_64.so"),
+    ("linux.debug.arm64", "lib{name}.linux.template_debug.arm64.so"),
+    ("linux.release.arm64", "lib{name}.linux.template_release.arm64.so"),
+    ("linux.debug.rv64", "lib{name}.linux.template_debug.rv64.so"),
+    ("linux.release.rv64", "lib{name}.linux.template_release.rv64.so"),
+    ("android.debug.arm64", "lib{name}.android.debug.arm64.so"),
+    ("android.release.arm64", "lib{name}.android.release.arm64.so"),
+    ("android.debug.arm32", "lib{name}.android.debug.arm32.so"),
+    ("android.release.arm32", "lib{name}.android.release.arm32.so"),
+]
 
-    if xml_files and env["target"] in ["editor", "template_debug"]:
-        try:
-            if not os.path.isdir("src/gen"):
-                os.makedirs("src/gen")
 
-            print(f"Inclusion de {len(xml_files)} fichiers de documentation...")
-            doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=xml_files)
-            sources.append(doc_data)
-        except AttributeError:
-            print("Attention: GodotCPPDocData non disponible (version godot-cpp < 4.3).")
-        except Exception as e:
-            print(f"Erreur lors de la génération de la doc: {e}")
-    else:
-        if not xml_files:
-            print("Avertissement: Aucun fichier .xml trouvé dans doc_classes/. La documentation ne sera pas incluse.")
-        else:
-            print(f"Avertissement: Cible '{env['target']}' non compatible pour la doc (requis: editor/template_debug).")
-else:
-    os.makedirs("doc_classes")
-    print("doc_classes/ créé (vide). Lance 'scons gen_doc' après compilation pour générer les XML via --doc-tool.")
+def gdextension_text(meta):
+    module_id = meta["id"]
+    name = "gameplaytoolkit_" + module_id
+    lines = ["; " + meta["name"], "; Généré par le Sconstruct depuis module.json : ne pas modifier à la main."]
+    dependencies = meta["dependencies"]
+    for kind, label in (("requires", "Requiert"), ("optional", "Optionnel")):
+        for dependency, reason in dependencies.get(kind, {}).items():
+            lines.append("; {} : {} — {}".format(label, dependency, reason))
+    lines += [
+        "",
+        "[configuration]",
+        "",
+        'entry_symbol = "{}_init"'.format(name),
+        'compatibility_minimum = "4.7"',
+        "reloadable = true",
+        "",
+        "[icons]",
+        "",
+    ]
+    lines += ['{} = "{}"'.format(class_name, icon) for class_name, icon in meta["classes"].items() if icon]
+    lines += ["", "[libraries]", ""]
+    lines += ['{} = "res://bin/{}/{}"'.format(tag, module_id, pattern.format(name=name)) for tag, pattern in LIBRARY_PATTERNS]
+    return "\n".join(lines) + "\n"
 
-# 3. Compilation de la bibliothèque
-library = env.SharedLibrary(
-    "GameplayToolkit/bin/gameplaytoolkit{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
-    source=sources
-)
 
-for s in sources:
-    print(s, " : ajouté à la compilation.")
+def write_if_changed(path, text):
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            if f.read() == text:
+                return
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+    print("Écrit :", path)
 
-Default(library)
+
+# --- 4. Compilation des modules ---
+xml_files = Glob("doc_classes/*.xml") if os.path.isdir("doc_classes") else []
+with_docs = env["target"] in ["editor", "template_debug"] and hasattr(env, "GodotCPPDocData")
+if not with_docs:
+    print("Avertissement : documentation non incluse (cible '{}' ou godot-cpp < 4.3).".format(env["target"]))
+
+libraries = []
+for module_id in selected:
+    meta = modules[module_id]
+
+    # Garde-fou : le symbole d'entrée du .gdextension doit correspondre au GAMEPLAYTOOLKIT_MODULE du code.
+    with open(os.path.join(meta["dir"], "register_types.cpp"), encoding="utf-8") as f:
+        if "GAMEPLAYTOOLKIT_MODULE({},".format(module_id) not in f.read():
+            raise Exception("{}/register_types.cpp doit appeler GAMEPLAYTOOLKIT_MODULE({}, ...)".format(meta["dir"], module_id))
+
+    sources = []
+    for root, dirs, files in os.walk(meta["dir"]):
+        dirs.sort()
+        sources += [os.path.join(root, file) for file in sorted(files) if file.endswith(".cpp")]
+
+    # Documentation : seulement les classes de ce module (sinon l'aide de l'éditeur listerait des classes absentes).
+    module_xml = [x for x in xml_files if os.path.splitext(os.path.basename(str(x)))[0] in meta["classes"]]
+    if with_docs and module_xml:
+        sources.append(env.GodotCPPDocData("src/gen/doc_data_{}.gen.cpp".format(module_id), source=module_xml))
+
+    library = env.SharedLibrary(
+        "{}/{}/gameplaytoolkit_{}{}{}".format(BIN_DIR, module_id, module_id, env["suffix"], env["SHLIBSUFFIX"]),
+        source=sources,
+    )
+    libraries.append(library)
+    write_if_changed("{}/{}/gameplaytoolkit_{}.gdextension".format(BIN_DIR, module_id, module_id), gdextension_text(meta))
+    print("Module {} : {} fichiers, {} classes documentées".format(module_id, len(sources), len(module_xml)))
+
+Default(libraries)
 
 # --- Cible séparée : génération des XML de doc via --doc-tool ---
 # NE s'exécute PAS par défaut. Lancer explicitement : scons gen_doc
@@ -62,7 +154,7 @@ Default(library)
 # (ex: "/home/{user_name}/godot/Godot_v4.7-stable_linux.x86_64")
 GODOT_EXECUTABLE = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
 
-# PLACEHOLDER : chemin vers un projet Godot minimal qui charge ce .gdextension
+# PLACEHOLDER : chemin vers un projet Godot minimal qui charge les .gdextension
 # (souvent le dossier de projet (ex: "GameplayToolkit") lui-même, s'il contient un project.godot)
 GODOT_PROJECT_PATH = "GameplayToolkit"
 
@@ -83,7 +175,7 @@ def generate_doc_action(target, source, env):
 
 gen_doc = env.Command(
     target="gen_doc_dummy",  # cible factice, --doctool écrit directement dans doc_classes/
-    source=library,
+    source=libraries,
     action=generate_doc_action
 )
 

@@ -112,4 +112,5 @@ void InspectorBinding::refresh_all(Node *p_root)
 void InspectorBinding::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("refresh", "force"), &InspectorBinding::refresh, DEFVAL(false));
+    ClassDB::bind_method(D_METHOD("commit", "value"), &InspectorBinding::commit);
 }

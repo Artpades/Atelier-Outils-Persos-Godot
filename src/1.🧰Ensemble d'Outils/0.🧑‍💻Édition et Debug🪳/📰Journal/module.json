@@ -1,0 +1,11 @@
+{
+    "id": "journal",
+    "name": "📰 Journal",
+    "dependencies": {
+        "requires": {},
+        "optional": {}
+    },
+    "classes": {
+        "CustomLogger": ""
+    }
+}

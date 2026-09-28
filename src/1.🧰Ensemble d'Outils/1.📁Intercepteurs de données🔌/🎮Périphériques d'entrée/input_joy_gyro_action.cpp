@@ -2,8 +2,8 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
@@ -27,7 +27,7 @@ void InputJoyGyroAction::_process(double p_delta)
             if (warned_device != device_id)
             {
                 warned_device = device_id;
-                CustomLogger::log(get_name(), InputNames::ICON_ACTION, "La manette " + itos(device_id) + " n'a pas de capteurs de mouvement.");
+                custom_logger_api::log(get_name(), InputNames::ICON_ACTION, "La manette " + itos(device_id) + " n'a pas de capteurs de mouvement.");
             }
             return;
         }
@@ -97,7 +97,7 @@ void InputJoyGyroAction::draw_debug(const Vector3 &p_gyro)
         float ratio = CLAMP(p_gyro[axis] / (float)Math_TAU, -1.0f, 1.0f);
         Vector2 origin = debug_draw_position + Vector2(-debug_draw_size, (axis - 1) * 10.0f);
         Rect2 bar(origin.x + debug_draw_size, origin.y - 3.0f, ratio * debug_draw_size, 6.0f);
-        Gizmos2D::draw_2D_rectangle(debug_gizmo(1 + axis), bar.abs(), colors[axis], true);
+        gizmos_2d_api::draw_2D_rectangle(debug_gizmo(1 + axis), bar.abs(), colors[axis], true);
     }
 }
 

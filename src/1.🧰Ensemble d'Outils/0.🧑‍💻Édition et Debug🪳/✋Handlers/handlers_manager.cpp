@@ -1,14 +1,19 @@
 #include "handlers_manager.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder_api.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_3d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
 
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
+
+namespace
+{
+// ManagerBuilder pour le singleton, Gizmos pour dessiner les handles : sans eux, le manager se désactive.
+const modules::Dependency REQUIRED_MODULES[] = {manager_builder_api::DEPENDENCY, gizmos_2d_api::DEPENDENCY, gizmos_3d_api::DEPENDENCY};
+} // namespace
 
 HandlersManager::HandlersManager() {}
 HandlersManager::~HandlersManager() {}
@@ -45,8 +50,13 @@ void HandlersManager::_bind_methods()
 
 void HandlersManager::_enter_tree()
 {
+    if (!modules::require("HandlersManager", REQUIRED_MODULES))
+    {
+        set_process_mode(PROCESS_MODE_DISABLED);
+        return;
+    }
     // S'enregistre comme instance canonique du singleton (ou se détruit si un doublon existe déjà).
-    ManagerBuilder::init_instance("HandlersManager", this);
+    manager_builder_api::init_instance("HandlersManager", this);
     set_process(true);
 }
 
@@ -59,23 +69,32 @@ void HandlersManager::_exit_tree()
     {
         if (entry.value.gizmo_rid.is_valid())
         {
-            Gizmos2D::free_gizmos(entry.value.gizmo_rid);
+            gizmos_2d_api::free_gizmos(entry.value.gizmo_rid);
         }
     }
     for (KeyValue<StringName, Handle3D> &entry : _handles_3d)
     {
         if (entry.value.gizmo_rid.is_valid())
         {
-            Gizmos3D::free_3D_gizmo(entry.value.gizmo_rid);
+            gizmos_3d_api::free_3D_gizmo(entry.value.gizmo_rid);
         }
     }
     _handles_2d.clear();
     _handles_3d.clear();
 
-    ManagerBuilder::unregister_instance("HandlersManager", this);
+    manager_builder_api::unregister_instance("HandlersManager", this);
 }
 
-HandlersManager *HandlersManager::get_singleton() { return Object::cast_to<HandlersManager>(ManagerBuilder::make_getter("HandlersManager")); }
+HandlersManager *HandlersManager::get_singleton()
+{
+    if (!modules::require("HandlersManager", REQUIRED_MODULES))
+    {
+        return nullptr;
+    }
+    return Object::cast_to<HandlersManager>(manager_builder_api::make_getter("HandlersManager"));
+}
+
+PackedStringArray HandlersManager::_get_configuration_warnings() const { return modules::missing_warnings("HandlersManager", REQUIRED_MODULES); }
 
 bool HandlersManager::_is_viewport_effectively_visible(Viewport *p_viewport)
 {
@@ -119,7 +138,7 @@ void HandlersManager::_redraw_handle_2d(Handle2D &p_handle)
     {
         return;
     }
-    Gizmos2D::draw_2D_rectangle(p_handle.gizmo_rid, p_handle.rect, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, true);
+    gizmos_2d_api::draw_2D_rectangle(p_handle.gizmo_rid, p_handle.rect, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, true);
 }
 
 void HandlersManager::_redraw_handle_3d(Handle3D &p_handle)
@@ -128,7 +147,7 @@ void HandlersManager::_redraw_handle_3d(Handle3D &p_handle)
     {
         return;
     }
-    Gizmos3D::draw_3D_cube(p_handle.gizmo_rid, p_handle.aabb.get_center(), p_handle.aabb.size, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, false);
+    gizmos_3d_api::draw_3D_cube(p_handle.gizmo_rid, p_handle.aabb.get_center(), p_handle.aabb.size, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, false);
 }
 
 void HandlersManager::_process_2d_handles()
@@ -151,7 +170,7 @@ void HandlersManager::_process_2d_handles()
         // valide mais pas encore inséré dans l'arbre (ex: Window pas encore ajoutée).
         if (!handle.gizmo_rid.is_valid())
         {
-            handle.gizmo_rid = Gizmos2D::create_2D_gizmos(vp);
+            handle.gizmo_rid = gizmos_2d_api::create_2D_gizmos(vp);
             _redraw_handle_2d(handle);
         }
 
@@ -207,7 +226,7 @@ void HandlersManager::_process_3d_handles()
 
         if (!handle.gizmo_rid.is_valid())
         {
-            handle.gizmo_rid = Gizmos3D::create_3D_gizmo(vp);
+            handle.gizmo_rid = gizmos_3d_api::create_3D_gizmo(vp);
             _redraw_handle_3d(handle);
         }
 
@@ -277,7 +296,7 @@ void HandlersManager::unregister_handle_2d(const StringName &p_id)
     {
         if (it->value.gizmo_rid.is_valid())
         {
-            Gizmos2D::free_gizmos(it->value.gizmo_rid);
+            gizmos_2d_api::free_gizmos(it->value.gizmo_rid);
         }
         _handles_2d.erase(p_id);
     }
@@ -339,7 +358,7 @@ void HandlersManager::unregister_handle_3d(const StringName &p_id)
     {
         if (it->value.gizmo_rid.is_valid())
         {
-            Gizmos3D::free_3D_gizmo(it->value.gizmo_rid);
+            gizmos_3d_api::free_3D_gizmo(it->value.gizmo_rid);
         }
         _handles_3d.erase(p_id);
     }

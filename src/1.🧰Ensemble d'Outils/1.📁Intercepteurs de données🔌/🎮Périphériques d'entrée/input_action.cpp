@@ -2,8 +2,8 @@
 
 #include "input_names.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_api.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/viewport.hpp>
@@ -16,6 +16,11 @@ void InputAction::_exit_tree() { free_debug_gizmos(); }
 void InputAction::set_debug_draw(bool p_enabled)
 {
     debug_draw = p_enabled;
+    // Dépendance optionnelle : sans le module Gizmos, l'action fonctionne mais ne dessine rien.
+    if (debug_draw && !gizmos_2d_api::is_available())
+    {
+        WARN_PRINT_ONCE(modules::missing_message("InputAction (debug_draw)", gizmos_2d_api::DEPENDENCY));
+    }
     if (!debug_draw)
     {
         free_debug_gizmos();
@@ -26,13 +31,13 @@ void InputAction::log_debug(const String &p_message) const
 {
     if (debug_log)
     {
-        CustomLogger::log(String(get_name()) + " (" + String(action_name) + ")", InputNames::ICON_ACTION, p_message);
+        custom_logger_api::log(String(get_name()) + " (" + String(action_name) + ")", InputNames::ICON_ACTION, p_message);
     }
 }
 
 bool InputAction::can_debug_draw()
 {
-    if (!debug_draw || !is_inside_tree() || Engine::get_singleton()->is_editor_hint())
+    if (!debug_draw || !is_inside_tree() || Engine::get_singleton()->is_editor_hint() || !gizmos_2d_api::is_available())
     {
         free_debug_gizmos();
         return false;
@@ -44,14 +49,14 @@ RID InputAction::debug_gizmo(int p_index)
 {
     while (debug_gizmos.size() <= p_index)
     {
-        debug_gizmos.push_back(Gizmos2D::create_2D_gizmos(get_viewport()));
+        debug_gizmos.push_back(gizmos_2d_api::create_2D_gizmos(get_viewport()));
     }
     return debug_gizmos[p_index];
 }
 
 void InputAction::draw_debug_label()
 {
-    Gizmos2D::draw_2D_text(debug_gizmo(0), debug_draw_position + Vector2(-debug_draw_size, -debug_draw_size - 8.0f), String(action_name), Color(1, 1, 1, 0.9f), 12);
+    gizmos_2d_api::draw_2D_text(debug_gizmo(0), debug_draw_position + Vector2(-debug_draw_size, -debug_draw_size - 8.0f), String(action_name), Color(1, 1, 1, 0.9f), 12);
 }
 
 void InputAction::free_debug_gizmos()
@@ -60,7 +65,7 @@ void InputAction::free_debug_gizmos()
     {
         if (rid.is_valid())
         {
-            Gizmos2D::free_gizmos(rid);
+            gizmos_2d_api::free_gizmos(rid);
         }
     }
     debug_gizmos.clear();

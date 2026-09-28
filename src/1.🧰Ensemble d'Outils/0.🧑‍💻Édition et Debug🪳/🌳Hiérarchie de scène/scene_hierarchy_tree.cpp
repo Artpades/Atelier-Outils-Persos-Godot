@@ -1,6 +1,6 @@
 #include "scene_hierarchy_tree.hpp"
 
-#include "../📰Journal/custom_logger.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger_api.hpp"
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
@@ -39,7 +39,7 @@ void SceneHierarchyTree::refresh_tree()
     if (!root)
     {
         UtilityFunctions::push_error(String(U"Impossible de trouver le noeud racine de la scène"));
-        CustomLogger::log(get_name(), WINDOW_ICON, U"Impossible de trouver le noeud racine de la scène");
+        custom_logger_api::log(get_name(), WINDOW_ICON, U"Impossible de trouver le noeud racine de la scène");
         return;
     }
 
@@ -182,9 +182,9 @@ void SceneHierarchyTree::on_item_selected()
         return;
     }
 
-    CustomLogger::log(get_name(), WINDOW_ICON,
+    custom_logger_api::log(get_name(), WINDOW_ICON,
                       String(U"Noeud sélectionné : [color=cyan]") + selected_node->get_name() + "[/color] (Type: [color=yellow]" + selected_node->get_class() + "[/color])");
-    CustomLogger::log(get_name(), WINDOW_ICON, "Chemin : [color=magenta]" + String(selected_node->get_path()) + "[/color]");
+    custom_logger_api::log(get_name(), WINDOW_ICON, "Chemin : [color=magenta]" + String(selected_node->get_path()) + "[/color]");
 
     emit_signal("node_selected", selected_node);
 }

@@ -6,7 +6,7 @@
 #include "input_names.hpp"
 #include "input_sphere_action.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal/custom_logger_api.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input_event_joypad_button.hpp>
@@ -184,7 +184,7 @@ void InputRebinder::start_rebind(InputAction *p_action, TargetSlot p_slot)
     }
     if (resolve_slot(p_action, p_slot).kind == SlotTarget::NONE)
     {
-        CustomLogger::log(get_name(), InputNames::ICON_REBINDER,
+        custom_logger_api::log(get_name(), InputNames::ICON_REBINDER,
                           "[color=orange]Emplacement " + slot_name(p_slot) + " sans objet pour " + p_action->get_class() + " '" + String(p_action->get_action_name()) + "'[/color]");
         return;
     }
