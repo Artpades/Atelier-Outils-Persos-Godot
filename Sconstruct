@@ -1,13 +1,156 @@
 import os
+import sys
 
-sources = []
+# =====================================================================================================
+#  ORGANISATION : 1 bibliothèque principale + N modules GDExtension indépendants
+# =====================================================================================================
+#
+#  - La bibliothèque principale (GameplayToolkit/bin/gameplaytoolkit.gdextension) contient tout src/,
+#    SAUF les dossiers déclarés dans MODULES ci-dessous.
+#  - Chaque module de MODULES est compilé dans sa propre bibliothèque :
+#        GameplayToolkit/bin/<id>/libgameplaytoolkit_<id>.<plateforme>.<cible>.<arch>.so
+#    et chargé par Godot via son propre fichier .gdextension placé dans GameplayToolkit/bin/<id>/.
+#    Pour utiliser un module dans un autre projet : copier le dossier bin/<id>/. Pour l'enlever : le supprimer.
+#
+#  Commandes :
+#    scons                 -> compile la lib principale + tous les modules
+#    scons journal         -> compile uniquement le module "journal" (idem avec n'importe quel id)
+#    scons principal       -> compile uniquement la lib principale
+#
+# -----------------------------------------------------------------------------------------------------
+#  CRÉER UN NOUVEAU MODULE GDEXTENSION (pas à pas)
+# -----------------------------------------------------------------------------------------------------
+#
+#  1. Code source : regrouper toutes les sources du module dans UN dossier de src/
+#     (ex: "src/1.🧰Ensemble d'Outils/.../⏱️Chronomètre"). Tous les .cpp de ce dossier (et sous-dossiers)
+#     seront compilés dans le module, et exclus de la lib principale.
+#
+#  2. Point d'entrée : ajouter dans ce dossier un fichier <nom>_register.cpp sur ce modèle
+#     (exemple complet : "📰Journal Console/logger_register.cpp") :
+#
+#         #include <godot_cpp/core/class_db.hpp>
+#         #include <godot_cpp/godot.hpp>
+#         #include "ma_classe.hpp"
+#         using namespace godot;
+#
+#         // "static" : fonctions privées à ce fichier, pour ne pas entrer en conflit
+#         // avec les initialize()/uninitialize() des autres bibliothèques.
+#         static void initialize_chrono(ModuleInitializationLevel p_level) {
+#             if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return; // sinon classes enregistrées 2 fois
+#             GDREGISTER_CLASS(MaClasse);
+#         }
+#         static void uninitialize_chrono(ModuleInitializationLevel p_level) {}
+#
+#         extern "C" GDExtensionBool GDE_EXPORT chrono_library_init(   // <- NOM UNIQUE par module
+#                 GDExtensionInterfaceGetProcAddress p_get_proc_address,
+#                 GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
+#             GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
+#             init_obj.register_initializer(initialize_chrono);
+#             init_obj.register_terminator(uninitialize_chrono);
+#             init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+#             return init_obj.init();
+#         }
+#
+#  3. Déclaration : ajouter une ligne dans MODULES ci-dessous :   "chrono": "src/.../⏱️Chronomètre",
+#
+#  4. Fichier .gdextension : copier GameplayToolkit/bin/journal/customlogger.gdextension dans
+#     GameplayToolkit/bin/<id>/<nom>.gdextension puis remplacer :
+#        - entry_symbol          -> le nom de la fonction extern "C" de l'étape 2 (ex: "chrono_library_init")
+#        - "journal"             -> <id> dans tous les chemins res://bin/<id>/libgameplaytoolkit_<id>...
+#        - (optionnel) [icons]   -> icônes des classes du module
+#
+#  5. Règles à respecter :
+#        - Une classe ne doit être enregistrée (GDREGISTER_CLASS) que dans UNE seule bibliothèque,
+#          sinon Godot signale une classe déjà existante.
+#        - Un module ne doit pas #include le .hpp d'une classe d'un AUTRE module (le code ne serait pas
+#          lié). Passer plutôt par Godot : ClassDB::instantiate("NomClasse"), obj->call("methode"), etc.
+#        - Chaque .so embarque godot-cpp (~2,5 Mo) : c'est le coût normal de la séparation.
+#
+# =====================================================================================================
 
-for root, dirs, files in os.walk("src"):
-    if "gen" in dirs:
-        dirs.remove("gen")  # ne pas descendre dans src/gen : doc_data.gen.cpp y est déjà ajouté explicitement plus bas
-    for file in files:
-        if file.endswith(".cpp"):
-            sources.append(os.path.join(root, file))
+# id du module -> dossier source (relatif à la racine du dépôt)
+
+
+#region Code Source individualité
+
+# Outils pour éditer ou débuger
+
+OUTILS_EDITION = "src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳"
+MODULES = {
+    "journal": OUTILS_EDITION + "/📰Journal Console",
+}
+
+BIN_DIR = "GameplayToolkit/bin"
+
+
+def collect_sources(folder, excluded=()):
+    """Tous les .cpp de folder (récursif), sans src/gen ni les dossiers exclus."""
+    excluded = {os.path.normpath(e) for e in excluded}
+    found = []
+    for root, dirs, files in os.walk(folder):
+        dirs.sort()
+        # ne pas descendre dans src/gen (doc_data.gen.cpp ajouté explicitement plus bas)
+        # ni dans les dossiers des modules (compilés séparément)
+        dirs[:] = [d for d in dirs if d != "gen" and os.path.normpath(os.path.join(root, d)) not in excluded]
+        found += [os.path.join(root, f) for f in sorted(files) if f.endswith(".cpp")]
+    return found
+
+
+sources = collect_sources("src", excluded=MODULES.values())
+
+
+# Stock and flow
+
+# Système de sauvegarde
+
+# Module d'entrées de périphérique
+
+# Module d'entrées tactiles
+
+# Multijoueur
+
+# Système MIDI
+
+# XR
+
+# Module de Gestion de caméra
+
+
+# Module Générateur d'objet
+
+# Module gestion de scène
+
+# Module pour changer des visuels à la demande
+
+
+# HUD Spatial interactif
+
+# Système de dessin
+
+# Système de Glisser/Déposer
+
+# Système de placement d'objets
+
+# Outils de Terrain
+
+# Boîte d'ensemble d'interface graphiqe (Menu Radial, interface de paramètre procédural)
+
+
+# Ensemble d'effets Spéciaux programmés
+
+# Ensemble de système pour personnage et algo (Personnage, HFSM/BehaviourTree, Système de capacité, Système de Dialogue)
+
+# Modules de système de projectile
+
+# Ensemble de système de déplacement (au sol, aérodynamisme, aquatique, mural, recul, zone de force, Animations Procédurales)
+
+# Chronomètre
+
+# Métronome
+
+# Horloge
+
+#endregion
 
 env = SConscript("godot-cpp/SConstruct")
 
@@ -38,16 +181,31 @@ else:
     os.makedirs("doc_classes")
     print("doc_classes/ créé (vide). Lance 'scons gen_doc' après compilation pour générer les XML via --doc-tool.")
 
-# 3. Compilation de la bibliothèque
+# 3. Compilation de la bibliothèque principale
 library = env.SharedLibrary(
-    "GameplayToolkit/bin/gameplaytoolkit{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+    "{}/gameplaytoolkit{}{}".format(BIN_DIR, env["suffix"], env["SHLIBSUFFIX"]),
     source=sources
 )
+env.Alias("principal", library)
 
 for s in sources:
     print(s, " : ajouté à la compilation.")
 
-Default(library)
+# 4. Compilation des modules (une bibliothèque par entrée de MODULES)
+module_libraries = []
+for module_id, module_dir in MODULES.items():
+    if not os.path.isdir(module_dir):
+        raise Exception("Module '{}' : dossier introuvable -> {}".format(module_id, module_dir))
+    module_sources = collect_sources(module_dir)
+    module_library = env.SharedLibrary(
+        "{}/{}/gameplaytoolkit_{}{}{}".format(BIN_DIR, module_id, module_id, env["suffix"], env["SHLIBSUFFIX"]),
+        source=module_sources
+    )
+    env.Alias(module_id, module_library)  # permet : scons <id>
+    module_libraries.append(module_library)
+    print("Module {} : {} fichier(s) .cpp".format(module_id, len(module_sources)))
+
+Default(library, module_libraries)
 
 # --- Cible séparée : génération des XML de doc via --doc-tool ---
 # NE s'exécute PAS par défaut. Lancer explicitement : scons gen_doc
@@ -77,7 +235,7 @@ def generate_doc_action(target, source, env):
 
 gen_doc = env.Command(
     target="gen_doc_dummy",  # cible factice, --doctool écrit directement dans doc_classes/
-    source=library,
+    source=[library] + module_libraries,
     action=generate_doc_action
 )
 
