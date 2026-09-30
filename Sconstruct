@@ -1,71 +1,243 @@
+# =============================================================================
+#  SConstruct — Construction de l'extension GDExtension « GameplayToolkit »
+# =============================================================================
+#
+#  Ce script est lu par SCons (outil de build écrit en Python) quand on lance
+#  `scons` à la racine du dépôt. Il produit DEUX bibliothèques partagées
+#  (.dll sous Windows, .so sous Linux, .dylib/.framework sous macOS) :
+#
+#    1. GameplayToolkit/bin/gameplaytoolkit<suffixe>
+#         -> tout le C++ de src/, SAUF le dossier 📰Journal.
+#         -> chargée par GameplayToolkit/bin/gameplaytoolkit.gdextension
+#
+#    2. GameplayToolkit/bin/Journal personnalisé/customlogger<suffixe>
+#         -> uniquement le C++ du dossier 📰Journal.
+#         -> chargée par customlogger.gdextension
+#
+#  Le <suffixe> est calculé par godot-cpp, par ex. :
+#      .windows.template_debug.x86_64.dll
+#      .linux.editor.x86_64.so
+#
+#  Déroulé général du script :
+#    0. Collecte des fichiers sources (.cpp)
+#    1. Préparation de l'environnement de compilation via godot-cpp
+#    2. Intégration de la documentation XML des classes (doc_classes/)
+#    3. Déclaration des deux bibliothèques à compiler
+#    4. Cible optionnelle « gen_doc » (génère les XML via Godot --doctool)
+#
+#  Exemples d'utilisation (les options viennent de godot-cpp) :
+#      scons                                   -> build par défaut (template_debug, plateforme hôte)
+#      scons target=template_release           -> build release
+#      scons target=editor                     -> build pour l'éditeur (inclut la doc)
+#      scons platform=windows arch=x86_64      -> forcer plateforme / architecture
+#      scons compiledb=no                      -> ne pas régénérer compile_commands.json
+#      scons gen_doc                           -> (re)générer les XML de doc_classes/
+#      scons -c                                -> nettoyer les fichiers produits
+#      scons --help                            -> lister toutes les options disponibles
+#
+#  NB : SCons exécute ce fichier en DEUX temps. D'abord il lit tout le script
+#  (phase de « déclaration » : on décrit quoi construire et à partir de quoi),
+#  puis il construit réellement les cibles nécessaires. Les appels comme
+#  env.SharedLibrary(...) ne compilent donc rien sur le moment : ils ajoutent
+#  un nœud au graphe de dépendances. Les print() s'affichent pendant la
+#  première phase, avant toute compilation.
+# =============================================================================
+
 import os
 
+# -----------------------------------------------------------------------------
+# 0. Collecte des fichiers sources
+# -----------------------------------------------------------------------------
+
+# Liste des .cpp de la bibliothèque principale « gameplaytoolkit ».
+# Elle peut aussi recevoir des nœuds SCons (ex. le fichier de doc généré, étape 2).
 sources = []
 
+# Dossiers compilés dans leur propre bibliothèque (voir plus bas), exclus de gameplaytoolkit
+LOGGER_DIR = os.path.join("src", "1.🧰Ensemble d'Outils", "0.🧑‍💻Édition et Debug🪳", "📰Journal")
+
+# Parcours récursif de src/ : os.walk renvoie, pour chaque dossier visité,
+# (chemin du dossier, liste de ses sous-dossiers, liste de ses fichiers).
+# Retirer un nom de la liste `dirs` EN PLACE empêche os.walk d'y descendre :
+# c'est ainsi qu'on exclut des sous-arbres entiers (à n'importe quelle profondeur).
 for root, dirs, files in os.walk("src"):
     if "gen" in dirs:
         dirs.remove("gen")  # ne pas descendre dans src/gen : doc_data.gen.cpp y est déjà ajouté explicitement plus bas
+    if "📰Journal" in dirs:
+        dirs.remove("📰Journal")  # compilé séparément dans customlogger
     for file in files:
         if file.endswith(".cpp"):
             sources.append(os.path.join(root, file))
 
+# Sources de la bibliothèque « customlogger » : uniquement les .cpp placés
+# directement dans LOGGER_DIR (os.listdir n'est PAS récursif : un sous-dossier
+# de 📰Journal ne serait compilé dans aucune des deux bibliothèques).
+logger_sources = [os.path.join(LOGGER_DIR, f) for f in os.listdir(LOGGER_DIR) if f.endswith(".cpp")]
+
+# Les .h ne sont pas listés : SCons détecte automatiquement les #include
+# de chaque .cpp et recompile quand un en-tête change.
+
+# -----------------------------------------------------------------------------
+# 1. Environnement de compilation (délégué à godot-cpp)
+# -----------------------------------------------------------------------------
+#
+# Un « Environment » SCons regroupe toute la configuration de compilation :
+# compilateur, options (CCFLAGS, CPPDEFINES...), chemins d'include (CPPPATH),
+# bibliothèques à lier, etc.
+#
+# On crée d'abord un environnement vierge pour pouvoir y placer des réglages
+# AVANT que godot-cpp ne le configure. godot-cpp/SConstruct commence par un
+# `Import("env")` : si un environnement a été exporté, il le réutilise au lieu
+# d'en créer un nouveau. Les paramètres (tools=["default"], PLATFORM="") sont
+# ceux que godot-cpp utiliserait lui-même : la chaîne de compilation propre à
+# chaque plateforme (MSVC, GCC, clang...) est appliquée ensuite par ses outils.
+
+# compile_commands.json généré à chaque build (désactivable avec compiledb=no) : clangd s'en sert pour trouver les includes et les classes
+env = Environment(tools=["default"], PLATFORM="")
+env["compiledb"] = True  # sert de valeur par défaut à l'option « compiledb » de godot-cpp
+Export("env")            # rend `env` disponible au Import("env") de godot-cpp/SConstruct
+
+# Exécute godot-cpp/SConstruct, qui :
+#   - lit les options de ligne de commande (platform, target, arch, precision, dev_build...) ;
+#   - configure le compilateur et les drapeaux pour la plateforme cible ;
+#   - génère les bindings C++ de l'API Godot (à partir de extension_api.json)
+#     et déclare la compilation de la bibliothèque statique libgodot-cpp ;
+#   - ajoute automatiquement cette lib statique et ses includes à l'environnement ;
+#   - calcule env["suffix"] (ex. ".windows.template_debug.x86_64") ;
+#   - enregistre des « builders » utilitaires, dont GodotCPPDocData (étape 2) ;
+#   - renvoie l'environnement configuré (Return("env")), qu'on récupère ici.
 env = SConscript("godot-cpp/SConstruct")
 
+# Ajoute src/ aux chemins d'include : permet d'écrire, depuis n'importe quel
+# fichier, #include "sous/dossier/fichier.h" relativement à src/.
 env.Append(CPPPATH=["src/"])
 
+# -----------------------------------------------------------------------------
 # 2. Gestion de la documentation (intégration des XML existants dans la lib)
+# -----------------------------------------------------------------------------
+#
+# Godot affiche dans l'éditeur (F1, infobulles de l'inspecteur) la doc des
+# classes de l'extension si celle-ci est EMBARQUÉE dans la bibliothèque.
+# Le builder GodotCPPDocData (fourni par godot-cpp >= 4.3) convertit les
+# fichiers doc_classes/*.xml en un fichier C++ (src/gen/doc_data.gen.cpp)
+# contenant ces données compressées ; il suffit ensuite de le compiler avec
+# le reste des sources pour que Godot les trouve au chargement.
+#
+# Les XML eux-mêmes sont produits par la cible « gen_doc » (étape 4), puis
+# complétés à la main (descriptions des classes, méthodes, propriétés...).
 if os.path.isdir("doc_classes"):
+    # Glob (version SCons) renvoie des nœuds SCons : SCons saura ainsi
+    # régénérer doc_data.gen.cpp dès qu'un XML est modifié.
     xml_files = Glob("doc_classes/*.xml")
 
+    # La doc n'a de sens que là où l'éditeur peut l'afficher : builds
+    # « editor » et « template_debug ». En template_release on l'omet
+    # (bibliothèque plus légère).
     if xml_files and env["target"] in ["editor", "template_debug"]:
         try:
             if not os.path.isdir("src/gen"):
                 os.makedirs("src/gen")
 
             print(f"Inclusion de {len(xml_files)} fichiers de documentation...")
+            # Déclare la génération de src/gen/doc_data.gen.cpp à partir des XML,
+            # puis ajoute ce fichier généré aux sources de la lib principale.
+            # (C'est pour cela que src/gen est exclu du parcours de l'étape 0 :
+            # sinon le fichier serait compté deux fois.)
             doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=xml_files)
             sources.append(doc_data)
         except AttributeError:
+            # Le builder n'existe pas dans les versions anciennes de godot-cpp.
             print("Attention: GodotCPPDocData non disponible (version godot-cpp < 4.3).")
         except Exception as e:
             print(f"Erreur lors de la génération de la doc: {e}")
     else:
+        # Dossier présent mais vide, ou cible release : la lib est compilée sans doc.
         if not xml_files:
             print("Avertissement: Aucun fichier .xml trouvé dans doc_classes/. La documentation ne sera pas incluse.")
         else:
             print(f"Avertissement: Cible '{env['target']}' non compatible pour la doc (requis: editor/template_debug).")
 else:
+    # Premier lancement : on crée le dossier pour que --doctool puisse y écrire.
     os.makedirs("doc_classes")
     print("doc_classes/ créé (vide). Lance 'scons gen_doc' après compilation pour générer les XML via --doc-tool.")
 
-# 3. Compilation de la bibliothèque
+# -----------------------------------------------------------------------------
+# 3. Compilation des bibliothèques
+# -----------------------------------------------------------------------------
+#
+# env.SharedLibrary(nom, source=[...]) déclare une bibliothèque partagée :
+# chaque .cpp est compilé en fichier objet puis tout est lié ensemble
+# (avec libgodot-cpp, ajoutée par godot-cpp à l'étape 1).
+#
+# Nom final = chemin + env["suffix"] + env["SHLIBSUFFIX"], par ex. :
+#   GameplayToolkit/bin/gameplaytoolkit.windows.template_debug.x86_64.dll
+# Ce nom doit correspondre EXACTEMENT à ceux listés dans la section
+# [libraries] du fichier .gdextension, sinon Godot ne trouvera pas la lib.
+#
+# Sous Windows (MSVC), l'éditeur de liens produit aussi des .lib et .exp
+# à côté de la .dll : ils ne servent pas à Godot.
+
+# 3a. Bibliothèque principale
 library = env.SharedLibrary(
     "GameplayToolkit/bin/gameplaytoolkit{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
     source=sources
 )
 
+# Affichage informatif (s'exécute pendant la lecture du script, voir en-tête).
 for s in sources:
     print(s, " : ajouté à la compilation.")
 
-Default(library)
+# 3b. Bibliothèque séparée du Journal personnalisé (chargée par customlogger.gdextension)
+# Elle est isolée dans sa propre GDExtension afin de pouvoir être chargée
+# indépendamment de gameplaytoolkit.
+logger_library = env.SharedLibrary(
+    "GameplayToolkit/bin/Journal personnalisé/customlogger{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+    source=logger_sources
+)
 
-# --- Cible séparée : génération des XML de doc via --doc-tool ---
+for s in logger_sources:
+    print(s, " : ajouté à la compilation (customlogger).")
+
+# Cibles construites quand on lance simplement `scons` sans nom de cible.
+# (godot-cpp ajoute lui-même libgodot-cpp et compile_commands.json aux cibles
+# par défaut ; les deux libs ci-dessus en dépendent de toute façon.)
+Default(library, logger_library)
+
+# -----------------------------------------------------------------------------
+# 4. Cible séparée : génération des XML de doc via --doc-tool
+# -----------------------------------------------------------------------------
 # NE s'exécute PAS par défaut. Lancer explicitement : scons gen_doc
+#
+# Principe : on lance Godot en mode headless (sans fenêtre) sur un projet qui
+# charge l'extension ; l'option --doctool lui fait écrire un fichier XML par
+# classe enregistrée. Les XML déjà présents sont mis à jour en conservant les
+# descriptions déjà rédigées.
+#
+# Flux de travail typique :
+#   1. scons target=editor   -> compile la lib (sans doc la première fois)
+#   2. scons gen_doc         -> crée/actualise doc_classes/*.xml
+#   3. rédiger les descriptions dans les XML
+#   4. scons target=editor   -> recompile en embarquant la doc (étape 2)
 #
 # PLACEHOLDER : remplace GODOT_EXECUTABLE par le chemin réel de ton binaire Godot 4.7
 # (ex: "/home/{user_name}/godot/Godot_v4.7-stable_linux.x86_64")
+# ATTENTION : chemin Linux actuellement ; sous Windows, pointer vers le .exe
+# de Godot (sinon `scons gen_doc` échouera à lancer le programme).
 GODOT_EXECUTABLE = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
 
 # PLACEHOLDER : chemin vers un projet Godot minimal qui charge ce .gdextension
 # (souvent le dossier de projet (ex: "GameplayToolkit") lui-même, s'il contient un project.godot)
 GODOT_PROJECT_PATH = "GameplayToolkit"
 
+# Fonction « action » SCons : appelée au moment de construire la cible gen_doc.
+# Signature imposée par SCons : (target, source, env). Une valeur de retour
+# différente de 0 signale un échec à SCons.
 def generate_doc_action(target, source, env):
     import subprocess
     cmd = [
         GODOT_EXECUTABLE,
-        "--headless",
-        "--path", GODOT_PROJECT_PATH,
+        "--headless",                    # pas de fenêtre ni de rendu
+        "--path", GODOT_PROJECT_PATH,    # projet à ouvrir (doit charger l'extension)
         "--doctool", "../doc_classes",  # chemin relatif au project.godot, à ajuster
         "--no-docbase",  # exclut la doc du moteur, ne garde que tes classes custom
     ]
@@ -75,10 +247,17 @@ def generate_doc_action(target, source, env):
         print(f"Erreur : --doc-tool a retourné le code {result.returncode}")
     return result.returncode
 
+# env.Command déclare une étape de build personnalisée.
+# source=library : la lib principale est une dépendance, donc `scons gen_doc`
+# la (re)compile d'abord si besoin — Godot doit pouvoir la charger pour
+# connaître les classes à documenter.
+# Le fichier cible n'est jamais créé : SCons considère donc la cible comme
+# toujours périmée et relance la commande à chaque `scons gen_doc`.
 gen_doc = env.Command(
     target="gen_doc_dummy",  # cible factice, --doctool écrit directement dans doc_classes/
     source=library,
     action=generate_doc_action
 )
 
+# Alias : donne le nom court « gen_doc » utilisable en ligne de commande.
 env.Alias("gen_doc", gen_doc)

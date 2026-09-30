@@ -57,7 +57,7 @@ void initialize(ModuleInitializationLevel p_level)
 
     GDREGISTER_CLASS(TestExample);
 
-    godot::print_line_rich("[color=dark_green]Module d'extension pour scène chargé avec succès ![/color]");
+    godot::print_line_rich("[color=dark_green]Module d'extension pour scene charge avec succes ![/color]");
 }
 
 void uninitialize(ModuleInitializationLevel p_level)
@@ -67,7 +67,7 @@ void uninitialize(ModuleInitializationLevel p_level)
         return;
     }
 
-    godot::print_line_rich("[color=dark_red]Module d'extension déchargé avec succès ![/color]");
+    godot::print_line_rich("[color=dark_red]Module d'extension decharge avec succes ![/color]");
 }
 
 extern "C"

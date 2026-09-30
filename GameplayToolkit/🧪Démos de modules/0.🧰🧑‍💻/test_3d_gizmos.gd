@@ -118,3 +118,4 @@ func _exit_tree() -> void:
 	for rid in _gizmos:
 		Gizmos3D.free_3D_gizmo(rid)
 	_gizmos.clear()
+	
