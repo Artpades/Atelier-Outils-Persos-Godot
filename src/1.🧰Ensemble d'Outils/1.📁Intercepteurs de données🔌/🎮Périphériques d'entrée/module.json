@@ -3,13 +3,10 @@
     "name": "🎮 Périphériques d'entrée",
     "dependencies": {
         "requires": {
-            "widgets": "PlayerInputUI (liaisons InspectorBinding)",
+            "edition_debug": "PlayerInputUI (liaisons InspectorBinding) ; sans lui : pas de dessin de debug des InputAction, messages dans la console au lieu du Journal",
             "save": "PlayerInputUI (sauvegarde des affectations)"
         },
-        "optional": {
-            "gizmos": "dessin de debug des InputAction",
-            "journal": "messages dans le Journal (sinon console)"
-        }
+        "optional": {}
     },
     "classes": {
         "InputAction": "res://🖼️Editor Icons/🎮🔌/InputAction Icon.png",

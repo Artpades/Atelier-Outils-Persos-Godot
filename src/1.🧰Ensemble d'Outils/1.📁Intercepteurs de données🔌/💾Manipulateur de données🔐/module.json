@@ -4,7 +4,7 @@
     "dependencies": {
         "requires": {},
         "optional": {
-            "journal": "messages dans le Journal (sinon console)"
+            "edition_debug": "messages dans le Journal (sinon console)"
         }
     },
     "classes": {

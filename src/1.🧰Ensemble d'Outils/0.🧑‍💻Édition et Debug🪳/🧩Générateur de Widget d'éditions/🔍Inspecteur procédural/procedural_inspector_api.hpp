@@ -12,7 +12,7 @@ namespace godot::procedural_inspector_api
 // 🔍 Liaisons InspectorBinding depuis les AUTRES modules (via ProceduralInspector.bind_value).
 // Sans le module, aucune liaison n'est créée : l'appelant doit vérifier la dépendance (modules::require).
 
-inline const modules::Dependency DEPENDENCY = {"ProceduralInspector", U"🧩 Générateur de Widget d'éditions"};
+inline const modules::Dependency DEPENDENCY = {"ProceduralInspector", U"🧑‍💻 Édition et Debug"};
 
 /// Lie `p_owner` à la valeur retournée par `p_get()` : `p_pull(valeur)` est appelé à chaque changement.
 /// `p_source` : objet lu par `p_get` ; la liaison s'arrête quand il est libéré.

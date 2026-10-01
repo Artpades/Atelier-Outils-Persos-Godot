@@ -1,0 +1,21 @@
+{
+    "id": "edition_debug",
+    "name": "🧑‍💻 Édition et Debug",
+    "dependencies": {
+        "requires": {},
+        "optional": {}
+    },
+    "classes": {
+        "CustomLogger": "",
+        "Gizmos2D": "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png",
+        "Gizmos3D": "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png",
+        "ManagerBuilder": "res://🖼️Editor Icons/🧰🧑‍💻/ManagerBase icon.png",
+        "WidgetPropertyModifierBuilder": "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png",
+        "PropertyCallback": "",
+        "InspectorBinding": "",
+        "ProceduralInspector": "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png",
+        "WindowEditor": "res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png",
+        "SceneHierarchyTree": "",
+        "HandlersManager": ""
+    }
+}

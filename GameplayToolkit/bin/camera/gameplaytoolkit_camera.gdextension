@@ -1,6 +1,6 @@
 ; 🎞️ Gestion de Caméras
 ; Généré par le Sconstruct depuis module.json : ne pas modifier à la main.
-; Requiert : manager_builder — CameraManager (singleton)
+; Requiert : edition_debug — CameraManager (singleton)
 
 [configuration]
 

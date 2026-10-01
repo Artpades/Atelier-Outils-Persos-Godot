@@ -15,7 +15,7 @@ namespace godot
 
 namespace gizmos_2d_api
 {
-inline const modules::Dependency DEPENDENCY = {"Gizmos2D", U"🐛 Gizmos"};
+inline const modules::Dependency DEPENDENCY = {"Gizmos2D", U"🧑‍💻 Édition et Debug"};
 
 inline bool is_available() { return modules::is_loaded("Gizmos2D"); }
 
@@ -32,7 +32,7 @@ template <typename... Args> void draw_2D_text(const Args &...p_args) { modules::
 
 namespace gizmos_3d_api
 {
-inline const modules::Dependency DEPENDENCY = {"Gizmos3D", U"🐛 Gizmos"};
+inline const modules::Dependency DEPENDENCY = {"Gizmos3D", U"🧑‍💻 Édition et Debug"};
 
 inline bool is_available() { return modules::is_loaded("Gizmos3D"); }
 

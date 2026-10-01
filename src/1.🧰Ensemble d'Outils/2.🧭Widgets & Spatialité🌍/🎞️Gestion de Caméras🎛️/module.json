@@ -3,7 +3,7 @@
     "name": "🎞️ Gestion de Caméras",
     "dependencies": {
         "requires": {
-            "manager_builder": "CameraManager (singleton)"
+            "edition_debug": "CameraManager (singleton)"
         },
         "optional": {}
     },

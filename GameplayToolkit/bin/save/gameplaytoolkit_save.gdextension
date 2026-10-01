@@ -1,6 +1,6 @@
 ; 💾 Manipulateur de données
 ; Généré par le Sconstruct depuis module.json : ne pas modifier à la main.
-; Optionnel : journal — messages dans le Journal (sinon console)
+; Optionnel : edition_debug — messages dans le Journal (sinon console)
 
 [configuration]
 

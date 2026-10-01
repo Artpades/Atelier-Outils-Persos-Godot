@@ -11,7 +11,7 @@ namespace godot::manager_builder_api
 // Sans le module, les fonctions retournent nullptr / ne font rien : l'appelant doit vérifier la
 // dépendance (modules::require) et se désactiver.
 
-inline const modules::Dependency DEPENDENCY = {"ManagerBuilder", U"⚙️ Générateur de Gestionnaire"};
+inline const modules::Dependency DEPENDENCY = {"ManagerBuilder", U"🧑‍💻 Édition et Debug"};
 
 inline Node *make_getter(const StringName &p_class_name)
 {

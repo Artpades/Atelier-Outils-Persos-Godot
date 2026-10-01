@@ -1,26 +1,214 @@
+# =============================================================================
+#  SConstruct — Construction des GDExtensions « GameplayToolkit »
+# =============================================================================
+#
+#  Ce fichier est lu par SCons (outil de build écrit en Python) quand on lance
+#  `scons` à la racine du dépôt. C'est du Python normal, auquel SCons ajoute
+#  des fonctions et variables globales (voir le glossaire plus bas) : elles
+#  sont disponibles sans aucun `import`.
+#
+#  Rôle du script : compiler chaque MODULE de src/ en une GDExtension séparée,
+#  pour qu'un projet Godot puisse n'embarquer que les modules dont il a besoin.
+#
+#  Résultat pour un module d'id <id> :
+#    GameplayToolkit/bin/<id>/gameplaytoolkit_<id>.gdextension
+#        -> fichier texte lu par Godot, GÉNÉRÉ par ce script (étape 3)
+#    GameplayToolkit/bin/<id>/gameplaytoolkit_<id><suffixe>
+#        -> la bibliothèque compilée, par ex. :
+#           gameplaytoolkit_input.windows.template_debug.x86_64.dll
+#
+#  Déroulé du script :
+#    1. Découverte des modules (dossiers de src/ contenant un module.json)
+#       et vérification de leurs dépendances
+#    2. Préparation de l'environnement de compilation via godot-cpp
+#    3. Fonctions de génération des fichiers .gdextension
+#    4. Pour chaque module : sources + doc -> bibliothèque + .gdextension
+#    5. Cible optionnelle « gen_doc » (génère les XML via Godot --doctool)
+#
+#  Exemples de commandes :
+#      scons                                   -> tous les modules, template_debug, plateforme hôte
+#      scons target=template_release           -> build release
+#      scons target=editor                     -> build éditeur (inclut la doc)
+#      scons modules=input,edition_debug       -> seulement ces modules
+#      scons platform=windows arch=x86_64      -> forcer plateforme / architecture
+#      scons compiledb=yes                     -> générer compile_commands.json (pour clangd)
+#      scons -j8                               -> compiler 8 fichiers en parallèle
+#      scons gen_doc                           -> (re)générer les XML de doc_classes/
+#      scons -c                                -> supprimer les fichiers produits (voir NB étape 3)
+#      scons --help                            -> lister les options (celles de godot-cpp)
+#
+# -----------------------------------------------------------------------------
+#  FONCTIONNEMENT DE SCONS EN DEUX PHASES (important pour lire le script)
+# -----------------------------------------------------------------------------
+#  1. Phase de LECTURE : SCons exécute tout ce fichier de haut en bas. Les
+#     appels comme env.SharedLibrary(...) ne compilent RIEN sur le moment : ils
+#     ajoutent des « nœuds » à un graphe de dépendances (« pour obtenir tel
+#     fichier, il faut tels fichiers et telle commande »).
+#  2. Phase de CONSTRUCTION : SCons parcourt ce graphe et ne relance que ce
+#     qui est périmé (fichier absent, ou source/en-tête modifié depuis le
+#     dernier build ; SCons compare des signatures MD5, pas des dates).
+#
+#  Conséquences :
+#    - les print() s'affichent AVANT toute compilation ;
+#    - le code Python « ordinaire » (lire module.json, écrire les .gdextension
+#      avec open()) s'exécute immédiatement, à chaque lancement, même pour
+#      `scons -c` : SCons ne le connaît pas et ne le suit pas.
+#
+# -----------------------------------------------------------------------------
+#  GLOSSAIRE : MOTS-CLÉS SCONS À CONNAÎTRE
+# -----------------------------------------------------------------------------
+#  Vocabulaire
+#  -----------
+#  Nœud (Node)       Objet SCons représentant un fichier (File), un dossier
+#                    (Dir), ou un alias. Les builders et Glob renvoient des
+#                    LISTES de nœuds ; str(noeud) donne le chemin.
+#  Cible (target)    Ce qu'on veut produire (une .dll, un .obj, un alias...).
+#  Source            Ce dont la cible dépend (des .cpp, des .xml, une lib...).
+#  Builder           « Recette » qui sait transformer des sources en cible.
+#                    S'appelle comme une méthode : env.NomDuBuilder(cible, source=...).
+#  Action            La commande ou fonction Python qui produit la cible.
+#  Construction      Variable stockée dans un Environment (env["CPPPATH"]...),
+#  variable          utilisée pour composer les lignes de commande.
+#
+#  Fonctions globales (disponibles sans import dans un SConstruct/SConscript)
+#  ---------------------------------------------------------------------------
+#  Environment(...)    Crée un environnement : compilateur, options, chemins...
+#                      Ici, c'est godot-cpp qui le crée et le configure.
+#  SConscript(chemin)  Exécute un autre fichier de build SCons (un « sous-script »)
+#                      et renvoie ce que celui-ci passe à Return(). Utilisé à
+#                      l'étape 2 pour charger godot-cpp/SConstruct.
+#  Return("var")       (dans un sous-script) renvoie une variable à l'appelant.
+#  Export("var")       Rend une variable visible des sous-scripts...
+#  Import("var")       ...qui la récupèrent avec Import. godot-cpp fait un
+#                      Import("env") : si on a exporté un env, il le réutilise.
+#  ARGUMENTS           Dictionnaire des arguments `clé=valeur` de la ligne de
+#                      commande (ex. `scons modules=input` -> {"modules": "input"}).
+#  COMMAND_LINE_TARGETS  Liste des cibles nommées en ligne de commande
+#                      (ex. `scons gen_doc` -> ["gen_doc"]).fl
+#  Glob("motif")       Comme glob de Python mais renvoie des nœuds SCons, ce qui
+#                      permet à SCons de suivre ces fichiers comme dépendances.
+#  Default(cibles)     Cibles construites quand on lance `scons` sans nom de cible.
+#  Alias(nom, cibles)  Donne un nom court utilisable en ligne de commande
+#                      (`scons nom`). Aussi accessible via env.Alias.
+#  Depends(a, b)       Déclare à la main que a dépend de b (quand SCons ne peut
+#                      pas le deviner seul).
+#  AlwaysBuild(cible)  Force la reconstruction de la cible à chaque lancement.
+#  Clean(cible, f)     Ajoute f aux fichiers supprimés par `scons -c` pour cette cible.
+#  Help(texte)         Texte affiché par `scons --help`.
+#  Variables / opts    Déclaration d'options de ligne de commande typées
+#                      (godot-cpp s'en sert pour platform, target, arch...).
+#  CacheDir(dossier)   Cache partagé de fichiers compilés (godot-cpp l'active si
+#                      la variable d'environnement SCONS_CACHE est définie).
+#
+#  Builders courants (méthodes de l'environnement : env.Xxx(cible, source=...))
+#  ---------------------------------------------------------------------------
+#  env.SharedLibrary   Compile les sources et les lie en bibliothèque partagée
+#                      (.dll / .so / .dylib) -> ce que Godot charge.
+#  env.StaticLibrary   Bibliothèque statique (.lib / .a) ; godot-cpp en produit une
+#                      (libgodot-cpp...) qui est liée dans nos SharedLibrary.
+#  env.Program         Exécutable.
+#  env.Object          Compile un seul .cpp en fichier objet (.obj / .o).
+#  env.Command(cible, source, action)
+#                      Étape personnalisée : exécute `action` (commande shell ou
+#                      fonction Python) pour produire `cible` à partir de `source`.
+#  env.GodotCPPDocData Builder ajouté par godot-cpp (>= 4.3) : convertit des XML de
+#                      doc en un .cpp à compiler pour embarquer la doc des classes.
+#
+#  Modifier un environnement
+#  -------------------------
+#  env["CLE"] = val    Remplace une variable.
+#  env.Append(CLE=[...])   Ajoute à la fin d'une variable de type liste.
+#  env.Prepend(CLE=[...])  Ajoute au début.
+#  env.Replace(CLE=val)    Remplace (équivalent à env["CLE"] = val).
+#  env.Clone()         Copie indépendante d'un environnement (pour des réglages
+#                      propres à une seule cible sans toucher aux autres).
+#
+#  Variables de construction courantes
+#  -----------------------------------
+#  CPPPATH        Dossiers d'include (-I / /I). SCons les utilise aussi pour
+#                 trouver les en-têtes inclus et recompiler quand ils changent.
+#  CPPDEFINES     Macros du préprocesseur (-DNOM=valeur / /D).
+#  CCFLAGS        Options du compilateur C et C++.  CXXFLAGS : C++ seulement.
+#  LINKFLAGS      Options de l'éditeur de liens.
+#  LIBS / LIBPATH Bibliothèques à lier et dossiers où les chercher.
+#  SHLIBSUFFIX    Extension des bibliothèques partagées (".dll", ".so"...).
+#  LIBPREFIX / SHLIBPREFIX  Préfixe ("lib" sous Linux/macOS, "" sous Windows).
+#  OBJSUFFIX      Extension des fichiers objets (godot-cpp y insère le suffixe
+#                 de plateforme, d'où les register_types.windows.template_debug.x86_64.obj).
+#  MAXLINELENGTH  Longueur max d'une ligne de commande avant que SCons passe par
+#                 un fichier de réponse (voir étape 2).
+#  ENV            Variables d'environnement du système passées aux outils lancés.
+#
+#  Variables ajoutées par godot-cpp (lisibles après l'étape 2)
+#  -----------------------------------------------------------
+#  env["platform"]   "windows", "linux", "macos", "android", "web"...
+#  env["target"]     "editor", "template_debug" ou "template_release".
+#  env["arch"]       "x86_64", "x86_32", "arm64", "arm32", "rv64"...
+#  env["suffix"]     Suffixe des noms de fichiers, ex. ".windows.template_debug.x86_64"
+#                    (+ ".dev" si dev_build=yes, + ".double" si precision=double).
+#  env["compiledb"]  Générer ou non compile_commands.json.
+#
+#  Options utiles de la commande `scons`
+#  -------------------------------------
+#  -c / --clean   Supprime les fichiers que les cibles auraient produits.
+#  -j N           Compile N fichiers en parallèle.
+#  -n             « Dry run » : affiche les commandes sans les exécuter
+#                 (le code Python du script, lui, s'exécute quand même).
+#  -Q             Masque les messages de progression de SCons.
+#  --debug=explain  Explique POURQUOI chaque cible est reconstruite.
+#  --tree=prune   Affiche l'arbre des dépendances.
+# =============================================================================
+
 import json
 import os
 
 # Chaque module (dossier de src/ contenant un module.json) est compilé en une GDExtension séparée :
 #   GameplayToolkit/bin/<id>/gameplaytoolkit_<id>.gdextension + ses bibliothèques
 # Pour choisir ses modules dans un projet, il suffit de copier (ou supprimer) les dossiers bin/<id>/.
+# Un module possède tout son dossier, sous-dossiers compris : les outils d'édition et de debug
+# (Gizmos, Journal, Handlers...) forment ainsi un seul module, edition_debug.
 #
-# Compiler seulement certains modules : scons modules=input,gizmos,save
+# Compiler seulement certains modules : scons modules=input,edition_debug,save
 # (les dépendances manquantes sont signalées, pas ajoutées : un objet qui en a besoin se désactivera en jeu.)
+#
+# Format d'un module.json :
+#   {
+#     "id": "edition_debug",                   -> identifiant (nom du dossier bin/, du .gdextension...)
+#     "name": "🧑‍💻 Édition et Debug",          -> nom lisible (commentaire du .gdextension, message de chargement)
+#     "dependencies": {
+#       "requires": { "<id>": "raison" },      -> modules nécessaires
+#       "optional": { "<id>": "raison" }       -> modules qui ajoutent des fonctions s'ils sont présents
+#     },
+#     "classes": { "NomDeClasse": "res://chemin/icone.png" ou "" }
+#                                              -> classes du module (filtre de la doc) et leurs icônes
+#   }
+# Le code C++ partagé par plusieurs modules (src/commun/) ne contient que des en-têtes :
+# il n'appartient à aucun module et n'est compilé qu'à travers les .cpp qui l'incluent.
 
 BIN_DIR = "GameplayToolkit/bin"
 
-# Retiré d'ARGUMENTS avant de charger godot-cpp, qui avertirait d'une variable inconnue.
+# [SCons] ARGUMENTS : dictionnaire des `clé=valeur` passés à `scons`.
+# On en RETIRE « modules » (pop) avant de charger godot-cpp, qui lit ce même dictionnaire
+# et avertirait d'une variable inconnue.
+# "a, b,,c" -> ["a", "b", "c"] ; liste vide = tous les modules.
 requested_modules = [m.strip() for m in ARGUMENTS.pop("modules", "").split(",") if m.strip()]
 
+# -----------------------------------------------------------------------------
 # --- 1. Découverte des modules ---
-modules = {}
+# -----------------------------------------------------------------------------
+# Python pur : rien ici n'est spécifique à SCons.
+# os.walk renvoie, pour chaque dossier visité : (chemin, sous-dossiers, fichiers).
+# Modifier la liste `dirs` EN PLACE contrôle la suite du parcours :
+#   - dirs.sort()     -> ordre de parcours stable d'une machine à l'autre ;
+#   - dirs.remove(x)  -> ne pas descendre dans x ;
+#   - dirs[:] = []    -> ne descendre dans AUCUN sous-dossier.
+modules = {}  # id du module -> contenu de son module.json (+ "dir" : son dossier)
 for root, dirs, files in os.walk("src"):
     dirs.sort()
     if "gen" in dirs:
         dirs.remove("gen")  # src/gen : fichiers de documentation générés
     if "module.json" not in files:
-        continue
+        continue  # dossier intermédiaire (ou src/commun) : on continue de descendre
     with open(os.path.join(root, "module.json"), encoding="utf-8") as f:
         meta = json.load(f)
     meta["dir"] = root
@@ -29,11 +217,17 @@ for root, dirs, files in os.walk("src"):
     modules[meta["id"]] = meta
     dirs[:] = []  # pas de module imbriqué : tout le dossier appartient à ce module
 
+# Une exception levée pendant la lecture arrête SCons avant toute compilation,
+# avec le message affiché : c'est la façon normale de signaler une erreur de configuration.
 unknown_modules = [m for m in requested_modules if m not in modules]
 if unknown_modules:
     raise Exception("Modules inconnus : {}. Disponibles : {}".format(", ".join(unknown_modules), ", ".join(sorted(modules))))
+# Modules à compiler, triés par id : ceux demandés, ou tous si `modules=` n'est pas fourni.
 selected = [m for m in sorted(modules) if not requested_modules or m in requested_modules]
 
+# Vérification des dépendances déclarées dans module.json :
+#   - dépendance qui n'existe pas du tout -> erreur (faute de frappe dans module.json) ;
+#   - dépendance existante mais non sélectionnée -> simple avertissement.
 for module_id in selected:
     dependencies = modules[module_id]["dependencies"]
     for kind, label in (("requires", "requise"), ("optional", "optionnelle")):
@@ -43,9 +237,25 @@ for module_id in selected:
             if dependency not in selected:
                 print("Avertissement : '{}' compilé sans '{}' (dépendance {}) — {}".format(module_id, dependency, label, reason))
 
+# -----------------------------------------------------------------------------
 # --- 2. Environnement godot-cpp ---
+# -----------------------------------------------------------------------------
+# [SCons] SConscript(...) exécute godot-cpp/SConstruct et récupère l'environnement
+# qu'il renvoie avec Return("env"). Ce sous-script :
+#   - lit les options de ligne de commande (platform, target, arch, precision,
+#     dev_build, compiledb...) depuis ARGUMENTS ;
+#   - choisit le compilateur (MSVC, GCC, clang...) et ses options pour la plateforme ;
+#   - génère les bindings C++ de l'API Godot (depuis extension_api.json) et déclare
+#     la compilation de la bibliothèque statique libgodot-cpp ;
+#   - ajoute ses en-têtes et cette bibliothèque à l'environnement : tout ce qu'on
+#     construit ensuite avec `env` est automatiquement lié à godot-cpp ;
+#   - définit env["platform"], env["target"], env["arch"], env["suffix"]... ;
+#   - enregistre des builders supplémentaires, dont GodotCPPDocData (étape 4).
+# Comme rien n'est exporté avant, son Import("env") échoue et il crée son propre Environment.
 env = SConscript("godot-cpp/SConstruct")
 
+# [SCons] Append ajoute à une variable liste. CPPPATH = dossiers d'include :
+# permet d'écrire #include "commun/module_entry.hpp" depuis n'importe quel fichier.
 env.Append(CPPPATH=["src/"])
 
 # Windows : au-delà de MAXLINELENGTH (2048 par défaut), SCons passe par un fichier de réponse que link.exe
@@ -54,8 +264,17 @@ env.Append(CPPPATH=["src/"])
 if env["platform"] == "windows":
     env["MAXLINELENGTH"] = 32000
 
+# -----------------------------------------------------------------------------
 # --- 3. Fichier .gdextension de chaque module ---
+# -----------------------------------------------------------------------------
+# Un .gdextension indique à Godot quelle bibliothèque charger selon la plateforme et
+# la build, et quelle fonction appeler en premier (entry_symbol).
 # Même liste de plateformes que l'ancien gameplaytoolkit.gdextension unique.
+# Chaque paire : (étiquette de fonctionnalités Godot, nom du fichier).
+# Godot choisit la ligne dont toutes les étiquettes correspondent au jeu/éditeur en cours :
+#   « debug » = éditeur ou export debug, « release » = export release.
+# {name} est remplacé par gameplaytoolkit_<id> ; ces noms doivent correspondre exactement
+# à ceux produits par env.SharedLibrary à l'étape 4 (préfixe + nom + suffixe + extension).
 LIBRARY_PATTERNS = [
     ("macos.debug", "lib{name}.macos.template_debug.dylib"),
     ("macos.release", "lib{name}.macos.template_release.dylib"),
@@ -76,6 +295,14 @@ LIBRARY_PATTERNS = [
 ]
 
 
+# Construit le texte complet du .gdextension d'un module à partir de son module.json :
+#   - en-tête commenté (« ; » = commentaire) : nom, dépendances et leurs raisons ;
+#   - [configuration] : entry_symbol = fonction C exportée par la bibliothèque, que Godot
+#     appelle au chargement (générée par la macro GAMEPLAYTOOLKIT_MODULE, voir étape 4) ;
+#     compatibility_minimum = version minimale de Godot ; reloadable = rechargement à chaud
+#     de la bibliothèque dans l'éditeur après recompilation ;
+#   - [icons] : icône de chaque classe dans l'éditeur (les classes sans icône sont omises) ;
+#   - [libraries] : le chemin de la bibliothèque pour chaque plateforme (LIBRARY_PATTERNS).
 def gdextension_text(meta):
     module_id = meta["id"]
     name = "gameplaytoolkit_" + module_id
@@ -101,42 +328,72 @@ def gdextension_text(meta):
     return "\n".join(lines) + "\n"
 
 
+# N'écrit le fichier que si son contenu change : la date de modification reste intacte,
+# ce qui évite que Godot ne recharge (ou que git ne signale) un fichier identique.
+# NB : écriture en Python pur, faite immédiatement pendant la phase de lecture. SCons ne
+# connaît pas ces fichiers : `scons -c` ne les supprime pas, et `scons -n` les écrit quand même.
 def write_if_changed(path, text):
     if os.path.isfile(path):
         with open(path, encoding="utf-8") as f:
             if f.read() == text:
                 return
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:  # newline="\n" : fins de ligne LF aussi sous Windows
         f.write(text)
     print("Écrit :", path)
 
 
+# -----------------------------------------------------------------------------
 # --- 4. Compilation des modules ---
+# -----------------------------------------------------------------------------
+# Documentation intégrée : Godot affiche dans l'éditeur (F1, infobulles) la doc des
+# classes de l'extension si elle est EMBARQUÉE dans la bibliothèque. Le builder
+# GodotCPPDocData convertit des doc_classes/*.xml en un .cpp contenant ces données,
+# qu'on compile avec le reste. Les XML viennent de la cible gen_doc (étape 5).
+#
+# [SCons] Glob renvoie des nœuds : modifier un XML suffit pour que SCons régénère
+# le .cpp de doc correspondant puis recompile la bibliothèque.
 xml_files = Glob("doc_classes/*.xml") if os.path.isdir("doc_classes") else []
+# Doc seulement là où l'éditeur peut l'afficher (pas en template_release, plus léger),
+# et seulement si godot-cpp fournit le builder (>= 4.3). hasattr fonctionne car un
+# builder absent lève AttributeError quand on le demande à l'environnement.
 with_docs = env["target"] in ["editor", "template_debug"] and hasattr(env, "GodotCPPDocData")
 if not with_docs:
     print("Avertissement : documentation non incluse (cible '{}' ou godot-cpp < 4.3).".format(env["target"]))
 
-libraries = []
+libraries = []  # nœuds des bibliothèques déclarées, pour Default() et gen_doc
 for module_id in selected:
     meta = modules[module_id]
 
     # Garde-fou : le symbole d'entrée du .gdextension doit correspondre au GAMEPLAYTOOLKIT_MODULE du code.
+    # (La macro, définie dans src/commun/module_entry.hpp, génère la fonction gameplaytoolkit_<id>_init ;
+    # sans elle, Godot refuserait de charger la bibliothèque.)
     with open(os.path.join(meta["dir"], "register_types.cpp"), encoding="utf-8") as f:
         if "GAMEPLAYTOOLKIT_MODULE({},".format(module_id) not in f.read():
             raise Exception("{}/register_types.cpp doit appeler GAMEPLAYTOOLKIT_MODULE({}, ...)".format(meta["dir"], module_id))
 
+    # Tous les .cpp du dossier du module, sous-dossiers compris, dans un ordre stable.
+    # Les .h/.hpp ne sont pas listés : SCons analyse les #include de chaque .cpp (grâce
+    # à CPPPATH) et recompile automatiquement quand un en-tête change.
     sources = []
     for root, dirs, files in os.walk(meta["dir"]):
         dirs.sort()
         sources += [os.path.join(root, file) for file in sorted(files) if file.endswith(".cpp")]
 
     # Documentation : seulement les classes de ce module (sinon l'aide de l'éditeur listerait des classes absentes).
+    # Un XML s'appelle <NomDeClasse>.xml : on garde ceux dont le nom figure dans "classes" du module.json.
     module_xml = [x for x in xml_files if os.path.splitext(os.path.basename(str(x)))[0] in meta["classes"]]
     if with_docs and module_xml:
+        # [SCons] Builder de godot-cpp : déclare la génération de src/gen/doc_data_<id>.gen.cpp
+        # à partir des XML. On ajoute le nœud renvoyé aux sources, comme un .cpp ordinaire.
         sources.append(env.GodotCPPDocData("src/gen/doc_data_{}.gen.cpp".format(module_id), source=module_xml))
 
+    # [SCons] SharedLibrary : compile chaque source en fichier objet (.obj/.o, placé à côté
+    # du .cpp) puis lie le tout, avec libgodot-cpp, en une bibliothèque partagée.
+    # Nom = bin/<id>/gameplaytoolkit_<id> + suffix (".windows.template_debug.x86_64")
+    #       + SHLIBSUFFIX (".dll"). Sous Linux/macOS, SCons ajoute le préfixe « lib »
+    # (SHLIBPREFIX), d'où le « lib{name} » de LIBRARY_PATTERNS.
+    # Sous Windows, l'éditeur de liens produit aussi .lib et .exp : inutiles pour Godot.
     library = env.SharedLibrary(
         "{}/{}/gameplaytoolkit_{}{}{}".format(BIN_DIR, module_id, module_id, env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
@@ -145,25 +402,43 @@ for module_id in selected:
     write_if_changed("{}/{}/gameplaytoolkit_{}.gdextension".format(BIN_DIR, module_id, module_id), gdextension_text(meta))
     print("Module {} : {} fichiers, {} classes documentées".format(module_id, len(sources), len(module_xml)))
 
+# [SCons] Default : ce que `scons` construit quand aucune cible n'est nommée.
+# (libgodot-cpp n'a pas besoin d'y figurer : les bibliothèques en dépendent.)
 Default(libraries)
 
-# --- Cible séparée : génération des XML de doc via --doc-tool ---
+# -----------------------------------------------------------------------------
+# --- 5. Cible séparée : génération des XML de doc via --doc-tool ---
+# -----------------------------------------------------------------------------
 # NE s'exécute PAS par défaut. Lancer explicitement : scons gen_doc
+#
+# Principe : lancer Godot sans fenêtre sur un projet qui charge les extensions ;
+# --doctool lui fait écrire un XML par classe enregistrée. Les XML existants sont
+# mis à jour en conservant les descriptions déjà rédigées.
+#
+# Flux de travail typique :
+#   1. scons target=editor   -> compile les bibliothèques (sans doc la première fois)
+#   2. scons gen_doc         -> crée/actualise doc_classes/*.xml
+#   3. rédiger les descriptions dans les XML
+#   4. scons target=editor   -> recompile en embarquant la doc (étape 4)
 #
 # PLACEHOLDER : remplace GODOT_EXECUTABLE par le chemin réel de ton binaire Godot 4.7
 # (ex: "/home/{user_name}/godot/Godot_v4.7-stable_linux.x86_64")
+# ATTENTION : chemin Linux ; sous Windows, pointer vers le .exe de Godot sinon gen_doc échoue.
 GODOT_EXECUTABLE = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
 
 # PLACEHOLDER : chemin vers un projet Godot minimal qui charge les .gdextension
 # (souvent le dossier de projet (ex: "GameplayToolkit") lui-même, s'il contient un project.godot)
 GODOT_PROJECT_PATH = "GameplayToolkit"
 
+# [SCons] Fonction utilisée comme « action » : SCons l'appelle pendant la phase de
+# construction avec (target, source, env) = listes de nœuds cibles, nœuds sources,
+# environnement. Une valeur de retour non nulle signale un échec et arrête le build.
 def generate_doc_action(target, source, env):
     import subprocess
     cmd = [
         GODOT_EXECUTABLE,
-        "--headless",
-        "--path", GODOT_PROJECT_PATH,
+        "--headless",                    # pas de fenêtre ni de rendu
+        "--path", GODOT_PROJECT_PATH,    # projet à ouvrir (il doit charger les extensions)
         "--doctool", "../doc_classes",  # chemin relatif au project.godot, à ajuster
         "--no-docbase",  # exclut la doc du moteur, ne garde que tes classes custom
     ]
@@ -173,10 +448,16 @@ def generate_doc_action(target, source, env):
         print(f"Erreur : --doc-tool a retourné le code {result.returncode}")
     return result.returncode
 
+# [SCons] Command : étape personnalisée.
+# source=libraries -> les bibliothèques sont (re)compilées d'abord si besoin, car Godot
+# doit pouvoir les charger pour connaître les classes à documenter.
+# Le fichier cible n'est jamais créé : SCons le considère donc toujours comme absent
+# et relance l'action à chaque `scons gen_doc` (même effet qu'un AlwaysBuild).
 gen_doc = env.Command(
     target="gen_doc_dummy",  # cible factice, --doctool écrit directement dans doc_classes/
     source=libraries,
     action=generate_doc_action
 )
 
+# [SCons] Alias : rend la cible accessible sous le nom « gen_doc » en ligne de commande.
 env.Alias("gen_doc", gen_doc)

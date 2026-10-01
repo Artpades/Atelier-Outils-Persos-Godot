@@ -1,9 +1,7 @@
 ; 🎮 Périphériques d'entrée
 ; Généré par le Sconstruct depuis module.json : ne pas modifier à la main.
-; Requiert : widgets — PlayerInputUI (liaisons InspectorBinding)
+; Requiert : edition_debug — PlayerInputUI (liaisons InspectorBinding) ; sans lui : pas de dessin de debug des InputAction, messages dans la console au lieu du Journal
 ; Requiert : save — PlayerInputUI (sauvegarde des affectations)
-; Optionnel : gizmos — dessin de debug des InputAction
-; Optionnel : journal — messages dans le Journal (sinon console)
 
 [configuration]
 
