@@ -1,7 +1,6 @@
 #include "register.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/editor_test.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
 
 #include "gdextension_interface.h"
 #include "godot_cpp/core/class_db.hpp"
@@ -14,11 +13,7 @@
 // #include "🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪛Objets
 // d'édition/🪟Fenêtre d'édition/windoweditor.hpp" #include "🧰Ensemble
 // d'Outils/1.📁Intercepteurs de données/💾Manipulateur de données🔐/⚙️Générateur
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪟Fenêtre d'édition/window_editor.hpp"
 // de Gestionnaire/manager_builder_wrapper.hpp"
-
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_3d.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/✋Handlers/handlers_manager.hpp"
 
@@ -44,14 +39,10 @@ void initialize(ModuleInitializationLevel p_level)
     }
 
     // Implentation de la classe TestScript dans le registre de classes de Godot
-    GDREGISTER_CLASS(ManagerBuilder);
-    GDREGISTER_CLASS(WindowEditor);
-    GDREGISTER_CLASS(Gizmos2D);
-    GDREGISTER_CLASS(Gizmos3D);
-
+    // « @icon » : icône de la classe dans l'éditeur, recopiée par le Sconstruct dans le .gdextension
     GDREGISTER_CLASS(HandlersManager);
 
-    GDREGISTER_CLASS(WidgetPropertyModifierBuilder);
+    GDREGISTER_CLASS(WidgetPropertyModifierBuilder); // @icon res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png
 
     GDREGISTER_CLASS(PropertyCallback);
 

@@ -1,21 +1,48 @@
 import os
+import re
+import subprocess
 import sys
 
 # =====================================================================================================
-#  ORGANISATION : 1 bibliothèque principale + N modules GDExtension indépendants
+#  ORGANISATION : une GDExtension par fichier de registre, détectée automatiquement
 # =====================================================================================================
 #
-#  - La bibliothèque principale (GameplayToolkit/bin/gameplaytoolkit.gdextension) contient tout src/,
-#    SAUF les dossiers déclarés dans MODULES ci-dessous.
-#  - Chaque module de MODULES est compilé dans sa propre bibliothèque :
-#        GameplayToolkit/bin/<id>/libgameplaytoolkit_<id>.<plateforme>.<cible>.<arch>.so
-#    et chargé par Godot via son propre fichier .gdextension placé dans GameplayToolkit/bin/<id>/.
-#    Pour utiliser un module dans un autre projet : copier le dossier bin/<id>/. Pour l'enlever : le supprimer.
+#  Le script parcourt src/ à la recherche des fichiers de registre :
+#
+#    - register.cpp        -> bibliothèque PRINCIPALE  (une seule autorisée)
+#                             GameplayToolkit/bin/gameplaytoolkit.gdextension
+#    - <id>_register.cpp   -> MODULE <id>
+#                             GameplayToolkit/bin/<id>/gameplaytoolkit_<id>.gdextension
+#
+#  Chaque bibliothèque contient tous les .cpp du dossier de son registre (sous-dossiers compris),
+#  SAUF les sous-dossiers qui ont eux-mêmes un fichier de registre : ceux-là forment leur propre
+#  bibliothèque. Le register.cpp placé à la racine de src/ récupère donc tout ce qui n'appartient
+#  à aucun module.
+#
+#  Le fichier .gdextension de chaque bibliothèque est GÉNÉRÉ (ne pas le modifier à la main) à partir
+#  de ce que le script lit dans le registre :
+#    - entry_symbol  <- le nom de la fonction  extern "C" ... GDE_EXPORT <nom>(...)
+#    - [icons]       <- les icônes déjà présentes dans le fichier (on peut les écrire à la main : elles sont
+#                       conservées), complétées par les commentaires « // @icon <chemin> » placés sur la ligne
+#                       d'un GDREGISTER_*CLASS (prioritaires si la même classe a déjà une icône)
+#    - [libraries]   <- les chemins des bibliothèques compilées pour chaque plateforme
+#  Les classes enregistrées (GDREGISTER_CLASS, GDREGISTER_ABSTRACT_CLASS, ...) servent aussi à choisir
+#  la documentation XML embarquée dans chaque bibliothèque.
+#
+#  Pour utiliser un module dans un autre projet : copier le dossier bin/<id>/. Pour l'enlever : le supprimer.
 #
 #  Commandes :
-#    scons                 -> compile la lib principale + tous les modules
+#    scons                 -> compile la lib principale + tous les modules (et régénère les .gdextension)
 #    scons journal         -> compile uniquement le module "journal" (idem avec n'importe quel id)
 #    scons principal       -> compile uniquement la lib principale
+#    scons gen_doc         -> génère / met à jour TOUS les XML de doc_classes/ via Godot --doctool
+#
+#  Documentation : en template_debug (cible par défaut), si une classe enregistrée n'a pas encore de
+#  doc_classes/<Classe>.xml, Godot --doctool est lancé automatiquement APRÈS la compilation pour le créer.
+#  Le XML est intégré à la bibliothèque au `scons` suivant (il doit exister avant la compilation).
+#    scons auto_doc=no     -> désactive cette génération automatique
+#    scons godot=<chemin>  -> exécutable Godot à utiliser (sinon variable d'environnement GODOT,
+#                             sinon le chemin par défaut défini plus bas selon l'OS)
 #
 # -----------------------------------------------------------------------------------------------------
 #  CRÉER UN NOUVEAU MODULE GDEXTENSION (pas à pas)
@@ -25,8 +52,9 @@ import sys
 #     (ex: "src/1.🧰Ensemble d'Outils/.../⏱️Chronomètre"). Tous les .cpp de ce dossier (et sous-dossiers)
 #     seront compilés dans le module, et exclus de la lib principale.
 #
-#  2. Point d'entrée : ajouter dans ce dossier un fichier <nom>_register.cpp sur ce modèle
-#     (exemple complet : "📰Journal Console/logger_register.cpp") :
+#  2. Registre : ajouter dans ce dossier un fichier <id>_register.cpp. Son préfixe donne l'id du module
+#     (chrono_register.cpp -> module "chrono", dossier bin/chrono/, commande `scons chrono`).
+#     Modèle (exemple complet : "📰Journal Console/journal_register.cpp") :
 #
 #         #include <godot_cpp/core/class_db.hpp>
 #         #include <godot_cpp/godot.hpp>
@@ -37,7 +65,7 @@ import sys
 #         // avec les initialize()/uninitialize() des autres bibliothèques.
 #         static void initialize_chrono(ModuleInitializationLevel p_level) {
 #             if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return; // sinon classes enregistrées 2 fois
-#             GDREGISTER_CLASS(MaClasse);
+#             GDREGISTER_CLASS(MaClasse); // @icon res://🖼️Editor Icons/mon_icone.png
 #         }
 #         static void uninitialize_chrono(ModuleInitializationLevel p_level) {}
 #
@@ -51,36 +79,61 @@ import sys
 #             return init_obj.init();
 #         }
 #
-#  3. Déclaration : ajouter une ligne dans MODULES ci-dessous :   "chrono": "src/.../⏱️Chronomètre",
+#  3. Lancer `scons` : le module est détecté, compilé, et son .gdextension écrit dans bin/<id>/.
 #
-#  4. Fichier .gdextension : copier GameplayToolkit/bin/journal/customlogger.gdextension dans
-#     GameplayToolkit/bin/<id>/<nom>.gdextension puis remplacer :
-#        - entry_symbol          -> le nom de la fonction extern "C" de l'étape 2 (ex: "chrono_library_init")
-#        - "journal"             -> <id> dans tous les chemins res://bin/<id>/libgameplaytoolkit_<id>...
-#        - (optionnel) [icons]   -> icônes des classes du module
-#
-#  5. Règles à respecter :
-#        - Une classe ne doit être enregistrée (GDREGISTER_CLASS) que dans UNE seule bibliothèque,
+#  4. Règles à respecter (les trois premières sont vérifiées par ce script) :
+#        - Un seul fichier de registre par dossier, et des id de modules uniques.
+#        - Le nom de la fonction GDE_EXPORT doit être unique d'une bibliothèque à l'autre.
+#        - Une classe ne doit être enregistrée (GDREGISTER_*CLASS) que dans UNE seule bibliothèque,
 #          sinon Godot signale une classe déjà existante.
 #        - Un module ne doit pas #include le .hpp d'une classe d'un AUTRE module (le code ne serait pas
 #          lié). Passer plutôt par Godot : ClassDB::instantiate("NomClasse"), obj->call("methode"), etc.
-#        - Chaque .so embarque godot-cpp (~2,5 Mo) : c'est le coût normal de la séparation.
+#        - Chaque bibliothèque embarque godot-cpp (~2,5 Mo) : c'est le coût normal de la séparation.
 #
+#  Limite de la lecture du registre : elle se fait ligne par ligne. Un GDREGISTER_*CLASS commenté avec
+#  « // » est ignoré, mais pas un GDREGISTER_*CLASS placé dans un bloc /* ... */.
+#
+# -----------------------------------------------------------------------------------------------------
+#  Modules prévus
+# -----------------------------------------------------------------------------------------------------
+#  Stock and flow · Système de sauvegarde · Entrées de périphérique · Entrées tactiles · Multijoueur
+#  Système MIDI · XR · Gestion de caméra · Générateur d'objet · Gestion de scène
+#  Changement de visuels à la demande · HUD spatial interactif · Système de dessin · Glisser/Déposer
+#  Placement d'objets · Outils de terrain
+#  Boîte d'ensemble d'interface graphique (Menu radial, interface de paramètre procédural)
+#  Effets spéciaux programmés
+#  Personnage et algo (Personnage, HFSM/BehaviourTree, Système de capacité, Système de dialogue)
+#  Projectiles
+#  Déplacement (au sol, aérodynamisme, aquatique, mural, recul, zone de force, animations procédurales)
+#  Chronomètre · Métronome · Horloge
 # =====================================================================================================
 
-# id du module -> dossier source (relatif à la racine du dépôt)
+PROJECT_DIR = "GameplayToolkit"
+BIN_DIR = PROJECT_DIR + "/bin"
+LIBRARY_NAME = "gameplaytoolkit"
+DOC_DIR = "doc_classes"
 
+# Exécutable Godot 4.7 utilisé pour générer la doc (--doctool). Par ordre de priorité :
+#   scons godot=<chemin>   >   variable d'environnement GODOT   >   chemin par défaut ci-dessous selon l'OS.
+# (Retiré d'ARGUMENTS avant de charger godot-cpp, qui avertirait d'une variable inconnue.)
+if sys.platform == "win32":
+    DEFAULT_GODOT = r"D:\Tiroirs\Passions et Fascinations\4.🧑‍💻Programmation\Moteur de jeu\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe"
+else:
+    DEFAULT_GODOT = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
+GODOT_EXECUTABLE = ARGUMENTS.pop("godot", os.environ.get("GODOT", DEFAULT_GODOT))
 
-#region Code Source individualité
+# Génération automatique des XML manquants après la compilation (désactivable : scons auto_doc=no).
+AUTO_DOC = ARGUMENTS.pop("auto_doc", "yes").lower() not in ("no", "false", "0")
 
-# Outils pour éditer ou débuger
-
-OUTILS_EDITION = "src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳"
-MODULES = {
-    "journal": OUTILS_EDITION + "/📰Journal Console",
-}
-
-BIN_DIR = "GameplayToolkit/bin"
+# register.cpp (groupe 1 vide -> lib principale) ou <id>_register.cpp (groupe 1 = id du module)
+REGISTER_FILE = re.compile(r"^(?:(\w+)_)?register\.cpp$")
+# extern "C" GDExtensionBool GDE_EXPORT <nom>(...)  -> entry_symbol du .gdextension
+ENTRY_SYMBOL = re.compile(r"GDE_EXPORT\s+(\w+)\s*\(")
+# GDREGISTER_CLASS(X), GDREGISTER_ABSTRACT_CLASS(X), GDREGISTER_VIRTUAL_CLASS(X), GDREGISTER_RUNTIME_CLASS(X)...
+# Groupe 1 : le genre (« INTERNAL_ » pour GDREGISTER_INTERNAL_CLASS, classe invisible donc sans doc).
+REGISTERED_CLASS = re.compile(r"GDREGISTER_(\w+_)?CLASS\s*\(\s*(\w+)\s*\)")
+# // @icon res://chemin/vers/icone.png   (guillemets facultatifs, espaces autorisés dans le chemin)
+ICON = re.compile(r"@icon\s+(.+?)\s*$")
 
 
 def collect_sources(folder, excluded=()):
@@ -89,154 +142,338 @@ def collect_sources(folder, excluded=()):
     found = []
     for root, dirs, files in os.walk(folder):
         dirs.sort()
-        # ne pas descendre dans src/gen (doc_data.gen.cpp ajouté explicitement plus bas)
-        # ni dans les dossiers des modules (compilés séparément)
+        # ne pas descendre dans src/gen (fichiers de doc générés, ajoutés explicitement plus bas)
+        # ni dans les dossiers des autres bibliothèques (compilées séparément)
         dirs[:] = [d for d in dirs if d != "gen" and os.path.normpath(os.path.join(root, d)) not in excluded]
         found += [os.path.join(root, f) for f in sorted(files) if f.endswith(".cpp")]
     return found
 
 
-sources = collect_sources("src", excluded=MODULES.values())
+def parse_register(path):
+    """Lit un fichier de registre : (entry_symbol, {classe: icône ou ""}, [classes à documenter])."""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    entry_symbols = ENTRY_SYMBOL.findall(text)
+    if len(entry_symbols) != 1:
+        raise Exception("{} : une seule fonction GDE_EXPORT attendue, trouvé {}".format(path, entry_symbols or "aucune"))
+    classes = {}
+    documented = []
+    for line in text.splitlines():
+        code, _, comment = line.partition("//")  # le code avant « // », le commentaire après
+        match = REGISTERED_CLASS.search(code)
+        if match:
+            kind, class_name = match.groups()
+            icon = ICON.search(comment)
+            classes[class_name] = icon.group(1).strip('"') if icon else ""
+            if kind != "INTERNAL_":
+                documented.append(class_name)
+    return entry_symbols[0], classes, documented
 
 
-# Stock and flow
+# --- 1. Découverte des bibliothèques (une par fichier de registre) ---
+libraries_info = []
+for root, dirs, files in os.walk("src"):
+    dirs[:] = sorted(d for d in dirs if d != "gen")
+    registers = [f for f in sorted(files) if REGISTER_FILE.match(f)]
+    if not registers:
+        continue
+    if len(registers) > 1:
+        raise Exception("Plusieurs fichiers de registre dans {} : {}".format(root, ", ".join(registers)))
+    module_id = REGISTER_FILE.match(registers[0]).group(1)  # None pour register.cpp
+    entry_symbol, classes, documented = parse_register(os.path.join(root, registers[0]))
+    name = LIBRARY_NAME + ("_" + module_id if module_id else "")
+    bin_dir = BIN_DIR + ("/" + module_id if module_id else "")
+    libraries_info.append({
+        "id": module_id,
+        "alias": module_id or "principal",
+        "dir": root,
+        "register": os.path.join(root, registers[0]),
+        "name": name,
+        "bin_dir": bin_dir,
+        "gdextension": "{}/{}.gdextension".format(bin_dir, name),
+        "entry_symbol": entry_symbol,
+        "classes": classes,
+        "documented": documented,
+    })
 
-# Système de sauvegarde
+# Vérifications : ces erreurs feraient échouer le chargement dans Godot, autant les signaler ici.
+seen = {"alias": {}, "entry_symbol": {}, "class": {}}
+for info in libraries_info:
+    for kind, values in (("alias", [info["alias"]]), ("entry_symbol", [info["entry_symbol"]]), ("class", info["classes"])):
+        for value in values:
+            if value in seen[kind]:
+                raise Exception("'{}' ({}) apparaît dans deux registres : {} et {}".format(value, kind, seen[kind][value], info["register"]))
+            seen[kind][value] = info["register"]
 
-# Module d'entrées de périphérique
-
-# Module d'entrées tactiles
-
-# Multijoueur
-
-# Système MIDI
-
-# XR
-
-# Module de Gestion de caméra
-
-
-# Module Générateur d'objet
-
-# Module gestion de scène
-
-# Module pour changer des visuels à la demande
+# Chaque bibliothèque exclut les dossiers des autres (en pratique : ses sous-dossiers qui en possèdent une).
+for info in libraries_info:
+    others = [other["dir"] for other in libraries_info if other is not info]
+    info["sources"] = collect_sources(info["dir"], excluded=others)
 
 
-# HUD Spatial interactif
-
-# Système de dessin
-
-# Système de Glisser/Déposer
-
-# Système de placement d'objets
-
-# Outils de Terrain
-
-# Boîte d'ensemble d'interface graphiqe (Menu Radial, interface de paramètre procédural)
-
-
-# Ensemble d'effets Spéciaux programmés
-
-# Ensemble de système pour personnage et algo (Personnage, HFSM/BehaviourTree, Système de capacité, Système de Dialogue)
-
-# Modules de système de projectile
-
-# Ensemble de système de déplacement (au sol, aérodynamisme, aquatique, mural, recul, zone de force, Animations Procédurales)
-
-# Chronomètre
-
-# Métronome
-
-# Horloge
-
-#endregion
-
+# --- 2. Environnement godot-cpp ---
 env = SConscript("godot-cpp/SConstruct")
 
 env.Append(CPPPATH=["src/"])
 
-# 2. Gestion de la documentation (intégration des XML existants dans la lib)
-if os.path.isdir("doc_classes"):
-    xml_files = Glob("doc_classes/*.xml")
 
-    if xml_files and env["target"] in ["editor", "template_debug"]:
-        try:
-            if not os.path.isdir("src/gen"):
-                os.makedirs("src/gen")
+# --- 3. Génération des fichiers .gdextension ---
+# Même liste de plateformes que les .gdextension écrits à la main auparavant. {name} -> nom de la bibliothèque.
+LIBRARY_PATTERNS = [
+    ("macos.debug", "lib{name}.macos.template_debug.dylib"),
+    ("macos.release", "lib{name}.macos.template_release.dylib"),
+    ("windows.debug.x86_32", "{name}.windows.template_debug.x86_32.dll"),
+    ("windows.release.x86_32", "{name}.windows.template_release.x86_32.dll"),
+    ("windows.debug.x86_64", "{name}.windows.template_debug.x86_64.dll"),
+    ("windows.release.x86_64", "{name}.windows.template_release.x86_64.dll"),
+    ("linux.debug.x86_64", "lib{name}.linux.template_debug.x86_64.so"),
+    ("linux.release.x86_64", "lib{name}.linux.template_release.x86_64.so"),
+    ("linux.debug.arm64", "lib{name}.linux.template_debug.arm64.so"),
+    ("linux.release.arm64", "lib{name}.linux.template_release.arm64.so"),
+    ("linux.debug.rv64", "lib{name}.linux.template_debug.rv64.so"),
+    ("linux.release.rv64", "lib{name}.linux.template_release.rv64.so"),
+    ("android.debug.arm64", "lib{name}.android.debug.arm64.so"),
+    ("android.release.arm64", "lib{name}.android.release.arm64.so"),
+    ("android.debug.arm32", "lib{name}.android.debug.arm32.so"),
+    ("android.release.arm32", "lib{name}.android.release.arm32.so"),
+]
 
-            print(f"Inclusion de {len(xml_files)} fichiers de documentation...")
-            doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=xml_files)
-            sources.append(doc_data)
-        except AttributeError:
-            print("Attention: GodotCPPDocData non disponible (version godot-cpp < 4.3).")
-        except Exception as e:
-            print(f"Erreur lors de la génération de la doc: {e}")
-    else:
-        if not xml_files:
-            print("Avertissement: Aucun fichier .xml trouvé dans doc_classes/. La documentation ne sera pas incluse.")
-        else:
-            print(f"Avertissement: Cible '{env['target']}' non compatible pour la doc (requis: editor/template_debug).")
-else:
-    os.makedirs("doc_classes")
-    print("doc_classes/ créé (vide). Lance 'scons gen_doc' après compilation pour générer les XML via --doc-tool.")
 
-# 3. Compilation de la bibliothèque principale
-library = env.SharedLibrary(
-    "{}/gameplaytoolkit{}{}".format(BIN_DIR, env["suffix"], env["SHLIBSUFFIX"]),
-    source=sources
-)
-env.Alias("principal", library)
+ICON_ENTRY = re.compile(r'^\s*(\w+)\s*=\s*"(.*)"\s*$')
 
-for s in sources:
-    print(s, " : ajouté à la compilation.")
 
-# 4. Compilation des modules (une bibliothèque par entrée de MODULES)
-module_libraries = []
-for module_id, module_dir in MODULES.items():
-    if not os.path.isdir(module_dir):
-        raise Exception("Module '{}' : dossier introuvable -> {}".format(module_id, module_dir))
-    module_sources = collect_sources(module_dir)
-    module_library = env.SharedLibrary(
-        "{}/{}/gameplaytoolkit_{}{}{}".format(BIN_DIR, module_id, module_id, env["suffix"], env["SHLIBSUFFIX"]),
-        source=module_sources
-    )
-    env.Alias(module_id, module_library)  # permet : scons <id>
-    module_libraries.append(module_library)
-    print("Module {} : {} fichier(s) .cpp".format(module_id, len(module_sources)))
+def existing_icons(path):
+    """Icônes déjà présentes dans la section [icons] d'un .gdextension (ajoutées à la main ou par @icon)."""
+    icons = {}
+    if not os.path.isfile(path):
+        return icons
+    in_icons = False
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped.startswith("["):
+                in_icons = stripped == "[icons]"
+            elif in_icons:
+                match = ICON_ENTRY.match(stripped)
+                if match:
+                    icons[match.group(1)] = match.group(2)
+    return icons
 
-Default(library, module_libraries)
 
-# --- Cible séparée : génération des XML de doc via --doc-tool ---
-# NE s'exécute PAS par défaut. Lancer explicitement : scons gen_doc
-#
-# PLACEHOLDER : remplace GODOT_EXECUTABLE par le chemin réel de ton binaire Godot 4.7
-# (ex: "/home/{user_name}/godot/Godot_v4.7-stable_linux.x86_64")
-GODOT_EXECUTABLE = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
-
-# PLACEHOLDER : chemin vers un projet Godot minimal qui charge ce .gdextension
-# (souvent le dossier de projet (ex: "GameplayToolkit") lui-même, s'il contient un project.godot)
-GODOT_PROJECT_PATH = "GameplayToolkit"
-
-def generate_doc_action(target, source, env):
-    import subprocess
-    cmd = [
-        GODOT_EXECUTABLE,
-        "--headless",
-        "--path", GODOT_PROJECT_PATH,
-        "--doctool", "../doc_classes",  # chemin relatif au project.godot, à ajuster
-        "--no-docbase",  # exclut la doc du moteur, ne garde que tes classes custom
+def gdextension_text(info, path):
+    res_dir = "res://" + os.path.relpath(info["bin_dir"], PROJECT_DIR).replace("\\", "/")
+    # Les icônes déjà écrites dans le fichier sont conservées ; un « // @icon » du registre ajoute
+    # ou remplace l'icône de sa classe. Pour retirer une icône : la supprimer du fichier ET du registre.
+    icons = existing_icons(path)
+    icons.update({class_name: icon for class_name, icon in info["classes"].items() if icon})
+    lines = [
+        "; Généré par le Sconstruct depuis {} : seule la section [icons] peut être modifiée à la main.".format(info["register"].replace("\\", "/")),
+        "",
+        "[configuration]",
+        "",
+        'entry_symbol = "{}"'.format(info["entry_symbol"]),
+        'compatibility_minimum = "4.7"',
+        "reloadable = true",
+        "",
+        "[icons]",
+        "",
     ]
-    print("Exécution :", " ".join(cmd))
-    result = subprocess.run(cmd)
-    if result.returncode != 0:
-        print(f"Erreur : --doc-tool a retourné le code {result.returncode}")
-    return result.returncode
+    lines += ['{} = "{}"'.format(class_name, icon) for class_name, icon in icons.items()]
+    lines += ["", "[libraries]", ""]
+    lines += ['{} = "{}/{}"'.format(tag, res_dir, pattern.format(name=info["name"])) for tag, pattern in LIBRARY_PATTERNS]
+    return "\n".join(lines) + "\n"
+
+
+def write_if_changed(path, text):
+    """N'écrit que si le contenu change : évite un rechargement inutile par Godot et un faux diff git."""
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            if f.read() == text:
+                return
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+    print("Écrit :", path)
+
+
+# Écriture immédiate (pendant la lecture du script, pas pendant la compilation) : tous les .gdextension
+# sont donc à jour à chaque `scons`, même quand on ne compile qu'un module.
+for info in libraries_info:
+    write_if_changed(info["gdextension"], gdextension_text(info, info["gdextension"]))
+
+
+# --- 4. Gestion de la documentation (intégration des XML existants dans chaque lib) ---
+if not os.path.isdir(DOC_DIR):
+    os.makedirs(DOC_DIR)
+    print("{}/ créé (vide) : les XML seront générés après la compilation.".format(DOC_DIR))
+xml_files = Glob(DOC_DIR + "/*.xml")
+with_docs = env["target"] in ["editor", "template_debug"] and hasattr(env, "GodotCPPDocData")
+if not xml_files:
+    print("Avertissement: Aucun fichier .xml trouvé dans doc_classes/. La documentation ne sera pas incluse.")
+elif not with_docs:
+    print("Avertissement: documentation non incluse (cible '{}' ou godot-cpp < 4.3).".format(env["target"]))
+
+
+# --- 5. Compilation des bibliothèques ---
+libraries = []
+for info in libraries_info:
+    sources = list(info["sources"])
+    # Seulement la doc des classes de cette bibliothèque (<NomDeClasse>.xml), sinon l'aide de l'éditeur
+    # listerait des classes absentes quand le module n'est pas installé.
+    library_xml = [x for x in xml_files if os.path.splitext(os.path.basename(str(x)))[0] in info["classes"]]
+    if with_docs and library_xml:
+        sources.append(env.GodotCPPDocData("src/gen/doc_data_{}.gen.cpp".format(info["name"]), source=library_xml))
+
+    library = env.SharedLibrary(
+        "{}/{}{}{}".format(info["bin_dir"], info["name"], env["suffix"], env["SHLIBSUFFIX"]),
+        source=sources
+    )
+    env.Alias(info["alias"], library)  # permet : scons <id>  /  scons principal
+    libraries.append(library)
+    print("{} ({}) : {} fichier(s) .cpp, {} classe(s), {} doc(s)".format(
+        info["alias"], info["register"], len(info["sources"]), len(info["classes"]), len(library_xml) if with_docs else 0))
+
+Default(libraries)
+
+
+# --- 6. Génération des XML de documentation via Godot --doctool ---
+# Godot charge les bibliothèques compilées du projet et écrit un XML par classe d'extension.
+# Les XML ne peuvent être produits qu'APRÈS la compilation : ceux créés pendant un build seront
+# intégrés à la bibliothèque au `scons` suivant.
+#
+# ATTENTION : --doctool SUPPRIME les XML des classes qu'il ne trouve pas chargées (bibliothèque
+# absente, pas encore compilée, ou dont la compilation a échoué) et reformate les autres.
+# Il travaille donc dans un dossier temporaire, et seuls les fichiers voulus sont recopiés
+# dans doc_classes/ : aucun XML n'y est jamais supprimé.
+
+
+def missing_doc_classes(classes):
+    """Parmi `classes`, celles qui n'ont pas encore de doc_classes/<Classe>.xml."""
+    return [c for c in classes if not os.path.isfile(os.path.join(DOC_DIR, c + ".xml"))]
+
+
+def declare_extensions_to_project():
+    """Ajoute les .gdextension générés à .godot/extension_list.cfg.
+
+    --doctool ne charge que les extensions listées dans ce fichier, que seul l'éditeur met à jour
+    en parcourant le projet : sans cela, un module tout juste créé ne serait pas documenté.
+    Les lignes existantes sont conservées.
+    """
+    path = os.path.join(PROJECT_DIR, ".godot", "extension_list.cfg")
+    listed = []
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            listed = [line.strip() for line in f if line.strip()]
+    wanted = ["res://" + os.path.relpath(info["gdextension"], PROJECT_DIR).replace("\\", "/") for info in libraries_info]
+    missing = [w for w in wanted if w not in listed]
+    if missing:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(listed + missing) + "\n")
+
+
+def run_doctool(only_new):
+    """Lance Godot --doctool --gdextension-docs dans un dossier temporaire et recopie les XML.
+
+    only_new=True  : ne recopie que les XML qui n'existent pas encore dans doc_classes/.
+    only_new=False : recopie tous les XML produits (mise à jour complète, descriptions conservées).
+    Renvoie (code de retour de Godot, liste des classes recopiées).
+    """
+    import shutil
+    import tempfile
+
+    if not os.path.isfile(GODOT_EXECUTABLE):
+        print("Avertissement : Godot introuvable ({}).".format(GODOT_EXECUTABLE))
+        print("  Indique son chemin avec  scons godot=<chemin>  ou la variable d'environnement GODOT.")
+        return 1, []
+    declare_extensions_to_project()
+
+    work_dir = tempfile.mkdtemp(prefix="doctool_")
+    try:
+        # Copie des XML existants : Godot les fusionne, ce qui conserve les descriptions rédigées.
+        shutil.copytree(DOC_DIR, os.path.join(work_dir, "doc_classes"))
+        cmd = [
+            GODOT_EXECUTABLE,
+            "--headless",
+            "--path", PROJECT_DIR,
+            "--doctool", work_dir,  # Godot écrit dans <work_dir>/doc_classes/
+            "--gdextension-docs",   # uniquement les classes des GDExtensions, pas l'API du moteur
+        ]
+        print("Exécution :", " ".join('"{}"'.format(c) if " " in c else c for c in cmd))
+        returncode = subprocess.run(cmd).returncode
+        if returncode != 0:
+            print("Erreur : --doctool a retourné le code {}".format(returncode))
+
+        copied = []
+        produced_dir = os.path.join(work_dir, "doc_classes")
+        for file in sorted(os.listdir(produced_dir)):
+            destination = os.path.join(DOC_DIR, file)
+            if not file.endswith(".xml") or (only_new and os.path.isfile(destination)):
+                continue
+            with open(os.path.join(produced_dir, file), "rb") as f:
+                content = f.read()
+            if os.path.isfile(destination):
+                with open(destination, "rb") as f:
+                    if f.read() == content:
+                        continue
+            with open(destination, "wb") as f:
+                f.write(content)
+            copied.append(os.path.splitext(file)[0])
+        return returncode, copied
+    finally:
+        shutil.rmtree(work_dir, ignore_errors=True)
+
+
+def generate_missing_docs_action(target, source, env):
+    documented = [c for info in libraries_info for c in info["documented"]]
+    missing = missing_doc_classes(documented)
+    if not missing:
+        return 0
+    print("Documentation absente pour : {}".format(", ".join(missing)))
+    run_doctool(only_new=True)
+    created = [c for c in missing if c not in missing_doc_classes(missing)]
+    still_missing = missing_doc_classes(missing)
+    if created:
+        print("XML créés : {}. Relance `scons` pour les intégrer à la bibliothèque.".format(", ".join(created)))
+    if still_missing:
+        print("Avertissement : toujours sans XML : {} (classe non chargée par Godot ?)".format(", ".join(still_missing)))
+    return 0  # une doc manquante ne fait pas échouer le build
+
+
+# Effet de bord commun aux deux commandes ci-dessous : SCons n'exécute jamais en parallèle (-j)
+# deux commandes qui partagent un SideEffect.
+DOCTOOL_LOCK = os.path.join(DOC_DIR, ".doctool")
+
+# 6a. Automatique : après la compilation, s'il manque des XML.
+# Seulement en template_debug : c'est la build que l'éditeur (donc --doctool) charge d'après les
+# .gdextension ; en editor ou template_release, Godot chargerait d'anciennes bibliothèques debug.
+# Dépend de TOUTES les bibliothèques : Godot les charge toutes, et ne doit pas en ouvrir une pendant
+# que l'éditeur de liens l'écrit. Si l'une ne compile pas, la doc n'est donc pas générée.
+missing_at_start = missing_doc_classes([c for info in libraries_info for c in info["documented"]])
+if AUTO_DOC and env["target"] == "template_debug" and missing_at_start:
+    auto_doc = env.Command(
+        # Les XML manquants sont les cibles : SCons lance l'action tant qu'ils n'existent pas.
+        target=[os.path.join(DOC_DIR, c + ".xml") for c in missing_at_start],
+        source=libraries,
+        action=generate_missing_docs_action,
+    )
+    env.SideEffect(DOCTOOL_LOCK, auto_doc)
+    env.NoClean(auto_doc)  # `scons -c` ne doit jamais supprimer la doc
+    Default(auto_doc)
+    print("Documentation à générer après la compilation : {}".format(", ".join(missing_at_start)))
+
+
+# 6b. Manuelle : met à jour TOUS les XML (nouvelles méthodes, propriétés...).  ->  scons gen_doc
+def generate_doc_action(target, source, env):
+    returncode, copied = run_doctool(only_new=False)
+    print("XML mis à jour : {}".format(", ".join(copied) if copied else "aucun"))
+    return returncode
 
 gen_doc = env.Command(
-    target="gen_doc_dummy",  # cible factice, --doctool écrit directement dans doc_classes/
-    source=[library] + module_libraries,
+    target="gen_doc_dummy",  # cible factice : jamais créée, donc l'action est relancée à chaque fois
+    source=libraries,
     action=generate_doc_action
 )
+env.SideEffect(DOCTOOL_LOCK, gen_doc)
 
 env.Alias("gen_doc", gen_doc)

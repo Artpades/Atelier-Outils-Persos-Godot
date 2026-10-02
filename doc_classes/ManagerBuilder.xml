@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ManagerBuilder" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="init_instance" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="class_name" type="StringName" />
+			<param index="1" name="caller" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="make_getter" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="class_name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="unregister_instance" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="class_name" type="StringName" />
+			<param index="1" name="caller" type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>
