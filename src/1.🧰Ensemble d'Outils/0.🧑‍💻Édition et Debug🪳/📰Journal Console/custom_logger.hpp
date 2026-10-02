@@ -13,7 +13,7 @@ class L : public Object
     static void _bind_methods();
 
   public:
-    static void log(const String &message, const Variant &object_caller = nullptr, const String &icon_path = "");
+    static void log_it(const String &message, const Variant &object_caller = nullptr, const String &icon_path = "");
 };
 } // namespace godot
 

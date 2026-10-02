@@ -8,7 +8,7 @@ func _ready() -> void:
 	pass # Replace with function body.
 
 func log_it():
-	L.log("Message ajouté", "TestLogger", "res://🖼️Editor Icons/🧰🧑‍💻/TaskManagement icon.png")
+	L.log_it("Message ajouté", "TestLogger", "res://🖼️Editor Icons/🧰🧑‍💻/TaskManagement icon.png")
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass

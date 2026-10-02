@@ -25,7 +25,7 @@ static void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(WindowEditor);
     GDREGISTER_CLASS(Gizmos2D);
     GDREGISTER_CLASS(Gizmos3D);
-    godot::print_line_rich("[color=dark_green]🛠️Module de Journalisation chargé avec succès ![/color]");
+    godot::print_line_rich("[color=dark_green]🛠️Module d'outils d'edition et de debug chargé avec succès ![/color]");
 }
 
 static void uninitialize(ModuleInitializationLevel p_level)
@@ -34,7 +34,7 @@ static void uninitialize(ModuleInitializationLevel p_level)
     {
         return;
     }
-    godot::print_line_rich("[color=dark_red]🛠️Module de Journalisation déchargé avec succès ![/color]");
+    godot::print_line_rich("[color=dark_red]🛠️Module d'outils d'edition et de debug déchargé avec succès ![/color]");
 }
 
 extern "C"

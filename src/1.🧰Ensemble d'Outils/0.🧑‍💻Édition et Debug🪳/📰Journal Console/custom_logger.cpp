@@ -7,7 +7,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
-void L::log(const String &message, const Variant &object_caller, const String &icon_path)
+inline void L::log_it(const String &message, const Variant &object_caller, const String &icon_path)
 {
     Time *time = Time::get_singleton();
     // Récupération de la date et de l'heure actuelles grâce à Time
@@ -61,4 +61,4 @@ void L::log(const String &message, const Variant &object_caller, const String &i
 
     print_line_rich(log_message);
 }
-void L::_bind_methods() { ClassDB::bind_static_method("L", D_METHOD("log", "message", "object_caller", "icon_path"), &L::log); }
+void L::_bind_methods() { ClassDB::bind_static_method("L", D_METHOD("log_it", "message", "object_caller", "icon_path"), &L::log_it); }
