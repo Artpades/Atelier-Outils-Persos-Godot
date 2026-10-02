@@ -40,16 +40,22 @@ void L::log(const String &message, const Variant &object_caller, const String &i
     {
         class_name = object_caller;
     }
-    // Afficher la date, le nom de classe, l'icône et le message dans le journal de débogage avec BBCode
-    // Ajout de la date dans le log message mais avec 0 chiffres après les virgules
-    String log_message = "[color=gray]" + String::num(date["hour"]) + ":" + String::num(date["minute"]) + ":" + String::num(date["second"]) + "[/color] ";
+    // Récupérer les valeurs de la date
+    int hour = date["hour"];
+    int minute = date["minute"];
+    int second = date["second"];
+
+    // Formoter avec 2 chiffres (remplissage automatique par un zéro)
+    String time_str = vformat("%02d:%02d:%02d", hour, minute, second);
+
+    String log_message = "[color=gray][" + time_str + "][/color] ";
     if (!class_name.is_empty())
     {
-        log_message += "[color=blue]" + class_name + "[/color] ";
+        log_message += "[b]" + class_name + "[/b]";
     }
     if (!icon_path.is_empty())
     {
-        log_message += "[img]" + icon_path + "[/img] ";
+        log_message += "[img]" + icon_path + "[/img] : ";
     }
     log_message += message;
 

@@ -217,6 +217,42 @@ env = SConscript("godot-cpp/SConstruct")
 env.Append(CPPPATH=["src/"])
 
 
+# --- 2b. compile_commands.json (pour clangd / l'autocomplétion de l'éditeur) ---
+# Le fichier n'est pas versionné (.gitignore) : il dépend de l'OS (compilateur, options, chemins absolus).
+# Il est généré automatiquement, en plus de la compilation, quand il est absent du projet, ou quand il a été
+# produit sur un autre OS / à un autre emplacement (son champ "directory" ne correspond pas à ce projet).
+#   scons compiledb   -> le régénère à la demande (après l'ajout ou la suppression de fichiers .cpp)
+# La génération elle-même est fournie par godot-cpp (alias "compiledb", outil SCons compilation_db) ;
+# il contient toutes les sources connues de SCons, y compris celles de godot-cpp.
+COMPILE_DB = os.path.join(Dir("#").abspath, env["compiledb_file"])
+
+
+def compile_db_needs_generation(path):
+    """Vrai si compile_commands.json est absent, illisible ou généré pour un autre OS / dossier."""
+    import json
+
+    if not os.path.isfile(path):
+        return True
+    try:
+        with open(path, encoding="utf-8") as f:
+            entries = json.load(f)
+    except (OSError, ValueError):
+        return True
+    if not entries:
+        return True
+    # Sous Windows "D:\...", sous Linux "/home/..." : un fichier venu de l'autre OS ne correspond jamais.
+    return os.path.normcase(os.path.normpath(entries[0].get("directory", ""))) != os.path.normcase(Dir("#").abspath)
+
+
+if not env.get("compiledb", False) and compile_db_needs_generation(COMPILE_DB):
+    print("{} absent ou généré pour un autre OS : il sera (re)généré pour {}.".format(
+        os.path.basename(COMPILE_DB), env["platform"]))
+    if COMMAND_LINE_TARGETS:
+        BUILD_TARGETS.append("compiledb")  # ex. `scons journal` : on l'ajoute aux cibles demandées
+    else:
+        Default("compiledb")
+
+
 # --- 3. Génération des fichiers .gdextension ---
 # Même liste de plateformes que les .gdextension écrits à la main auparavant. {name} -> nom de la bibliothèque.
 LIBRARY_PATTERNS = [
