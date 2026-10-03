@@ -10,11 +10,27 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/print_string.hpp>
 
+#include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
+
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/editor_test.hpp"
+
 using namespace godot;
+
+// Enregistrement des outils
 
 // "static" : ces fonctions restent privées à cette bibliothèque (pas de conflit avec register.cpp).
 static void initialize(ModuleInitializationLevel p_level)
 {
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
+    {
+        GDREGISTER_CLASS(EditorTest);
+
+        // Création de l'instance pour exécuter la méthode
+        EditorTest *test_instance = memnew(EditorTest);
+        godot::Callable(test_instance, "creer_bouton_editeur").call_deferred();
+    }
+
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     {
         return; // appelé aussi au niveau EDITOR : la classe ne doit être enregistrée qu'une fois
@@ -25,6 +41,7 @@ static void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(WindowEditor);
     GDREGISTER_CLASS(Gizmos2D);
     GDREGISTER_CLASS(Gizmos3D);
+
     godot::print_line_rich("[color=dark_green]🛠️Module d'outils d'edition et de debug chargé avec succès ![/color]");
 }
 

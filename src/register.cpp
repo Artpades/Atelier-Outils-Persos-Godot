@@ -1,7 +1,5 @@
 #include "register.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/editor_test.hpp"
-
 #include "gdextension_interface.h"
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/defs.hpp"
@@ -25,14 +23,7 @@ using namespace godot;
 
 void initialize(ModuleInitializationLevel p_level)
 {
-    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
-    {
-        GDREGISTER_CLASS(EditorTest);
 
-        // Création de l'instance pour exécuter la méthode
-        EditorTest *test_instance = memnew(EditorTest);
-        godot::Callable(test_instance, "creer_bouton_editeur").call_deferred();
-    }
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     {
         return;
