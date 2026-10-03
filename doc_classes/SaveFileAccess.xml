@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveFileAccess" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="delete" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="system_id" type="String" />
+			<param index="1" name="config" type="SaveConfig" />
+			<param index="2" name="encrypted" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="read" qualifiers="static">
+			<return type="SaveData" />
+			<param index="0" name="system_id" type="String" />
+			<param index="1" name="config" type="SaveConfig" />
+			<param index="2" name="encrypted" type="bool" default="false" />
+			<param index="3" name="encryption_key" type="String" default="&quot;&quot;" />
+			<description>
+			</description>
+		</method>
+		<method name="write" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveDataBinder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="delete">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="load">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="pull_to_save_data">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="push_from_save_data">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="save">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="node_target" type="Node" setter="set_node_target" getter="get_node_target">
+		</member>
+		<member name="resource_target" type="Resource" setter="set_resource_target" getter="get_resource_target">
+		</member>
+		<member name="save_data" type="SaveData" setter="set_save_data" getter="get_save_data">
+		</member>
+		<member name="tracked_properties" type="PackedStringArray" setter="set_tracked_properties" getter="get_tracked_properties" default="PackedStringArray()">
+		</member>
+	</members>
+</class>

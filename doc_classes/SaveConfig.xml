@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SaveConfig" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_encrypted_extension" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_extension" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_save_directory" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_encrypted_extension">
+			<return type="void" />
+			<param index="0" name="extension" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_extension">
+			<return type="void" />
+			<param index="0" name="extension" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_save_directory">
+			<return type="void" />
+			<param index="0" name="directory" type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>
