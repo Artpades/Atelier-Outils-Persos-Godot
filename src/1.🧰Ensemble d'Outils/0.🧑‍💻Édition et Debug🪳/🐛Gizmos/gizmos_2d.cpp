@@ -1,4 +1,5 @@
 #include "gizmos_2d.hpp"
+#include "gizmos.hpp"
 
 #include <godot_cpp/core/class_db.hpp>
 

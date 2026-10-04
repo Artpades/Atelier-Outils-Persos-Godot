@@ -1,8 +1,6 @@
 #ifndef GIZMOS_3D_HPP
 #define GIZMOS_3D_HPP
 
-#include "gizmos.hpp"
-
 #include <godot_cpp/classes/ref_counted.hpp>
 
 namespace godot
