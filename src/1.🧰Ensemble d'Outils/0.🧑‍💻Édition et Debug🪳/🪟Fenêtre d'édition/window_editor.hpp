@@ -4,8 +4,14 @@
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/window.hpp>
+
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal Console/custom_logger.hpp"
 namespace godot
 {
+namespace
+{
+const char32_t *WINDOW_EDITOR = U"res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png";
+}
 class WindowEditor : public RefCounted
 {
     GDCLASS(WindowEditor, RefCounted)
@@ -17,7 +23,8 @@ class WindowEditor : public RefCounted
         if (window)
         {
             window->set_visible(false);
-            print_line_rich("[color=orange]Fenêtre d'édition fermée[/color]");
+
+            log_it("[color=red]Fenêtre d'édition fermée[/color]", "WindowEditor", WINDOW_EDITOR);
         }
     }
 
@@ -35,7 +42,7 @@ class WindowEditor : public RefCounted
         if (window)
         {
             window->set_visible(false);
-            print_line_rich("[color=orange]Fenêtre d'édition fermée[/color]");
+            log_it("[color=red]Fenêtre d'édition fermée[/color]", "WindowEditor", WINDOW_EDITOR);
         }
     }
     void add_control_to_window(Control *control);

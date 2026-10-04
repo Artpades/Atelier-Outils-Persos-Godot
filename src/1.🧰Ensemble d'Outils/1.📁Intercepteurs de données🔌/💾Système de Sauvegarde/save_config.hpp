@@ -22,7 +22,7 @@ class SaveConfig : public Resource
     static void _bind_methods();
 
   public:
-    // Getter / Setter
+#pragma region Getter / Setter
     void set_save_directory(const String &p_directory) { save_directory = p_directory; }
     String get_save_directory() const { return save_directory; }
 
@@ -31,6 +31,7 @@ class SaveConfig : public Resource
 
     void set_encrypted_extension(const String &p_extension) { encrypted_extension = p_extension; }
     String get_encrypted_extension() const { return encrypted_extension; }
+#pragma endregion
 };
 } // namespace godot
 

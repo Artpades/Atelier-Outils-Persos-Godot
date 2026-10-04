@@ -13,7 +13,7 @@
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/editor_test.hpp"
+#include "editor_test.hpp"
 
 using namespace godot;
 

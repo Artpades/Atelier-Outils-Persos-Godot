@@ -25,7 +25,7 @@ class EditorTest : public EditorPlugin
             return;
 
         Button *btn = memnew(Button);
-        btn->set_text("Action C++");
+        btn->set_text("Ouvrir fenêtre de personnalisation");
 
         Node *target_container = base_control->find_child("MainScreen", true, false);
         if (!target_container)
