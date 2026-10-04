@@ -25,8 +25,8 @@ namespace godot
 // Singleton (via ManagerBuilder) responsable de la détection de survol ET du déplacement
 // au curseur (drag) des poignées (handles) 2D et 3D, à chaque frame.
 //
-// Le Viewport est fourni EXPLICITEMENT à l'enregistrement (comme Gizmos2D::create_2D_gizmos
-// / Gizmos3D::create_3D_gizmo), et non deviné en interne : un handle peut donc vivre dans
+// Le Viewport est fourni EXPLICITEMENT à l'enregistrement (comme Gizmos::create_2D_gizmo
+// / Gizmos::create_3D_gizmo), et non deviné en interne : un handle peut donc vivre dans
 // le viewport du jeu, un des viewports de l'éditeur principal, OU une fenêtre d'éditeur
 // personnalisée (WindowEditor) — HandlersManager ne fait aucune hypothèse sur son origine.
 //

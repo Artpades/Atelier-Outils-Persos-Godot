@@ -1,8 +1,7 @@
 #include "handlers_manager.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder.hpp"
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_2d.hpp"
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos_3d.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/gizmos.hpp"
 
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -59,14 +58,14 @@ void HandlersManager::_exit_tree()
     {
         if (entry.value.gizmo_rid.is_valid())
         {
-            Gizmos2D::free_gizmos(entry.value.gizmo_rid);
+            Gizmos::free_2D_gizmo(entry.value.gizmo_rid);
         }
     }
     for (KeyValue<StringName, Handle3D> &entry : _handles_3d)
     {
         if (entry.value.gizmo_rid.is_valid())
         {
-            Gizmos3D::free_3D_gizmo(entry.value.gizmo_rid);
+            Gizmos::free_3D_gizmo(entry.value.gizmo_rid);
         }
     }
     _handles_2d.clear();
@@ -119,7 +118,7 @@ void HandlersManager::_redraw_handle_2d(Handle2D &p_handle)
     {
         return;
     }
-    Gizmos2D::draw_2D_rectangle(p_handle.gizmo_rid, p_handle.rect, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, true);
+    Gizmos::draw_2D_rectangle(p_handle.gizmo_rid, p_handle.rect, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, true);
 }
 
 void HandlersManager::_redraw_handle_3d(Handle3D &p_handle)
@@ -128,7 +127,7 @@ void HandlersManager::_redraw_handle_3d(Handle3D &p_handle)
     {
         return;
     }
-    Gizmos3D::draw_3D_cube(p_handle.gizmo_rid, p_handle.aabb.get_center(), p_handle.aabb.size, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, false);
+    Gizmos::draw_3D_cube(p_handle.gizmo_rid, p_handle.aabb.get_center(), p_handle.aabb.size, p_handle.hovered ? p_handle.hover_color : p_handle.default_color, false);
 }
 
 void HandlersManager::_process_2d_handles()
@@ -151,7 +150,7 @@ void HandlersManager::_process_2d_handles()
         // valide mais pas encore inséré dans l'arbre (ex: Window pas encore ajoutée).
         if (!handle.gizmo_rid.is_valid())
         {
-            handle.gizmo_rid = Gizmos2D::create_2D_gizmos(vp);
+            handle.gizmo_rid = Gizmos::create_2D_gizmo(vp);
             _redraw_handle_2d(handle);
         }
 
@@ -207,7 +206,7 @@ void HandlersManager::_process_3d_handles()
 
         if (!handle.gizmo_rid.is_valid())
         {
-            handle.gizmo_rid = Gizmos3D::create_3D_gizmo(vp);
+            handle.gizmo_rid = Gizmos::create_3D_gizmo(vp);
             _redraw_handle_3d(handle);
         }
 
@@ -277,7 +276,7 @@ void HandlersManager::unregister_handle_2d(const StringName &p_id)
     {
         if (it->value.gizmo_rid.is_valid())
         {
-            Gizmos2D::free_gizmos(it->value.gizmo_rid);
+            Gizmos::free_2D_gizmo(it->value.gizmo_rid);
         }
         _handles_2d.erase(p_id);
     }
@@ -339,7 +338,7 @@ void HandlersManager::unregister_handle_3d(const StringName &p_id)
     {
         if (it->value.gizmo_rid.is_valid())
         {
-            Gizmos3D::free_3D_gizmo(it->value.gizmo_rid);
+            Gizmos::free_3D_gizmo(it->value.gizmo_rid);
         }
         _handles_3d.erase(p_id);
     }
