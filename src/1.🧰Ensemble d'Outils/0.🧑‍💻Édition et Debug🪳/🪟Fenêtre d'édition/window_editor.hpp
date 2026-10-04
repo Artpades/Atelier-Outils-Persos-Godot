@@ -2,6 +2,7 @@
 #define WINDOW_EDITOR_HPP
 
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/window.hpp>
 
@@ -17,7 +18,7 @@ class WindowEditor : public RefCounted
     GDCLASS(WindowEditor, RefCounted)
   private:
     // Déclaration des propriétés et variables privées ici
-    Window *window;
+    Window *window = nullptr;
     void on_window_close()
     {
         if (window)
