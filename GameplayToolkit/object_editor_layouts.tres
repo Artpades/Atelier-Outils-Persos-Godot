@@ -295,11 +295,14 @@ data_names = PackedStringArray("chemin", "variant")
 [sub_resource type="GroupRegistry" id="GroupRegistry_wwy8k"]
 groups = Array[GroupEntry]([SubResource("GroupEntry_ddglg"), SubResource("GroupEntry_21ovo"), SubResource("GroupEntry_ksf35")])
 
+[sub_resource type="InterfaceStyle" id="InterfaceStyle_50lpq"]
+
 [sub_resource type="TypeLayout" id="TypeLayout_cog2b"]
 type_name = "ObjectEditorDemo"
 data_registry = SubResource("DataRegistry_ypur3")
 group_registry = SubResource("GroupRegistry_wwy8k")
 gizmo_registry = SubResource("GizmoRegistry_ljv4k")
+style = SubResource("InterfaceStyle_50lpq")
 
 [resource]
 layouts = Array[TypeLayout]([SubResource("TypeLayout_ohekp"), SubResource("TypeLayout_cog2b")])
