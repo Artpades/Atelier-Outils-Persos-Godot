@@ -171,8 +171,35 @@ is_vertical = true
 data_name = &"variant"
 kind = 14
 
+[sub_resource type="DataEntry" id="DataEntry_051ea"]
+data_name = &"increment_counter"
+member = 1
+kind = 7
+
+[sub_resource type="DataEntry" id="DataEntry_4xdti"]
+data_name = &"combine"
+member = 1
+kind = 7
+
+[sub_resource type="DataEntry" id="DataEntry_h5ax7"]
+data_name = &"emettre"
+member = 1
+kind = 7
+
+[sub_resource type="DataEntry" id="DataEntry_llu2e"]
+data_name = &"recevoir"
+member = 1
+kind = 7
+
+[sub_resource type="DataEntry" id="DataEntry_rj6tg"]
+data_name = &"valeur_changee"
+member = 2
+kind = 8
+
 [sub_resource type="DataRegistry" id="DataRegistry_051ea"]
-entries = Array[DataEntry]([SubResource("DataEntry_hnf2b"), SubResource("DataEntry_4lq53"), SubResource("DataEntry_b7j5c"), SubResource("DataEntry_tuga7"), SubResource("DataEntry_e8ule"), SubResource("DataEntry_t2vec"), SubResource("DataEntry_c1bij"), SubResource("DataEntry_h4ub2"), SubResource("DataEntry_27qqp"), SubResource("DataEntry_qqxhf"), SubResource("DataEntry_uhrsm"), SubResource("DataEntry_00ctc"), SubResource("DataEntry_4js2v"), SubResource("DataEntry_50qr1"), SubResource("DataEntry_2nfpw"), SubResource("DataEntry_slg6j"), SubResource("DataEntry_2b0xr"), SubResource("DataEntry_076co"), SubResource("DataEntry_r5dby"), SubResource("DataEntry_esbdu"), SubResource("DataEntry_2nbui"), SubResource("DataEntry_q2g8a"), SubResource("DataEntry_u8qo2"), SubResource("DataEntry_duj1l"), SubResource("DataEntry_8uftm"), SubResource("DataEntry_bso80"), SubResource("DataEntry_841e5"), SubResource("DataEntry_qcvwd"), SubResource("DataEntry_osu74"), SubResource("DataEntry_rk4dc"), SubResource("DataEntry_wc7fx"), SubResource("DataEntry_8i8cr"), SubResource("DataEntry_64pjm"), SubResource("DataEntry_rqr43"), SubResource("DataEntry_w084j"), SubResource("DataEntry_qrf8d"), SubResource("DataEntry_kpecp"), SubResource("DataEntry_hffhm"), SubResource("DataEntry_lroij"), SubResource("DataEntry_rg8r8")])
+entries = Array[DataEntry]([SubResource("DataEntry_hnf2b"), SubResource("DataEntry_4lq53"), SubResource("DataEntry_b7j5c"), SubResource("DataEntry_tuga7"), SubResource("DataEntry_e8ule"), SubResource("DataEntry_t2vec"), SubResource("DataEntry_c1bij"), SubResource("DataEntry_h4ub2"), SubResource("DataEntry_27qqp"), SubResource("DataEntry_qqxhf"), SubResource("DataEntry_uhrsm"), SubResource("DataEntry_00ctc"), SubResource("DataEntry_4js2v"), SubResource("DataEntry_50qr1"), SubResource("DataEntry_2nfpw"), SubResource("DataEntry_slg6j"), SubResource("DataEntry_2b0xr"), SubResource("DataEntry_076co"), SubResource("DataEntry_r5dby"), SubResource("DataEntry_esbdu"), SubResource("DataEntry_2nbui"), SubResource("DataEntry_q2g8a"), SubResource("DataEntry_u8qo2"), SubResource("DataEntry_duj1l"), SubResource("DataEntry_8uftm"), SubResource("DataEntry_bso80"), SubResource("DataEntry_841e5"), SubResource("DataEntry_qcvwd"), SubResource("DataEntry_osu74"), SubResource("DataEntry_rk4dc"), SubResource("DataEntry_wc7fx"), SubResource("DataEntry_8i8cr"), SubResource("DataEntry_64pjm"), SubResource("DataEntry_rqr43"), SubResource("DataEntry_w084j"), SubResource("DataEntry_qrf8d"), SubResource("DataEntry_kpecp"), SubResource("DataEntry_hffhm"), SubResource("DataEntry_lroij"), SubResource("DataEntry_rg8r8"), SubResource("DataEntry_051ea"), SubResource("DataEntry_4xdti"), SubResource("DataEntry_h5ax7"), SubResource("DataEntry_llu2e"), SubResource("DataEntry_rj6tg")])
+scan_methods = true
+scan_signals = true
 
 [sub_resource type="GroupEntry" id="GroupEntry_4xdti"]
 group_name = "Collections"
@@ -193,9 +220,11 @@ groups = Array[GroupEntry]([SubResource("GroupEntry_4xdti"), SubResource("GroupE
 script = ExtResource("1_demo")
 
 [node name="Cible" type="ObjectEditorDemo" parent="." unique_id=185470144]
+entier = 4
 valeur_bornee = 10.0
-compteur = 8
+compteur = 9
 transform2d = Transform2D(1, 0.001, 0, 1, 0, 0)
+dernier_appel = "0|<null>|0.0"
 ressource = SubResource("ObjectEditorDemoResource_hnf2b")
 
 [node name="ProceduralEditor" type="ProceduralEditor" parent="." unique_id=1950474821]
