@@ -1,6 +1,10 @@
 #include "data_matrix_editor.hpp"
 #include "editor_undo_backend.hpp"
+#include "icon_picker.hpp"
 #include "interface_style_editor.hpp"
+#include "preview_source_editor.hpp"
+
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/type_utils.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/widget_table.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧱Construction/procedural_editor.hpp"
@@ -15,6 +19,11 @@
 #include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/scroll_container.hpp>
+#include <godot_cpp/classes/text_edit.hpp>
+#include <godot_cpp/classes/rich_text_label.hpp>
+#include <godot_cpp/classes/menu_button.hpp>
+#include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
@@ -24,7 +33,7 @@ using namespace godot;
 
 namespace
 {
-const char32_t *const HEADERS[] = {U"U", U"Donnée", U"Type", U"Widget", U"Classe Custom", U"Vertical", U"AffichéU", U"Réglages", U"U"};
+const char32_t *const HEADERS[] = {U"", U"Donnée", U"Type", U"Widget", U"Classe Custom", U"Vertical", U"Affiché", U"Infobulle (BBCode)", U"Réglages", U""};
 const int COLUMNS = sizeof(HEADERS) / sizeof(HEADERS[0]);
 
 Label *make_label(const String &p_text, float p_alpha = 1.0f)
@@ -52,11 +61,23 @@ DataMatrixEditor::DataMatrixEditor()
 
     // Les entrées manquantes ne sont jamais supprimées automatiquement (leur configuration est conservée) :
     // ce bouton les retire toutes, par exemple après avoir réduit le périmètre du scan.
+    HBoxContainer *top = memnew(HBoxContainer);
+    add_child(top);
+    // Aperçu personnalisé : fournis (image, modèle 3D, scène 2D) et class_name héritant de PreviewWidget.
+    MenuButton *add_preview = memnew(MenuButton);
+    add_preview->set_text(U"+ Aperçu");
+    add_preview->set_flat(false);
+    add_preview->set_tooltip_text(U"Ajouter un aperçu personnalisé (pas une propriété) : il se place, se groupe et se style comme une donnée");
+    add_preview->connect("about_to_popup", callable_mp(this, &DataMatrixEditor::_fill_preview_menu).bind((uint64_t)add_preview->get_instance_id()));
+    add_preview->get_popup()->connect("id_pressed", callable_mp(this, &DataMatrixEditor::_on_add_preview));
+    top->add_child(add_preview);
+    Control *spacer = memnew(Control);
+    spacer->set_h_size_flags(SIZE_EXPAND_FILL);
+    top->add_child(spacer);
     Button *remove_missing = memnew(Button);
     remove_missing->set_text(U"Retirer les entrées manquantes (⚠)");
-    remove_missing->set_h_size_flags(SIZE_SHRINK_END);
     remove_missing->connect("pressed", callable_mp(this, &DataMatrixEditor::_on_remove_all_missing));
-    add_child(remove_missing);
+    top->add_child(remove_missing);
 
     ScrollContainer *scroll = memnew(ScrollContainer);
     scroll->set_v_size_flags(SIZE_EXPAND_FILL);
@@ -91,6 +112,144 @@ void DataMatrixEditor::set_registry(const Ref<DataRegistry> &p_registry)
 }
 
 Ref<DataRegistry> DataMatrixEditor::get_registry() const { return registry; }
+
+void DataMatrixEditor::_set_tooltip(int64_t p_index, const String &p_tooltip)
+{
+    Ref<DataEntry> entry = _entry(p_index);
+    if (entry.is_null() || entry->get_tooltip() == p_tooltip)
+    {
+        return;
+    }
+    entry->set_tooltip(p_tooltip);
+    _emit_changed();
+}
+
+void DataMatrixEditor::_on_tooltip_submitted(const String &p_text, int64_t p_index)
+{
+    _set_tooltip(p_index, p_text.replace(U"⏎", "\n"));
+    callable_mp(this, &DataMatrixEditor::_refresh_settings_panel).call_deferred();
+}
+
+void DataMatrixEditor::_on_tooltip_focus_exited(int64_t p_index, uint64_t p_line_id)
+{
+    if (LineEdit *line = Object::cast_to<LineEdit>(ObjectDB::get_instance(p_line_id)))
+    {
+        _on_tooltip_submitted(line->get_text(), p_index);
+    }
+}
+
+void DataMatrixEditor::_on_tooltip_text_changed(uint64_t p_edit_id, uint64_t p_preview_id)
+{
+    TextEdit *edit = Object::cast_to<TextEdit>(ObjectDB::get_instance(p_edit_id));
+    RichTextLabel *preview = Object::cast_to<RichTextLabel>(ObjectDB::get_instance(p_preview_id));
+    if (edit && preview)
+    {
+        preview->set_text(WidgetBehavior::format_text(edit->get_text(), ObjectDB::get_instance(context_id)));
+    }
+}
+
+void DataMatrixEditor::_on_tooltip_edit_committed(int64_t p_index, uint64_t p_edit_id)
+{
+    if (TextEdit *edit = Object::cast_to<TextEdit>(ObjectDB::get_instance(p_edit_id)))
+    {
+        _set_tooltip(p_index, edit->get_text());
+        callable_mp(this, &DataMatrixEditor::refresh).call_deferred(); // colonne du tableau à jour
+    }
+}
+
+PackedStringArray DataMatrixEditor::preview_types()
+{
+    PackedStringArray types;
+    types.push_back("TexturePreview");
+    types.push_back("Model3DPreview");
+    types.push_back("Scene2DPreview");
+    TypedArray<Dictionary> globals = ProjectSettings::get_singleton()->get_global_class_list();
+    for (int i = 0; i < globals.size(); i++)
+    {
+        String name = Dictionary(globals[i]).get("class", "");
+        if (TypeUtils::class_inherits(name, "PreviewWidget"))
+        {
+            types.push_back(name);
+        }
+    }
+    return types;
+}
+
+void DataMatrixEditor::_fill_preview_menu(uint64_t p_menu_id)
+{
+    MenuButton *menu = Object::cast_to<MenuButton>(ObjectDB::get_instance(p_menu_id));
+    if (!menu)
+    {
+        return;
+    }
+    PopupMenu *popup = menu->get_popup();
+    popup->clear();
+    PackedStringArray types = preview_types();
+    const char32_t *const builtin_names[] = {U"Image (TexturePreview)", U"Modèle 3D (Model3DPreview)", U"Scène 2D (Scene2DPreview)"};
+    for (int i = 0; i < types.size(); i++)
+    {
+        popup->add_item(i < 3 ? String(builtin_names[i]) : types[i] + U" (script)", i);
+    }
+}
+
+void DataMatrixEditor::_on_add_preview(int64_t p_id)
+{
+    PackedStringArray types = preview_types();
+    if (registry.is_null() || p_id < 0 || p_id >= types.size())
+    {
+        return;
+    }
+    // Nom unique : « apercu », « apercu_2 »...
+    String name = U"apercu";
+    for (int n = 2; registry->find(name, DataEntry::MEMBER_PREVIEW).is_valid() || registry->find(name).is_valid(); n++)
+    {
+        name = U"apercu_" + String::num_int64(n);
+    }
+    Ref<DataEntry> entry;
+    entry.instantiate();
+    entry->set_data_name(name);
+    entry->set_member(DataEntry::MEMBER_PREVIEW);
+    entry->set_kind(DataEntry::KIND_PREVIEW);
+    Ref<PreviewSettings> preview_settings;
+    preview_settings.instantiate();
+    preview_settings->set_preview_class(types[p_id]);
+    preview_settings->get_source(); // objet affiché
+    entry->set_settings(preview_settings);
+    TypedArray<DataEntry> entries = registry->get_entries();
+    entries.push_back(entry);
+    registry->set_entries(entries);
+    selected = entries.size() - 1;
+    callable_mp(this, &DataMatrixEditor::refresh).call_deferred();
+    _emit_changed();
+}
+
+void DataMatrixEditor::_on_preview_renamed(const String &p_text, int64_t p_index)
+{
+    Ref<DataEntry> entry = _entry(p_index);
+    String name = p_text.strip_edges();
+    if (entry.is_null() || name.is_empty() || name == String(entry->get_data_name()) || registry->find(name, DataEntry::MEMBER_PREVIEW).is_valid() ||
+        registry->find(name).is_valid())
+    {
+        return;
+    }
+    // Les comportements qui visaient l'aperçu suivent le nouveau nom.
+    String previous = entry->get_data_name();
+    TypedArray<WidgetBehavior> behaviors = registry->get_behaviors();
+    for (int i = 0; i < behaviors.size(); i++)
+    {
+        Ref<WidgetBehavior> behavior = behaviors[i];
+        PackedStringArray targets = behavior.is_valid() ? behavior->get_targets() : PackedStringArray();
+        int position = targets.find(previous);
+        if (position >= 0)
+        {
+            targets.set(position, name);
+            behavior->set_targets(targets);
+        }
+    }
+    entry->set_data_name(name);
+    callable_mp(this, &DataMatrixEditor::refresh).call_deferred();
+    _emit_changed();
+}
 
 void DataMatrixEditor::set_context_object(Object *p_object) { context_id = p_object ? ObjectID(p_object->get_instance_id()) : ObjectID(); }
 void DataMatrixEditor::set_context_type(const String &p_type) { context_type = p_type; }
@@ -206,12 +365,21 @@ void DataMatrixEditor::refresh()
         enabled->connect("toggled", callable_mp(this, &DataMatrixEditor::_on_enabled_toggled).bind(i));
         grid->add_child(enabled);
 
-        // 7. Réglages (résumé ; édition sous le tableau)
+        // 7. Infobulle (une ligne ; « ⏎ » = saut de ligne ; édition complète sous le tableau)
+        LineEdit *tooltip = memnew(LineEdit);
+        tooltip->set_text(entry->get_tooltip().replace("\n", U"⏎"));
+        tooltip->set_placeholder(U"[b]Texte[/b] {propriété} {fonction()}");
+        tooltip->set_custom_minimum_size(Vector2(220, 0));
+        tooltip->connect("text_submitted", callable_mp(this, &DataMatrixEditor::_on_tooltip_submitted).bind(i));
+        tooltip->connect("focus_exited", callable_mp(this, &DataMatrixEditor::_on_tooltip_focus_exited).bind(i, (uint64_t)tooltip->get_instance_id()));
+        grid->add_child(tooltip);
+
+        // 8. Réglages (résumé ; édition sous le tableau)
         Ref<WidgetSettings> settings = entry->get_settings();
         grid->add_child(make_label(settings.is_valid() ? settings->get_class() : String(U"—"), 0.7f));
 
-        // 8. Suppression (entrées manquantes uniquement : les autres sont recréées à la synchronisation)
-        if (entry->get_is_missing())
+        // 9. Suppression (entrées manquantes et aperçus : les autres sont recréées à la synchronisation)
+        if (entry->get_is_missing() || entry->get_member() == DataEntry::MEMBER_PREVIEW)
         {
             Button *remove = memnew(Button);
             remove->set_text(U"✕");
@@ -261,6 +429,21 @@ void DataMatrixEditor::_refresh_settings_panel()
     StringName expected = WidgetTable::settings_class_for(resolved);
     settings_panel->add_child(make_label(U"Réglages de « " + String(entry->get_data_name()) + U" » — widget " + WidgetTable::choice_name(resolved) + U", réglages lus : " + String(expected)));
 
+    // Infobulle : BBCode, modèles {propriété} / {fonction()} résolus sur la cible au survol ; aperçu en direct.
+    settings_panel->add_child(make_label(U"Infobulle (BBCode ; {propriété}, {chemin:x}, {fonction()} ; {{ pour une accolade)", 0.8f));
+    TextEdit *tooltip_edit = memnew(TextEdit);
+    tooltip_edit->set_text(entry->get_tooltip());
+    tooltip_edit->set_custom_minimum_size(Vector2(0, 70));
+    tooltip_edit->set_line_wrapping_mode(TextEdit::LINE_WRAPPING_BOUNDARY);
+    settings_panel->add_child(tooltip_edit);
+    RichTextLabel *tooltip_preview = memnew(RichTextLabel);
+    tooltip_preview->set_use_bbcode(true);
+    tooltip_preview->set_fit_content(true);
+    tooltip_preview->set_text(WidgetBehavior::format_text(entry->get_tooltip(), ObjectDB::get_instance(context_id)));
+    settings_panel->add_child(tooltip_preview);
+    tooltip_edit->connect("text_changed", callable_mp(this, &DataMatrixEditor::_on_tooltip_text_changed).bind((uint64_t)tooltip_edit->get_instance_id(), (uint64_t)tooltip_preview->get_instance_id()));
+    tooltip_edit->connect("focus_exited", callable_mp(this, &DataMatrixEditor::_on_tooltip_edit_committed).bind(selected, (uint64_t)tooltip_edit->get_instance_id()));
+
     Ref<WidgetSettings> settings = entry->get_settings();
     EditorResourcePicker *picker = memnew(EditorResourcePicker);
     picker->set_base_type(expected);
@@ -303,7 +486,8 @@ void DataMatrixEditor::_refresh_settings_panel()
     {
         Ref<DataEntry> settings_entry = settings_entries[i];
         // Le style a son propre éditeur (ci-dessous).
-        settings_entry->set_enabled(own.has(String(settings_entry->get_data_name())) && settings_entry->get_data_name() != StringName("style"));
+        settings_entry->set_enabled(own.has(String(settings_entry->get_data_name())) && settings_entry->get_data_name() != StringName("style") &&
+                                    settings_entry->get_data_name() != StringName("icon") && settings_entry->get_data_name() != StringName("source"));
     }
 
     ProceduralEditor *settings_editor = memnew(ProceduralEditor);
@@ -314,6 +498,29 @@ void DataMatrixEditor::_refresh_settings_panel()
     settings_editor->set_registry(settings_registry);
     settings_editor->set_target(settings.ptr());
     settings_panel->add_child(settings_editor);
+
+    // Aperçu : nom (cible des groupes et comportements) et source.
+    if (Ref<PreviewSettings> preview_settings = settings; preview_settings.is_valid() && entry->get_member() == DataEntry::MEMBER_PREVIEW)
+    {
+        HBoxContainer *name_row = memnew(HBoxContainer);
+        name_row->add_child(make_label(U"Nom de l'aperçu"));
+        LineEdit *name_edit = memnew(LineEdit);
+        name_edit->set_text(String(entry->get_data_name()));
+        name_edit->set_h_size_flags(SIZE_EXPAND_FILL);
+        name_edit->connect("text_submitted", callable_mp(this, &DataMatrixEditor::_on_preview_renamed).bind(selected));
+        name_row->add_child(name_edit);
+        settings_panel->add_child(name_row);
+        PreviewSourceEditor *source_editor = memnew(PreviewSourceEditor);
+        source_editor->setup(preview_settings, ObjectDB::get_instance(context_id));
+        source_editor->connect("source_changed", callable_mp(this, &DataMatrixEditor::_emit_changed));
+        settings_panel->add_child(source_editor);
+    }
+
+    // Icône du widget (ressource du projet ou icône de l'éditeur copiée).
+    IconPickerRow *icon_row = memnew(IconPickerRow);
+    icon_row->setup(settings.ptr(), "icon", U"Icône");
+    icon_row->connect("icon_changed", callable_mp(this, &DataMatrixEditor::_emit_changed));
+    settings_panel->add_child(icon_row);
 
     // Style du widget (thème, fond, shader et uniforms liés), sur la partie choisie par style_target.
     InterfaceStyleEditor *style_editor = memnew(InterfaceStyleEditor);

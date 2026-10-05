@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PreviewStage2D" inherits="SubViewportContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="frame">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_camera" qualifiers="const">
+			<return type="Camera2D" />
+			<description>
+			</description>
+		</method>
+		<method name="get_content" qualifiers="const">
+			<return type="Node2D" />
+			<description>
+			</description>
+		</method>
+		<method name="get_viewport_node" qualifiers="const">
+			<return type="SubViewport" />
+			<description>
+			</description>
+		</method>
+		<method name="set_content">
+			<return type="void" />
+			<param index="0" name="node" type="Node2D" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="size_flags_horizontal" type="int" setter="set_h_size_flags" getter="get_h_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+		<member name="stretch" type="bool" setter="set_stretch" getter="is_stretch_enabled" overrides="SubViewportContainer" default="true" />
+	</members>
+</class>

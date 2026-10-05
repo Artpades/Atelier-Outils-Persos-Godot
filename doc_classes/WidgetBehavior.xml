@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WidgetBehavior" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_apply" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="target" type="Control" />
+			<param index="1" name="active" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="evaluate">
+			<return type="bool" />
+			<param index="0" name="context" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="format_text" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="template" type="String" />
+			<param index="1" name="context" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="get_display_name" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+		</member>
+		<member name="invert" type="bool" setter="set_invert" getter="get_invert" default="false">
+		</member>
+		<member name="targets" type="PackedStringArray" setter="set_targets" getter="get_targets" default="PackedStringArray()">
+		</member>
+	</members>
+</class>

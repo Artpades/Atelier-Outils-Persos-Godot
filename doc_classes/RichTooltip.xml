@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="RichTooltip" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="build_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="widget" type="PropertyWidget" />
+			<description>
+			</description>
+		</method>
+		<method name="get_delay" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_shown_text" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="hide_tooltip">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="is_shown" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_delay">
+			<return type="void" />
+			<param index="0" name="delay" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="show_for">
+			<return type="void" />
+			<param index="0" name="widget" type="PropertyWidget" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

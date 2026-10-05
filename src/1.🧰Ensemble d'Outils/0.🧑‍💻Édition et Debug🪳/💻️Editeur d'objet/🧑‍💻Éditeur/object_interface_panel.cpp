@@ -71,6 +71,10 @@ ObjectInterfacePanel::ObjectInterfacePanel()
     style_editor->connect("style_changed", callable_mp(this, &ObjectInterfacePanel::_on_registry_changed));
     tabs->add_child(style_editor);
     tabs->set_tab_title(4, "Style");
+    behavior_list = memnew(BehaviorListEditor);
+    behavior_list->connect("registry_changed", callable_mp(this, &ObjectInterfacePanel::_on_registry_changed));
+    tabs->add_child(behavior_list);
+    tabs->set_tab_title(5, "Comportements");
 
     gizmo_host = memnew(GizmoHost);
     add_child(gizmo_host, false, INTERNAL_MODE_BACK);
@@ -131,6 +135,8 @@ void ObjectInterfacePanel::_bind_layout()
     group_matrix->set_context_object(target);
     style_editor->set_context_object(target);
     style_editor->set_owner(layout.ptr(), "style");
+    behavior_list->set_context_object(target);
+    behavior_list->set_registries(data, groups);
     data_matrix->set_registry(data);
     group_matrix->set_registries(groups, data);
     gizmo_list->set_context_object(target);

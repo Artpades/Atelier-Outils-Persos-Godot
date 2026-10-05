@@ -24,6 +24,17 @@ void WidgetSettings::_bind_methods()
     BIND_ENUM_CONSTANT(STYLE_WIDGET);
     BIND_ENUM_CONSTANT(STYLE_VALUE);
     BIND_ENUM_CONSTANT(STYLE_LABEL);
+    ClassDB::bind_method(D_METHOD("set_icon", "icon"), &WidgetSettings::set_icon);
+    ClassDB::bind_method(D_METHOD("get_icon"), &WidgetSettings::get_icon);
+    ClassDB::bind_method(D_METHOD("set_icon_position", "position"), &WidgetSettings::set_icon_position);
+    ClassDB::bind_method(D_METHOD("get_icon_position"), &WidgetSettings::get_icon_position);
+    ClassDB::bind_method(D_METHOD("set_icon_size", "size"), &WidgetSettings::set_icon_size);
+    ClassDB::bind_method(D_METHOD("get_icon_size"), &WidgetSettings::get_icon_size);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "icon", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_icon", "get_icon");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "icon_position", PROPERTY_HINT_ENUM, U"Avant le libellé:0,Avant la valeur:1"), "set_icon_position", "get_icon_position");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "icon_size", PROPERTY_HINT_RANGE, "8,128,1,suffix:px"), "set_icon_size", "get_icon_size");
+    BIND_ENUM_CONSTANT(ICON_BEFORE_LABEL);
+    BIND_ENUM_CONSTANT(ICON_BEFORE_VALUE);
 }
 
 void WidgetSettings::set_show_label(bool p_show)
@@ -50,6 +61,24 @@ void WidgetSettings::set_style_target(StyleTarget p_target)
     emit_changed();
 }
 WidgetSettings::StyleTarget WidgetSettings::get_style_target() const { return style_target; }
+void WidgetSettings::set_icon(const Ref<Texture2D> &p_icon)
+{
+    icon = p_icon;
+    emit_changed();
+}
+Ref<Texture2D> WidgetSettings::get_icon() const { return icon; }
+void WidgetSettings::set_icon_position(IconPosition p_position)
+{
+    icon_position = p_position;
+    emit_changed();
+}
+WidgetSettings::IconPosition WidgetSettings::get_icon_position() const { return icon_position; }
+void WidgetSettings::set_icon_size(int p_size)
+{
+    icon_size = CLAMP(p_size, 8, 128);
+    emit_changed();
+}
+int WidgetSettings::get_icon_size() const { return icon_size; }
 
 // --- RangeWidgetSettings ---
 
@@ -216,3 +245,93 @@ void ContainerWidgetSettings::set_max_displayed(int p_max)
     emit_changed();
 }
 int ContainerWidgetSettings::get_max_displayed() const { return max_displayed; }
+
+// --- TableWidgetSettings ---
+
+void TableWidgetSettings::_bind_methods()
+{
+    ClassDB::bind_method(D_METHOD("set_transpose", "transpose"), &TableWidgetSettings::set_transpose);
+    ClassDB::bind_method(D_METHOD("get_transpose"), &TableWidgetSettings::get_transpose);
+    ClassDB::bind_method(D_METHOD("set_table_columns", "columns"), &TableWidgetSettings::set_table_columns);
+    ClassDB::bind_method(D_METHOD("get_table_columns"), &TableWidgetSettings::get_table_columns);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "transpose"), "set_transpose", "get_transpose");
+    ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "table_columns"), "set_table_columns", "get_table_columns");
+}
+
+void TableWidgetSettings::set_transpose(bool p_transpose)
+{
+    transpose = p_transpose;
+    emit_changed();
+}
+bool TableWidgetSettings::get_transpose() const { return transpose; }
+void TableWidgetSettings::set_table_columns(const PackedStringArray &p_columns)
+{
+    table_columns = p_columns;
+    emit_changed();
+}
+PackedStringArray TableWidgetSettings::get_table_columns() const { return table_columns; }
+
+// --- PreviewSettings ---
+
+void PreviewSettings::_bind_methods()
+{
+    ClassDB::bind_method(D_METHOD("set_preview_class", "class_name"), &PreviewSettings::set_preview_class);
+    ClassDB::bind_method(D_METHOD("get_preview_class"), &PreviewSettings::get_preview_class);
+    ClassDB::bind_method(D_METHOD("set_source", "source"), &PreviewSettings::set_source);
+    ClassDB::bind_method(D_METHOD("get_source"), &PreviewSettings::get_source);
+    ClassDB::bind_method(D_METHOD("get_stored_source"), &PreviewSettings::get_stored_source);
+    ClassDB::bind_method(D_METHOD("set_height", "height"), &PreviewSettings::set_height);
+    ClassDB::bind_method(D_METHOD("get_height"), &PreviewSettings::get_height);
+    ClassDB::bind_method(D_METHOD("set_update_mode", "mode"), &PreviewSettings::set_update_mode);
+    ClassDB::bind_method(D_METHOD("get_update_mode"), &PreviewSettings::get_update_mode);
+    ClassDB::bind_method(D_METHOD("set_duplicate_scripts", "duplicate"), &PreviewSettings::set_duplicate_scripts);
+    ClassDB::bind_method(D_METHOD("get_duplicate_scripts"), &PreviewSettings::get_duplicate_scripts);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "preview_class"), "set_preview_class", "get_preview_class");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "source", PROPERTY_HINT_RESOURCE_TYPE, "ArgumentBinding"), "set_source", "get_stored_source");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "height", PROPERTY_HINT_RANGE, "32,1024,1,suffix:px"), "set_height", "get_height");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "update_mode", PROPERTY_HINT_ENUM, U"Au changement de la source:0,Chaque image:1"), "set_update_mode", "get_update_mode");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "duplicate_scripts"), "set_duplicate_scripts", "get_duplicate_scripts");
+    BIND_ENUM_CONSTANT(UPDATE_ON_CHANGE);
+    BIND_ENUM_CONSTANT(UPDATE_EVERY_FRAME);
+}
+
+void PreviewSettings::set_preview_class(const StringName &p_class)
+{
+    preview_class = p_class;
+    emit_changed();
+}
+StringName PreviewSettings::get_preview_class() const { return preview_class; }
+void PreviewSettings::set_source(const Ref<ArgumentBinding> &p_source)
+{
+    source = p_source;
+    emit_changed();
+}
+Ref<ArgumentBinding> PreviewSettings::get_source()
+{
+    if (source.is_null())
+    {
+        source.instantiate();
+        source->set_source(ArgumentBinding::SOURCE_PROPERTY); // sans chemin : l'objet affiché
+    }
+    return source;
+}
+// Getter de la propriété : sans création (Godot l'appelle aussi pour calculer la valeur par défaut).
+Ref<ArgumentBinding> PreviewSettings::get_stored_source() const { return source; }
+void PreviewSettings::set_height(int p_height)
+{
+    height = CLAMP(p_height, 32, 1024);
+    emit_changed();
+}
+int PreviewSettings::get_height() const { return height; }
+void PreviewSettings::set_update_mode(UpdateMode p_mode)
+{
+    update_mode = p_mode;
+    emit_changed();
+}
+PreviewSettings::UpdateMode PreviewSettings::get_update_mode() const { return update_mode; }
+void PreviewSettings::set_duplicate_scripts(bool p_duplicate)
+{
+    duplicate_scripts = p_duplicate;
+    emit_changed();
+}
+bool PreviewSettings::get_duplicate_scripts() const { return duplicate_scripts; }

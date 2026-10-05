@@ -1,4 +1,5 @@
 #include "widget_factory.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧩Widgets/preview_widget.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal Console/custom_logger.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/widget_table.hpp"
@@ -104,6 +105,24 @@ PropertyWidget *WidgetFactory::create(const Ref<DataEntry> &p_entry) const
         log_it(U"[color=orange]« " + String(p_entry->get_data_name()) + U" » : widget Custom sans custom_widget_class, affichage en lecture seule[/color]", "WidgetFactory");
     }
 
+    // Aperçu : classe des réglages (native ou class_name héritant de PreviewWidget).
+    if (choice == DataEntry::WIDGET_PREVIEW)
+    {
+        Ref<PreviewSettings> preview_settings = p_entry->get_settings();
+        StringName preview_class = preview_settings.is_valid() ? preview_settings->get_preview_class() : StringName("TexturePreview");
+        PropertyWidget *widget = instantiate_widget_class(preview_class);
+        if (Object::cast_to<PreviewWidget>(widget))
+        {
+            return widget;
+        }
+        if (widget)
+        {
+            memdelete(widget);
+        }
+        log_it(U"[color=orange]Aperçu « " + String(p_entry->get_data_name()) + U" » : « " + String(preview_class) + U" » n'hérite pas de PreviewWidget[/color]", "WidgetFactory");
+        return memnew(PropertyWidget);
+    }
+
     switch (choice)
     {
     case DataEntry::WIDGET_CHECK_BOX:
@@ -137,6 +156,8 @@ PropertyWidget *WidgetFactory::create(const Ref<DataEntry> &p_entry) const
             return memnew(ObjectWidget);
         }
         return memnew(CollectionWidget);
+    case DataEntry::WIDGET_TABLE:
+        return memnew(TableWidget);
     case DataEntry::WIDGET_PATH_BUTTON:
         return memnew(PathWidget);
     case DataEntry::WIDGET_VARIANT_SELECTOR:

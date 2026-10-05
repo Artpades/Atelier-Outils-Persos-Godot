@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PreviewWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_build_preview" qualifiers="virtual">
+			<return type="Control" />
+			<param index="0" name="source" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="_get_source_hint" qualifiers="virtual const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_source_changed" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="source" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="_update_preview" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="source" type="Variant" />
+			<param index="1" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_preview_content" qualifiers="const">
+			<return type="Control" />
+			<description>
+			</description>
+		</method>
+		<method name="get_preview_settings" qualifiers="const">
+			<return type="PreviewSettings" />
+			<description>
+			</description>
+		</method>
+		<method name="get_source" qualifiers="const">
+			<return type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="get_source_hint" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="instantiate_source_node" qualifiers="const">
+			<return type="Node" />
+			<param index="0" name="source" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="make_info" qualifiers="static">
+			<return type="Dictionary" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="make_stage_2d" qualifiers="const">
+			<return type="PreviewStage2D" />
+			<description>
+			</description>
+		</method>
+		<method name="make_stage_3d" qualifiers="const">
+			<return type="PreviewStage3D" />
+			<description>
+			</description>
+		</method>
+		<method name="rebuild_preview">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

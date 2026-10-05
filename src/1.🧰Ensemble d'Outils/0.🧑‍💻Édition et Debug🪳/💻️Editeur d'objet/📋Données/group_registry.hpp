@@ -23,6 +23,7 @@ class GroupEntry : public Resource
         CONTAINER_HBOX = 1,
         CONTAINER_GRID = 2,  // colonnes : columns
         CONTAINER_PANEL = 3, // cadre autour d'une boîte orientée par is_vertical
+        CONTAINER_TABS = 4,  // onglets : un onglet par groupe de child_groups (ne contient que des groupes)
     };
 
   private:
@@ -32,6 +33,8 @@ class GroupEntry : public Resource
     bool is_vertical = true;
     PackedStringArray data_names;
     Ref<InterfaceStyle> style; // style du groupe (titre + conteneur)
+    Ref<Texture2D> icon;       // icône devant le titre (et de l'onglet)
+    PackedStringArray child_groups; // CONTAINER_TABS : groupes affichés en onglets, dans cet ordre
 
   protected:
     static void _bind_methods();
@@ -50,6 +53,10 @@ class GroupEntry : public Resource
     PackedStringArray get_data_names() const;
     void set_style(const Ref<InterfaceStyle> &p_style);
     Ref<InterfaceStyle> get_style() const;
+    void set_icon(const Ref<Texture2D> &p_icon);
+    Ref<Texture2D> get_icon() const;
+    void set_child_groups(const PackedStringArray &p_groups);
+    PackedStringArray get_child_groups() const;
 };
 
 // Registre des groupes (port de GroupRegistry C#). Une donnée appartient à un seul groupe.
@@ -72,6 +79,8 @@ class GroupRegistry : public Resource
     Ref<GroupEntry> ensure(const String &p_group_name);
     // Premier groupe contenant p_data_name (Ref nulle si aucun).
     Ref<GroupEntry> group_of(const String &p_data_name) const;
+    // Groupe en onglets qui contient le groupe p_group_name (nul s'il n'est dans aucun).
+    Ref<GroupEntry> tabs_of(const String &p_group_name) const;
     void remove_data_name(const String &p_data_name);
     // Retire p_data_name de tous les groupes puis l'ajoute à p_group.
     void assign(const String &p_data_name, const Ref<GroupEntry> &p_group);

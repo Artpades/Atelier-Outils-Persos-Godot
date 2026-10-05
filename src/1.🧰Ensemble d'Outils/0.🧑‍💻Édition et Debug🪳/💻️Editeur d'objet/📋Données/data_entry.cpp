@@ -30,11 +30,14 @@ void DataEntry::_bind_methods()
     ClassDB::bind_method(D_METHOD("resolved_choice"), &DataEntry::resolved_choice);
 
     ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "data_name"), "set_data_name", "get_data_name");
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "member", PROPERTY_HINT_ENUM, U"Propriété:0,Méthode:1,Signal:2"), "set_member", "get_member");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "member", PROPERTY_HINT_ENUM, U"Propriété:0,Méthode:1,Signal:2,Aperçu:3"), "set_member", "get_member");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "kind", PROPERTY_HINT_ENUM, WidgetTable::kind_hint_string()), "set_kind", "get_kind");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "widget_choice", PROPERTY_HINT_ENUM, WidgetTable::choice_hint_string()), "set_widget_choice", "get_widget_choice");
     ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "custom_widget_class"), "set_custom_widget_class", "get_custom_widget_class");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "settings", PROPERTY_HINT_RESOURCE_TYPE, "WidgetSettings"), "set_settings", "get_settings");
+    ClassDB::bind_method(D_METHOD("set_tooltip", "tooltip"), &DataEntry::set_tooltip);
+    ClassDB::bind_method(D_METHOD("get_tooltip"), &DataEntry::get_tooltip);
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "tooltip", PROPERTY_HINT_MULTILINE_TEXT), "set_tooltip", "get_tooltip");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "is_vertical"), "set_is_vertical", "get_is_vertical");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), "set_enabled", "get_enabled");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "is_missing"), "set_is_missing", "get_is_missing");
@@ -44,6 +47,7 @@ void DataEntry::_bind_methods()
     BIND_ENUM_CONSTANT(MEMBER_PROPERTY);
     BIND_ENUM_CONSTANT(MEMBER_METHOD);
     BIND_ENUM_CONSTANT(MEMBER_SIGNAL);
+    BIND_ENUM_CONSTANT(MEMBER_PREVIEW);
 
     BIND_ENUM_CONSTANT(KIND_UNSUPPORTED);
     BIND_ENUM_CONSTANT(KIND_BOOL);
@@ -62,6 +66,7 @@ void DataEntry::_bind_methods()
     BIND_ENUM_CONSTANT(KIND_VARIANT);
     BIND_ENUM_CONSTANT(KIND_RID);
     BIND_ENUM_CONSTANT(KIND_PACKED_ARRAY);
+    BIND_ENUM_CONSTANT(KIND_PREVIEW);
 
     BIND_ENUM_CONSTANT(WIDGET_AUTO);
     BIND_ENUM_CONSTANT(WIDGET_CHECK_BOX);
@@ -88,6 +93,8 @@ void DataEntry::_bind_methods()
     BIND_ENUM_CONSTANT(WIDGET_CHECK_BOX_LIST);
     BIND_ENUM_CONSTANT(WIDGET_FLOW_CONTAINER);
     BIND_ENUM_CONSTANT(WIDGET_TAB_CONTAINER);
+    BIND_ENUM_CONSTANT(WIDGET_TABLE);
+    BIND_ENUM_CONSTANT(WIDGET_PREVIEW);
 
     BIND_ENUM_CONSTANT(SCOPE_AUTO);
     BIND_ENUM_CONSTANT(SCOPE_SCRIPT_ONLY);
@@ -122,6 +129,12 @@ void DataEntry::set_custom_widget_class(const StringName &p_class) { custom_widg
 StringName DataEntry::get_custom_widget_class() const { return custom_widget_class; }
 void DataEntry::set_settings(const Ref<WidgetSettings> &p_settings) { settings = p_settings; }
 Ref<WidgetSettings> DataEntry::get_settings() const { return settings; }
+void DataEntry::set_tooltip(const String &p_tooltip)
+{
+    tooltip = p_tooltip;
+    emit_changed();
+}
+String DataEntry::get_tooltip() const { return tooltip; }
 void DataEntry::set_is_vertical(bool p_vertical) { is_vertical = p_vertical; }
 bool DataEntry::get_is_vertical() const { return is_vertical; }
 void DataEntry::set_enabled(bool p_enabled) { enabled = p_enabled; }

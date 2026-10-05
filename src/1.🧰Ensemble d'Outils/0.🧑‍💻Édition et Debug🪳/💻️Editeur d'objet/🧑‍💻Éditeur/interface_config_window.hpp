@@ -3,6 +3,7 @@
 
 #include "data_matrix_editor.hpp"
 #include "group_matrix_editor.hpp"
+#include "behavior_list_editor.hpp"
 #include "interface_style_editor.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧱Construction/procedural_editor.hpp"
@@ -44,6 +45,7 @@ class InterfaceConfigWindow : public Window
     DataMatrixEditor *matrix = nullptr;
     GroupMatrixEditor *group_matrix = nullptr;
     InterfaceStyleEditor *style_editor = nullptr;
+    BehaviorListEditor *behavior_list = nullptr;
     ProceduralEditor *preview = nullptr;
 
     void _build_ui();

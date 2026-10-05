@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IconIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
+		<member name="icon" type="Texture2D" setter="set_icon" getter="get_icon">
+		</member>
+	</members>
+</class>

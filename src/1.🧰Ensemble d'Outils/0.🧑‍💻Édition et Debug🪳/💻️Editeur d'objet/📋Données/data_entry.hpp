@@ -25,6 +25,7 @@ class DataEntry : public Resource
         MEMBER_PROPERTY = 0,
         MEMBER_METHOD = 1,
         MEMBER_SIGNAL = 2,
+        MEMBER_PREVIEW = 3, // aperçu personnalisé (PreviewWidget) : pas un membre de l'objet, jamais « manquant »
     };
 
     // Famille de donnée, déduite de l'introspection (WidgetTable::kind_of). Détermine les widgets autorisés.
@@ -47,6 +48,7 @@ class DataEntry : public Resource
         KIND_VARIANT = 14,
         KIND_RID = 15,
         KIND_PACKED_ARRAY = 16,
+        KIND_PREVIEW = 17,
     };
 
     // Widget choisi pour une donnée. Les choix valides dépendent du DataKind (WidgetTable::allowed_for).
@@ -77,6 +79,8 @@ class DataEntry : public Resource
         WIDGET_CHECK_BOX_LIST = 22,
         WIDGET_FLOW_CONTAINER = 23,
         WIDGET_TAB_CONTAINER = 24,
+        WIDGET_TABLE = 25, // liste d'objets / de dictionnaires en tableau (une ligne par élément, ou transposé)
+        WIDGET_PREVIEW = 26, // aperçu (classe dans PreviewSettings::preview_class)
     };
 
     // Périmètre des membres scannés par DataRegistry::sync.
@@ -100,6 +104,7 @@ class DataEntry : public Resource
     // Classe (native ou class_name) héritant de PropertyWidget, utilisée quand widget_choice vaut WIDGET_CUSTOM.
     StringName custom_widget_class;
     Ref<WidgetSettings> settings;
+    String tooltip; // infobulle (BBCode, modèle dynamique {propriété} / {fonction()})
     bool is_vertical = false;
     bool enabled = true;
     bool is_missing = false;
@@ -124,6 +129,8 @@ class DataEntry : public Resource
     StringName get_custom_widget_class() const;
     void set_settings(const Ref<WidgetSettings> &p_settings);
     Ref<WidgetSettings> get_settings() const;
+    void set_tooltip(const String &p_tooltip);
+    String get_tooltip() const;
     void set_is_vertical(bool p_vertical);
     bool get_is_vertical() const;
     void set_enabled(bool p_enabled);

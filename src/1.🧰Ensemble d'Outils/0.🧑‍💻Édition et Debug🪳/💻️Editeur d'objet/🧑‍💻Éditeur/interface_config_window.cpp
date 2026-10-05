@@ -131,6 +131,10 @@ void InterfaceConfigWindow::_build_ui()
     style_editor->connect("style_changed", callable_mp(this, &InterfaceConfigWindow::_on_style_changed));
     tabs->add_child(style_editor);
     tabs->set_tab_title(2, "Style");
+    behavior_list = memnew(BehaviorListEditor);
+    behavior_list->connect("registry_changed", callable_mp(this, &InterfaceConfigWindow::_on_registry_changed));
+    tabs->add_child(behavior_list);
+    tabs->set_tab_title(3, "Comportements");
 
     // --- Droite : aperçu en direct ---
     VBoxContainer *right = memnew(VBoxContainer);
@@ -195,6 +199,8 @@ void InterfaceConfigWindow::resync()
     group_matrix->set_context_object(target);
     style_editor->set_context_object(target);
     style_editor->set_owner(host, "style"); // style global : propriété « style » du ProceduralEditor
+    behavior_list->set_context_object(target);
+    behavior_list->set_registries(registry, groups);
     matrix->set_registry(registry);
     group_matrix->set_registries(groups, registry);
     preview->set_style(host->get_style());

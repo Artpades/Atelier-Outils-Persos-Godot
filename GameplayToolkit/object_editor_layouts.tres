@@ -54,6 +54,31 @@ data_registry = SubResource("DataRegistry_n0jsa")
 group_registry = SubResource("GroupRegistry_j57n7")
 gizmo_registry = SubResource("GizmoRegistry_s4e8j")
 
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_rahk6"]
+source = 1
+constant = null
+property_path = NodePath("booleen")
+expected_info = {
+"type": 1
+}
+
+[sub_resource type="ShowIfBehavior" id="ShowIfBehavior_n20xm"]
+condition = SubResource("ArgumentBinding_rahk6")
+targets = PackedStringArray("vecteur3i", "vecteur4i", "vecteur2i")
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_sahxx"]
+source = 1
+constant = null
+expected_info = {
+"type": 1
+}
+
+[sub_resource type="InterfaceStyle" id="InterfaceStyle_cyqd8"]
+
+[sub_resource type="StyleIfBehavior" id="StyleIfBehavior_6vdlu"]
+style = SubResource("InterfaceStyle_cyqd8")
+condition = SubResource("ArgumentBinding_sahxx")
+
 [sub_resource type="DataEntry" id="DataEntry_n0jsa"]
 data_name = &"booleen"
 kind = 1
@@ -105,6 +130,7 @@ kind = 3
 [sub_resource type="DataEntry" id="DataEntry_17712"]
 data_name = &"texte_multiligne"
 kind = 3
+widget_choice = 10
 
 [sub_resource type="DataEntry" id="DataEntry_dx6u0"]
 data_name = &"nom"
@@ -277,6 +303,7 @@ is_missing = true
 
 [sub_resource type="DataRegistry" id="DataRegistry_ypur3"]
 entries = Array[DataEntry]([SubResource("DataEntry_n0jsa"), SubResource("DataEntry_s4e8j"), SubResource("DataEntry_j57n7"), SubResource("DataEntry_ohekp"), SubResource("DataEntry_nh6t7"), SubResource("DataEntry_r3p04"), SubResource("DataEntry_jaenw"), SubResource("DataEntry_b0gly"), SubResource("DataEntry_jkyhh"), SubResource("DataEntry_ga42r"), SubResource("DataEntry_xsums"), SubResource("DataEntry_17712"), SubResource("DataEntry_dx6u0"), SubResource("DataEntry_oijpq"), SubResource("DataEntry_5r762"), SubResource("DataEntry_4qrop"), SubResource("DataEntry_rfixc"), SubResource("DataEntry_2vblr"), SubResource("DataEntry_n0ldx"), SubResource("DataEntry_vpu0l"), SubResource("DataEntry_emis6"), SubResource("DataEntry_xfylt"), SubResource("DataEntry_cg6ky"), SubResource("DataEntry_m2wb8"), SubResource("DataEntry_f8xyw"), SubResource("DataEntry_bah1c"), SubResource("DataEntry_xpvwc"), SubResource("DataEntry_g3u1f"), SubResource("DataEntry_3samk"), SubResource("DataEntry_5peen"), SubResource("DataEntry_wqewk"), SubResource("DataEntry_tc4u6"), SubResource("DataEntry_va8cn"), SubResource("DataEntry_fo3yw"), SubResource("DataEntry_pqben"), SubResource("DataEntry_oe58b"), SubResource("DataEntry_3q7w5"), SubResource("DataEntry_3y604"), SubResource("DataEntry_8t4dp"), SubResource("DataEntry_dbqdj"), SubResource("DataEntry_rorwb"), SubResource("DataEntry_4riss"), SubResource("DataEntry_um7co"), SubResource("DataEntry_ws0rd"), SubResource("DataEntry_12urt"), SubResource("DataEntry_4gpcc"), SubResource("DataEntry_2y0wy"), SubResource("DataEntry_d6evv"), SubResource("DataEntry_fi3mi")])
+behaviors = Array[WidgetBehavior]([SubResource("ShowIfBehavior_n20xm"), SubResource("StyleIfBehavior_6vdlu")])
 
 [sub_resource type="GizmoRegistry" id="GizmoRegistry_ljv4k"]
 

@@ -5,6 +5,12 @@
 
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/classes/base_button.hpp>
+#include <godot_cpp/classes/line_edit.hpp>
+#include <godot_cpp/classes/text_edit.hpp>
+#include <godot_cpp/classes/spin_box.hpp>
+#include <godot_cpp/classes/slider.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/rid.hpp>
 
@@ -22,6 +28,12 @@ void PropertyWidget::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_info"), &PropertyWidget::get_info);
     ClassDB::bind_method(D_METHOD("get_settings"), &PropertyWidget::get_settings);
     ClassDB::bind_method(D_METHOD("get_styled_item"), &PropertyWidget::get_styled_item);
+    ClassDB::bind_method(D_METHOD("set_icon_override", "icon"), &PropertyWidget::set_icon_override);
+    ClassDB::bind_method(D_METHOD("get_displayed_icon"), &PropertyWidget::get_displayed_icon);
+    ClassDB::bind_method(D_METHOD("set_locked", "locked"), &PropertyWidget::set_locked);
+    ClassDB::bind_method(D_METHOD("is_locked"), &PropertyWidget::is_locked);
+    ClassDB::bind_method(D_METHOD("set_tooltip_texts", "texts"), &PropertyWidget::set_tooltip_texts);
+    ClassDB::bind_method(D_METHOD("get_tooltip_texts"), &PropertyWidget::get_tooltip_texts);
     ClassDB::bind_method(D_METHOD("get_style"), &PropertyWidget::get_style);
     ClassDB::bind_method(D_METHOD("is_read_only"), &PropertyWidget::is_read_only);
     ClassDB::bind_method(D_METHOD("has_edit_focus"), &PropertyWidget::has_edit_focus);
@@ -82,6 +94,14 @@ void PropertyWidget::setup(const Ref<ValueAccessor> &p_accessor, const Ref<Widge
     Label *name_label = nullptr;
     double ratio = settings.is_valid() ? settings->get_label_ratio() : 0.4;
 
+    // Icône des réglages : avant le libellé, ou avant la valeur (ajoutée après le libellé).
+    base_icon = settings.is_valid() ? settings->get_icon() : Ref<Texture2D>();
+    bool icon_before_value = settings.is_valid() && settings->get_icon_position() == WidgetSettings::ICON_BEFORE_VALUE;
+    if (base_icon.is_valid() && !icon_before_value)
+    {
+        set_icon_override(Ref<Texture2D>());
+    }
+
     if (show_label)
     {
         name_label = memnew(Label);
@@ -93,6 +113,11 @@ void PropertyWidget::setup(const Ref<ValueAccessor> &p_accessor, const Ref<Widge
         name_label->set_v_size_flags(SIZE_SHRINK_BEGIN);
         name_label->set_stretch_ratio(ratio);
         add_child(name_label);
+        name_label_id = ObjectID(name_label->get_instance_id());
+    }
+    if (base_icon.is_valid() && icon_before_value)
+    {
+        set_icon_override(Ref<Texture2D>());
     }
 
     Control *editor = build_editor();
@@ -131,6 +156,132 @@ void PropertyWidget::_notification(int p_what)
         draw_style_box(background, Rect2(Vector2(), get_size()));
     }
 }
+
+void PropertyWidget::set_icon_override(const Ref<Texture2D> &p_icon)
+{
+    Ref<Texture2D> texture = p_icon.is_valid() ? p_icon : base_icon;
+    TextureRect *rect = Object::cast_to<TextureRect>(ObjectDB::get_instance(icon_rect_id));
+    if (!rect)
+    {
+        if (texture.is_null())
+        {
+            return;
+        }
+        int size = settings.is_valid() ? settings->get_icon_size() : 16;
+        rect = memnew(TextureRect);
+        rect->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+        rect->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        rect->set_custom_minimum_size(Vector2(size, size));
+        rect->set_v_size_flags(SIZE_SHRINK_CENTER);
+        rect->set_mouse_filter(MOUSE_FILTER_PASS);
+        add_child(rect);
+        // Avant la valeur (dernier enfant ajouté jusqu'ici = libellé) ou en tête.
+        bool before_value = settings.is_valid() && settings->get_icon_position() == WidgetSettings::ICON_BEFORE_VALUE;
+        Node *label = Object::cast_to<Node>(ObjectDB::get_instance(name_label_id));
+        move_child(rect, (before_value && label) ? label->get_index() + 1 : 0);
+        icon_rect_id = ObjectID(rect->get_instance_id());
+    }
+    rect->set_texture(texture);
+    rect->set_visible(texture.is_valid());
+}
+
+Ref<Texture2D> PropertyWidget::get_displayed_icon() const
+{
+    TextureRect *rect = Object::cast_to<TextureRect>(ObjectDB::get_instance(icon_rect_id));
+    return (rect && rect->is_visible()) ? rect->get_texture() : Ref<Texture2D>();
+}
+
+void PropertyWidget::_set_controls_editable(Node *p_node, bool p_editable)
+{
+    TypedArray<Node> children = p_node->get_children(true);
+    for (int i = 0; i < children.size(); i++)
+    {
+        Node *child = Object::cast_to<Node>(children[i]);
+        // État d'origine mémorisé au premier verrouillage, restauré au déverrouillage.
+        const StringName meta = "_behavior_editable";
+        if (BaseButton *button = Object::cast_to<BaseButton>(child))
+        {
+            if (!p_editable)
+            {
+                button->set_meta(meta, !button->is_disabled());
+            }
+            button->set_disabled(!p_editable || !bool(button->get_meta(meta, true)));
+        }
+        else if (LineEdit *line = Object::cast_to<LineEdit>(child))
+        {
+            if (!p_editable)
+            {
+                line->set_meta(meta, line->is_editable());
+            }
+            line->set_editable(p_editable && bool(line->get_meta(meta, true)));
+        }
+        else if (TextEdit *text = Object::cast_to<TextEdit>(child))
+        {
+            if (!p_editable)
+            {
+                text->set_meta(meta, text->is_editable());
+            }
+            text->set_editable(p_editable && bool(text->get_meta(meta, true)));
+        }
+        else if (SpinBox *spin = Object::cast_to<SpinBox>(child))
+        {
+            if (!p_editable)
+            {
+                spin->set_meta(meta, spin->is_editable());
+            }
+            spin->set_editable(p_editable && bool(spin->get_meta(meta, true)));
+        }
+        else if (Slider *slider = Object::cast_to<Slider>(child))
+        {
+            if (!p_editable)
+            {
+                slider->set_meta(meta, slider->is_editable());
+            }
+            slider->set_editable(p_editable && bool(slider->get_meta(meta, true)));
+        }
+        // Les contrôles de saisie gèrent eux-mêmes leurs enfants internes (le LineEdit d'un SpinBox) : y
+        // descendre mémoriserait l'état qu'ils viennent de leur imposer.
+        if (Object::cast_to<SpinBox>(child) || Object::cast_to<LineEdit>(child) || Object::cast_to<TextEdit>(child) || Object::cast_to<Slider>(child))
+        {
+            continue;
+        }
+        _set_controls_editable(child, p_editable);
+    }
+}
+
+void PropertyWidget::set_locked(bool p_locked)
+{
+    if (locked == p_locked)
+    {
+        return;
+    }
+    locked = p_locked;
+    _set_controls_editable(this, !locked);
+    // Atténuation par-dessus la teinte éventuelle du style (restaurée au déverrouillage).
+    if (locked)
+    {
+        set_meta("_behavior_modulate", get_modulate());
+        set_modulate(get_modulate() * Color(1, 1, 1, 0.55));
+    }
+    else
+    {
+        set_modulate(get_meta("_behavior_modulate", Color(1, 1, 1, 1)));
+    }
+}
+
+bool PropertyWidget::is_locked() const { return locked; }
+
+void PropertyWidget::set_tooltip_texts(const PackedStringArray &p_texts)
+{
+    tooltip_texts = p_texts;
+    // Infobulle enrichie : l'infobulle simple du libellé est retirée (sinon les deux s'afficheraient).
+    if (Control *label = Object::cast_to<Control>(ObjectDB::get_instance(name_label_id)))
+    {
+        label->set_tooltip_text(tooltip_texts.is_empty() ? String(get_property_name()) : String());
+    }
+}
+
+PackedStringArray PropertyWidget::get_tooltip_texts() const { return tooltip_texts; }
 
 CanvasItem *PropertyWidget::get_styled_item() const { return Object::cast_to<CanvasItem>(ObjectDB::get_instance(styled_item_id)); }
 
@@ -202,7 +353,7 @@ void PropertyWidget::pull(const Variant &p_value)
 
 void PropertyWidget::emit_value(const Variant &p_value, bool p_committing)
 {
-    if (pulling || read_only)
+    if (pulling || read_only || locked)
     {
         return;
     }

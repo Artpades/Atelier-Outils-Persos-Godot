@@ -4,6 +4,7 @@
 #include "data_matrix_editor.hpp"
 #include "gizmo_list_editor.hpp"
 #include "group_matrix_editor.hpp"
+#include "behavior_list_editor.hpp"
 #include "interface_style_editor.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/layout_database.hpp"
@@ -46,6 +47,7 @@ class ObjectInterfacePanel : public VBoxContainer
     GroupMatrixEditor *group_matrix = nullptr;
     GizmoListEditor *gizmo_list = nullptr;
     InterfaceStyleEditor *style_editor = nullptr;
+    BehaviorListEditor *behavior_list = nullptr;
     GizmoHost *gizmo_host = nullptr;
 
     void _bind_layout();

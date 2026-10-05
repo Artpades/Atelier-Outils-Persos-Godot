@@ -84,22 +84,49 @@ class CollectionWidget : public ContainerWidget
 
   private:
     Variant::Type collection_type = Variant::NIL;
-    ElementDecl element_decl; // Array / Packed : élément ; Dictionary : valeur
-    ElementDecl key_decl;     // Dictionary : clé
+    ElementDecl key_decl; // Dictionary : clé
     LineEdit *new_key = nullptr;
 
+  protected:
+    ElementDecl element_decl; // Array / Packed : élément ; Dictionary : valeur
+
+    // Opérations sur la collection (une écriture complète = une action d'annulation), partagées avec le tableau.
     Variant _current_copy() const;
     void _on_move(int64_t p_from, int64_t p_to);
     void _on_remove(const Variant &p_key);
     void _on_add();
     void _on_create();
 
-  protected:
     static void _bind_methods() {}
     Control *build_editor() override;
     String summary(const Variant &p_value) const override;
     String structure_key(const Variant &p_value) const override;
     void fill(const Variant &p_value) override;
+};
+
+// Tableau (Array d'objets ou de dictionnaires) : une ligne par élément et une colonne par propriété (objet)
+// ou clé (dictionnaire), ou l'inverse (TableWidgetSettings::transpose). Chaque cellule est un widget normal
+// (édition, annulation, styles) sans libellé. Élément nul : « Nouveau… » dans sa première cellule. Ajout,
+// suppression et ordre comme pour une collection. Éléments d'un autre type : une colonne « valeur ».
+class TableWidget : public CollectionWidget
+{
+    GDCLASS(TableWidget, CollectionWidget)
+
+  private:
+    Control *_make_cell(int64_t p_index, const Variant &p_element, const String &p_column, const PackedInt64Array &p_chain);
+    Control *_make_element_header(int64_t p_index, int64_t p_size, bool p_transposed);
+
+  protected:
+    static void _bind_methods() {}
+    StringName get_settings_class() const override { return "TableWidgetSettings"; }
+    String structure_key(const Variant &p_value) const override;
+    void fill(const Variant &p_value) override;
+
+  public:
+    static constexpr const char *VALUE_COLUMN = "@valeur";
+    // Colonnes de p_elements : propriétés des objets (périmètre AUTO) et clés des dictionnaires, dans l'ordre
+    // de découverte ; « @valeur » pour les autres éléments. p_filter non vide : ces colonnes, dans cet ordre.
+    static PackedStringArray columns_for(const Array &p_elements, const PackedStringArray &p_filter);
 };
 
 // Object (et NodePath déplié) : affiche les propriétés du sous-objet (registre automatique, comme le

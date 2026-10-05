@@ -48,6 +48,14 @@ class DataMatrixEditor : public VBoxContainer
     void _on_remove_all_missing();
     void _on_settings_resource_changed(const Ref<Resource> &p_resource, int64_t p_index);
     void _on_settings_edited();
+    void _set_tooltip(int64_t p_index, const String &p_tooltip);
+    void _on_tooltip_submitted(const String &p_text, int64_t p_index);
+    void _on_tooltip_focus_exited(int64_t p_index, uint64_t p_line_id);
+    void _on_tooltip_text_changed(uint64_t p_edit_id, uint64_t p_preview_id);
+    void _on_tooltip_edit_committed(int64_t p_index, uint64_t p_edit_id);
+    void _fill_preview_menu(uint64_t p_menu_id);
+    void _on_add_preview(int64_t p_id);
+    void _on_preview_renamed(const String &p_text, int64_t p_index);
 
   protected:
     static void _bind_methods();
@@ -60,6 +68,8 @@ class DataMatrixEditor : public VBoxContainer
     Ref<DataRegistry> get_registry() const;
     void set_context_object(Object *p_object);
     void set_context_type(const String &p_type);
+    // Classes d'aperçu proposées : fournies, puis class_name héritant de PreviewWidget.
+    static PackedStringArray preview_types();
     // Reconstruit le tableau depuis le registre.
     void refresh();
 };

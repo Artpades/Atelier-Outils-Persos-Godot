@@ -1,4 +1,5 @@
 #include "group_matrix_editor.hpp"
+#include "icon_picker.hpp"
 #include "interface_style_editor.hpp"
 
 #include <godot_cpp/classes/button.hpp>
@@ -87,6 +88,10 @@ bool GroupMatrixEditor::_is_missing(const String &p_data_name) const
     if (entry.is_null())
     {
         entry = data->find(p_data_name, DataEntry::MEMBER_METHOD);
+    }
+    if (entry.is_null())
+    {
+        entry = data->find(p_data_name, DataEntry::MEMBER_PREVIEW);
     }
     return entry.is_null() || entry->get_is_missing();
 }
@@ -180,6 +185,7 @@ void GroupMatrixEditor::refresh()
         type->add_item("HBoxContainer", GroupEntry::CONTAINER_HBOX);
         type->add_item("GridContainer", GroupEntry::CONTAINER_GRID);
         type->add_item("PanelContainer", GroupEntry::CONTAINER_PANEL);
+        type->add_item("TabContainer", GroupEntry::CONTAINER_TABS);
         type->select(type->get_item_index(group->get_container_type()));
         type->connect("item_selected", callable_mp(this, &GroupMatrixEditor::_on_type_selected).bind(i));
         head->add_child(type);
@@ -201,7 +207,8 @@ void GroupMatrixEditor::refresh()
         head->add_child(vertical);
 
         int64_t group_id = (int64_t)group->get_instance_id();
-        Button *style_button = make_button(group->get_style().is_valid() ? String(U"Style ●") : String("Style"), U"Thème, fond et shader du groupe");
+        Button *style_button = make_button((group->get_style().is_valid() || group->get_icon().is_valid()) ? String(U"Style ●") : String("Style"),
+                                           U"Icône, thème, fond et shader du groupe");
         style_button->set_toggle_mode(true);
         style_button->set_pressed_no_signal(style_open.has(group_id));
         style_button->connect("toggled", callable_mp(this, &GroupMatrixEditor::_on_style_toggled).bind(group_id));
@@ -214,12 +221,49 @@ void GroupMatrixEditor::refresh()
         // Style du groupe (déplié à la demande).
         if (style_open.has(group_id))
         {
+            IconPickerRow *icon_row = memnew(IconPickerRow);
+            icon_row->setup(group.ptr(), "icon", U"Icône");
+            icon_row->connect("icon_changed", callable_mp(this, &GroupMatrixEditor::_on_style_changed));
+            block->add_child(icon_row);
             InterfaceStyleEditor *style_editor = memnew(InterfaceStyleEditor);
             style_editor->set_context_object(ObjectDB::get_instance(context_id));
             style_editor->set_context_type(context_type);
             style_editor->set_owner(group.ptr(), "style");
             style_editor->connect("style_changed", callable_mp(this, &GroupMatrixEditor::_on_style_changed));
             block->add_child(style_editor);
+        }
+
+        // Groupe en onglets : ses pages (autres groupes) au lieu de données.
+        if (group->get_container_type() == GroupEntry::CONTAINER_TABS)
+        {
+            HFlowContainer *pages_row = memnew(HFlowContainer);
+            block->add_child(pages_row);
+            Label *pages_label = memnew(Label);
+            pages_label->set_text("Onglets :");
+            pages_row->add_child(pages_label);
+            PackedStringArray pages = group->get_child_groups();
+            for (const String &page : pages)
+            {
+                bool missing = groups->find(page).is_null();
+                Button *chip = make_button((missing ? String(U"⚠ ") : String()) + page + U"  ✕", missing ? String(U"Aucun groupe de ce nom") : String(U"Retirer l'onglet"));
+                chip->connect("pressed", callable_mp(this, &GroupMatrixEditor::_on_remove_page).bind(page, i));
+                pages_row->add_child(chip);
+            }
+            OptionButton *add_page = memnew(OptionButton);
+            add_page->add_item(U"+ Ajouter un groupe en onglet…", -1);
+            for (int g = 0; g < all.size(); g++)
+            {
+                Ref<GroupEntry> other = all[g];
+                // Un seul niveau : pas un autre groupe en onglets, ni un groupe déjà dans des onglets.
+                if (other.is_valid() && other != group && other->get_container_type() != GroupEntry::CONTAINER_TABS && groups->tabs_of(other->get_group_name()).is_null())
+                {
+                    add_page->add_item(other->get_group_name(), g);
+                }
+            }
+            add_page->select(0);
+            add_page->connect("item_selected", callable_mp(this, &GroupMatrixEditor::_on_add_page).bind(i, (uint64_t)add_page->get_instance_id()));
+            pages_row->add_child(add_page);
+            continue;
         }
 
         // Ligne 2 : données du groupe (retrait) + ajout.
@@ -274,9 +318,56 @@ void GroupMatrixEditor::_on_name_changed(const String &p_text, int64_t p_index)
     Ref<GroupEntry> group = _group(p_index);
     if (group.is_valid())
     {
+        // Les groupes en onglets qui le contiennent suivent le nouveau nom.
+        String previous = group->get_group_name();
+        TypedArray<GroupEntry> all = groups->get_groups();
+        for (int g = 0; g < all.size(); g++)
+        {
+            Ref<GroupEntry> tabs = all[g];
+            PackedStringArray pages = tabs.is_valid() ? tabs->get_child_groups() : PackedStringArray();
+            int position = pages.find(previous);
+            if (position >= 0)
+            {
+                pages.set(position, p_text);
+                tabs->set_child_groups(pages);
+            }
+        }
         group->set_group_name(p_text);
         _emit_changed();
     }
+}
+
+void GroupMatrixEditor::_on_remove_page(const String &p_name, int64_t p_index)
+{
+    Ref<GroupEntry> group = _group(p_index);
+    if (group.is_null())
+    {
+        return;
+    }
+    PackedStringArray pages = group->get_child_groups();
+    pages.erase(p_name);
+    group->set_child_groups(pages);
+    _refresh_deferred();
+    _emit_changed();
+}
+
+void GroupMatrixEditor::_on_add_page(int64_t p_item, int64_t p_index, uint64_t p_option_id)
+{
+    OptionButton *option = Object::cast_to<OptionButton>(ObjectDB::get_instance(p_option_id));
+    Ref<GroupEntry> group = _group(p_index);
+    Ref<GroupEntry> page = option ? _group(option->get_item_id(p_item)) : Ref<GroupEntry>();
+    if (group.is_null() || page.is_null())
+    {
+        return;
+    }
+    PackedStringArray pages = group->get_child_groups();
+    if (!pages.has(page->get_group_name()))
+    {
+        pages.push_back(page->get_group_name());
+        group->set_child_groups(pages);
+    }
+    _refresh_deferred();
+    _emit_changed();
 }
 
 void GroupMatrixEditor::_on_type_selected(int64_t p_item, int64_t p_index)

@@ -1,4 +1,5 @@
 #include "procedural_editor.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧩Widgets/preview_widget.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🔌Accès/runtime_undo_backend.hpp"
 
@@ -10,7 +11,11 @@
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/classes/h_box_container.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
@@ -82,6 +87,8 @@ void ProceduralEditor::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_styles_enabled"), &ProceduralEditor::get_styles_enabled);
     ClassDB::bind_method(D_METHOD("get_effective_style"), &ProceduralEditor::get_effective_style);
     ClassDB::bind_method(D_METHOD("get_styled_count"), &ProceduralEditor::get_styled_count);
+    ClassDB::bind_method(D_METHOD("evaluate_behaviors"), &ProceduralEditor::evaluate_behaviors);
+    ClassDB::bind_method(D_METHOD("get_rich_tooltip"), &ProceduralEditor::get_rich_tooltip);
     ClassDB::bind_method(D_METHOD("get_active_layout"), &ProceduralEditor::get_active_layout);
     ClassDB::bind_method(D_METHOD("get_active_registry"), &ProceduralEditor::get_active_registry);
     ClassDB::bind_method(D_METHOD("get_active_group_registry"), &ProceduralEditor::get_active_group_registry);
@@ -139,7 +146,12 @@ ProceduralEditor::ProceduralEditor()
 
     sync = memnew(SyncController);
     sync->connect("target_lost", callable_mp(this, &ProceduralEditor::_on_target_lost));
+    sync->connect("synced", callable_mp(this, &ProceduralEditor::_evaluate_behaviors));
     add_child(sync, false, INTERNAL_MODE_BACK);
+
+    rich_tooltip = memnew(RichTooltip);
+    rich_tooltip->setup(this);
+    add_child(rich_tooltip, false, INTERNAL_MODE_BACK);
 
     _show_status("Aucun objet");
 }
@@ -391,6 +403,164 @@ Ref<InterfaceStyle> ProceduralEditor::get_effective_style() const
 
 int ProceduralEditor::get_styled_count() const { return sync->get_styled_count(); }
 
+RichTooltip *ProceduralEditor::get_rich_tooltip() const { return rich_tooltip; }
+
+void ProceduralEditor::evaluate_behaviors() { _evaluate_behaviors(); }
+
+Control *ProceduralEditor::_behavior_target(const String &p_name, CanvasItem **r_style_item, Ref<InterfaceStyle> *r_base_style) const
+{
+    // Donnée : son widget de premier niveau (style de base : celui des réglages s'il vise le widget entier).
+    if (top_widgets.has(p_name))
+    {
+        PropertyWidget *widget = Object::cast_to<PropertyWidget>(ObjectDB::get_instance(uint64_t(int64_t(top_widgets[p_name]))));
+        if (widget)
+        {
+            *r_style_item = widget;
+            Ref<WidgetSettings> settings = widget->get_entry().is_valid() ? widget->get_entry()->get_settings() : Ref<WidgetSettings>();
+            *r_base_style = (settings.is_valid() && settings->get_style_target() == WidgetSettings::STYLE_WIDGET) ? settings->get_style() : Ref<InterfaceStyle>();
+        }
+        return widget;
+    }
+    // Groupe : nœud extérieur (visibilité), racine (style, de base celui du groupe).
+    if (group_nodes.has(p_name))
+    {
+        Array nodes = group_nodes[p_name];
+        Control *outer = Object::cast_to<Control>(ObjectDB::get_instance(uint64_t(int64_t(nodes[0]))));
+        *r_style_item = Object::cast_to<CanvasItem>(ObjectDB::get_instance(uint64_t(int64_t(nodes[1]))));
+        Ref<GroupEntry> group = active_groups.is_valid() ? active_groups->find(p_name) : Ref<GroupEntry>();
+        *r_base_style = (styles_enabled && group.is_valid()) ? group->get_style() : Ref<InterfaceStyle>();
+        return outer;
+    }
+    return nullptr;
+}
+
+void ProceduralEditor::_evaluate_behaviors()
+{
+    Object *target = get_target();
+    TypedArray<WidgetBehavior> behaviors = active_registry.is_valid() ? active_registry->get_behaviors() : TypedArray<WidgetBehavior>();
+    if (!target || behaviors.is_empty())
+    {
+        return;
+    }
+    // États combinés par cible (toutes les cibles citées, même si aucun comportement n'y est actif).
+    HashMap<String, BehaviorState> states;
+    PackedStringArray order;
+    for (int b = 0; b < behaviors.size(); b++)
+    {
+        Ref<WidgetBehavior> behavior = behaviors[b];
+        if (behavior.is_null() || !behavior->get_enabled())
+        {
+            continue;
+        }
+        bool active = behavior->evaluate(target);
+        PackedStringArray targets = behavior->get_targets();
+        for (const String &name : targets)
+        {
+            if (!states.has(name))
+            {
+                states.insert(name, BehaviorState());
+                order.push_back(name);
+            }
+            behavior->contribute(states[name], active);
+            // Comportement de script : appelé quand son état change (ou après une reconstruction).
+            if (behavior->has_script_apply())
+            {
+                String key = String::num_int64((int64_t)behavior->get_instance_id()) + ":" + name;
+                if (!script_behavior_states.has(key) || bool(script_behavior_states[key]) != active)
+                {
+                    script_behavior_states[key] = active;
+                    CanvasItem *unused_item = nullptr;
+                    Ref<InterfaceStyle> unused_style;
+                    behavior->apply_script(_behavior_target(name, &unused_item, &unused_style), active);
+                }
+            }
+        }
+    }
+
+    for (const String &name : order)
+    {
+        const BehaviorState &state = states[name];
+        CanvasItem *style_item = nullptr;
+        Ref<InterfaceStyle> base_style;
+        Control *control = _behavior_target(name, &style_item, &base_style);
+        if (!control)
+        {
+            continue;
+        }
+        // Signature : rien n'est réappliqué tant que l'état ne change pas.
+        String styles_key;
+        for (const Ref<InterfaceStyle> &style : state.styles)
+        {
+            styles_key += String::num_int64((int64_t)style->get_instance_id()) + ",";
+        }
+        String signature = String::num_int64(state.visible) + "|" + String::num_int64(state.editable) + "|" + styles_key + "|" + String("\n").join(state.tooltips) + "|" +
+                           (state.icon.is_valid() ? String::num_int64((int64_t)state.icon->get_instance_id()) : String());
+        if (behavior_signatures.has(name) && String(behavior_signatures[name]) == signature)
+        {
+            continue;
+        }
+        behavior_signatures[name] = signature;
+
+        // Page d'un groupe en onglets : c'est l'onglet qui est masqué.
+        if (TabContainer *tabs = Object::cast_to<TabContainer>(control->get_parent()))
+        {
+            tabs->set_tab_hidden(control->get_index(), !state.visible);
+        }
+        else
+        {
+            control->set_visible(state.visible);
+        }
+        PropertyWidget *widget = Object::cast_to<PropertyWidget>(control);
+        TypedArray<Node> locked_widgets;
+        if (widget)
+        {
+            locked_widgets.push_back(widget);
+        }
+        else
+        {
+            locked_widgets = control->find_children("*", "PropertyWidget", true, false);
+        }
+
+        // Styles conditionnels (déverrouillés le temps de la restauration : l'atténuation suit la teinte).
+        if (style_item && (!state.styles.is_empty() || behavior_styled.has(name)))
+        {
+            for (int i = 0; i < locked_widgets.size(); i++)
+            {
+                Object::cast_to<PropertyWidget>(locked_widgets[i])->set_locked(false);
+            }
+            InterfaceStyle::restore(style_item, base_style);
+            for (const Ref<InterfaceStyle> &style : state.styles)
+            {
+                style->apply_to(style_item);
+                sync->register_styled(style_item, style);
+            }
+            if (state.styles.is_empty())
+            {
+                behavior_styled.erase(name);
+            }
+            else
+            {
+                behavior_styled[name] = true;
+            }
+        }
+        for (int i = 0; i < locked_widgets.size(); i++)
+        {
+            Object::cast_to<PropertyWidget>(locked_widgets[i])->set_locked(!state.editable);
+        }
+        if (widget)
+        {
+            widget->set_icon_override(state.icon);
+            PackedStringArray tooltips;
+            if (widget->get_entry().is_valid() && !widget->get_entry()->get_tooltip().is_empty())
+            {
+                tooltips.push_back(widget->get_entry()->get_tooltip());
+            }
+            tooltips.append_array(state.tooltips);
+            widget->set_tooltip_texts(tooltips);
+        }
+    }
+}
+
 void ProceduralEditor::_apply_global_style()
 {
     // Seul ce que l'éditeur a lui-même posé est retiré (un modulate réglé dans la scène est conservé sinon).
@@ -437,6 +607,12 @@ PropertyWidget *ProceduralEditor::build_widget(const Ref<ValueAccessor> &p_acces
     widget->connect("value_changed", callable_mp(this, &ProceduralEditor::_on_value_changed).bind((uint64_t)widget->get_instance_id()));
     widget->connect("edit_discarded", callable_mp(this, &ProceduralEditor::_on_edit_discarded).bind((uint64_t)widget->get_instance_id()));
     sync->register_widget(widget);
+    if (!p_entry->get_tooltip().is_empty())
+    {
+        PackedStringArray tooltips;
+        tooltips.push_back(p_entry->get_tooltip());
+        widget->set_tooltip_texts(tooltips);
+    }
     Ref<WidgetSettings> settings = p_entry->get_settings();
     if (styles_enabled && settings.is_valid())
     {
@@ -540,20 +716,36 @@ Dictionary ProceduralEditor::_find_method(Object *p_target, const StringName &p_
     return Dictionary();
 }
 
-Container *ProceduralEditor::_make_group_container(const Ref<GroupEntry> &p_group, VBoxContainer *&r_root)
+Container *ProceduralEditor::_make_group_container(const Ref<GroupEntry> &p_group, VBoxContainer *&r_root, Container *p_parent)
 {
+    TabContainer *parent_tabs = Object::cast_to<TabContainer>(p_parent);
     r_root = memnew(VBoxContainer);
     r_root->set_h_size_flags(SIZE_EXPAND_FILL);
-    if (!p_group->get_group_name().is_empty())
+    if (!p_group->get_group_name().is_empty() && !parent_tabs) // page d'onglet : le titre est celui de l'onglet
     {
+        HBoxContainer *title_row = memnew(HBoxContainer);
+        if (p_group->get_icon().is_valid())
+        {
+            TextureRect *icon = memnew(TextureRect);
+            icon->set_texture(p_group->get_icon());
+            icon->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+            icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+            icon->set_custom_minimum_size(Vector2(16, 16));
+            title_row->add_child(icon);
+        }
         Label *title = memnew(Label);
         title->set_text(p_group->get_group_name());
         title->set_modulate(Color(1, 1, 1, 0.75));
-        r_root->add_child(title);
+        title_row->add_child(title);
+        r_root->add_child(title_row);
     }
 
     Container *box = nullptr;
-    if (p_group->get_container_type() == GroupEntry::CONTAINER_GRID)
+    if (p_group->get_container_type() == GroupEntry::CONTAINER_TABS)
+    {
+        box = memnew(TabContainer); // pages : les groupes de child_groups
+    }
+    else if (p_group->get_container_type() == GroupEntry::CONTAINER_GRID)
     {
         GridContainer *grid = memnew(GridContainer);
         grid->set_columns(MAX(1, p_group->get_columns()));
@@ -602,7 +794,19 @@ Container *ProceduralEditor::_make_group_container(const Ref<GroupEntry> &p_grou
         group_style->apply_to(r_root);
         sync->register_styled(r_root, group_style);
     }
-    content->add_child(outer);
+    if (parent_tabs)
+    {
+        outer->set_meta("group_name", p_group->get_group_name());
+        parent_tabs->add_child(outer);
+        int tab = outer->get_index();
+        parent_tabs->set_tab_title(tab, p_group->get_group_name());
+        parent_tabs->set_tab_icon(tab, p_group->get_icon());
+    }
+    else
+    {
+        content->add_child(outer);
+    }
+    group_nodes[p_group->get_group_name()] = Array::make((int64_t)outer->get_instance_id(), (int64_t)r_root->get_instance_id());
     return box;
 }
 
@@ -662,6 +866,12 @@ void ProceduralEditor::rebuild()
     top_widgets.clear();
     Object *target = get_target();
     sync->set_target(target);
+    rich_tooltip->set_context(target);
+    rich_tooltip->hide_tooltip();
+    group_nodes.clear();
+    behavior_signatures.clear();
+    behavior_styled.clear();
+    script_behavior_states.clear();
     _apply_global_style();
     if (!target || active_registry.is_null())
     {
@@ -695,6 +905,10 @@ void ProceduralEditor::rebuild()
         {
             accessor->set_property_info(_find_signal(target, entry->get_data_name()));
         }
+        else if (entry->get_member() == DataEntry::MEMBER_PREVIEW)
+        {
+            accessor->set_property_info(PreviewWidget::make_info(entry->get_data_name()));
+        }
         if (accessor->get_property_info().is_empty())
         {
             continue;
@@ -717,8 +931,23 @@ void ProceduralEditor::rebuild()
         int64_t key = (int64_t)group->get_instance_id();
         if (!built_groups.has(key))
         {
+            // Groupe d'un groupe en onglets : le groupe en onglets est construit d'abord (à cette place), puis
+            // ce groupe devient l'une de ses pages.
+            Container *parent = nullptr;
+            Ref<GroupEntry> tabs = active_groups->tabs_of(group->get_group_name());
+            if (tabs.is_valid() && tabs != group)
+            {
+                int64_t tabs_key = (int64_t)tabs->get_instance_id();
+                if (!built_groups.has(tabs_key))
+                {
+                    VBoxContainer *tabs_root = nullptr;
+                    Container *tabs_box = _make_group_container(tabs, tabs_root);
+                    built_groups[tabs_key] = Array::make((int64_t)tabs_box->get_instance_id(), (int64_t)tabs_root->get_instance_id(), tabs);
+                }
+                parent = Object::cast_to<Container>(ObjectDB::get_instance(uint64_t(int64_t(Array(built_groups[tabs_key])[0]))));
+            }
             VBoxContainer *root = nullptr;
-            Container *box = _make_group_container(group, root);
+            Container *box = _make_group_container(group, root, parent);
             Array slot;
             slot.push_back((int64_t)box->get_instance_id());
             slot.push_back((int64_t)root->get_instance_id());
@@ -738,6 +967,32 @@ void ProceduralEditor::rebuild()
         Container *box = Object::cast_to<Container>(ObjectDB::get_instance(uint64_t(int64_t(slot[0]))));
         VBoxContainer *root = Object::cast_to<VBoxContainer>(ObjectDB::get_instance(uint64_t(int64_t(slot[1]))));
         Ref<GroupEntry> group = slot[2];
+        // Groupe en onglets : pages dans l'ordre de child_groups (titres et icônes remis après déplacement).
+        if (TabContainer *tabs = Object::cast_to<TabContainer>(box))
+        {
+            PackedStringArray pages = group->get_child_groups();
+            int position = 0;
+            for (const String &page_name : pages)
+            {
+                if (group_nodes.has(page_name))
+                {
+                    Node *page = Object::cast_to<Node>(ObjectDB::get_instance(uint64_t(int64_t(Array(group_nodes[page_name])[0]))));
+                    if (page && page->get_parent() == tabs)
+                    {
+                        tabs->move_child(page, position++);
+                    }
+                }
+            }
+            for (int t = 0; t < tabs->get_tab_count(); t++)
+            {
+                Node *page = tabs->get_tab_control(t);
+                String page_name = page ? String(page->get_meta("group_name", String())) : String();
+                Ref<GroupEntry> page_group = active_groups->find(page_name);
+                tabs->set_tab_title(t, page_name);
+                tabs->set_tab_icon(t, page_group.is_valid() ? page_group->get_icon() : Ref<Texture2D>());
+            }
+            continue;
+        }
         PackedStringArray names = group->get_data_names();
         int position = 0;
         for (int n = 0; n < names.size(); n++)
@@ -756,6 +1011,10 @@ void ProceduralEditor::rebuild()
             {
                 named = active_registry->find(names[n], DataEntry::MEMBER_METHOD);
             }
+            if (named.is_null())
+            {
+                named = active_registry->find(names[n], DataEntry::MEMBER_PREVIEW);
+            }
             if (named.is_null() || named->get_is_missing())
             {
                 Label *warning = memnew(Label);
@@ -765,6 +1024,8 @@ void ProceduralEditor::rebuild()
             }
         }
     }
+
+    _evaluate_behaviors();
 }
 
 PropertyWidget *ProceduralEditor::get_widget(const StringName &p_property) const

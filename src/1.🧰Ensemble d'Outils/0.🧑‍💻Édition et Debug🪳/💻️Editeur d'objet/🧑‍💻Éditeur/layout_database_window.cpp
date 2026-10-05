@@ -185,6 +185,10 @@ void LayoutDatabaseWindow::_build_ui()
     style_editor->connect("style_changed", callable_mp(this, &LayoutDatabaseWindow::_on_changed));
     tabs->add_child(style_editor);
     tabs->set_tab_title(3, "Style");
+    behavior_list = memnew(BehaviorListEditor);
+    behavior_list->connect("registry_changed", callable_mp(this, &LayoutDatabaseWindow::_on_changed));
+    tabs->add_child(behavior_list);
+    tabs->set_tab_title(4, "Comportements");
 }
 
 void LayoutDatabaseWindow::_set_dirty(bool p_dirty) { dirty_label->set_text(p_dirty ? String(U"● modifiée (non enregistrée)") : String()); }
@@ -256,6 +260,8 @@ void LayoutDatabaseWindow::_select(int64_t p_index)
         group_matrix->set_context_type(layout->get_type_name());
         style_editor->set_context_type(layout->get_type_name());
         style_editor->set_owner(layout.ptr(), "style");
+        behavior_list->set_context_type(layout->get_type_name());
+        behavior_list->set_registries(layout->get_data_registry(), layout->get_group_registry());
         data_matrix->set_registry(layout->get_data_registry());
         group_matrix->set_registries(layout->get_group_registry(), layout->get_data_registry());
         gizmo_list->set_context_type(layout->get_type_name()); // membres lus sur une instance d'exemple

@@ -1,4 +1,5 @@
 #include "container_widgets.hpp"
+#include "preview_widget.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal Console/custom_logger.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/data_registry.hpp"
@@ -844,13 +845,19 @@ void ObjectWidget::fill(const Variant &p_value)
     for (int i = 0; i < entries.size(); i++)
     {
         Ref<DataEntry> entry = entries[i];
-        if (entry.is_null() || !entry->get_enabled() || entry->get_is_missing() || entry->get_member() != DataEntry::MEMBER_PROPERTY)
+        // Propriétés, et aperçus de l'interface du type (aperçu automatique pour tout objet de ce type).
+        bool preview = entry.is_valid() && entry->get_member() == DataEntry::MEMBER_PREVIEW;
+        if (entry.is_null() || !entry->get_enabled() || entry->get_is_missing() || (entry->get_member() != DataEntry::MEMBER_PROPERTY && !preview))
         {
             continue;
         }
         Ref<ValueAccessor> accessor;
         accessor.instantiate();
         accessor->setup(object, entry->get_data_name());
+        if (preview)
+        {
+            accessor->set_property_info(PreviewWidget::make_info(entry->get_data_name()));
+        }
         if (accessor->get_property_info().is_empty())
         {
             continue;
@@ -891,4 +898,276 @@ void ObjectWidget::_on_clear()
 {
     emit_value(Variant(), true);
     rebuild_deferred();
+}
+
+// =====================================================================================================
+// TableWidget
+// =====================================================================================================
+
+PackedStringArray TableWidget::columns_for(const Array &p_elements, const PackedStringArray &p_filter)
+{
+    if (!p_filter.is_empty())
+    {
+        return p_filter;
+    }
+    PackedStringArray columns;
+    bool value_column = false;
+    for (int i = 0; i < p_elements.size(); i++)
+    {
+        Variant element = p_elements[i];
+        if (Object *object = element.get_validated_object())
+        {
+            TypedArray<Dictionary> members = DataRegistry::get_members(object, DataEntry::MEMBER_PROPERTY, DataEntry::SCOPE_AUTO);
+            for (int m = 0; m < members.size(); m++)
+            {
+                Dictionary member = members[m];
+                String name = member.get("name", "");
+                // Catégories et groupes (« Stat.gd », @export_group) : pas des propriétés.
+                if ((int)member.get("usage", 0) & (PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP))
+                {
+                    continue;
+                }
+                if (!name.is_empty() && !columns.has(name))
+                {
+                    columns.push_back(name);
+                }
+            }
+        }
+        else if (element.get_type() == Variant::DICTIONARY)
+        {
+            Array keys = Dictionary(element).keys();
+            for (int k = 0; k < keys.size(); k++)
+            {
+                String name = PropertyWidget::stringify(keys[k]);
+                if (!columns.has(name))
+                {
+                    columns.push_back(name);
+                }
+            }
+        }
+        else if (element.get_type() != Variant::NIL && element.get_type() != Variant::OBJECT)
+        {
+            value_column = true;
+        }
+    }
+    if (value_column || columns.is_empty())
+    {
+        columns.insert(0, VALUE_COLUMN);
+    }
+    return columns;
+}
+
+String TableWidget::structure_key(const Variant &p_value) const
+{
+    // Structure de la collection + identité de chaque élément objet + clés des dictionnaires.
+    String key = CollectionWidget::structure_key(p_value);
+    if (p_value.get_type() != Variant::ARRAY)
+    {
+        return key;
+    }
+    Array elements = p_value;
+    for (int i = 0; i < elements.size(); i++)
+    {
+        Variant element = elements[i];
+        Object *object = element.get_validated_object();
+        key += "|" + (object                                     ? String::num_int64((int64_t)object->get_instance_id())
+                      : element.get_type() == Variant::DICTIONARY ? Variant(Dictionary(element).keys()).stringify()
+                                                                  : String::num_int64(element.get_type()));
+    }
+    return key;
+}
+
+Control *TableWidget::_make_element_header(int64_t p_index, int64_t p_size, bool p_transposed)
+{
+    HBoxContainer *header = memnew(HBoxContainer);
+    Label *index = memnew(Label);
+    index->set_text("[" + String::num_int64(p_index) + "]");
+    header->add_child(index);
+    if (!is_read_only())
+    {
+        Button *before = make_button(p_transposed ? U"◀" : U"▲", p_transposed ? String(U"Vers la gauche") : String("Monter"));
+        before->set_disabled(p_index == 0);
+        before->connect("pressed", callable_mp(static_cast<CollectionWidget *>(this), &TableWidget::_on_move).bind(p_index, p_index - 1));
+        Button *after = make_button(p_transposed ? U"▶" : U"▼", p_transposed ? String(U"Vers la droite") : String("Descendre"));
+        after->set_disabled(p_index == p_size - 1);
+        after->connect("pressed", callable_mp(static_cast<CollectionWidget *>(this), &TableWidget::_on_move).bind(p_index, p_index + 1));
+        Button *remove = make_button(U"✕", U"Supprimer l'élément");
+        remove->connect("pressed", callable_mp(static_cast<CollectionWidget *>(this), &TableWidget::_on_remove).bind(p_index));
+        header->add_child(before);
+        header->add_child(after);
+        header->add_child(remove);
+    }
+    return header;
+}
+
+Control *TableWidget::_make_cell(int64_t p_index, const Variant &p_element, const String &p_column, const PackedInt64Array &p_chain)
+{
+    Ref<ValueAccessor> accessor = get_accessor();
+    String index_text = "[" + String::num_int64(p_index) + "]";
+    Ref<ValueAccessor> cell;
+    PackedInt64Array chain = p_chain;
+    Object *object = p_element.get_validated_object();
+    if (p_column == VALUE_COLUMN)
+    {
+        // Élément lui-même (valeur simple, ou objet nul : « Nouveau… »).
+        if (object || p_element.get_type() == Variant::DICTIONARY)
+        {
+            return nullptr;
+        }
+        cell = accessor->child(p_index, element_info(element_decl, index_text), index_text);
+    }
+    else if (object)
+    {
+        if (get_ancestors().has((int64_t)object->get_instance_id()))
+        {
+            Label *cycle = memnew(Label);
+            cycle->set_text(U"↺");
+            return cycle;
+        }
+        cell.instantiate();
+        cell->setup(object, p_column);
+        if (cell->get_property_info().is_empty())
+        {
+            return nullptr;
+        }
+        chain.push_back((int64_t)object->get_instance_id());
+    }
+    else if (p_element.get_type() == Variant::DICTIONARY)
+    {
+        Dictionary dictionary = p_element;
+        Variant key;
+        Array keys = dictionary.keys();
+        bool found = false;
+        for (int k = 0; k < keys.size() && !found; k++)
+        {
+            if (PropertyWidget::stringify(keys[k]) == p_column)
+            {
+                key = keys[k];
+                found = true;
+            }
+        }
+        if (!found)
+        {
+            return nullptr;
+        }
+        Dictionary value_info;
+        value_info["name"] = p_column;
+        value_info["type"] = dictionary[key].get_type();
+        cell = accessor->child(p_index, element_info(element_decl, index_text), index_text)->child(key, value_info, p_column);
+    }
+    else if (p_element.get_type() == Variant::NIL && p_column == String())
+    {
+        cell = accessor->child(p_index, element_info(element_decl, index_text), index_text);
+    }
+    else
+    {
+        return nullptr;
+    }
+    Ref<DataEntry> entry = make_default_entry(cell->get_property_info());
+    Ref<WidgetSettings> compact;
+    compact.instantiate();
+    compact->set_show_label(false);
+    entry->set_settings(compact);
+    PropertyWidget *widget = build_child(cell, entry, chain);
+    if (!widget)
+    {
+        Label *depth = memnew(Label);
+        depth->set_text(U"…");
+        return depth;
+    }
+    widget->set_h_size_flags(SIZE_EXPAND_FILL);
+    return widget;
+}
+
+void TableWidget::fill(const Variant &p_value)
+{
+    if (p_value.get_type() != Variant::ARRAY)
+    {
+        CollectionWidget::fill(p_value); // null (« Créer le tableau ») ou type inattendu
+        return;
+    }
+    Array all = p_value;
+    int64_t size = all.size();
+    int64_t shown = MIN(size, (int64_t)get_max_displayed());
+    Array elements = all.slice(0, shown);
+    Ref<TableWidgetSettings> table_settings = get_settings();
+    bool transposed = table_settings.is_valid() && table_settings->get_transpose();
+    PackedStringArray columns = columns_for(elements, table_settings.is_valid() ? table_settings->get_table_columns() : PackedStringArray());
+    PackedInt64Array chain = get_ancestors();
+
+    auto header_label = [](const String &p_text) {
+        Label *label = memnew(Label);
+        label->set_text(p_text);
+        label->set_modulate(Color(1, 1, 1, 0.75));
+        return label;
+    };
+    auto column_title = [](const String &p_column) { return p_column == VALUE_COLUMN ? String("valeur") : PropertyWidget::display_name(p_column); };
+    auto cell_or_dash = [&](int64_t p_index, const String &p_column) -> Control * {
+        Variant element = elements[p_index];
+        Control *cell = _make_cell(p_index, element, p_column, chain);
+        // Élément nul : « Nouveau… » (widget de l'élément) dans la première colonne.
+        if (!cell && element.get_type() == Variant::NIL && p_column == columns[0])
+        {
+            cell = _make_cell(p_index, element, String(), chain);
+        }
+        if (!cell)
+        {
+            Label *dash = memnew(Label);
+            dash->set_text(U"—");
+            dash->set_modulate(Color(1, 1, 1, 0.4));
+            dash->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+            cell = dash;
+        }
+        return cell;
+    };
+
+    GridContainer *grid = memnew(GridContainer);
+    grid->set_h_size_flags(SIZE_EXPAND_FILL);
+    if (!transposed)
+    {
+        // Une ligne par élément, une colonne par propriété.
+        grid->set_columns(columns.size() + 1);
+        grid->add_child(memnew(Control));
+        for (const String &column : columns)
+        {
+            grid->add_child(header_label(column_title(column)));
+        }
+        for (int64_t i = 0; i < shown; i++)
+        {
+            grid->add_child(_make_element_header(i, size, false));
+            for (const String &column : columns)
+            {
+                grid->add_child(cell_or_dash(i, column));
+            }
+        }
+    }
+    else
+    {
+        // Une ligne par propriété, une colonne par élément.
+        grid->set_columns(shown + 1);
+        grid->add_child(memnew(Control));
+        for (int64_t i = 0; i < shown; i++)
+        {
+            grid->add_child(_make_element_header(i, size, true));
+        }
+        for (const String &column : columns)
+        {
+            grid->add_child(header_label(column_title(column)));
+            for (int64_t i = 0; i < shown; i++)
+            {
+                grid->add_child(cell_or_dash(i, column));
+            }
+        }
+    }
+    add_item(grid, String());
+    if (size > shown)
+    {
+        add_note(U"… " + String::num_int64(size - shown) + U" autres éléments");
+    }
+    if (!is_read_only())
+    {
+        Button *add = make_button(U"+ Ajouter un élément");
+        add->connect("pressed", callable_mp(static_cast<CollectionWidget *>(this), &TableWidget::_on_add));
+        add_footer(add);
+    }
 }

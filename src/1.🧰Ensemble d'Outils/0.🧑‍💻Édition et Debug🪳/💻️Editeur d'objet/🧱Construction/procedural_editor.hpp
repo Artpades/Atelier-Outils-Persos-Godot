@@ -1,6 +1,7 @@
 #ifndef PROCEDURAL_EDITOR_HPP
 #define PROCEDURAL_EDITOR_HPP
 
+#include "rich_tooltip.hpp"
 #include "sync_controller.hpp"
 #include "widget_factory.hpp"
 
@@ -82,6 +83,14 @@ class ProceduralEditor : public VBoxContainer
     bool styles_enabled = true;
     bool global_style_applied = false;
     Ref<StyleBox> global_background;
+    // Comportements : groupes construits (nom -> [ObjectID du nœud extérieur, ObjectID de la racine]),
+    // dernier état appliqué par cible (signature), éléments qui ont reçu un style conditionnel, état des
+    // comportements de script (« ObjectID:cible » -> actif).
+    Dictionary group_nodes;
+    Dictionary behavior_signatures;
+    Dictionary behavior_styled;
+    Dictionary script_behavior_states;
+    RichTooltip *rich_tooltip = nullptr; // enfant interne possédé
     Ref<TypeLayout> active_layout;
     Ref<DataRegistry> active_registry;
     Ref<GroupRegistry> active_groups;
@@ -99,10 +108,13 @@ class ProceduralEditor : public VBoxContainer
 
     void _clear_widgets();
     void _apply_global_style();
+    void _evaluate_behaviors();
+    Control *_behavior_target(const String &p_name, CanvasItem **r_style_item, Ref<InterfaceStyle> *r_base_style) const;
     void _resolve_registries(Object *p_target);
     void _update_gizmos();
     // Conteneur d'un groupe (ajouté au contenu) ; r_root reçoit sa racine (titre + avertissements).
-    Container *_make_group_container(const Ref<GroupEntry> &p_group, VBoxContainer *&r_root);
+    // p_parent : TabContainer d'un groupe en onglets (la racine devient une page, sans titre), sinon le contenu.
+    Container *_make_group_container(const Ref<GroupEntry> &p_group, VBoxContainer *&r_root, Container *p_parent = nullptr);
     static Dictionary _find_method(Object *p_target, const StringName &p_method);
     static Dictionary _find_signal(Object *p_target, const StringName &p_signal);
     void _show_status(const String &p_text);
@@ -156,6 +168,9 @@ class ProceduralEditor : public VBoxContainer
     Ref<InterfaceStyle> get_effective_style() const;
     // Éléments dont des uniforms de shader sont liés (mis à jour en direct).
     int get_styled_count() const;
+    // Réévalue les comportements (fait aussi après chaque relecture et chaque reconstruction).
+    void evaluate_behaviors();
+    RichTooltip *get_rich_tooltip() const;
     Ref<TypeLayout> get_active_layout() const;
     Ref<DataRegistry> get_active_registry() const;
     Ref<GroupRegistry> get_active_group_registry() const;

@@ -42,6 +42,8 @@ class GroupMatrixEditor : public VBoxContainer
     void _on_style_changed();
     void _on_remove_member(const String &p_name, int64_t p_index);
     void _on_add_member(int64_t p_item, int64_t p_index, uint64_t p_option_id);
+    void _on_remove_page(const String &p_name, int64_t p_index);
+    void _on_add_page(int64_t p_item, int64_t p_index, uint64_t p_option_id);
     void _on_new_group();
 
   protected:

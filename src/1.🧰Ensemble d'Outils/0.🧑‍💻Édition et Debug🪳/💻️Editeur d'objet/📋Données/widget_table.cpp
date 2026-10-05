@@ -28,6 +28,10 @@ const WC NODE_PATH_CHOICES[] = {DataEntry::WIDGET_PATH_BUTTON,    DataEntry::WID
                                 DataEntry::WIDGET_TAB_CONTAINER, DataEntry::WIDGET_LABEL,         DataEntry::WIDGET_CUSTOM};
 const WC COLLECTION_CHOICES[] = {DataEntry::WIDGET_BOX_CONTAINER, DataEntry::WIDGET_GRID_CONTAINER, DataEntry::WIDGET_FLOW_CONTAINER, DataEntry::WIDGET_TAB_CONTAINER,
                                  DataEntry::WIDGET_LABEL,         DataEntry::WIDGET_CUSTOM};
+// Array : en plus, le tableau (éléments objets ou dictionnaires : une colonne par propriété / clé).
+const WC ARRAY_CHOICES[] = {DataEntry::WIDGET_BOX_CONTAINER, DataEntry::WIDGET_GRID_CONTAINER, DataEntry::WIDGET_FLOW_CONTAINER, DataEntry::WIDGET_TAB_CONTAINER,
+                            DataEntry::WIDGET_TABLE,         DataEntry::WIDGET_LABEL,          DataEntry::WIDGET_CUSTOM};
+const WC PREVIEW_CHOICES[] = {DataEntry::WIDGET_PREVIEW};
 const WC STRUCT_CHOICES[] = {DataEntry::WIDGET_STRUCT_SPIN_BOXES, DataEntry::WIDGET_LABEL, DataEntry::WIDGET_CUSTOM};
 const WC VARIANT_CHOICES[] = {DataEntry::WIDGET_VARIANT_SELECTOR, DataEntry::WIDGET_LABEL, DataEntry::WIDGET_CUSTOM};
 const WC LABEL_CHOICES[] = {DataEntry::WIDGET_LABEL, DataEntry::WIDGET_CUSTOM};
@@ -59,11 +63,13 @@ const char32_t *const CHOICE_NAMES[] = {U"Auto",
                                     U"VariantSelector",
                                     U"CheckBoxList",
                                     U"FlowContainer",
-                                    U"TabContainer"};
+                                    U"TabContainer",
+                                    U"Tableau",
+                                    U"Aperçu"};
 
 // Noms affichés, dans l'ordre des valeurs de DataEntry::DataKind (index = valeur).
 const char32_t *const KIND_NAMES[] = {U"Non pris en charge", U"Bool",      U"Nombre",     U"Texte",     U"Enum",   U"Flags",   U"Couleur", U"Méthode", U"Signal",
-                                  U"Objet",              U"NodePath", U"Array",      U"Dictionary", U"Structure", U"Variant", U"RID",     U"PackedArray"};
+                                  U"Objet",              U"NodePath", U"Array",      U"Dictionary", U"Structure", U"Variant", U"RID",     U"PackedArray", U"Aperçu"};
 
 String make_hint(const char32_t *const *p_names, int p_count)
 {
@@ -104,6 +110,9 @@ WidgetTable::Choices WidgetTable::allowed_for(DataEntry::DataKind p_kind)
     case DataEntry::KIND_NODE_PATH:
         return make_choices(NODE_PATH_CHOICES);
     case DataEntry::KIND_ARRAY:
+        return make_choices(ARRAY_CHOICES);
+    case DataEntry::KIND_PREVIEW:
+        return make_choices(PREVIEW_CHOICES);
     case DataEntry::KIND_DICTIONARY:
     case DataEntry::KIND_PACKED_ARRAY:
         return make_choices(COLLECTION_CHOICES);
@@ -142,6 +151,10 @@ DataEntry::DataKind WidgetTable::kind_of(const Dictionary &p_info, DataEntry::Me
     if (p_member == DataEntry::MEMBER_METHOD)
     {
         return DataEntry::KIND_METHOD;
+    }
+    if (p_member == DataEntry::MEMBER_PREVIEW)
+    {
+        return DataEntry::KIND_PREVIEW;
     }
     if (p_member == DataEntry::MEMBER_SIGNAL)
     {
@@ -241,6 +254,8 @@ String WidgetTable::member_name(DataEntry::MemberKind p_member)
         return U"Méthode";
     case DataEntry::MEMBER_SIGNAL:
         return "Signal";
+    case DataEntry::MEMBER_PREVIEW:
+        return U"Aperçu";
     default:
         return U"Propriété";
     }
@@ -281,6 +296,10 @@ StringName WidgetTable::settings_class_for(DataEntry::WidgetChoice p_choice)
     case DataEntry::WIDGET_FLOW_CONTAINER:
     case DataEntry::WIDGET_TAB_CONTAINER:
         return "ContainerWidgetSettings";
+    case DataEntry::WIDGET_TABLE:
+        return "TableWidgetSettings";
+    case DataEntry::WIDGET_PREVIEW:
+        return "PreviewSettings";
     default:
         return "WidgetSettings";
     }

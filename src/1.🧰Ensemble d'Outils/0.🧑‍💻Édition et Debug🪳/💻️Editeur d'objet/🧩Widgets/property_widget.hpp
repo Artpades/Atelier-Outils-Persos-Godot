@@ -42,6 +42,14 @@ class PropertyWidget : public BoxContainer
     // Élément qui a reçu le style des réglages (le widget, sa valeur ou son libellé) ; fond dessiné si c'est le widget.
     ObjectID styled_item_id;
     Ref<StyleBox> background;
+    // Icône (réglages, remplaçable par un comportement « Icône si »), libellé, verrouillage et infobulles.
+    ObjectID icon_rect_id;
+    ObjectID name_label_id;
+    Ref<Texture2D> base_icon;
+    bool locked = false;
+    PackedStringArray tooltip_texts;
+
+    static void _set_controls_editable(Node *p_node, bool p_editable);
 
     // Contexte de construction des widgets enfants (collections, objets...) ; nul pour un widget isolé.
     Ref<WidgetContext> context;
@@ -73,7 +81,6 @@ class PropertyWidget : public BoxContainer
     int get_depth() const { return depth; }
     PackedInt64Array get_ancestors() const { return ancestors; }
     Ref<WidgetContext> get_context() const { return context; }
-    Ref<DataEntry> get_entry() const { return entry; }
 
   public:
     // Nom lisible d'une propriété (my_property → « My Property »).
@@ -87,6 +94,7 @@ class PropertyWidget : public BoxContainer
     // Contexte de construction (à donner avant setup).
     void set_context(const Ref<WidgetContext> &p_context, int p_depth, const PackedInt64Array &p_ancestors);
     void set_entry(const Ref<DataEntry> &p_entry) { entry = p_entry; }
+    Ref<DataEntry> get_entry() const { return entry; }
     // Faux pour un widget sans valeur à synchroniser (ex: bouton de méthode).
     virtual bool is_value_widget() const { return true; }
     // Valeur suivie par le SyncController (par défaut : la valeur pointée par l'accesseur ; un widget de
@@ -114,6 +122,17 @@ class PropertyWidget : public BoxContainer
     Ref<WidgetSettings> get_settings() const;
     // Élément stylé par settings->style (nul sans style) : le ProceduralEditor y relie les uniforms du shader.
     CanvasItem *get_styled_item() const;
+
+    // Icône affichée : p_icon, ou celle des réglages si p_icon est nulle.
+    void set_icon_override(const Ref<Texture2D> &p_icon);
+    Ref<Texture2D> get_displayed_icon() const;
+    // Verrouillage par un comportement (« Activer si » faux) : contrôles désactivés, aucune valeur émise.
+    void set_locked(bool p_locked);
+    bool is_locked() const;
+    // Infobulles (BBCode, modèles {…}) affichées au survol par l'infobulle enrichie de l'éditeur. Vide :
+    // infobulle simple de Godot (nom de la propriété).
+    void set_tooltip_texts(const PackedStringArray &p_texts);
+    PackedStringArray get_tooltip_texts() const;
     DataEntry::WidgetChoice get_style() const;
     bool is_read_only() const;
 

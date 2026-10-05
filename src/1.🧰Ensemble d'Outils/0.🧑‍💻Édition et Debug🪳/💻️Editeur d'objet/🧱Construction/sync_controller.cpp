@@ -20,6 +20,7 @@ void SyncController::_bind_methods()
 
     // La cible a été libérée : les widgets ne sont plus valides.
     ADD_SIGNAL(MethodInfo("target_lost"));
+    ADD_SIGNAL(MethodInfo("synced")); // après chaque relecture des widgets
 }
 
 SyncController::SyncController()
@@ -158,6 +159,7 @@ void SyncController::_process(double p_delta)
         _refresh_widget(widget, false);
     }
     update_styled();
+    emit_signal("synced");
 }
 
 void SyncController::refresh_all(bool p_force)

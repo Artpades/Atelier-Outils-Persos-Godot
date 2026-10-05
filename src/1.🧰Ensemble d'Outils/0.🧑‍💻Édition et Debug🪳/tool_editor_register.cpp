@@ -19,9 +19,13 @@
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/interface_style_editor.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/layout_database_window.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/object_interface_panel.hpp"
+#include "💻️Editeur d'objet/🧑‍💻Éditeur/behavior_list_editor.hpp"
+#include "💻️Editeur d'objet/🧑‍💻Éditeur/icon_picker.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/layout_database_export_plugin.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/object_editor_plugin.hpp"
+#include "💻️Editeur d'objet/🧑‍💻Éditeur/preview_source_editor.hpp"
 #include "💻️Editeur d'objet/🧩Widgets/container_widgets.hpp"
+#include "💻️Editeur d'objet/🧩Widgets/preview_widget.hpp"
 #include "💻️Editeur d'objet/🧩Widgets/scalar_widgets.hpp"
 #include "💻️Editeur d'objet/🧩Widgets/signal_widget.hpp"
 #include "💻️Editeur d'objet/🧩Widgets/special_widgets.hpp"
@@ -53,6 +57,10 @@ static void initialize(ModuleInitializationLevel p_level)
         GDREGISTER_INTERNAL_CLASS(GroupMatrixEditor);
         GDREGISTER_INTERNAL_CLASS(GizmoListEditor);
         GDREGISTER_INTERNAL_CLASS(InterfaceStyleEditor);
+        GDREGISTER_ABSTRACT_CLASS(EditorIconPicker); // copy_editor_icon accessible aux scripts d'éditeur
+        GDREGISTER_INTERNAL_CLASS(IconPickerRow);
+        GDREGISTER_INTERNAL_CLASS(BehaviorListEditor);
+        GDREGISTER_ABSTRACT_CLASS(PreviewSourceEditor); // source_hint_of accessible aux scripts d'éditeur
         GDREGISTER_INTERNAL_CLASS(GizmoConfigWindow);
         GDREGISTER_ABSTRACT_CLASS(LayoutDatabaseWindow); // abstraite : open() statique accessible aux scripts de test
         GDREGISTER_INTERNAL_CLASS(InterfaceConfigWindow);
@@ -83,6 +91,14 @@ static void initialize(ModuleInitializationLevel p_level)
     // Éditeur d'objet (runtime). Ordre : une classe parente avant ses classes filles.
     GDREGISTER_INTERNAL_CLASS(MaterialPropagator);
     GDREGISTER_CLASS(ShaderParameterBinding);
+    GDREGISTER_CLASS(WidgetBehavior);
+    GDREGISTER_CLASS(ShowIfBehavior);
+    GDREGISTER_CLASS(HideIfBehavior);
+    GDREGISTER_CLASS(EnableIfBehavior);
+    GDREGISTER_CLASS(StyleIfBehavior);
+    GDREGISTER_CLASS(TooltipIfBehavior);
+    GDREGISTER_CLASS(IconIfBehavior);
+    GDREGISTER_ABSTRACT_CLASS(RichTooltip); // visible des scripts (ProceduralEditor.get_rich_tooltip), non instanciable
     GDREGISTER_CLASS(InterfaceStyle);
     GDREGISTER_CLASS(WidgetSettings);
     GDREGISTER_CLASS(RangeWidgetSettings);
@@ -90,6 +106,8 @@ static void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(TextEditWidgetSettings);
     GDREGISTER_CLASS(StructWidgetSettings);
     GDREGISTER_CLASS(ContainerWidgetSettings);
+    GDREGISTER_CLASS(TableWidgetSettings);
+    GDREGISTER_CLASS(PreviewSettings);
     GDREGISTER_CLASS(ArgumentBinding);
     GDREGISTER_CLASS(SignalLink);
     GDREGISTER_CLASS(DataEntry);
@@ -109,6 +127,13 @@ static void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(StructWidget);
     GDREGISTER_CLASS(ContainerWidget);
     GDREGISTER_CLASS(CollectionWidget);
+    GDREGISTER_CLASS(TableWidget);
+    GDREGISTER_CLASS(PreviewStage3D);
+    GDREGISTER_CLASS(PreviewStage2D);
+    GDREGISTER_CLASS(PreviewWidget);
+    GDREGISTER_CLASS(TexturePreview);
+    GDREGISTER_CLASS(Model3DPreview);
+    GDREGISTER_CLASS(Scene2DPreview);
     GDREGISTER_CLASS(ObjectWidget);
     GDREGISTER_CLASS(PathWidget);
     GDREGISTER_CLASS(VariantWidget);

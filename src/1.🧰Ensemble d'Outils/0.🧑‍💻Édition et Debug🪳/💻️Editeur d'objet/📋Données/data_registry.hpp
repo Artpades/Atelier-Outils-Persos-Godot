@@ -3,6 +3,7 @@
 
 #include "data_entry.hpp"
 #include "group_registry.hpp"
+#include "widget_behavior.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/object_id.hpp>
@@ -27,6 +28,7 @@ class DataRegistry : public Resource
     bool scan_methods = false;
     bool scan_signals = false;
     bool include_private_methods = false; // méthodes / signaux commençant par « _ »
+    TypedArray<WidgetBehavior> behaviors; // comportements conditionnels (Montrer si, Cacher si...)
     ObjectID target_id;
 
     // Fusionne une catégorie de membres. Remplit r_seen avec les entrées encore présentes. Les nouveaux
@@ -52,6 +54,8 @@ class DataRegistry : public Resource
     bool get_scan_signals() const;
     void set_include_private_methods(bool p_include);
     bool get_include_private_methods() const;
+    void set_behaviors(const TypedArray<WidgetBehavior> &p_behaviors);
+    TypedArray<WidgetBehavior> get_behaviors() const;
 
     // Cible de la dernière synchronisation (nullptr si aucune ou libérée).
     Object *get_target() const;

@@ -30,6 +30,7 @@ class ShaderParameterBinding : public Resource
     StringName get_parameter() const;
     void set_binding(const Ref<ArgumentBinding> &p_binding);
     Ref<ArgumentBinding> get_binding(); // créé à la première lecture
+    Ref<ArgumentBinding> get_stored_binding() const; // tel qu'enregistré (peut être nul)
 };
 
 // Propagation d'un matériau aux éléments ajoutés plus tard (sous-objets dépliés, reconstruction) : objet
@@ -93,6 +94,9 @@ class InterfaceStyle : public Resource
     Ref<Material> apply_to(CanvasItem *p_item) const;
     // Retire ce qu'un style a pu poser sur p_item (thème, variation, teintes, matériau, propagation).
     static void clear_from(CanvasItem *p_item);
+    // Retire tout style de p_item puis remet son style de base (p_base, peut être nul) ; sans matériau de base,
+    // p_item reprend la propagation du matériau de son parent si celui-ci en a une.
+    static void restore(CanvasItem *p_item, const Ref<InterfaceStyle> &p_base);
     // Uniforms liés : valeurs lues sur p_context (cible de l'éditeur) et écrites dans le matériau de p_item.
     void update_parameters(CanvasItem *p_item, Object *p_context) const;
     bool has_parameter_bindings() const;

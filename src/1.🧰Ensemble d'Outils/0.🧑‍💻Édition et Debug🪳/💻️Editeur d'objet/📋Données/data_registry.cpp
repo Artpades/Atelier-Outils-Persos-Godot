@@ -37,6 +37,9 @@ void DataRegistry::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scan_methods"), "set_scan_methods", "get_scan_methods");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scan_signals"), "set_scan_signals", "get_scan_signals");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "include_private_methods"), "set_include_private_methods", "get_include_private_methods");
+    ClassDB::bind_method(D_METHOD("set_behaviors", "behaviors"), &DataRegistry::set_behaviors);
+    ClassDB::bind_method(D_METHOD("get_behaviors"), &DataRegistry::get_behaviors);
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "behaviors", PROPERTY_HINT_ARRAY_TYPE, "WidgetBehavior"), "set_behaviors", "get_behaviors");
 
     ADD_SIGNAL(MethodInfo("synced"));
 }
@@ -53,6 +56,12 @@ void DataRegistry::set_scan_signals(bool p_scan) { scan_signals = p_scan; }
 bool DataRegistry::get_scan_signals() const { return scan_signals; }
 void DataRegistry::set_include_private_methods(bool p_include) { include_private_methods = p_include; }
 bool DataRegistry::get_include_private_methods() const { return include_private_methods; }
+void DataRegistry::set_behaviors(const TypedArray<WidgetBehavior> &p_behaviors)
+{
+    behaviors = p_behaviors;
+    emit_changed();
+}
+TypedArray<WidgetBehavior> DataRegistry::get_behaviors() const { return behaviors; }
 
 Object *DataRegistry::get_target() const { return ObjectDB::get_instance(target_id); }
 

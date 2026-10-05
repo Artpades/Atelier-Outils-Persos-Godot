@@ -20,7 +20,7 @@ void GroupEntry::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_data_names"), &GroupEntry::get_data_names);
 
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "group_name"), "set_group_name", "get_group_name");
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "container_type", PROPERTY_HINT_ENUM, "VBoxContainer:0,HBoxContainer:1,GridContainer:2,PanelContainer:3"), "set_container_type",
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "container_type", PROPERTY_HINT_ENUM, "VBoxContainer:0,HBoxContainer:1,GridContainer:2,PanelContainer:3,TabContainer:4"), "set_container_type",
                  "get_container_type");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "columns", PROPERTY_HINT_RANGE, "1,12,1"), "set_columns", "get_columns");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "is_vertical"), "set_is_vertical", "get_is_vertical");
@@ -28,11 +28,18 @@ void GroupEntry::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_style", "style"), &GroupEntry::set_style);
     ClassDB::bind_method(D_METHOD("get_style"), &GroupEntry::get_style);
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "style", PROPERTY_HINT_RESOURCE_TYPE, "InterfaceStyle"), "set_style", "get_style");
+    ClassDB::bind_method(D_METHOD("set_icon", "icon"), &GroupEntry::set_icon);
+    ClassDB::bind_method(D_METHOD("get_icon"), &GroupEntry::get_icon);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "icon", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_icon", "get_icon");
 
     BIND_ENUM_CONSTANT(CONTAINER_VBOX);
     BIND_ENUM_CONSTANT(CONTAINER_HBOX);
     BIND_ENUM_CONSTANT(CONTAINER_GRID);
     BIND_ENUM_CONSTANT(CONTAINER_PANEL);
+    BIND_ENUM_CONSTANT(CONTAINER_TABS);
+    ClassDB::bind_method(D_METHOD("set_child_groups", "groups"), &GroupEntry::set_child_groups);
+    ClassDB::bind_method(D_METHOD("get_child_groups"), &GroupEntry::get_child_groups);
+    ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "child_groups"), "set_child_groups", "get_child_groups");
 }
 
 void GroupEntry::set_group_name(const String &p_name)
@@ -79,6 +86,18 @@ void GroupEntry::set_style(const Ref<InterfaceStyle> &p_style)
     emit_changed();
 }
 Ref<InterfaceStyle> GroupEntry::get_style() const { return style; }
+void GroupEntry::set_icon(const Ref<Texture2D> &p_icon)
+{
+    icon = p_icon;
+    emit_changed();
+}
+Ref<Texture2D> GroupEntry::get_icon() const { return icon; }
+void GroupEntry::set_child_groups(const PackedStringArray &p_groups)
+{
+    child_groups = p_groups;
+    emit_changed();
+}
+PackedStringArray GroupEntry::get_child_groups() const { return child_groups; }
 
 // --- GroupRegistry ---
 
@@ -88,6 +107,7 @@ void GroupRegistry::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_groups"), &GroupRegistry::get_groups);
     ClassDB::bind_method(D_METHOD("find", "group_name"), &GroupRegistry::find);
     ClassDB::bind_method(D_METHOD("ensure", "group_name"), &GroupRegistry::ensure);
+    ClassDB::bind_method(D_METHOD("tabs_of", "group_name"), &GroupRegistry::tabs_of);
     ClassDB::bind_method(D_METHOD("group_of", "data_name"), &GroupRegistry::group_of);
     ClassDB::bind_method(D_METHOD("remove_data_name", "data_name"), &GroupRegistry::remove_data_name);
     ClassDB::bind_method(D_METHOD("assign", "data_name", "group"), &GroupRegistry::assign);
@@ -135,6 +155,19 @@ Ref<GroupEntry> GroupRegistry::group_of(const String &p_data_name) const
     {
         Ref<GroupEntry> group = groups[i];
         if (group.is_valid() && group->get_data_names().has(p_data_name))
+        {
+            return group;
+        }
+    }
+    return Ref<GroupEntry>();
+}
+
+Ref<GroupEntry> GroupRegistry::tabs_of(const String &p_group_name) const
+{
+    for (int i = 0; i < groups.size(); i++)
+    {
+        Ref<GroupEntry> group = groups[i];
+        if (group.is_valid() && group->get_container_type() == GroupEntry::CONTAINER_TABS && group->get_child_groups().has(p_group_name))
         {
             return group;
         }

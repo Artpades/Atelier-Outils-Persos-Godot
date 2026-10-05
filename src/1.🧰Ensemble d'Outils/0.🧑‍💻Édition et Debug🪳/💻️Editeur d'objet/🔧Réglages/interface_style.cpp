@@ -21,8 +21,9 @@ void ShaderParameterBinding::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_parameter"), &ShaderParameterBinding::get_parameter);
     ClassDB::bind_method(D_METHOD("set_binding", "binding"), &ShaderParameterBinding::set_binding);
     ClassDB::bind_method(D_METHOD("get_binding"), &ShaderParameterBinding::get_binding);
+    ClassDB::bind_method(D_METHOD("get_stored_binding"), &ShaderParameterBinding::get_stored_binding);
     ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "parameter"), "set_parameter", "get_parameter");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "binding", PROPERTY_HINT_RESOURCE_TYPE, "ArgumentBinding"), "set_binding", "get_binding");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "binding", PROPERTY_HINT_RESOURCE_TYPE, "ArgumentBinding"), "set_binding", "get_stored_binding");
 }
 
 void ShaderParameterBinding::set_parameter(const StringName &p_parameter)
@@ -36,6 +37,8 @@ void ShaderParameterBinding::set_binding(const Ref<ArgumentBinding> &p_binding)
     binding = p_binding;
     emit_changed();
 }
+// Getter de la propriété : sans création (Godot l'appelle aussi pour calculer la valeur par défaut).
+Ref<ArgumentBinding> ShaderParameterBinding::get_stored_binding() const { return binding; }
 Ref<ArgumentBinding> ShaderParameterBinding::get_binding()
 {
     if (binding.is_null())
@@ -229,6 +232,28 @@ void InterfaceStyle::clear_from(CanvasItem *p_item)
     p_item->set_self_modulate(Color(1, 1, 1, 1));
     p_item->set_material(Ref<Material>());
     MaterialPropagator::get_singleton()->propagate(p_item, false);
+}
+
+void InterfaceStyle::restore(CanvasItem *p_item, const Ref<InterfaceStyle> &p_base)
+{
+    if (!p_item)
+    {
+        return;
+    }
+    clear_from(p_item);
+    if (p_base.is_valid())
+    {
+        p_base->apply_to(p_item);
+    }
+    if (p_item->get_material().is_null())
+    {
+        CanvasItem *parent = Object::cast_to<CanvasItem>(p_item->get_parent());
+        if (parent && (parent->get_material().is_valid() || parent->get_use_parent_material()))
+        {
+            p_item->set_use_parent_material(true);
+            MaterialPropagator::get_singleton()->propagate(p_item, true);
+        }
+    }
 }
 
 void InterfaceStyle::update_parameters(CanvasItem *p_item, Object *p_context) const
