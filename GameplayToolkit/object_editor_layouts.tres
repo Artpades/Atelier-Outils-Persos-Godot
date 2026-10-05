@@ -54,5 +54,252 @@ data_registry = SubResource("DataRegistry_n0jsa")
 group_registry = SubResource("GroupRegistry_j57n7")
 gizmo_registry = SubResource("GizmoRegistry_s4e8j")
 
+[sub_resource type="DataEntry" id="DataEntry_n0jsa"]
+data_name = &"booleen"
+kind = 1
+
+[sub_resource type="RangeWidgetSettings" id="RangeWidgetSettings_ucpbr"]
+
+[sub_resource type="DataEntry" id="DataEntry_s4e8j"]
+data_name = &"entier"
+kind = 2
+widget_choice = 7
+settings = SubResource("RangeWidgetSettings_ucpbr")
+
+[sub_resource type="DataEntry" id="DataEntry_j57n7"]
+data_name = &"decimal_borne"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_ohekp"]
+data_name = &"valeur_bornee"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_nh6t7"]
+data_name = &"lecture_seule"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_r3p04"]
+data_name = &"compteur"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_jaenw"]
+data_name = &"auto_increment"
+kind = 1
+
+[sub_resource type="DataEntry" id="DataEntry_b0gly"]
+data_name = &"enum_entier"
+kind = 4
+
+[sub_resource type="DataEntry" id="DataEntry_jkyhh"]
+data_name = &"enum_texte"
+kind = 4
+
+[sub_resource type="DataEntry" id="DataEntry_ga42r"]
+data_name = &"drapeaux"
+kind = 5
+
+[sub_resource type="DataEntry" id="DataEntry_xsums"]
+data_name = &"texte"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_17712"]
+data_name = &"texte_multiligne"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_dx6u0"]
+data_name = &"nom"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_oijpq"]
+data_name = &"couleur"
+kind = 6
+
+[sub_resource type="DataEntry" id="DataEntry_5r762"]
+data_name = &"couleur_sans_alpha"
+kind = 6
+
+[sub_resource type="DataEntry" id="DataEntry_4qrop"]
+data_name = &"vecteur2"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_rfixc"]
+data_name = &"vecteur2i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_2vblr"]
+data_name = &"vecteur3"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_n0ldx"]
+data_name = &"vecteur3i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_vpu0l"]
+data_name = &"vecteur4"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_emis6"]
+data_name = &"vecteur4i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_xfylt"]
+data_name = &"rect2"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_cg6ky"]
+data_name = &"rect2i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_m2wb8"]
+data_name = &"aabb"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_f8xyw"]
+data_name = &"plan"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_bah1c"]
+data_name = &"quaternion"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_xpvwc"]
+data_name = &"base"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_g3u1f"]
+data_name = &"transform2d"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_3samk"]
+data_name = &"transform3d"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_5peen"]
+data_name = &"projection"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_wqewk"]
+data_name = &"rid"
+kind = 15
+
+[sub_resource type="DataEntry" id="DataEntry_tc4u6"]
+data_name = &"dernier_appel"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_va8cn"]
+data_name = &"tableau_entiers"
+kind = 11
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_fo3yw"]
+data_name = &"tableau_libre"
+kind = 11
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_pqben"]
+data_name = &"dictionnaire"
+kind = 12
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_oe58b"]
+data_name = &"vecteurs"
+kind = 16
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_3q7w5"]
+data_name = &"ressource"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_3y604"]
+data_name = &"noeud"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_8t4dp"]
+data_name = &"chemin"
+kind = 10
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_dbqdj"]
+data_name = &"variant"
+kind = 14
+
+[sub_resource type="DataEntry" id="DataEntry_rorwb"]
+data_name = &"target_path"
+kind = 10
+is_vertical = true
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_4riss"]
+data_name = &"target_resource"
+kind = 9
+is_vertical = true
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_um7co"]
+data_name = &"registry"
+kind = 9
+is_vertical = true
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_ws0rd"]
+data_name = &"group_registry"
+kind = 9
+is_vertical = true
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_12urt"]
+data_name = &"max_depth"
+kind = 2
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_4gpcc"]
+data_name = &"layout_database"
+kind = 9
+is_vertical = true
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_2y0wy"]
+data_name = &"use_layouts"
+kind = 1
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_d6evv"]
+data_name = &"draw_gizmos"
+kind = 1
+is_missing = true
+
+[sub_resource type="DataEntry" id="DataEntry_fi3mi"]
+data_name = &"sync_interval"
+kind = 2
+is_missing = true
+
+[sub_resource type="DataRegistry" id="DataRegistry_ypur3"]
+entries = Array[DataEntry]([SubResource("DataEntry_n0jsa"), SubResource("DataEntry_s4e8j"), SubResource("DataEntry_j57n7"), SubResource("DataEntry_ohekp"), SubResource("DataEntry_nh6t7"), SubResource("DataEntry_r3p04"), SubResource("DataEntry_jaenw"), SubResource("DataEntry_b0gly"), SubResource("DataEntry_jkyhh"), SubResource("DataEntry_ga42r"), SubResource("DataEntry_xsums"), SubResource("DataEntry_17712"), SubResource("DataEntry_dx6u0"), SubResource("DataEntry_oijpq"), SubResource("DataEntry_5r762"), SubResource("DataEntry_4qrop"), SubResource("DataEntry_rfixc"), SubResource("DataEntry_2vblr"), SubResource("DataEntry_n0ldx"), SubResource("DataEntry_vpu0l"), SubResource("DataEntry_emis6"), SubResource("DataEntry_xfylt"), SubResource("DataEntry_cg6ky"), SubResource("DataEntry_m2wb8"), SubResource("DataEntry_f8xyw"), SubResource("DataEntry_bah1c"), SubResource("DataEntry_xpvwc"), SubResource("DataEntry_g3u1f"), SubResource("DataEntry_3samk"), SubResource("DataEntry_5peen"), SubResource("DataEntry_wqewk"), SubResource("DataEntry_tc4u6"), SubResource("DataEntry_va8cn"), SubResource("DataEntry_fo3yw"), SubResource("DataEntry_pqben"), SubResource("DataEntry_oe58b"), SubResource("DataEntry_3q7w5"), SubResource("DataEntry_3y604"), SubResource("DataEntry_8t4dp"), SubResource("DataEntry_dbqdj"), SubResource("DataEntry_rorwb"), SubResource("DataEntry_4riss"), SubResource("DataEntry_um7co"), SubResource("DataEntry_ws0rd"), SubResource("DataEntry_12urt"), SubResource("DataEntry_4gpcc"), SubResource("DataEntry_2y0wy"), SubResource("DataEntry_d6evv"), SubResource("DataEntry_fi3mi")])
+
+[sub_resource type="GizmoRegistry" id="GizmoRegistry_ljv4k"]
+
+[sub_resource type="GroupEntry" id="GroupEntry_ddglg"]
+group_name = "Collections"
+data_names = PackedStringArray("tableau_entiers", "tableau_libre", "dictionnaire", "vecteurs")
+
+[sub_resource type="GroupEntry" id="GroupEntry_21ovo"]
+group_name = "Objets"
+data_names = PackedStringArray("ressource", "noeud")
+
+[sub_resource type="GroupEntry" id="GroupEntry_ksf35"]
+group_name = "Objets / Chemins"
+data_names = PackedStringArray("chemin", "variant")
+
+[sub_resource type="GroupRegistry" id="GroupRegistry_wwy8k"]
+groups = Array[GroupEntry]([SubResource("GroupEntry_ddglg"), SubResource("GroupEntry_21ovo"), SubResource("GroupEntry_ksf35")])
+
+[sub_resource type="TypeLayout" id="TypeLayout_cog2b"]
+type_name = "ObjectEditorDemo"
+data_registry = SubResource("DataRegistry_ypur3")
+group_registry = SubResource("GroupRegistry_wwy8k")
+gizmo_registry = SubResource("GizmoRegistry_ljv4k")
+
 [resource]
-layouts = Array[TypeLayout]([SubResource("TypeLayout_ohekp")])
+layouts = Array[TypeLayout]([SubResource("TypeLayout_ohekp"), SubResource("TypeLayout_cog2b")])

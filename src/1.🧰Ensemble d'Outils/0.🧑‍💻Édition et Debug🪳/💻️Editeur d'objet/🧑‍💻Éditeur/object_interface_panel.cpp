@@ -21,6 +21,7 @@ void ObjectInterfacePanel::_bind_methods()
     ClassDB::bind_method(D_METHOD("is_dirty"), &ObjectInterfacePanel::is_dirty);
     ClassDB::bind_method(D_METHOD("get_preview"), &ObjectInterfacePanel::get_preview);
     ClassDB::bind_method(D_METHOD("get_gizmo_list"), &ObjectInterfacePanel::get_gizmo_list);
+    ClassDB::bind_method(D_METHOD("get_style_editor"), &ObjectInterfacePanel::get_style_editor);
     ClassDB::bind_method(D_METHOD("get_gizmo_host"), &ObjectInterfacePanel::get_gizmo_host);
     ClassDB::bind_method(D_METHOD("save"), &ObjectInterfacePanel::save);
 }
@@ -66,6 +67,10 @@ ObjectInterfacePanel::ObjectInterfacePanel()
     gizmo_list->connect("registry_changed", callable_mp(this, &ObjectInterfacePanel::_on_gizmos_changed));
     tabs->add_child(gizmo_list);
     tabs->set_tab_title(3, "Gizmos");
+    style_editor = memnew(InterfaceStyleEditor);
+    style_editor->connect("style_changed", callable_mp(this, &ObjectInterfacePanel::_on_registry_changed));
+    tabs->add_child(style_editor);
+    tabs->set_tab_title(4, "Style");
 
     gizmo_host = memnew(GizmoHost);
     add_child(gizmo_host, false, INTERNAL_MODE_BACK);
@@ -120,7 +125,12 @@ void ObjectInterfacePanel::_bind_layout()
 
     preview->set_group_registry(groups);
     preview->set_registry(data);
+    preview->set_style(layout->get_style()); // style en cours d'édition (la nouvelle interface n'est pas encore dans la base)
     preview->set_target(target);
+    data_matrix->set_context_object(target);
+    group_matrix->set_context_object(target);
+    style_editor->set_context_object(target);
+    style_editor->set_owner(layout.ptr(), "style");
     data_matrix->set_registry(data);
     group_matrix->set_registries(groups, data);
     gizmo_list->set_context_object(target);
@@ -160,6 +170,10 @@ void ObjectInterfacePanel::_set_dirty(bool p_dirty)
 void ObjectInterfacePanel::_on_registry_changed()
 {
     _set_dirty(true);
+    if (layout.is_valid())
+    {
+        preview->set_style(layout->get_style());
+    }
     preview->rebuild();
 }
 
@@ -175,6 +189,7 @@ void ObjectInterfacePanel::_on_make_own()
     own.instantiate();
     own->set_type_name(own_type);
     own->set_priority(layout->get_priority());
+    own->set_style(layout->get_style()); // style partagé (ressource), pas copié
     // Copie profonde : l'interface parente reste inchangée.
     if (layout->get_data_registry().is_valid())
     {
@@ -230,4 +245,5 @@ bool ObjectInterfacePanel::is_pending() const { return pending; }
 bool ObjectInterfacePanel::is_dirty() const { return dirty; }
 ProceduralEditor *ObjectInterfacePanel::get_preview() const { return preview; }
 GizmoListEditor *ObjectInterfacePanel::get_gizmo_list() const { return gizmo_list; }
+InterfaceStyleEditor *ObjectInterfacePanel::get_style_editor() const { return style_editor; }
 GizmoHost *ObjectInterfacePanel::get_gizmo_host() const { return gizmo_host; }

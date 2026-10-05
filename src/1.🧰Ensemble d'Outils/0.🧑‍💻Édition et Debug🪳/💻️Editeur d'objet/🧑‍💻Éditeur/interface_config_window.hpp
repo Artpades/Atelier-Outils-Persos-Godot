@@ -3,6 +3,7 @@
 
 #include "data_matrix_editor.hpp"
 #include "group_matrix_editor.hpp"
+#include "interface_style_editor.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧱Construction/procedural_editor.hpp"
 
@@ -42,6 +43,7 @@ class InterfaceConfigWindow : public Window
     OptionButton *scope = nullptr;
     DataMatrixEditor *matrix = nullptr;
     GroupMatrixEditor *group_matrix = nullptr;
+    InterfaceStyleEditor *style_editor = nullptr;
     ProceduralEditor *preview = nullptr;
 
     void _build_ui();
@@ -49,6 +51,7 @@ class InterfaceConfigWindow : public Window
     void _on_scan_toggled(bool p_on);
     void _on_scope_selected(int64_t p_index);
     void _on_registry_changed();
+    void _on_style_changed();
     void _on_close_requested();
 
   protected:

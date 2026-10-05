@@ -35,6 +35,9 @@ void TypeLayout::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "data_registry", PROPERTY_HINT_RESOURCE_TYPE, "DataRegistry"), "set_data_registry", "get_data_registry");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "group_registry", PROPERTY_HINT_RESOURCE_TYPE, "GroupRegistry"), "set_group_registry", "get_group_registry");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "gizmo_registry", PROPERTY_HINT_RESOURCE_TYPE, "GizmoRegistry"), "set_gizmo_registry", "get_gizmo_registry");
+    ClassDB::bind_method(D_METHOD("set_style", "style"), &TypeLayout::set_style);
+    ClassDB::bind_method(D_METHOD("get_style"), &TypeLayout::get_style);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "style", PROPERTY_HINT_RESOURCE_TYPE, "InterfaceStyle"), "set_style", "get_style");
 }
 
 void TypeLayout::set_type_name(const String &p_type)
@@ -73,6 +76,12 @@ void TypeLayout::set_gizmo_registry(const Ref<GizmoRegistry> &p_registry)
     emit_changed();
 }
 Ref<GizmoRegistry> TypeLayout::get_gizmo_registry() const { return gizmo_registry; }
+void TypeLayout::set_style(const Ref<InterfaceStyle> &p_style)
+{
+    style = p_style;
+    emit_changed();
+}
+Ref<InterfaceStyle> TypeLayout::get_style() const { return style; }
 
 void TypeLayout::ensure_registries()
 {

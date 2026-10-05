@@ -127,6 +127,10 @@ void InterfaceConfigWindow::_build_ui()
     group_matrix->connect("registry_changed", callable_mp(this, &InterfaceConfigWindow::_on_registry_changed));
     tabs->add_child(group_matrix);
     tabs->set_tab_title(1, "Groupes");
+    style_editor = memnew(InterfaceStyleEditor);
+    style_editor->connect("style_changed", callable_mp(this, &InterfaceConfigWindow::_on_style_changed));
+    tabs->add_child(style_editor);
+    tabs->set_tab_title(2, "Style");
 
     // --- Droite : aperçu en direct ---
     VBoxContainer *right = memnew(VBoxContainer);
@@ -187,8 +191,13 @@ void InterfaceConfigWindow::resync()
         target_label->set_text(U"⚠ Aucune cible : renseigner target_path ou target_resource du ProceduralEditor, puis Actualiser.");
     }
 
+    matrix->set_context_object(target);
+    group_matrix->set_context_object(target);
+    style_editor->set_context_object(target);
+    style_editor->set_owner(host, "style"); // style global : propriété « style » du ProceduralEditor
     matrix->set_registry(registry);
     group_matrix->set_registries(groups, registry);
+    preview->set_style(host->get_style());
     preview->set_group_registry(groups);
     preview->set_registry(registry);
     preview->set_target(target);
@@ -218,6 +227,15 @@ void InterfaceConfigWindow::_on_scope_selected(int64_t p_index)
     registry->set_scope((DataEntry::InspectionScope)scope->get_item_id(p_index));
     _on_registry_changed();
     resync();
+}
+
+void InterfaceConfigWindow::_on_style_changed()
+{
+    if (ProceduralEditor *host = _get_host())
+    {
+        preview->set_style(host->get_style());
+    }
+    _on_registry_changed();
 }
 
 void InterfaceConfigWindow::_on_registry_changed()

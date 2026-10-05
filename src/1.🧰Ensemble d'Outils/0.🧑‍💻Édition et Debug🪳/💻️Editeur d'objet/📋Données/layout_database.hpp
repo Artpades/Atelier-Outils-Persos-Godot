@@ -5,6 +5,7 @@
 #include "group_registry.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🎯Gizmos/gizmo_registry.hpp"
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🔧Réglages/interface_style.hpp"
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
@@ -25,6 +26,7 @@ class TypeLayout : public Resource
     Ref<DataRegistry> data_registry;
     Ref<GroupRegistry> group_registry;
     Ref<GizmoRegistry> gizmo_registry;
+    Ref<InterfaceStyle> style; // style global de l'interface du type
 
   protected:
     static void _bind_methods();
@@ -42,6 +44,8 @@ class TypeLayout : public Resource
     Ref<GroupRegistry> get_group_registry() const;
     void set_gizmo_registry(const Ref<GizmoRegistry> &p_registry);
     Ref<GizmoRegistry> get_gizmo_registry() const;
+    void set_style(const Ref<InterfaceStyle> &p_style);
+    Ref<InterfaceStyle> get_style() const;
 
     // Crée les registres absents (les trois existent ensuite).
     void ensure_registries();

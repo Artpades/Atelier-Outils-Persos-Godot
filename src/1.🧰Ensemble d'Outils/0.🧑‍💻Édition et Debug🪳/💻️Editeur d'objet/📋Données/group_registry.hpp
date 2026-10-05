@@ -1,6 +1,8 @@
 #ifndef GROUP_REGISTRY_HPP
 #define GROUP_REGISTRY_HPP
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🔧Réglages/interface_style.hpp"
+
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
@@ -29,6 +31,7 @@ class GroupEntry : public Resource
     int columns = 2;
     bool is_vertical = true;
     PackedStringArray data_names;
+    Ref<InterfaceStyle> style; // style du groupe (titre + conteneur)
 
   protected:
     static void _bind_methods();
@@ -45,6 +48,8 @@ class GroupEntry : public Resource
     bool get_is_vertical() const;
     void set_data_names(const PackedStringArray &p_names);
     PackedStringArray get_data_names() const;
+    void set_style(const Ref<InterfaceStyle> &p_style);
+    Ref<InterfaceStyle> get_style() const;
 };
 
 // Registre des groupes (port de GroupRegistry C#). Une donnée appartient à un seul groupe.

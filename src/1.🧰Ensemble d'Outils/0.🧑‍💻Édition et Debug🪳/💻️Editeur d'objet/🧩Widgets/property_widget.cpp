@@ -21,6 +21,7 @@ void PropertyWidget::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_property_name"), &PropertyWidget::get_property_name);
     ClassDB::bind_method(D_METHOD("get_info"), &PropertyWidget::get_info);
     ClassDB::bind_method(D_METHOD("get_settings"), &PropertyWidget::get_settings);
+    ClassDB::bind_method(D_METHOD("get_styled_item"), &PropertyWidget::get_styled_item);
     ClassDB::bind_method(D_METHOD("get_style"), &PropertyWidget::get_style);
     ClassDB::bind_method(D_METHOD("is_read_only"), &PropertyWidget::is_read_only);
     ClassDB::bind_method(D_METHOD("has_edit_focus"), &PropertyWidget::has_edit_focus);
@@ -78,11 +79,12 @@ void PropertyWidget::setup(const Ref<ValueAccessor> &p_accessor, const Ref<Widge
     }
 
     bool show_label = (settings.is_null() || settings->get_show_label()) && !has_own_title();
+    Label *name_label = nullptr;
     double ratio = settings.is_valid() ? settings->get_label_ratio() : 0.4;
 
     if (show_label)
     {
-        Label *name_label = memnew(Label);
+        name_label = memnew(Label);
         name_label->set_text(accessor.is_valid() ? accessor->get_display_name() : display_name(get_property_name()));
         name_label->set_tooltip_text(get_property_name());
         name_label->set_mouse_filter(MOUSE_FILTER_STOP);
@@ -100,7 +102,37 @@ void PropertyWidget::setup(const Ref<ValueAccessor> &p_accessor, const Ref<Widge
         editor->set_stretch_ratio(show_label ? 1.0 - ratio : 1.0);
         add_child(editor);
     }
+
+    // Style des réglages, sur la partie choisie (le libellé absent : style ignoré pour lui).
+    Ref<InterfaceStyle> widget_style = settings.is_valid() ? settings->get_style() : Ref<InterfaceStyle>();
+    if (widget_style.is_valid())
+    {
+        WidgetSettings::StyleTarget target = settings->get_style_target();
+        CanvasItem *item = target == WidgetSettings::STYLE_VALUE   ? (CanvasItem *)editor
+                           : target == WidgetSettings::STYLE_LABEL ? (CanvasItem *)name_label
+                                                                   : (CanvasItem *)this;
+        if (item)
+        {
+            widget_style->apply_to(item);
+            styled_item_id = ObjectID(item->get_instance_id());
+            if (item == this)
+            {
+                background = widget_style->get_background();
+                queue_redraw();
+            }
+        }
+    }
 }
+
+void PropertyWidget::_notification(int p_what)
+{
+    if (p_what == NOTIFICATION_DRAW && background.is_valid())
+    {
+        draw_style_box(background, Rect2(Vector2(), get_size()));
+    }
+}
+
+CanvasItem *PropertyWidget::get_styled_item() const { return Object::cast_to<CanvasItem>(ObjectDB::get_instance(styled_item_id)); }
 
 Ref<DataEntry> PropertyWidget::make_default_entry(const Dictionary &p_info, DataEntry::MemberKind p_member)
 {

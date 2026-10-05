@@ -28,6 +28,9 @@ class DataMatrixEditor : public VBoxContainer
 
     // Réglages actuellement surveillés (signal "changed"), pour se déconnecter au changement de sélection.
     ObjectID watched_settings_id;
+    // Objet dont on liste les membres pour les uniforms liés des styles (objet réel, sinon type d'exemple).
+    ObjectID context_id;
+    String context_type;
 
     Ref<DataEntry> _entry(int64_t p_index) const;
     void _emit_changed();
@@ -55,6 +58,8 @@ class DataMatrixEditor : public VBoxContainer
 
     void set_registry(const Ref<DataRegistry> &p_registry);
     Ref<DataRegistry> get_registry() const;
+    void set_context_object(Object *p_object);
+    void set_context_type(const String &p_type);
     // Reconstruit le tableau depuis le registre.
     void refresh();
 };

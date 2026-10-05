@@ -4,6 +4,7 @@
 #include "data_matrix_editor.hpp"
 #include "gizmo_list_editor.hpp"
 #include "group_matrix_editor.hpp"
+#include "interface_style_editor.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/layout_database.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🎯Gizmos/gizmo_host.hpp"
@@ -44,6 +45,7 @@ class ObjectInterfacePanel : public VBoxContainer
     DataMatrixEditor *data_matrix = nullptr;
     GroupMatrixEditor *group_matrix = nullptr;
     GizmoListEditor *gizmo_list = nullptr;
+    InterfaceStyleEditor *style_editor = nullptr;
     GizmoHost *gizmo_host = nullptr;
 
     void _bind_layout();
@@ -66,6 +68,7 @@ class ObjectInterfacePanel : public VBoxContainer
     bool is_dirty() const;
     ProceduralEditor *get_preview() const;
     GizmoListEditor *get_gizmo_list() const;
+    InterfaceStyleEditor *get_style_editor() const;
     GizmoHost *get_gizmo_host() const;
     // Ajoute l'interface à la base si besoin et écrit la base à l'emplacement du réglage de projet.
     Error save();

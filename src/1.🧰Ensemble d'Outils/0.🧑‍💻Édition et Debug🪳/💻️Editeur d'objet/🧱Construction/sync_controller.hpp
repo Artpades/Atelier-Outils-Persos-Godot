@@ -1,6 +1,7 @@
 #ifndef SYNC_CONTROLLER_HPP
 #define SYNC_CONTROLLER_HPP
 
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🔧Réglages/interface_style.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧩Widgets/property_widget.hpp"
 
 #include <godot_cpp/classes/node.hpp>
@@ -25,6 +26,8 @@ class SyncController : public Node
     ObjectID target_id;
     bool target_lost = false;
     Vector<ObjectID> widgets;
+    // Éléments stylés dont des uniforms de shader sont liés à des valeurs : [ObjectID (int), InterfaceStyle].
+    Array styled;
 
     void _refresh_widget(PropertyWidget *p_widget, bool p_force);
 
@@ -43,6 +46,10 @@ class SyncController : public Node
 
     void set_target(Object *p_target);
     void register_widget(PropertyWidget *p_widget);
+    // Uniforms liés du style de p_item : mis à jour tout de suite, puis à chaque relecture.
+    void register_styled(CanvasItem *p_item, const Ref<InterfaceStyle> &p_style);
+    void update_styled();
+    int get_styled_count() const;
     void clear();
 
     // Relit tous les widgets (p_force : même sans changement, et même non visibles ou en cours d'édition).

@@ -15,6 +15,15 @@ void WidgetSettings::_bind_methods()
 
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_label"), "set_show_label", "get_show_label");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "label_ratio", PROPERTY_HINT_RANGE, "0.1,0.9,0.05"), "set_label_ratio", "get_label_ratio");
+    ClassDB::bind_method(D_METHOD("set_style", "style"), &WidgetSettings::set_style);
+    ClassDB::bind_method(D_METHOD("get_style"), &WidgetSettings::get_style);
+    ClassDB::bind_method(D_METHOD("set_style_target", "target"), &WidgetSettings::set_style_target);
+    ClassDB::bind_method(D_METHOD("get_style_target"), &WidgetSettings::get_style_target);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "style", PROPERTY_HINT_RESOURCE_TYPE, "InterfaceStyle"), "set_style", "get_style");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "style_target", PROPERTY_HINT_ENUM, U"Widget entier:0,Valeur seulement:1,Libellé seulement:2"), "set_style_target", "get_style_target");
+    BIND_ENUM_CONSTANT(STYLE_WIDGET);
+    BIND_ENUM_CONSTANT(STYLE_VALUE);
+    BIND_ENUM_CONSTANT(STYLE_LABEL);
 }
 
 void WidgetSettings::set_show_label(bool p_show)
@@ -29,6 +38,18 @@ void WidgetSettings::set_label_ratio(double p_ratio)
     emit_changed();
 }
 double WidgetSettings::get_label_ratio() const { return label_ratio; }
+void WidgetSettings::set_style(const Ref<InterfaceStyle> &p_style)
+{
+    style = p_style;
+    emit_changed();
+}
+Ref<InterfaceStyle> WidgetSettings::get_style() const { return style; }
+void WidgetSettings::set_style_target(StyleTarget p_target)
+{
+    style_target = p_target;
+    emit_changed();
+}
+WidgetSettings::StyleTarget WidgetSettings::get_style_target() const { return style_target; }
 
 // --- RangeWidgetSettings ---
 

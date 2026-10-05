@@ -39,6 +39,9 @@ class PropertyWidget : public BoxContainer
     bool has_last = false;
 
     Label *value_label = nullptr; // enfant possédé (affichage par défaut)
+    // Élément qui a reçu le style des réglages (le widget, sa valeur ou son libellé) ; fond dessiné si c'est le widget.
+    ObjectID styled_item_id;
+    Ref<StyleBox> background;
 
     // Contexte de construction des widgets enfants (collections, objets...) ; nul pour un widget isolé.
     Ref<WidgetContext> context;
@@ -48,6 +51,7 @@ class PropertyWidget : public BoxContainer
 
   protected:
     static void _bind_methods();
+    void _notification(int p_what);
 
     GDVIRTUAL2R(Control *, _build, Dictionary, Ref<WidgetSettings>)
     GDVIRTUAL1(_pull, Variant)
@@ -108,6 +112,8 @@ class PropertyWidget : public BoxContainer
     StringName get_property_name() const;
     Dictionary get_info() const;
     Ref<WidgetSettings> get_settings() const;
+    // Élément stylé par settings->style (nul sans style) : le ProceduralEditor y relie les uniforms du shader.
+    CanvasItem *get_styled_item() const;
     DataEntry::WidgetChoice get_style() const;
     bool is_read_only() const;
 

@@ -93,7 +93,7 @@ void ObjectEditorWindow::close_current()
 
 void ObjectEditorWindow::_build_ui(const Ref<UndoBackend> &p_backend)
 {
-    Panel *background = memnew(Panel);
+    background = memnew(Panel);
     background->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
     add_child(background);
 
@@ -136,6 +136,16 @@ void ObjectEditorWindow::_show(Object *p_target)
     editor->clear_registries();
     editor->set_target(p_target);
     Ref<TypeLayout> layout = editor->get_active_layout();
+    // Fond de la fenêtre : celui du style global de l'interface (sinon celui du thème).
+    Ref<InterfaceStyle> style = editor->get_effective_style();
+    if (style.is_valid() && style->get_background().is_valid())
+    {
+        background->add_theme_stylebox_override("panel", style->get_background());
+    }
+    else
+    {
+        background->remove_theme_stylebox_override("panel");
+    }
     target_label->set_text(p_target->get_class() + (layout.is_valid() ? U"  ·  interface « " + layout->get_type_name() + U" »" : String(U"  ·  interface générale")));
 }
 

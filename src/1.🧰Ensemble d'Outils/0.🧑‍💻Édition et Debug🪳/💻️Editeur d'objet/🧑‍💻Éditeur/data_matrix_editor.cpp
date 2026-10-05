@@ -1,5 +1,6 @@
 #include "data_matrix_editor.hpp"
 #include "editor_undo_backend.hpp"
+#include "interface_style_editor.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/widget_table.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧱Construction/procedural_editor.hpp"
@@ -90,6 +91,9 @@ void DataMatrixEditor::set_registry(const Ref<DataRegistry> &p_registry)
 }
 
 Ref<DataRegistry> DataMatrixEditor::get_registry() const { return registry; }
+
+void DataMatrixEditor::set_context_object(Object *p_object) { context_id = p_object ? ObjectID(p_object->get_instance_id()) : ObjectID(); }
+void DataMatrixEditor::set_context_type(const String &p_type) { context_type = p_type; }
 
 Ref<DataEntry> DataMatrixEditor::_entry(int64_t p_index) const
 {
@@ -298,15 +302,26 @@ void DataMatrixEditor::_refresh_settings_panel()
     for (int i = 0; i < settings_entries.size(); i++)
     {
         Ref<DataEntry> settings_entry = settings_entries[i];
-        settings_entry->set_enabled(own.has(String(settings_entry->get_data_name())));
+        // Le style a son propre éditeur (ci-dessous).
+        settings_entry->set_enabled(own.has(String(settings_entry->get_data_name())) && settings_entry->get_data_name() != StringName("style"));
     }
 
     ProceduralEditor *settings_editor = memnew(ProceduralEditor);
     settings_editor->set_v_size_flags(SIZE_EXPAND_FILL);
     settings_editor->set_undo_backend(Ref<UndoBackend>(memnew(EditorUndoBackend)));
+    settings_editor->set_styles_enabled(false);
+    settings_editor->set_use_layouts(false);
     settings_editor->set_registry(settings_registry);
     settings_editor->set_target(settings.ptr());
     settings_panel->add_child(settings_editor);
+
+    // Style du widget (thème, fond, shader et uniforms liés), sur la partie choisie par style_target.
+    InterfaceStyleEditor *style_editor = memnew(InterfaceStyleEditor);
+    style_editor->set_context_object(ObjectDB::get_instance(context_id));
+    style_editor->set_context_type(context_type);
+    style_editor->set_owner(settings.ptr(), "style");
+    style_editor->connect("style_changed", callable_mp(this, &DataMatrixEditor::_emit_changed));
+    settings_panel->add_child(style_editor);
 }
 
 void DataMatrixEditor::_on_move(int64_t p_from, int64_t p_to)

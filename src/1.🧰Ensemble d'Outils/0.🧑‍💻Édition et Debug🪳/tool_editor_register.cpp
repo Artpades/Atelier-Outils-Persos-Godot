@@ -16,6 +16,7 @@
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/group_matrix_editor.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/gizmo_config_window.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/interface_config_window.hpp"
+#include "💻️Editeur d'objet/🧑‍💻Éditeur/interface_style_editor.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/layout_database_window.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/object_interface_panel.hpp"
 #include "💻️Editeur d'objet/🧑‍💻Éditeur/layout_database_export_plugin.hpp"
@@ -51,6 +52,7 @@ static void initialize(ModuleInitializationLevel p_level)
         GDREGISTER_INTERNAL_CLASS(DataMatrixEditor);
         GDREGISTER_INTERNAL_CLASS(GroupMatrixEditor);
         GDREGISTER_INTERNAL_CLASS(GizmoListEditor);
+        GDREGISTER_INTERNAL_CLASS(InterfaceStyleEditor);
         GDREGISTER_INTERNAL_CLASS(GizmoConfigWindow);
         GDREGISTER_ABSTRACT_CLASS(LayoutDatabaseWindow); // abstraite : open() statique accessible aux scripts de test
         GDREGISTER_INTERNAL_CLASS(InterfaceConfigWindow);
@@ -79,6 +81,9 @@ static void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(Gizmos3D);
 
     // Éditeur d'objet (runtime). Ordre : une classe parente avant ses classes filles.
+    GDREGISTER_INTERNAL_CLASS(MaterialPropagator);
+    GDREGISTER_CLASS(ShaderParameterBinding);
+    GDREGISTER_CLASS(InterfaceStyle);
     GDREGISTER_CLASS(WidgetSettings);
     GDREGISTER_CLASS(RangeWidgetSettings);
     GDREGISTER_CLASS(TextureProgressWidgetSettings);
@@ -127,6 +132,7 @@ static void initialize(ModuleInitializationLevel p_level)
 
     // Interfaces par type : réglage de projet, et application des liens par type aux nœuds en jeu.
     LayoutDatabase::register_project_setting();
+    InterfaceStyle::register_project_setting();
     LayoutLinker::create();
 
     godot::print_line_rich(U"[color=dark_green]🛠️Module d'outils d'edition et de debug chargé avec succès ![/color]");
@@ -139,6 +145,7 @@ static void uninitialize(ModuleInitializationLevel p_level)
         return;
     }
     LayoutLinker::destroy();
+    MaterialPropagator::destroy();
     // Ressources partagées des gizmos 3D (shader, matériaux, meshes) : libérées tant que le moteur existe encore.
     GizmoResources::destroy();
     godot::print_line_rich(U"[color=dark_red]🛠️Module d'outils d'edition et de debug déchargé avec succès ![/color]");

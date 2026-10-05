@@ -4,6 +4,191 @@
 
 [sub_resource type="ObjectEditorDemoResource" id="ObjectEditorDemoResource_hnf2b"]
 
+[sub_resource type="DataEntry" id="DataEntry_hnf2b"]
+data_name = &"booleen"
+kind = 1
+
+[sub_resource type="DataEntry" id="DataEntry_4lq53"]
+data_name = &"entier"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_b7j5c"]
+data_name = &"decimal_borne"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_tuga7"]
+data_name = &"valeur_bornee"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_e8ule"]
+data_name = &"lecture_seule"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_t2vec"]
+data_name = &"compteur"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_c1bij"]
+data_name = &"auto_increment"
+kind = 1
+
+[sub_resource type="DataEntry" id="DataEntry_h4ub2"]
+data_name = &"enum_entier"
+kind = 4
+
+[sub_resource type="DataEntry" id="DataEntry_27qqp"]
+data_name = &"enum_texte"
+kind = 4
+
+[sub_resource type="DataEntry" id="DataEntry_qqxhf"]
+data_name = &"drapeaux"
+kind = 5
+
+[sub_resource type="DataEntry" id="DataEntry_uhrsm"]
+data_name = &"texte"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_00ctc"]
+data_name = &"texte_multiligne"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_4js2v"]
+data_name = &"nom"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_50qr1"]
+data_name = &"couleur"
+kind = 6
+
+[sub_resource type="DataEntry" id="DataEntry_2nfpw"]
+data_name = &"couleur_sans_alpha"
+kind = 6
+
+[sub_resource type="DataEntry" id="DataEntry_slg6j"]
+data_name = &"vecteur2"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_2b0xr"]
+data_name = &"vecteur2i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_076co"]
+data_name = &"vecteur3"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_r5dby"]
+data_name = &"vecteur3i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_esbdu"]
+data_name = &"vecteur4"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_2nbui"]
+data_name = &"vecteur4i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_q2g8a"]
+data_name = &"rect2"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_u8qo2"]
+data_name = &"rect2i"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_duj1l"]
+data_name = &"aabb"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_8uftm"]
+data_name = &"plan"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_bso80"]
+data_name = &"quaternion"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_841e5"]
+data_name = &"base"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_qcvwd"]
+data_name = &"transform2d"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_osu74"]
+data_name = &"transform3d"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_rk4dc"]
+data_name = &"projection"
+kind = 13
+
+[sub_resource type="DataEntry" id="DataEntry_wc7fx"]
+data_name = &"rid"
+kind = 15
+
+[sub_resource type="DataEntry" id="DataEntry_8i8cr"]
+data_name = &"dernier_appel"
+kind = 3
+
+[sub_resource type="DataEntry" id="DataEntry_64pjm"]
+data_name = &"tableau_entiers"
+kind = 11
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_rqr43"]
+data_name = &"tableau_libre"
+kind = 11
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_w084j"]
+data_name = &"dictionnaire"
+kind = 12
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_qrf8d"]
+data_name = &"vecteurs"
+kind = 16
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_kpecp"]
+data_name = &"ressource"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_hffhm"]
+data_name = &"noeud"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_lroij"]
+data_name = &"chemin"
+kind = 10
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_rg8r8"]
+data_name = &"variant"
+kind = 14
+
+[sub_resource type="DataRegistry" id="DataRegistry_051ea"]
+entries = Array[DataEntry]([SubResource("DataEntry_hnf2b"), SubResource("DataEntry_4lq53"), SubResource("DataEntry_b7j5c"), SubResource("DataEntry_tuga7"), SubResource("DataEntry_e8ule"), SubResource("DataEntry_t2vec"), SubResource("DataEntry_c1bij"), SubResource("DataEntry_h4ub2"), SubResource("DataEntry_27qqp"), SubResource("DataEntry_qqxhf"), SubResource("DataEntry_uhrsm"), SubResource("DataEntry_00ctc"), SubResource("DataEntry_4js2v"), SubResource("DataEntry_50qr1"), SubResource("DataEntry_2nfpw"), SubResource("DataEntry_slg6j"), SubResource("DataEntry_2b0xr"), SubResource("DataEntry_076co"), SubResource("DataEntry_r5dby"), SubResource("DataEntry_esbdu"), SubResource("DataEntry_2nbui"), SubResource("DataEntry_q2g8a"), SubResource("DataEntry_u8qo2"), SubResource("DataEntry_duj1l"), SubResource("DataEntry_8uftm"), SubResource("DataEntry_bso80"), SubResource("DataEntry_841e5"), SubResource("DataEntry_qcvwd"), SubResource("DataEntry_osu74"), SubResource("DataEntry_rk4dc"), SubResource("DataEntry_wc7fx"), SubResource("DataEntry_8i8cr"), SubResource("DataEntry_64pjm"), SubResource("DataEntry_rqr43"), SubResource("DataEntry_w084j"), SubResource("DataEntry_qrf8d"), SubResource("DataEntry_kpecp"), SubResource("DataEntry_hffhm"), SubResource("DataEntry_lroij"), SubResource("DataEntry_rg8r8")])
+
+[sub_resource type="GroupEntry" id="GroupEntry_4xdti"]
+group_name = "Collections"
+data_names = PackedStringArray("tableau_entiers", "tableau_libre", "dictionnaire", "vecteurs")
+
+[sub_resource type="GroupEntry" id="GroupEntry_h5ax7"]
+group_name = "Objets"
+data_names = PackedStringArray("ressource", "noeud")
+
+[sub_resource type="GroupEntry" id="GroupEntry_llu2e"]
+group_name = "Objets / Chemins"
+data_names = PackedStringArray("chemin", "variant")
+
+[sub_resource type="GroupRegistry" id="GroupRegistry_rj6tg"]
+groups = Array[GroupEntry]([SubResource("GroupEntry_4xdti"), SubResource("GroupEntry_h5ax7"), SubResource("GroupEntry_llu2e")])
+
 [node name="DémoÉditeurD\'objet" type="Node" unique_id=336900632]
 script = ExtResource("1_demo")
 
@@ -15,6 +200,8 @@ ressource = SubResource("ObjectEditorDemoResource_hnf2b")
 
 [node name="ProceduralEditor" type="ProceduralEditor" parent="." unique_id=1950474821]
 target_path = NodePath("../Cible")
+registry = SubResource("DataRegistry_051ea")
+group_registry = SubResource("GroupRegistry_rj6tg")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

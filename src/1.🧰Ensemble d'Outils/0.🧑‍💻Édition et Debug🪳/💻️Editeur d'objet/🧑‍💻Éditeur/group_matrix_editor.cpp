@@ -1,4 +1,5 @@
 #include "group_matrix_editor.hpp"
+#include "interface_style_editor.hpp"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
@@ -90,6 +91,25 @@ bool GroupMatrixEditor::_is_missing(const String &p_data_name) const
     return entry.is_null() || entry->get_is_missing();
 }
 
+void GroupMatrixEditor::set_context_object(Object *p_object) { context_id = p_object ? ObjectID(p_object->get_instance_id()) : ObjectID(); }
+void GroupMatrixEditor::set_context_type(const String &p_type) { context_type = p_type; }
+
+void GroupMatrixEditor::_on_style_toggled(bool p_open, int64_t p_group_id)
+{
+    if (p_open)
+    {
+        style_open[p_group_id] = true;
+    }
+    else
+    {
+        style_open.erase(p_group_id);
+    }
+    _refresh_deferred();
+}
+
+// Style modifié : l'aperçu se reconstruit, la liste des groupes non (l'éditeur de style se met à jour lui-même).
+void GroupMatrixEditor::_on_style_changed() { emit_signal("registry_changed"); }
+
 void GroupMatrixEditor::_emit_changed()
 {
     if (groups.is_valid())
@@ -180,9 +200,27 @@ void GroupMatrixEditor::refresh()
         vertical->connect("toggled", callable_mp(this, &GroupMatrixEditor::_on_vertical_toggled).bind(i));
         head->add_child(vertical);
 
+        int64_t group_id = (int64_t)group->get_instance_id();
+        Button *style_button = make_button(group->get_style().is_valid() ? String(U"Style ●") : String("Style"), U"Thème, fond et shader du groupe");
+        style_button->set_toggle_mode(true);
+        style_button->set_pressed_no_signal(style_open.has(group_id));
+        style_button->connect("toggled", callable_mp(this, &GroupMatrixEditor::_on_style_toggled).bind(group_id));
+        head->add_child(style_button);
+
         Button *remove = make_button(U"✕", "Supprimer le groupe (ses données restent affichées hors groupe)");
         remove->connect("pressed", callable_mp(this, &GroupMatrixEditor::_on_delete).bind(i));
         head->add_child(remove);
+
+        // Style du groupe (déplié à la demande).
+        if (style_open.has(group_id))
+        {
+            InterfaceStyleEditor *style_editor = memnew(InterfaceStyleEditor);
+            style_editor->set_context_object(ObjectDB::get_instance(context_id));
+            style_editor->set_context_type(context_type);
+            style_editor->set_owner(group.ptr(), "style");
+            style_editor->connect("style_changed", callable_mp(this, &GroupMatrixEditor::_on_style_changed));
+            block->add_child(style_editor);
+        }
 
         // Ligne 2 : données du groupe (retrait) + ajout.
         HFlowContainer *members = memnew(HFlowContainer);

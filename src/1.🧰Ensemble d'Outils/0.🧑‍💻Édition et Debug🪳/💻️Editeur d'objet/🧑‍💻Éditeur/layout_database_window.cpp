@@ -159,6 +159,7 @@ void LayoutDatabaseWindow::_build_ui()
     layout_editor = memnew(ProceduralEditor);
     layout_editor->set_scroll_enabled(false);
     layout_editor->set_use_layouts(false);
+    layout_editor->set_styles_enabled(false);
     layout_editor->set_undo_backend(Ref<UndoBackend>(memnew(EditorUndoBackend)));
     details->add_child(layout_editor);
     Button *sync = make_button(U"Actualiser les membres depuis le type", U"Crée une instance d'exemple du type pour lire ses propriétés, méthodes et signaux");
@@ -180,6 +181,10 @@ void LayoutDatabaseWindow::_build_ui()
     gizmo_list->connect("registry_changed", callable_mp(this, &LayoutDatabaseWindow::_on_changed));
     tabs->add_child(gizmo_list);
     tabs->set_tab_title(2, "Gizmos");
+    style_editor = memnew(InterfaceStyleEditor);
+    style_editor->connect("style_changed", callable_mp(this, &LayoutDatabaseWindow::_on_changed));
+    tabs->add_child(style_editor);
+    tabs->set_tab_title(3, "Style");
 }
 
 void LayoutDatabaseWindow::_set_dirty(bool p_dirty) { dirty_label->set_text(p_dirty ? String(U"● modifiée (non enregistrée)") : String()); }
@@ -247,6 +252,10 @@ void LayoutDatabaseWindow::_select(int64_t p_index)
         }
         layout_editor->set_registry(settings_registry);
         layout_editor->set_target(layout.ptr());
+        data_matrix->set_context_type(layout->get_type_name());
+        group_matrix->set_context_type(layout->get_type_name());
+        style_editor->set_context_type(layout->get_type_name());
+        style_editor->set_owner(layout.ptr(), "style");
         data_matrix->set_registry(layout->get_data_registry());
         group_matrix->set_registries(layout->get_group_registry(), layout->get_data_registry());
         gizmo_list->set_context_type(layout->get_type_name()); // membres lus sur une instance d'exemple

@@ -369,6 +369,7 @@ void GizmoListEditor::refresh()
             }
             ProceduralEditor *value_editor = memnew(ProceduralEditor);
             value_editor->set_scroll_enabled(false);
+            value_editor->set_styles_enabled(false);
             value_editor->set_h_size_flags(SIZE_EXPAND_FILL);
             value_editor->set_undo_backend(backend);
             value_editor->set_registry(value_registry);

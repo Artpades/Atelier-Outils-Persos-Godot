@@ -76,6 +76,12 @@ void ProceduralEditor::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_use_layouts"), &ProceduralEditor::get_use_layouts);
     ClassDB::bind_method(D_METHOD("set_draw_gizmos", "draw"), &ProceduralEditor::set_draw_gizmos);
     ClassDB::bind_method(D_METHOD("get_draw_gizmos"), &ProceduralEditor::get_draw_gizmos);
+    ClassDB::bind_method(D_METHOD("set_style", "style"), &ProceduralEditor::set_style);
+    ClassDB::bind_method(D_METHOD("get_style"), &ProceduralEditor::get_style);
+    ClassDB::bind_method(D_METHOD("set_styles_enabled", "enabled"), &ProceduralEditor::set_styles_enabled);
+    ClassDB::bind_method(D_METHOD("get_styles_enabled"), &ProceduralEditor::get_styles_enabled);
+    ClassDB::bind_method(D_METHOD("get_effective_style"), &ProceduralEditor::get_effective_style);
+    ClassDB::bind_method(D_METHOD("get_styled_count"), &ProceduralEditor::get_styled_count);
     ClassDB::bind_method(D_METHOD("get_active_layout"), &ProceduralEditor::get_active_layout);
     ClassDB::bind_method(D_METHOD("get_active_registry"), &ProceduralEditor::get_active_registry);
     ClassDB::bind_method(D_METHOD("get_active_group_registry"), &ProceduralEditor::get_active_group_registry);
@@ -104,6 +110,8 @@ void ProceduralEditor::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "layout_database", PROPERTY_HINT_RESOURCE_TYPE, "LayoutDatabase"), "set_layout_database", "get_layout_database");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_layouts"), "set_use_layouts", "get_use_layouts");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_gizmos"), "set_draw_gizmos", "get_draw_gizmos");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "style", PROPERTY_HINT_RESOURCE_TYPE, "InterfaceStyle"), "set_style", "get_style");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "styles_enabled"), "set_styles_enabled", "get_styles_enabled");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "sync_interval", PROPERTY_HINT_RANGE, "0,5,0.01,suffix:s"), "set_sync_interval", "get_sync_interval");
 }
 
@@ -344,6 +352,64 @@ void ProceduralEditor::set_draw_gizmos(bool p_draw)
     _update_gizmos();
 }
 bool ProceduralEditor::get_draw_gizmos() const { return draw_gizmos; }
+
+void ProceduralEditor::set_style(const Ref<InterfaceStyle> &p_style)
+{
+    style = p_style;
+    if (is_inside_tree())
+    {
+        rebuild();
+    }
+}
+Ref<InterfaceStyle> ProceduralEditor::get_style() const { return style; }
+void ProceduralEditor::set_styles_enabled(bool p_enabled)
+{
+    styles_enabled = p_enabled;
+    if (is_inside_tree())
+    {
+        rebuild();
+    }
+}
+bool ProceduralEditor::get_styles_enabled() const { return styles_enabled; }
+
+Ref<InterfaceStyle> ProceduralEditor::get_effective_style() const
+{
+    if (!styles_enabled)
+    {
+        return Ref<InterfaceStyle>();
+    }
+    if (style.is_valid())
+    {
+        return style;
+    }
+    if (active_layout.is_valid() && active_layout->get_style().is_valid())
+    {
+        return active_layout->get_style();
+    }
+    return InterfaceStyle::load_project_default();
+}
+
+int ProceduralEditor::get_styled_count() const { return sync->get_styled_count(); }
+
+void ProceduralEditor::_apply_global_style()
+{
+    // Seul ce que l'éditeur a lui-même posé est retiré (un modulate réglé dans la scène est conservé sinon).
+    if (global_style_applied)
+    {
+        InterfaceStyle::clear_from(this);
+        global_style_applied = false;
+    }
+    Ref<InterfaceStyle> effective = get_effective_style();
+    global_background = effective.is_valid() ? effective->get_background() : Ref<StyleBox>();
+    queue_redraw();
+    if (effective.is_null())
+    {
+        return;
+    }
+    effective->apply_to(this);
+    global_style_applied = true;
+    sync->register_styled(this, effective);
+}
 Ref<TypeLayout> ProceduralEditor::get_active_layout() const { return active_layout; }
 Ref<DataRegistry> ProceduralEditor::get_active_registry() const { return active_registry; }
 Ref<GroupRegistry> ProceduralEditor::get_active_group_registry() const { return active_groups; }
@@ -371,6 +437,11 @@ PropertyWidget *ProceduralEditor::build_widget(const Ref<ValueAccessor> &p_acces
     widget->connect("value_changed", callable_mp(this, &ProceduralEditor::_on_value_changed).bind((uint64_t)widget->get_instance_id()));
     widget->connect("edit_discarded", callable_mp(this, &ProceduralEditor::_on_edit_discarded).bind((uint64_t)widget->get_instance_id()));
     sync->register_widget(widget);
+    Ref<WidgetSettings> settings = p_entry->get_settings();
+    if (styles_enabled && settings.is_valid())
+    {
+        sync->register_styled(widget->get_styled_item(), settings->get_style()); // uniforms liés seulement
+    }
     if (widget->is_value_widget() && p_accessor->is_valid())
     {
         Variant value = widget->read_value();
@@ -382,6 +453,10 @@ PropertyWidget *ProceduralEditor::build_widget(const Ref<ValueAccessor> &p_acces
 
 void ProceduralEditor::_notification(int p_what)
 {
+    if (p_what == NOTIFICATION_DRAW && global_background.is_valid())
+    {
+        draw_style_box(global_background, Rect2(Vector2(), get_size()));
+    }
     if (p_what == NOTIFICATION_PREDELETE)
     {
         // Les liens connectés par cet éditeur ne doivent pas lui survivre : sans cible, reapply_links ne fait
@@ -510,7 +585,24 @@ Container *ProceduralEditor::_make_group_container(const Ref<GroupEntry> &p_grou
     {
         r_root->add_child(box);
     }
-    content->add_child(r_root);
+
+    // Style du groupe : sur sa racine (titre + conteneur) ; fond dans un PanelContainer qui l'entoure.
+    Ref<InterfaceStyle> group_style = styles_enabled ? p_group->get_style() : Ref<InterfaceStyle>();
+    Control *outer = r_root;
+    if (group_style.is_valid())
+    {
+        if (group_style->get_background().is_valid())
+        {
+            PanelContainer *frame = memnew(PanelContainer);
+            frame->set_h_size_flags(SIZE_EXPAND_FILL);
+            frame->add_theme_stylebox_override("panel", group_style->get_background());
+            frame->add_child(r_root);
+            outer = frame;
+        }
+        group_style->apply_to(r_root);
+        sync->register_styled(r_root, group_style);
+    }
+    content->add_child(outer);
     return box;
 }
 
@@ -570,6 +662,7 @@ void ProceduralEditor::rebuild()
     top_widgets.clear();
     Object *target = get_target();
     sync->set_target(target);
+    _apply_global_style();
     if (!target || active_registry.is_null())
     {
         _show_status("Aucun objet");

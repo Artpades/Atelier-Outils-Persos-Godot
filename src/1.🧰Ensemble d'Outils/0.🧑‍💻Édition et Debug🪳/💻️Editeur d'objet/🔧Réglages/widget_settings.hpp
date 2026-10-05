@@ -1,6 +1,8 @@
 #ifndef WIDGET_SETTINGS_HPP
 #define WIDGET_SETTINGS_HPP
 
+#include "interface_style.hpp"
+
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -15,14 +17,29 @@ class WidgetSettings : public Resource
 {
     GDCLASS(WidgetSettings, Resource)
 
+  public:
+    // Partie du widget qui reçoit le style. Valeurs enregistrées : jamais renumérotées.
+    enum StyleTarget
+    {
+        STYLE_WIDGET = 0, // widget entier (libellé + valeur), fond dessiné derrière
+        STYLE_VALUE = 1,  // contrôle de la valeur seulement
+        STYLE_LABEL = 2,  // libellé seulement
+    };
+
   private:
     bool show_label = true;
     double label_ratio = 0.4;
+    Ref<InterfaceStyle> style;
+    StyleTarget style_target = STYLE_WIDGET;
 
   protected:
     static void _bind_methods();
 
   public:
+    void set_style(const Ref<InterfaceStyle> &p_style);
+    Ref<InterfaceStyle> get_style() const;
+    void set_style_target(StyleTarget p_target);
+    StyleTarget get_style_target() const;
     void set_show_label(bool p_show);
     bool get_show_label() const;
     void set_label_ratio(double p_ratio);
@@ -136,5 +153,7 @@ class ContainerWidgetSettings : public WidgetSettings
     int get_max_displayed() const;
 };
 } // namespace godot
+
+VARIANT_ENUM_CAST(WidgetSettings::StyleTarget);
 
 #endif // WIDGET_SETTINGS_HPP

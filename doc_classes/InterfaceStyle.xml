@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InterfaceStyle" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_to" qualifiers="const">
+			<return type="Material" />
+			<param index="0" name="item" type="CanvasItem" />
+			<description>
+			</description>
+		</method>
+		<method name="clear_from" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="item" type="CanvasItem" />
+			<description>
+			</description>
+		</method>
+		<method name="find_parameter" qualifiers="const">
+			<return type="ShaderParameterBinding" />
+			<param index="0" name="parameter" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_shader_uniforms" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+			</description>
+		</method>
+		<method name="has_parameter_bindings" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="load_project_default" qualifiers="static">
+			<return type="InterfaceStyle" />
+			<description>
+			</description>
+		</method>
+		<method name="update_parameters" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="item" type="CanvasItem" />
+			<param index="1" name="context" type="Object" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="background" type="StyleBox" setter="set_background" getter="get_background">
+		</member>
+		<member name="material" type="Material" setter="set_material" getter="get_material">
+		</member>
+		<member name="modulate" type="Color" setter="set_modulate" getter="get_modulate" default="Color(1, 1, 1, 1)">
+		</member>
+		<member name="propagate_material" type="bool" setter="set_propagate_material" getter="get_propagate_material" default="true">
+		</member>
+		<member name="self_modulate" type="Color" setter="set_self_modulate" getter="get_self_modulate" default="Color(1, 1, 1, 1)">
+		</member>
+		<member name="shader_parameters" type="ShaderParameterBinding[]" setter="set_shader_parameters" getter="get_shader_parameters" default="[]">
+		</member>
+		<member name="theme" type="Theme" setter="set_theme" getter="get_theme">
+		</member>
+		<member name="theme_type_variation" type="StringName" setter="set_theme_type_variation" getter="get_theme_type_variation" default="&amp;&quot;&quot;">
+		</member>
+	</members>
+</class>

@@ -4,6 +4,7 @@
 #include "data_matrix_editor.hpp"
 #include "gizmo_list_editor.hpp"
 #include "group_matrix_editor.hpp"
+#include "interface_style_editor.hpp"
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/📋Données/layout_database.hpp"
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧱Construction/procedural_editor.hpp"
@@ -43,6 +44,7 @@ class LayoutDatabaseWindow : public Window
     DataMatrixEditor *data_matrix = nullptr;
     GroupMatrixEditor *group_matrix = nullptr;
     GizmoListEditor *gizmo_list = nullptr;
+    InterfaceStyleEditor *style_editor = nullptr;
 
     Ref<TypeLayout> _layout(int p_index) const;
     void _build_ui();

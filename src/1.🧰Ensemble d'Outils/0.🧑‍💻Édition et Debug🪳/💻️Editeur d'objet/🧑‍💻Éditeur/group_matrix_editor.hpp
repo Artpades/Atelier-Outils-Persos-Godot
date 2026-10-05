@@ -20,6 +20,9 @@ class GroupMatrixEditor : public VBoxContainer
   private:
     Ref<GroupRegistry> groups;
     Ref<DataRegistry> data;
+    Dictionary style_open; // ObjectID (int) des groupes dont l'éditeur de style est déplié
+    ObjectID context_id;   // objet dont on liste les membres (uniforms liés)
+    String context_type;
 
     VBoxContainer *list = nullptr; // enfants possédés
     LineEdit *new_group_name = nullptr;
@@ -35,6 +38,8 @@ class GroupMatrixEditor : public VBoxContainer
     void _on_columns_changed(double p_value, int64_t p_index);
     void _on_vertical_toggled(bool p_on, int64_t p_index);
     void _on_delete(int64_t p_index);
+    void _on_style_toggled(bool p_open, int64_t p_group_id);
+    void _on_style_changed();
     void _on_remove_member(const String &p_name, int64_t p_index);
     void _on_add_member(int64_t p_item, int64_t p_index, uint64_t p_option_id);
     void _on_new_group();
@@ -47,6 +52,8 @@ class GroupMatrixEditor : public VBoxContainer
 
     void set_registries(const Ref<GroupRegistry> &p_groups, const Ref<DataRegistry> &p_data);
     void refresh();
+    void set_context_object(Object *p_object);
+    void set_context_type(const String &p_type);
 };
 } // namespace godot
 

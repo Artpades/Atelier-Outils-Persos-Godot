@@ -12,6 +12,7 @@ void SyncController::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("set_interval", "interval"), &SyncController::set_interval);
     ClassDB::bind_method(D_METHOD("get_interval"), &SyncController::get_interval);
+    ClassDB::bind_method(D_METHOD("get_styled_count"), &SyncController::get_styled_count);
     ClassDB::bind_method(D_METHOD("refresh_all", "force"), &SyncController::refresh_all);
     ClassDB::bind_static_method("SyncController", D_METHOD("same_value", "a", "b"), &SyncController::same_value);
 
@@ -60,7 +61,40 @@ void SyncController::register_widget(PropertyWidget *p_widget)
     }
 }
 
-void SyncController::clear() { widgets.clear(); }
+void SyncController::clear()
+{
+    widgets.clear();
+    styled.clear();
+}
+
+void SyncController::register_styled(CanvasItem *p_item, const Ref<InterfaceStyle> &p_style)
+{
+    if (!p_item || p_style.is_null() || !p_style->has_parameter_bindings())
+    {
+        return;
+    }
+    styled.push_back(Array::make((int64_t)p_item->get_instance_id(), p_style));
+    p_style->update_parameters(p_item, ObjectDB::get_instance(target_id));
+}
+
+void SyncController::update_styled()
+{
+    Object *target = ObjectDB::get_instance(target_id);
+    for (int i = styled.size() - 1; i >= 0; i--)
+    {
+        Array slot = styled[i];
+        CanvasItem *item = Object::cast_to<CanvasItem>(ObjectDB::get_instance(uint64_t(int64_t(slot[0]))));
+        if (!item)
+        {
+            styled.remove_at(i); // élément libéré (reconstruction de l'interface)
+            continue;
+        }
+        Ref<InterfaceStyle> style = slot[1];
+        style->update_parameters(item, target);
+    }
+}
+
+int SyncController::get_styled_count() const { return styled.size(); }
 
 void SyncController::_refresh_widget(PropertyWidget *p_widget, bool p_force)
 {
@@ -123,6 +157,7 @@ void SyncController::_process(double p_delta)
         }
         _refresh_widget(widget, false);
     }
+    update_styled();
 }
 
 void SyncController::refresh_all(bool p_force)

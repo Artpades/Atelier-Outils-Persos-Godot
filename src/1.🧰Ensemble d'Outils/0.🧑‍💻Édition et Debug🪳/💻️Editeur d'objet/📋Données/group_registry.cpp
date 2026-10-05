@@ -25,6 +25,9 @@ void GroupEntry::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::INT, "columns", PROPERTY_HINT_RANGE, "1,12,1"), "set_columns", "get_columns");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "is_vertical"), "set_is_vertical", "get_is_vertical");
     ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "data_names"), "set_data_names", "get_data_names");
+    ClassDB::bind_method(D_METHOD("set_style", "style"), &GroupEntry::set_style);
+    ClassDB::bind_method(D_METHOD("get_style"), &GroupEntry::get_style);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "style", PROPERTY_HINT_RESOURCE_TYPE, "InterfaceStyle"), "set_style", "get_style");
 
     BIND_ENUM_CONSTANT(CONTAINER_VBOX);
     BIND_ENUM_CONSTANT(CONTAINER_HBOX);
@@ -70,6 +73,12 @@ void GroupEntry::set_data_names(const PackedStringArray &p_names)
     emit_changed();
 }
 PackedStringArray GroupEntry::get_data_names() const { return data_names; }
+void GroupEntry::set_style(const Ref<InterfaceStyle> &p_style)
+{
+    style = p_style;
+    emit_changed();
+}
+Ref<InterfaceStyle> GroupEntry::get_style() const { return style; }
 
 // --- GroupRegistry ---
 

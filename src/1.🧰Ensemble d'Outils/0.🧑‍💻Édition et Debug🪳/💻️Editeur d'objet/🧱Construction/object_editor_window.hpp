@@ -5,6 +5,7 @@
 
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/label.hpp>
+#include <godot_cpp/classes/panel.hpp>
 #include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/core/object_id.hpp>
 
@@ -24,6 +25,7 @@ class ObjectEditorWindow : public Window
     ProceduralEditor *editor = nullptr; // enfants possédés
     Label *target_label = nullptr;
     CheckBox *pin = nullptr;
+    Panel *background = nullptr;
 
     void _build_ui(const Ref<UndoBackend> &p_backend);
     void _show(Object *p_target);

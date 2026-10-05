@@ -76,6 +76,12 @@ class ProceduralEditor : public VBoxContainer
     Ref<LayoutDatabase> layout_database;
     bool use_layouts = true;
     bool draw_gizmos = true;
+    // Style global : celui de l'éditeur, sinon celui de l'interface du type, sinon le style par défaut du projet.
+    // styles_enabled = false pour les éditeurs internes des fenêtres de configuration (thème de l'éditeur Godot).
+    Ref<InterfaceStyle> style;
+    bool styles_enabled = true;
+    bool global_style_applied = false;
+    Ref<StyleBox> global_background;
     Ref<TypeLayout> active_layout;
     Ref<DataRegistry> active_registry;
     Ref<GroupRegistry> active_groups;
@@ -92,6 +98,7 @@ class ProceduralEditor : public VBoxContainer
     SyncController *sync = nullptr;
 
     void _clear_widgets();
+    void _apply_global_style();
     void _resolve_registries(Object *p_target);
     void _update_gizmos();
     // Conteneur d'un groupe (ajouté au contenu) ; r_root reçoit sa racine (titre + avertissements).
@@ -142,6 +149,13 @@ class ProceduralEditor : public VBoxContainer
     bool get_use_layouts() const;
     void set_draw_gizmos(bool p_draw);
     bool get_draw_gizmos() const;
+    void set_style(const Ref<InterfaceStyle> &p_style);
+    Ref<InterfaceStyle> get_style() const;
+    void set_styles_enabled(bool p_enabled);
+    bool get_styles_enabled() const;
+    Ref<InterfaceStyle> get_effective_style() const;
+    // Éléments dont des uniforms de shader sont liés (mis à jour en direct).
+    int get_styled_count() const;
     Ref<TypeLayout> get_active_layout() const;
     Ref<DataRegistry> get_active_registry() const;
     Ref<GroupRegistry> get_active_group_registry() const;
