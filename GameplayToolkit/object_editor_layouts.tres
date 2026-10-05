@@ -1,0 +1,58 @@
+[gd_resource type="LayoutDatabase" format=3 uid="uid://chd8oapxkuxvq"]
+
+[sub_resource type="DataEntry" id="DataEntry_rahk6"]
+data_name = &"target_path"
+kind = 10
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_n20xm"]
+data_name = &"target_resource"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_sahxx"]
+data_name = &"registry"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_6vdlu"]
+data_name = &"group_registry"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_cuqfk"]
+data_name = &"max_depth"
+kind = 2
+
+[sub_resource type="DataEntry" id="DataEntry_3l6vk"]
+data_name = &"layout_database"
+kind = 9
+is_vertical = true
+
+[sub_resource type="DataEntry" id="DataEntry_8lcjx"]
+data_name = &"use_layouts"
+kind = 1
+
+[sub_resource type="DataEntry" id="DataEntry_ko1y5"]
+data_name = &"draw_gizmos"
+kind = 1
+
+[sub_resource type="DataEntry" id="DataEntry_nh5qg"]
+data_name = &"sync_interval"
+kind = 2
+
+[sub_resource type="DataRegistry" id="DataRegistry_n0jsa"]
+entries = Array[DataEntry]([SubResource("DataEntry_rahk6"), SubResource("DataEntry_n20xm"), SubResource("DataEntry_sahxx"), SubResource("DataEntry_6vdlu"), SubResource("DataEntry_cuqfk"), SubResource("DataEntry_3l6vk"), SubResource("DataEntry_8lcjx"), SubResource("DataEntry_ko1y5"), SubResource("DataEntry_nh5qg")])
+
+[sub_resource type="GizmoRegistry" id="GizmoRegistry_s4e8j"]
+
+[sub_resource type="GroupRegistry" id="GroupRegistry_j57n7"]
+
+[sub_resource type="TypeLayout" id="TypeLayout_ohekp"]
+type_name = "ProceduralEditor"
+data_registry = SubResource("DataRegistry_n0jsa")
+group_registry = SubResource("GroupRegistry_j57n7")
+gizmo_registry = SubResource("GizmoRegistry_s4e8j")
+
+[resource]
+layouts = Array[TypeLayout]([SubResource("TypeLayout_ohekp")])

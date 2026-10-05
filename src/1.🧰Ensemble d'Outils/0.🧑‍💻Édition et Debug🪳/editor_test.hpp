@@ -3,63 +3,44 @@
 
 #include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪟Fenêtre d'édition/window_editor.hpp"
 
-#include "godot_cpp/classes/editor_plugin.hpp"
-#include "godot_cpp/core/print_string.hpp"
-#include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/editor_interface.hpp>
+#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/🧑‍💻Éditeur/object_interface_panel.hpp"
+
+#include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/core/object_id.hpp>
 
 namespace godot
 {
+// Plugin d'éditeur de test : ajoute un bouton dans la barre d'outils qui ouvre une WindowEditor contenant
+// un ObjectInterfacePanel sur le nœud sélectionné (ou la racine de la scène éditée) : édition de l'objet
+// et de l'interface de son type (données, groupes, gizmos), enregistrée dans la base du projet.
+// Enregistré au niveau EDITOR via EditorPlugins::add_by_type (voir tool_editor_register.cpp) :
+// l'éditeur l'instancie, l'ajoute à l'arbre et le libère lui-même.
 class EditorTest : public EditorPlugin
 {
     GDCLASS(EditorTest, EditorPlugin)
 
   private:
+    // Bouton créé dans _enter_tree et libéré dans _exit_tree : stocké par ObjectID,
+    // car c'est l'éditeur (son conteneur) qui le tient dans l'arbre.
+    ObjectID button_id;
+
     // Window Editor
     Ref<WindowEditor> window;
 
-  public:
-    void _enable_plugin() override { print_line("Enable"); }
-    void _enter_tree() override { print_line("Enter Tree"); }
-    void creer_bouton_editeur()
-    {
-        EditorInterface *editor = EditorInterface::get_singleton();
-        if (!editor)
-            return;
-
-        Control *base_control = editor->get_base_control();
-        if (!base_control)
-            return;
-
-        Button *btn = memnew(Button);
-        btn->set_text("Ouvrir fenêtre de personnalisation");
-
-        Node *target_container = base_control->find_child("MainScreen", true, false);
-        if (!target_container)
-        {
-            target_container = base_control;
-        }
-
-        target_container->add_child(btn);
-        btn->connect("pressed", Callable(this, "creer_fenetre_personnalisation"));
-    }
-
-    // Créer et ouvrir une fenêtre avec des boutons de paramètres
-    void creer_fenetre_personnalisation()
-    {
-        if (window.is_null())
-            window.instantiate();
-        window->open_window();
-    }
+    // Panneau placé dans la fenêtre (tenu par la fenêtre, donc ObjectID).
+    ObjectID interface_panel_id;
 
   protected:
-    static void _bind_methods()
-    {
-        ClassDB::bind_method(D_METHOD("creer_bouton_editeur"), &EditorTest::creer_bouton_editeur);
-        ClassDB::bind_method(D_METHOD("creer_fenetre_personnalisation"), &EditorTest::creer_fenetre_personnalisation);
-    }
+    static void _bind_methods();
+
+  public:
+    void _enter_tree() override;
+    void _exit_tree() override;
+
+    // Créer et ouvrir une fenêtre avec des boutons de paramètres
+    void creer_fenetre_personnalisation();
+    ObjectInterfacePanel *get_interface_panel() const;
 };
 } // namespace godot
 

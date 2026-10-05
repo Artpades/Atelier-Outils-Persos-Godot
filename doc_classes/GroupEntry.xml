@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GroupEntry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="columns" type="int" setter="set_columns" getter="get_columns" default="2">
+		</member>
+		<member name="container_type" type="int" setter="set_container_type" getter="get_container_type" enum="GroupEntry.ContainerType" default="0">
+		</member>
+		<member name="data_names" type="PackedStringArray" setter="set_data_names" getter="get_data_names" default="PackedStringArray()">
+		</member>
+		<member name="group_name" type="String" setter="set_group_name" getter="get_group_name" default="&quot;&quot;">
+		</member>
+		<member name="is_vertical" type="bool" setter="set_is_vertical" getter="get_is_vertical" default="true">
+		</member>
+	</members>
+	<constants>
+		<constant name="CONTAINER_VBOX" value="0" enum="ContainerType">
+		</constant>
+		<constant name="CONTAINER_HBOX" value="1" enum="ContainerType">
+		</constant>
+		<constant name="CONTAINER_GRID" value="2" enum="ContainerType">
+		</constant>
+		<constant name="CONTAINER_PANEL" value="3" enum="ContainerType">
+		</constant>
+	</constants>
+</class>

@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://bbcik5v0oyaeb"]
+
+[ext_resource type="Script" uid="uid://rgnrnqer15hk" path="res://🧪Démos de modules/0.🧰🧑‍💻/test_object_editor.gd" id="1_demo"]
+
+[sub_resource type="ObjectEditorDemoResource" id="ObjectEditorDemoResource_hnf2b"]
+
+[node name="DémoÉditeurD\'objet" type="Node" unique_id=336900632]
+script = ExtResource("1_demo")
+
+[node name="Cible" type="ObjectEditorDemo" parent="." unique_id=185470144]
+valeur_bornee = 10.0
+compteur = 8
+transform2d = Transform2D(1, 0.001, 0, 1, 0, 0)
+ressource = SubResource("ObjectEditorDemoResource_hnf2b")
+
+[node name="ProceduralEditor" type="ProceduralEditor" parent="." unique_id=1950474821]
+target_path = NodePath("../Cible")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

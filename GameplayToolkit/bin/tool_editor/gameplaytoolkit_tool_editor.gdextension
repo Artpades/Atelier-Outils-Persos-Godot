@@ -12,6 +12,8 @@ ManagerBuilder = "res://🖼️Editor Icons/🧰🧑‍💻/ManagerBase icon.png
 WindowEditor = "res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png"
 Gizmos2D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
 Gizmos3D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
+ProceduralEditor = "res://🖼️Editor Icons/🧰🧑‍💻/Settings Panel Icon.png"
+PropertyWidget = "res://🖼️Editor Icons/🧰🧑‍💻/CustomEditorProperty icon.png"
 
 [libraries]
 

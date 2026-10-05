@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DataRegistry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="find" qualifiers="const">
+			<return type="DataEntry" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="member" type="int" enum="DataEntry.MemberKind" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="get_members" qualifiers="static">
+			<return type="Dictionary[]" />
+			<param index="0" name="target" type="Object" />
+			<param index="1" name="member" type="int" enum="DataEntry.MemberKind" />
+			<param index="2" name="scope" type="int" enum="DataEntry.InspectionScope" />
+			<description>
+			</description>
+		</method>
+		<method name="get_target" qualifiers="const">
+			<return type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="sync">
+			<return type="void" />
+			<param index="0" name="target" type="Object" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="entries" type="DataEntry[]" setter="set_entries" getter="get_entries" default="[]">
+		</member>
+		<member name="scan_methods" type="bool" setter="set_scan_methods" getter="get_scan_methods" default="false">
+		</member>
+		<member name="scan_properties" type="bool" setter="set_scan_properties" getter="get_scan_properties" default="true">
+		</member>
+		<member name="scan_signals" type="bool" setter="set_scan_signals" getter="get_scan_signals" default="false">
+		</member>
+		<member name="scope" type="int" setter="set_scope" getter="get_scope" enum="DataEntry.InspectionScope" default="0">
+		</member>
+	</members>
+	<signals>
+		<signal name="synced">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

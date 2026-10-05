@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TextureProgressWidgetSettings" inherits="RangeWidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="progress_texture" type="Texture2D" setter="set_progress_texture" getter="get_progress_texture">
+		</member>
+		<member name="under_texture" type="Texture2D" setter="set_under_texture" getter="get_under_texture">
+		</member>
+	</members>
+</class>

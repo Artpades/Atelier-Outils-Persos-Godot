@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="LayoutDatabaseWindow" inherits="Window" api_type="editor_extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_type">
+			<return type="void" />
+			<param index="0" name="type" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="close_current" qualifiers="static">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_database" qualifiers="const">
+			<return type="LayoutDatabase" />
+			<description>
+			</description>
+		</method>
+		<method name="open" qualifiers="static">
+			<return type="LayoutDatabaseWindow" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

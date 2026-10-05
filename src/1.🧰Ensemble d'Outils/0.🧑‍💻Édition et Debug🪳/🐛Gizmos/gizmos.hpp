@@ -39,11 +39,95 @@
 
 namespace godot
 {
+// Propriétaire UNIQUE des ressources RenderingServer partagées par les gizmos 3D : registres (mesh et
+// matériaux par instance), shader de texte, matériau par défaut. Remplace les anciennes variables
+// statiques, détruites après le moteur au déchargement de la bibliothèque (RID fuités, risque de crash).
+// Créé à la première utilisation, détruit au déchargement du module (tool_editor_register.cpp) ; ses RID
+// sont libérés dans NOTIFICATION_PREDELETE. Les RID d'instance (gizmos) restent à la charge de leur
+// propriétaire (GizmoHost, HandlersManager, script).
+class GizmoResources : public Object
+{
+    GDCLASS(GizmoResources, Object)
+
+  private:
+    inline static GizmoResources *singleton = nullptr; // pointeur : destruction triviale au déchargement
+
+  protected:
+    static void _bind_methods() {}
+    void _notification(int p_what)
+    {
+        if (p_what != NOTIFICATION_PREDELETE)
+        {
+            return;
+        }
+        RenderingServer *rs = RenderingServer::get_singleton();
+        if (rs)
+        {
+            Array meshes = mesh_rids.values();
+            for (int i = 0; i < meshes.size(); i++)
+            {
+                RID mesh = meshes[i];
+                if (mesh.is_valid())
+                {
+                    rs->free_rid(mesh);
+                }
+            }
+            Array glyph_lists = text_materials.values();
+            for (int i = 0; i < glyph_lists.size(); i++)
+            {
+                Array list = glyph_lists[i];
+                for (int j = 0; j < list.size(); j++)
+                {
+                    RID material = list[j];
+                    if (material.is_valid())
+                    {
+                        rs->free_rid(material);
+                    }
+                }
+            }
+            if (text_shader.is_valid())
+            {
+                rs->free_rid(text_shader);
+            }
+        }
+        mesh_rids.clear();
+        text_materials.clear();
+        materials.clear();
+        text_shader = RID();
+        default_material.unref();
+    }
+
+  public:
+    Dictionary mesh_rids;      // RID d'instance -> RID de mesh
+    Dictionary materials;      // RID d'instance -> Ref<StandardMaterial3D> (draw_3D_icon)
+    Dictionary text_materials; // RID d'instance -> Array de RID de matériaux de glyphes (draw_3D_text)
+    RID text_shader;
+    Ref<StandardMaterial3D> default_material;
+
+    static GizmoResources *get_singleton()
+    {
+        if (!singleton)
+        {
+            singleton = memnew(GizmoResources);
+        }
+        return singleton;
+    }
+    // À appeler au déchargement du module (niveau SCENE) : libère toutes les ressources partagées.
+    static void destroy()
+    {
+        if (singleton)
+        {
+            memdelete(singleton);
+            singleton = nullptr;
+        }
+    }
+};
+
 // Boîte à outils interne C++ regroupant tous les gizmos 2D/3D et leurs registres.
 // Définie dans le header (comme log_it) pour être utilisable depuis tous les modules.
 // Les classes Gizmos2D et Gizmos3D exposent ces fonctions à GDScript.
-// NOTE : chaque bibliothèque a ses propres registres 3D : un gizmo 3D doit être créé et libéré
-// depuis le même module.
+// NOTE : chaque bibliothèque a ses propres registres 3D (GizmoResources) : un gizmo 3D doit être créé et
+// libéré depuis le même module.
 class Gizmos
 {
   public:
@@ -202,13 +286,13 @@ class Gizmos
     static void _draw_2D_polyline_circle(
         const RID &gizmo_rid, const Vector2 &center, float radius, const Color color = Color(1.0, 1.0, 1.0, 1.0), float thickness = 1.0, int segments = 24, bool antialiasing = false);
     // Dessine une flèche sans effacer le canvas_item
-    static void _add_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color);
+    static void _add_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing = false);
 
     //--------------------------------------------------------------------------
     // Registres internes 3D
     //--------------------------------------------------------------------------
 
-    // Getters statiques : les objets seront créés uniquement lors de leur premier appel
+    // Accès aux registres de GizmoResources (propriétaire unique, créé à la première utilisation)
     static Dictionary &_get_mesh_rids();
     static Dictionary &_get_materials();
 
@@ -268,7 +352,7 @@ inline void Gizmos::_draw_2D_polyline_circle(const RID &gizmo_rid, const Vector2
     RenderingServer *rs = RenderingServer::get_singleton();
     if (rs)
     {
-        rs->canvas_item_add_polyline(gizmo_rid, points, colors, thickness);
+        rs->canvas_item_add_polyline(gizmo_rid, points, colors, thickness, antialiasing);
     }
 }
 
@@ -287,9 +371,7 @@ inline RID Gizmos::create_2D_gizmo(Viewport *viewport)
     // Vous pouvez utiliser les fonctions de Godot pour créer un gizmo 2D
     // et retourner son RID.
     RID gizmo_rid = RenderingServer::get_singleton()->canvas_item_create(); // Crée un RID vide pour l'instant
-    // Parenter le gizmo à la vue (viewport)
-
-    RID viewport_rid = viewport->get_viewport_rid();
+    // Parenter le gizmo au canvas du viewport
     RenderingServer::get_singleton()->canvas_item_set_parent(gizmo_rid, viewport->find_world_2d()->get_canvas());
 
     return gizmo_rid; // Retourne le RID du gizmo créé
@@ -333,7 +415,7 @@ inline void Gizmos::draw_2D_line(const RID &gizmo_rid, const Vector2 &from, cons
         return;
     }
     RenderingServer::get_singleton()->canvas_item_clear(gizmo_rid); // Efface les dessins précédents du gizmo
-    RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, to, color, width);
+    RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, to, color, width, antialiasing);
 }
 
 inline void Gizmos::draw_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
@@ -358,7 +440,7 @@ inline void Gizmos::draw_2D_arrow(const RID &gizmo_rid, const Vector2 &from, con
     Vector2 base_point = to - direction * head_length;
 
     // Ligne jusqu'à la base du triangle de la flèche
-    RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, base_point, color, width);
+    RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, base_point, color, width, antialiasing);
 
     // Pointe Isocèle du triangle de la flèche
     Vector2 side = Vector2(-direction.y, direction.x) * (head_length * 0.5); // Crée un vecteur perpendiculaire pour les côtés du triangle
@@ -401,7 +483,7 @@ inline void Gizmos::draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, c
     else
     {
         PackedVector2Array points = {rect.position, Vector2(rect.get_end().x, rect.get_position().y), rect.get_end(), Vector2(rect.get_position().x, rect.get_end().y), rect.position};
-        RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness);
+        RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness, antialiasing);
     }
 }
 
@@ -436,7 +518,7 @@ inline void Gizmos::draw_2D_capsule(const RID &gizmo_rid, const Vector2 &positio
         points.append(Vector2(cos(angle) * radius, half_height + sin(angle) * radius));
     }
     points.append(points[0]);
-    RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness);
+    RenderingServer::get_singleton()->canvas_item_add_polyline(gizmo_rid, points, {color}, thickness, antialiasing);
 }
 
 inline void Gizmos::draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &points, const Color &color, bool filled, float thickness, bool antialiasing)
@@ -592,7 +674,7 @@ inline void Gizmos::draw_2D_path(const RID &gizmo_rid,
 }
 
 // Helper privé/interne pour dessiner une flèche sans effacer le canvas_item
-inline void Gizmos::_add_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color)
+inline void Gizmos::_add_2D_arrow(const RID &gizmo_rid, const Vector2 &from, const Vector2 &to, float arrow_size, float width, const Color &color, bool antialiasing)
 {
     Vector2 direction = (to - from).normalized();
     float distance = from.distance_to(to);
@@ -605,7 +687,7 @@ inline void Gizmos::_add_2D_arrow(const RID &gizmo_rid, const Vector2 &from, con
     float head_length = Math::min(arrow_size, distance);
     Vector2 base_point = to - direction * head_length;
 
-    RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, base_point, color, width);
+    RenderingServer::get_singleton()->canvas_item_add_line(gizmo_rid, from, base_point, color, width, antialiasing);
 
     Vector2 side = Vector2(-direction.y, direction.x) * (head_length * 0.5f);
     Vector2 point1 = base_point + side;
@@ -629,18 +711,18 @@ inline void Gizmos::draw_2D_origin(const RID &gizmo_rid, const Transform2D &tran
     rs->canvas_item_set_transform(gizmo_rid, transform);
 
     // Axe X (Rouge)
-    _add_2D_arrow(gizmo_rid, Vector2(0, 0), Vector2(length, 0), arrow_head_size, width, Color(1.0f, 0.0f, 0.0f));
+    _add_2D_arrow(gizmo_rid, Vector2(0, 0), Vector2(length, 0), arrow_head_size, width, Color(1.0f, 0.0f, 0.0f), antialiasing);
 
     // Axe Y (Vert)
-    _add_2D_arrow(gizmo_rid, Vector2(0, 0), Vector2(0, length), arrow_head_size, width, Color(0.0f, 1.0f, 0.0f));
+    _add_2D_arrow(gizmo_rid, Vector2(0, 0), Vector2(0, length), arrow_head_size, width, Color(0.0f, 1.0f, 0.0f), antialiasing);
 
     // Croix au centre (tournée à 45° / Math_PI * 0.25)
     if (cross_size > 0.0f)
     {
         float offset = (cross_size * 0.5f) * 0.70710678f; // cos(45°)
 
-        rs->canvas_item_add_line(gizmo_rid, Vector2(-offset, -offset), Vector2(offset, offset), cross_color, width);
-        rs->canvas_item_add_line(gizmo_rid, Vector2(-offset, offset), Vector2(offset, -offset), cross_color, width);
+        rs->canvas_item_add_line(gizmo_rid, Vector2(-offset, -offset), Vector2(offset, offset), cross_color, width, antialiasing);
+        rs->canvas_item_add_line(gizmo_rid, Vector2(-offset, offset), Vector2(offset, -offset), cross_color, width, antialiasing);
     }
 }
 
@@ -712,29 +794,15 @@ inline void Gizmos::apply_shader_on_2D_gizmo(const RID &gizmo_rid, const Ref<Mat
 // 3D
 //==============================================================================
 
-// Les variables static locales sont construites à la première exécution de la fonction,
-// une fois que le moteur Godot est déjà entièrement chargé.
-inline Dictionary &Gizmos::_get_mesh_rids()
-{
-    static Dictionary mesh_rids;
-    return mesh_rids;
-}
+inline Dictionary &Gizmos::_get_mesh_rids() { return GizmoResources::get_singleton()->mesh_rids; }
 
-inline Dictionary &Gizmos::_get_materials()
-{
-    static Dictionary materials;
-    return materials;
-}
+inline Dictionary &Gizmos::_get_materials() { return GizmoResources::get_singleton()->materials; }
 
-inline Dictionary &Gizmos::_get_text_materials()
-{
-    static Dictionary text_materials;
-    return text_materials;
-}
+inline Dictionary &Gizmos::_get_text_materials() { return GizmoResources::get_singleton()->text_materials; }
 
 inline RID &Gizmos::_get_text_shader()
 {
-    static RID text_shader;
+    RID &text_shader = GizmoResources::get_singleton()->text_shader;
     if (!text_shader.is_valid())
     {
         text_shader = RenderingServer::get_singleton()->shader_create();
@@ -760,7 +828,7 @@ inline RID &Gizmos::_get_text_shader()
 
 inline Ref<StandardMaterial3D> &Gizmos::_get_default_3D_material()
 {
-    static Ref<StandardMaterial3D> default_material;
+    Ref<StandardMaterial3D> &default_material = GizmoResources::get_singleton()->default_material;
     if (default_material.is_null())
     {
         default_material.instantiate();
@@ -1351,12 +1419,54 @@ inline void Gizmos::draw_3D_capsule(const RID &instance_rid, const Vector3 &cent
     st.instantiate();
     float half_h = Math::max(height - radius * 2.0f, 0.0f) * 0.5f;
 
+    if (filled)
+    {
+        // Capsule pleine : anneaux de la demi-sphère basse (pôle → équateur), puis de la demi-sphère haute
+        // (équateur → pôle) ; le cylindre est la bande entre les deux équateurs. Triangles colorés.
+        const int segs = 16;
+        const int rings = 6; // anneaux par demi-sphère
+        Vector<float> ring_y;
+        Vector<float> ring_r;
+        for (int j = 0; j <= rings; j++)
+        {
+            float angle = -Math_PI * 0.5f + j * (Math_PI * 0.5f) / rings;
+            ring_y.push_back(center.y - half_h + Math::sin(angle) * radius);
+            ring_r.push_back(Math::cos(angle) * radius);
+        }
+        for (int j = 0; j <= rings; j++)
+        {
+            float angle = j * (Math_PI * 0.5f) / rings;
+            ring_y.push_back(center.y + half_h + Math::sin(angle) * radius);
+            ring_r.push_back(Math::cos(angle) * radius);
+        }
+        st->begin(Mesh::PRIMITIVE_TRIANGLES);
+        st->set_color(color);
+        auto point = [&](int p_ring, int p_seg)
+        {
+            float a = p_seg * 2.0f * Math_PI / segs;
+            return Vector3(center.x + Math::cos(a) * ring_r[p_ring], ring_y[p_ring], center.z + Math::sin(a) * ring_r[p_ring]);
+        };
+        for (int j = 0; j + 1 < ring_y.size(); j++)
+        {
+            for (int i = 0; i < segs; i++)
+            {
+                Vector3 a = point(j, i), b = point(j, i + 1), c = point(j + 1, i + 1), d = point(j + 1, i);
+                st->add_vertex(a);
+                st->add_vertex(b);
+                st->add_vertex(c);
+                st->add_vertex(a);
+                st->add_vertex(c);
+                st->add_vertex(d);
+            }
+        }
+        RenderingServer::get_singleton()->mesh_add_surface_from_arrays(mesh_rid, RenderingServer::PRIMITIVE_TRIANGLES, st->commit_to_arrays());
+        return;
+    }
+
     // IMPORTANT : le choix de primitive doit suivre EXACTEMENT la même règle que
     // _add_3D_thick_line() en interne (width <= 1.0f => 2 sommets "ligne"), sinon on
     // obtient un nombre de sommets non multiple de 3 dans un buffer TRIANGLES
-    // (ex. "Vertex amount must be a multiple of 3"). "filled" n'a ici aucun effet
-    // géométrique réel (pas de dômes générés, fidèle au GDScript d'origine) : on
-    // l'ignore volontairement dans ce choix.
+    // (ex. "Vertex amount must be a multiple of 3").
     bool as_lines = (width <= 1.0f);
     st->begin(as_lines ? Mesh::PRIMITIVE_LINES : Mesh::PRIMITIVE_TRIANGLES);
 

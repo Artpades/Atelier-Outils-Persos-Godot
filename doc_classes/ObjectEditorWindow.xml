@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ObjectEditorWindow" inherits="Window" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="close_current" qualifiers="static">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="follow" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="target" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current" qualifiers="static">
+			<return type="ObjectEditorWindow" />
+			<description>
+			</description>
+		</method>
+		<method name="get_editor" qualifiers="const">
+			<return type="ProceduralEditor" />
+			<description>
+			</description>
+		</method>
+		<method name="is_pinned" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="open_for" qualifiers="static">
+			<return type="ObjectEditorWindow" />
+			<param index="0" name="target" type="Object" />
+			<param index="1" name="backend" type="UndoBackend" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="set_pinned">
+			<return type="void" />
+			<param index="0" name="pinned" type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

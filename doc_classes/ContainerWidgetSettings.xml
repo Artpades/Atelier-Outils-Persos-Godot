@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ContainerWidgetSettings" inherits="WidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="columns" type="int" setter="set_columns" getter="get_columns" default="2">
+		</member>
+		<member name="foldable" type="bool" setter="set_foldable" getter="get_foldable" default="true">
+		</member>
+		<member name="max_displayed" type="int" setter="set_max_displayed" getter="get_max_displayed" default="100">
+		</member>
+		<member name="start_expanded" type="bool" setter="set_start_expanded" getter="get_start_expanded" default="false">
+		</member>
+	</members>
+</class>

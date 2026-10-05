@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ValueAccessor" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="find_property_info" qualifiers="static">
+			<return type="Dictionary" />
+			<param index="0" name="target" type="Object" />
+			<param index="1" name="property" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_property" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_property_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_target" qualifiers="const">
+			<return type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="is_read_only" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_valid" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="read" qualifiers="const">
+			<return type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="setup">
+			<return type="void" />
+			<param index="0" name="target" type="Object" />
+			<param index="1" name="property" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="write">
+			<return type="void" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

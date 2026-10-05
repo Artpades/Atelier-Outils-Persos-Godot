@@ -5,32 +5,26 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/core/object_id.hpp>
 
-#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal Console/custom_logger.hpp"
 namespace godot
 {
-namespace
-{
-const char32_t *WINDOW_EDITOR = U"res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png";
-}
+// Fenêtre d'édition utilisable en jeu comme dans l'éditeur : la Window est ajoutée sous la racine
+// du SceneTree courant (racine du jeu, ou de l'éditeur).
 class WindowEditor : public RefCounted
 {
     GDCLASS(WindowEditor, RefCounted)
   private:
-    // Déclaration des propriétés et variables privées ici
-    Window *window = nullptr;
-    void on_window_close()
-    {
-        if (window)
-        {
-            window->set_visible(false);
+    // Fenêtre créée par cet objet, mais tenue par l'arbre de scène qui peut la libérer de son côté
+    // (ex: fermeture de l'éditeur) : stockée par ObjectID et résolue à chaque accès.
+    ObjectID window_id;
 
-            log_it("[color=red]Fenêtre d'édition fermée[/color]", "WindowEditor", WINDOW_EDITOR);
-        }
-    }
+    // Fenêtre valide, ou nullptr si elle n'existe plus (ou est déjà en cours de suppression).
+    Window *_get_window() const;
 
   protected:
     static void _bind_methods();
+    void _notification(int p_what);
 
   public:
     WindowEditor();
@@ -38,14 +32,7 @@ class WindowEditor : public RefCounted
 
     // Déclaration des méthodes publiques ici
     void open_window();
-    void close_window()
-    {
-        if (window)
-        {
-            window->set_visible(false);
-            log_it("[color=red]Fenêtre d'édition fermée[/color]", "WindowEditor", WINDOW_EDITOR);
-        }
-    }
+    void close_window();
     void add_control_to_window(Control *control);
     void remove_control_from_window(Control *control);
 };

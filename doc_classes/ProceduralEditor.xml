@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ProceduralEditor" inherits="VBoxContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_factory" qualifiers="const">
+			<return type="WidgetFactory" />
+			<description>
+			</description>
+		</method>
+		<method name="get_target" qualifiers="const">
+			<return type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="get_undo_backend">
+			<return type="UndoBackend" />
+			<description>
+			</description>
+		</method>
+		<method name="get_widget" qualifiers="const">
+			<return type="PropertyWidget" />
+			<param index="0" name="property" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="rebuild">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="redo">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_factory">
+			<return type="void" />
+			<param index="0" name="factory" type="WidgetFactory" />
+			<description>
+			</description>
+		</method>
+		<method name="set_target">
+			<return type="void" />
+			<param index="0" name="target" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="set_undo_backend">
+			<return type="void" />
+			<param index="0" name="backend" type="UndoBackend" />
+			<description>
+			</description>
+		</method>
+		<method name="undo">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="registry" type="DataRegistry" setter="set_registry" getter="get_registry">
+		</member>
+		<member name="size_flags_horizontal" type="int" setter="set_h_size_flags" getter="get_h_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+		<member name="sync_interval" type="float" setter="set_sync_interval" getter="get_sync_interval" default="0.1">
+		</member>
+	</members>
+</class>

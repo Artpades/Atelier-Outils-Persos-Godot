@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PropertyWidget" inherits="BoxContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_build" qualifiers="virtual">
+			<return type="Control" />
+			<param index="0" name="info" type="Dictionary" />
+			<param index="1" name="settings" type="WidgetSettings" />
+			<description>
+			</description>
+		</method>
+		<method name="_pull" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="display_name" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="property" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="emit_value">
+			<return type="void" />
+			<param index="0" name="value" type="Variant" />
+			<param index="1" name="committing" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="get_accessor" qualifiers="const">
+			<return type="ValueAccessor" />
+			<description>
+			</description>
+		</method>
+		<method name="get_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_value" qualifiers="const">
+			<return type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="get_property_name" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_settings" qualifiers="const">
+			<return type="WidgetSettings" />
+			<description>
+			</description>
+		</method>
+		<method name="get_style" qualifiers="const">
+			<return type="int" enum="DataEntry.WidgetChoice" />
+			<description>
+			</description>
+		</method>
+		<method name="has_edit_focus" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_read_only" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="pull">
+			<return type="void" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="stringify" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="value_changed">
+			<param index="0" name="value" type="Variant" />
+			<param index="1" name="committing" type="bool" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

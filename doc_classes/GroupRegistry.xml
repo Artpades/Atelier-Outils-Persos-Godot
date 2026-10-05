@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GroupRegistry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="assign">
+			<return type="void" />
+			<param index="0" name="data_name" type="String" />
+			<param index="1" name="group" type="GroupEntry" />
+			<description>
+			</description>
+		</method>
+		<method name="ensure">
+			<return type="GroupEntry" />
+			<param index="0" name="group_name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="find" qualifiers="const">
+			<return type="GroupEntry" />
+			<param index="0" name="group_name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="group_of" qualifiers="const">
+			<return type="GroupEntry" />
+			<param index="0" name="data_name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_data_name">
+			<return type="void" />
+			<param index="0" name="data_name" type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="groups" type="GroupEntry[]" setter="set_groups" getter="get_groups" default="[]">
+		</member>
+	</members>
+</class>

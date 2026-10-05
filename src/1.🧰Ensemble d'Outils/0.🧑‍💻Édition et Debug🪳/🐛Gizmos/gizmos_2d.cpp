@@ -9,11 +9,11 @@ using namespace godot;
 // sous les noms historiques utilisés par GDScript.
 void Gizmos2D::_bind_methods()
 {
-    ClassDB::bind_static_method("Gizmos2D", D_METHOD("create_2D_gizmos", "viewport"), &Gizmos::create_2D_gizmo);
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("create_2D_gizmo", "viewport"), &Gizmos::create_2D_gizmo);
 
-    ClassDB::bind_static_method("Gizmos2D", D_METHOD("clear_2D_gizmos", "gizmo_rid"), &Gizmos::clear_2D_gizmo);
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("clear_2D_gizmo", "gizmo_rid"), &Gizmos::clear_2D_gizmo);
 
-    ClassDB::bind_static_method("Gizmos2D", D_METHOD("free_gizmos", "gizmo_rid"), &Gizmos::free_2D_gizmo);
+    ClassDB::bind_static_method("Gizmos2D", D_METHOD("free_2D_gizmo", "gizmo_rid"), &Gizmos::free_2D_gizmo);
 
     ClassDB::bind_static_method("Gizmos2D", D_METHOD("draw_2D_line", "gizmo_rid", "from", "to", "width", "color", "antialiasing"), &Gizmos::draw_2D_line, DEFVAL(2.0),
                                 DEFVAL(Color(1.0, 1.0, 1.0, 1.0)), DEFVAL(false));

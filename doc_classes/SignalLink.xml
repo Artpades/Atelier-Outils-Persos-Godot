@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SignalLink" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="connect_to">
+			<return type="void" />
+			<param index="0" name="source" type="Object" />
+			<param index="1" name="signal" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="disconnect_from">
+			<return type="void" />
+			<param index="0" name="source" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="is_connected_to" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="source" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="resolve_target" qualifiers="const">
+			<return type="Object" />
+			<param index="0" name="source" type="Object" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="arguments" type="ArgumentBinding[]" setter="set_arguments" getter="get_arguments" default="[]">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+		</member>
+		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+		</member>
+		<member name="target_path" type="NodePath" setter="set_target_path" getter="get_target_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="target_resource" type="Resource" setter="set_target_resource" getter="get_target_resource">
+		</member>
+	</members>
+</class>

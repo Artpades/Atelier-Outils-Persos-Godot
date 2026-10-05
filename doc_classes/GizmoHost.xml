@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GizmoHost" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="free_all">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_draw_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_live_rid_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_target_object" qualifiers="const">
+			<return type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="resolve_target" qualifiers="const">
+			<return type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="resolve_viewport" qualifiers="const">
+			<return type="Viewport" />
+			<description>
+			</description>
+		</method>
+		<method name="set_target_object">
+			<return type="void" />
+			<param index="0" name="object" type="Object" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="registry" type="GizmoRegistry" setter="set_registry" getter="get_registry">
+		</member>
+		<member name="target_path" type="NodePath" setter="set_target_path" getter="get_target_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="viewport_path" type="NodePath" setter="set_viewport_path" getter="get_viewport_path" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+</class>

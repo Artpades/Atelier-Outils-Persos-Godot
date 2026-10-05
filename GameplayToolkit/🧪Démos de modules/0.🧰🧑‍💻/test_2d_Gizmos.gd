@@ -21,17 +21,17 @@ var time: float = 0.0
 
 func _enter_tree() -> void:
 	# Allocation via les deux surcharges de création (Node et Viewport)
-	line_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	arrow_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	circle_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	rect_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	capsule_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	polygon_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	path_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	origin_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	icon_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	text_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
-	cleared_gizmo = Gizmos2D.create_2D_gizmos(get_viewport())
+	line_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	arrow_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	circle_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	rect_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	capsule_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	polygon_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	path_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	origin_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	icon_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	text_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+	cleared_gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
 
 func _process(delta: float) -> void:
 	time += delta
@@ -83,20 +83,20 @@ func _process(delta: float) -> void:
 	# 10. Texte
 	Gizmos2D.draw_2D_text(text_gizmo, Vector2(50, 470), "Gizmos2D Active - Temps : %.2f" % time, Color.GOLD, 16)
 
-	# 11. Test d'effacement (efface le rendu pour vérifier clear_2D_gizmos)
+	# 11. Test d'effacement (efface le rendu pour vérifier clear_2D_gizmo)
 	Gizmos2D.draw_2D_line(cleared_gizmo, Vector2(0, 0), Vector2(100, 100), 2.0, Color.WHITE)
-	Gizmos2D.clear_2D_gizmos(cleared_gizmo)
+	Gizmos2D.clear_2D_gizmo(cleared_gizmo)
 
 func _exit_tree() -> void:
 	# Libération de tous les RIDs
-	Gizmos2D.free_gizmos(line_gizmo)
-	Gizmos2D.free_gizmos(arrow_gizmo)
-	Gizmos2D.free_gizmos(circle_gizmo)
-	Gizmos2D.free_gizmos(rect_gizmo)
-	Gizmos2D.free_gizmos(capsule_gizmo)
-	Gizmos2D.free_gizmos(polygon_gizmo)
-	Gizmos2D.free_gizmos(path_gizmo)
-	Gizmos2D.free_gizmos(origin_gizmo)
-	Gizmos2D.free_gizmos(icon_gizmo)
-	Gizmos2D.free_gizmos(text_gizmo)
-	Gizmos2D.free_gizmos(cleared_gizmo)
+	Gizmos2D.free_2D_gizmo(line_gizmo)
+	Gizmos2D.free_2D_gizmo(arrow_gizmo)
+	Gizmos2D.free_2D_gizmo(circle_gizmo)
+	Gizmos2D.free_2D_gizmo(rect_gizmo)
+	Gizmos2D.free_2D_gizmo(capsule_gizmo)
+	Gizmos2D.free_2D_gizmo(polygon_gizmo)
+	Gizmos2D.free_2D_gizmo(path_gizmo)
+	Gizmos2D.free_2D_gizmo(origin_gizmo)
+	Gizmos2D.free_2D_gizmo(icon_gizmo)
+	Gizmos2D.free_2D_gizmo(text_gizmo)
+	Gizmos2D.free_2D_gizmo(cleared_gizmo)

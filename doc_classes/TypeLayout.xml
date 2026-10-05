@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TypeLayout" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="ensure_registries">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="data_registry" type="DataRegistry" setter="set_data_registry" getter="get_data_registry">
+		</member>
+		<member name="gizmo_registry" type="GizmoRegistry" setter="set_gizmo_registry" getter="get_gizmo_registry">
+		</member>
+		<member name="group_registry" type="GroupRegistry" setter="set_group_registry" getter="get_group_registry">
+		</member>
+		<member name="include_subclasses" type="bool" setter="set_include_subclasses" getter="get_include_subclasses" default="true">
+		</member>
+		<member name="priority" type="int" setter="set_priority" getter="get_priority" default="0">
+		</member>
+		<member name="type_name" type="String" setter="set_type_name" getter="get_type_name" default="&quot;&quot;">
+		</member>
+	</members>
+</class>

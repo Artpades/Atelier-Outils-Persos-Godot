@@ -52,7 +52,8 @@ class ManagerBuilder : public RefCounted
     // Retourne le singleton existant pour p_class_name, ou en crée un nouveau via
     // ClassDB::instantiate(p_class_name) si aucune instance valide n'est enregistrée.
     // p_class_name doit être une classe native dérivant de Node, enregistrée dans ClassDB
-    // (donc exposée par ce module ou un autre module GDExtension/GDScript avec class_name).
+    // (moteur, ce module ou un autre module GDExtension). Les classes GDScript `class_name`
+    // ne sont PAS dans ClassDB : elles sont refusées (cf. point 2 ci-dessus).
     // Le nœud créé est nommé "p_class_name (Singleton)" et ajouté en différé (call_deferred)
     // sous la racine du SceneTree pour survivre aux changements de scène.
     // Retourne nullptr si : pas de SceneTree actif, classe inexistante/non instanciable,

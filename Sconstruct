@@ -119,8 +119,17 @@ DOC_DIR = "doc_classes"
 if sys.platform == "win32":
     DEFAULT_GODOT = r"D:\Tiroirs\Passions et Fascinations\4.🧑‍💻Programmation\Moteur de jeu\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe"
 else:
-    DEFAULT_GODOT = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7-stable_linux_x86_64/Godot_v4.7-stable_linux.x86_64"
+    DEFAULT_GODOT = "/home/artpade/.var/app/io.github.MakovWait.Godots/data/godot/app_userdata/Godots/versions/Godot_v4_7_2-stable_linux_x86_64/Godot_v4.7.2-stable_linux.x86_64"
 GODOT_EXECUTABLE = ARGUMENTS.pop("godot", os.environ.get("GODOT", DEFAULT_GODOT))
+
+# API GDExtension utilisée pour générer les bindings godot-cpp : extension_api.json et gdextension_interface.json
+# à la racine du projet, produits par Godot 4.7.2 (godot-cpp n'embarque que l'API 4.6). Pour les régénérer :
+#   <godot> --headless --dump-extension-api            -> extension_api.json
+#   <godot> --headless --dump-gdextension-interface-json -> gdextension_interface.json
+# Surcharge possible : scons gdextension_dir=<dossier> (ou custom_api_file=<fichier>).
+# DÉSACTIVÉ : le générateur de cette version de godot-cpp (API ≤ 4.6) ne compile pas l'API 4.7
+# (constantes globales UINT8_MAX, INT32_MIN... en conflit avec les macros de <cstdint>).
+# ARGUMENTS.setdefault("gdextension_dir", Dir("#").abspath)
 
 # Génération automatique des XML manquants après la compilation (désactivable : scons auto_doc=no).
 AUTO_DOC = ARGUMENTS.pop("auto_doc", "yes").lower() not in ("no", "false", "0")
@@ -351,6 +360,20 @@ elif not with_docs:
 
 
 # --- 5. Compilation des bibliothèques ---
+# Avertissements activés pour le code des modules uniquement (environnement cloné : godot-cpp garde ses options).
+module_env = env.Clone()
+if module_env.get("is_msvc", False):
+    module_env.Append(CCFLAGS=["/W4"])
+else:
+    module_env.Append(CCFLAGS=["-Wall", "-Wextra"])
+    # En-têtes godot-cpp inclus comme en-têtes système (-isystem) : leurs propres avertissements
+    # (des milliers de -Wunused-parameter) masqueraient ceux de notre code.
+    godot_cpp_dir = Dir("#godot-cpp").abspath
+    godot_cpp_includes = [p for p in module_env["CPPPATH"] if str(Dir(p).srcnode().abspath).startswith(godot_cpp_dir)]
+    module_env["CPPPATH"] = [p for p in module_env["CPPPATH"] if p not in godot_cpp_includes]
+    for p in godot_cpp_includes:
+        module_env.Append(CCFLAGS=["-isystem", Dir(p).abspath])
+
 libraries = []
 for info in libraries_info:
     sources = list(info["sources"])
@@ -360,7 +383,7 @@ for info in libraries_info:
     if with_docs and library_xml:
         sources.append(env.GodotCPPDocData("src/gen/doc_data_{}.gen.cpp".format(info["name"]), source=library_xml))
 
-    library = env.SharedLibrary(
+    library = module_env.SharedLibrary(
         "{}/{}{}{}".format(info["bin_dir"], info["name"], env["suffix"], env["SHLIBSUFFIX"]),
         source=sources
     )

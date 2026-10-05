@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WidgetSettings" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="label_ratio" type="float" setter="set_label_ratio" getter="get_label_ratio" default="0.4">
+		</member>
+		<member name="show_label" type="bool" setter="set_show_label" getter="get_show_label" default="true">
+		</member>
+	</members>
+</class>

@@ -14,13 +14,13 @@
 			<description>
 			</description>
 		</method>
-		<method name="clear_2D_gizmos" qualifiers="static">
+		<method name="clear_2D_gizmo" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="gizmo_rid" type="RID" />
 			<description>
 			</description>
 		</method>
-		<method name="create_2D_gizmos" qualifiers="static">
+		<method name="create_2D_gizmo" qualifiers="static">
 			<return type="RID" />
 			<param index="0" name="viewport" type="Viewport" />
 			<description>
@@ -144,7 +144,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="free_gizmos" qualifiers="static">
+		<method name="free_2D_gizmo" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="gizmo_rid" type="RID" />
 			<description>

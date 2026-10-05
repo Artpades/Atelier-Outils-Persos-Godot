@@ -54,11 +54,16 @@ inline void log_it(const String &message, const Variant &object_caller = Variant
     String log_message = "[color=gray][" + time_str + "][/color] ";
     if (!class_name.is_empty())
     {
-        log_message += "[b]" + class_name + "[/b]";
+        log_message += "[b]" + class_name + "[/b] ";
     }
     if (!icon_path.is_empty())
     {
-        log_message += "[img]" + icon_path + "[/img] : ";
+        log_message += "[img]" + icon_path + "[/img] ";
+    }
+    // Séparateur dès qu'il y a un appelant OU une icône (manquait avec un appelant sans icône)
+    if (!class_name.is_empty() || !icon_path.is_empty())
+    {
+        log_message += ": ";
     }
     log_message += message;
 

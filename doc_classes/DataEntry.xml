@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DataEntry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="resolved_choice" qualifiers="const">
+			<return type="int" enum="DataEntry.WidgetChoice" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="custom_widget_class" type="StringName" setter="set_custom_widget_class" getter="get_custom_widget_class" default="&amp;&quot;&quot;">
+		</member>
+		<member name="data_name" type="StringName" setter="set_data_name" getter="get_data_name" default="&amp;&quot;&quot;">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+		</member>
+		<member name="is_missing" type="bool" setter="set_is_missing" getter="get_is_missing" default="false">
+		</member>
+		<member name="is_vertical" type="bool" setter="set_is_vertical" getter="get_is_vertical" default="false">
+		</member>
+		<member name="kind" type="int" setter="set_kind" getter="get_kind" enum="DataEntry.DataKind" default="0">
+		</member>
+		<member name="member" type="int" setter="set_member" getter="get_member" enum="DataEntry.MemberKind" default="0">
+		</member>
+		<member name="settings" type="WidgetSettings" setter="set_settings" getter="get_settings">
+		</member>
+		<member name="widget_choice" type="int" setter="set_widget_choice" getter="get_widget_choice" enum="DataEntry.WidgetChoice" default="0">
+		</member>
+	</members>
+	<constants>
+		<constant name="MEMBER_PROPERTY" value="0" enum="MemberKind">
+		</constant>
+		<constant name="MEMBER_METHOD" value="1" enum="MemberKind">
+		</constant>
+		<constant name="MEMBER_SIGNAL" value="2" enum="MemberKind">
+		</constant>
+		<constant name="KIND_UNSUPPORTED" value="0" enum="DataKind">
+		</constant>
+		<constant name="KIND_BOOL" value="1" enum="DataKind">
+		</constant>
+		<constant name="KIND_NUMBER" value="2" enum="DataKind">
+		</constant>
+		<constant name="KIND_TEXT" value="3" enum="DataKind">
+		</constant>
+		<constant name="KIND_ENUM" value="4" enum="DataKind">
+		</constant>
+		<constant name="KIND_FLAGS" value="5" enum="DataKind">
+		</constant>
+		<constant name="KIND_COLOR" value="6" enum="DataKind">
+		</constant>
+		<constant name="KIND_METHOD" value="7" enum="DataKind">
+		</constant>
+		<constant name="KIND_SIGNAL" value="8" enum="DataKind">
+		</constant>
+		<constant name="KIND_OBJECT" value="9" enum="DataKind">
+		</constant>
+		<constant name="KIND_NODE_PATH" value="10" enum="DataKind">
+		</constant>
+		<constant name="KIND_ARRAY" value="11" enum="DataKind">
+		</constant>
+		<constant name="KIND_DICTIONARY" value="12" enum="DataKind">
+		</constant>
+		<constant name="KIND_STRUCT" value="13" enum="DataKind">
+		</constant>
+		<constant name="KIND_VARIANT" value="14" enum="DataKind">
+		</constant>
+		<constant name="KIND_RID" value="15" enum="DataKind">
+		</constant>
+		<constant name="KIND_PACKED_ARRAY" value="16" enum="DataKind">
+		</constant>
+		<constant name="WIDGET_AUTO" value="0" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_CHECK_BOX" value="1" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_CHECK_BUTTON" value="2" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_LABEL" value="3" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_SPIN_BOX" value="4" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_H_SLIDER" value="5" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_V_SLIDER" value="6" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_PROGRESS_BAR" value="7" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_TEXTURE_PROGRESS_BAR" value="8" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_LINE_EDIT" value="9" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_TEXT_EDIT" value="10" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_OPTION_BUTTON" value="11" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_CHECK_BUTTON_LIST" value="12" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_COLOR_PICKER_BUTTON" value="13" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_COLOR_RECT_CHANNELS" value="14" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_BUTTON" value="15" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_BOX_CONTAINER" value="16" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_GRID_CONTAINER" value="17" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_PATH_BUTTON" value="18" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_STRUCT_SPIN_BOXES" value="19" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_CUSTOM" value="20" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_VARIANT_SELECTOR" value="21" enum="WidgetChoice">
+		</constant>
+		<constant name="WIDGET_CHECK_BOX_LIST" value="22" enum="WidgetChoice">
+		</constant>
+		<constant name="SCOPE_AUTO" value="0" enum="InspectionScope">
+		</constant>
+		<constant name="SCOPE_SCRIPT_ONLY" value="1" enum="InspectionScope">
+		</constant>
+		<constant name="SCOPE_ALL" value="2" enum="InspectionScope">
+		</constant>
+		<constant name="SCOPE_CLASS_ONLY" value="3" enum="InspectionScope">
+		</constant>
+	</constants>
+</class>
