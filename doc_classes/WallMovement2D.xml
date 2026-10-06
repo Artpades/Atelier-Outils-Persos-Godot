@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WallMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="is_climbing" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_sliding" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_touching_wall" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="air_acceleration" type="float" setter="set_air_acceleration" getter="get_air_acceleration" default="900.0">
+		</member>
+		<member name="air_speed" type="float" setter="set_air_speed" getter="get_air_speed" default="200.0">
+		</member>
+		<member name="can_climb" type="bool" setter="set_can_climb" getter="get_can_climb" default="false">
+		</member>
+		<member name="climb_speed" type="float" setter="set_climb_speed" getter="get_climb_speed" default="120.0">
+		</member>
+		<member name="jump_away_velocity" type="float" setter="set_jump_away_velocity" getter="get_jump_away_velocity" default="320.0">
+		</member>
+		<member name="jump_up_velocity" type="float" setter="set_jump_up_velocity" getter="get_jump_up_velocity" default="420.0">
+		</member>
+		<member name="require_input_toward_wall" type="bool" setter="set_require_input_toward_wall" getter="get_require_input_toward_wall" default="true">
+		</member>
+		<member name="slide_speed" type="float" setter="set_slide_speed" getter="get_slide_speed" default="110.0">
+		</member>
+		<member name="stick_velocity" type="float" setter="set_stick_velocity" getter="get_stick_velocity" default="40.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="wall_jumped">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

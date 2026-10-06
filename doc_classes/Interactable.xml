@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Interactable" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="find_nearest" qualifiers="static">
+			<return type="Interactable" />
+			<param index="0" name="from" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_world_position" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="interact">
+			<return type="bool" />
+			<param index="0" name="by" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="is_in_range_of" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="node" type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="interaction_range" type="float" setter="set_interaction_range" getter="get_interaction_range" default="64.0">
+		</member>
+		<member name="one_shot" type="bool" setter="set_one_shot" getter="is_one_shot" default="false">
+		</member>
+		<member name="prompt" type="String" setter="set_prompt" getter="get_prompt" default="&quot;Interagir&quot;">
+		</member>
+	</members>
+	<signals>
+		<signal name="interacted">
+			<param index="0" name="by" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

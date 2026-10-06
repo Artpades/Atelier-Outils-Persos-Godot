@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTRepeater" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_iteration" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="count" type="int" setter="set_count" getter="get_count" default="0">
+		</member>
+		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="BTRepeater.RepeatMode" default="0">
+		</member>
+	</members>
+	<constants>
+		<constant name="REPEAT_ALWAYS" value="0" enum="RepeatMode">
+		</constant>
+		<constant name="REPEAT_UNTIL_SUCCESS" value="1" enum="RepeatMode">
+		</constant>
+		<constant name="REPEAT_UNTIL_FAILURE" value="2" enum="RepeatMode">
+		</constant>
+	</constants>
+</class>

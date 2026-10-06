@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputSphereAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_orientation" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="get_vector" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="get_velocity" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="backward_key" type="int" setter="set_backward_key" getter="get_backward_key" default="83">
+		</member>
+		<member name="down_key" type="int" setter="set_down_key" getter="get_down_key" default="81">
+		</member>
+		<member name="dpad_backward" type="int" setter="set_dpad_backward" getter="get_dpad_backward" default="-1">
+		</member>
+		<member name="dpad_down" type="int" setter="set_dpad_down" getter="get_dpad_down" default="-1">
+		</member>
+		<member name="dpad_forward" type="int" setter="set_dpad_forward" getter="get_dpad_forward" default="-1">
+		</member>
+		<member name="dpad_left" type="int" setter="set_dpad_left" getter="get_dpad_left" default="-1">
+		</member>
+		<member name="dpad_right" type="int" setter="set_dpad_right" getter="get_dpad_right" default="-1">
+		</member>
+		<member name="dpad_up" type="int" setter="set_dpad_up" getter="get_dpad_up" default="-1">
+		</member>
+		<member name="forward_key" type="int" setter="set_forward_key" getter="get_forward_key" default="87">
+		</member>
+		<member name="invert_y" type="bool" setter="set_invert_y" getter="get_invert_y" default="false">
+		</member>
+		<member name="joy_axis_x" type="int" setter="set_joy_axis_x" getter="get_joy_axis_x" default="0">
+		</member>
+		<member name="joy_axis_y" type="int" setter="set_joy_axis_y" getter="get_joy_axis_y" default="-1">
+		</member>
+		<member name="joy_axis_z" type="int" setter="set_joy_axis_z" getter="get_joy_axis_z" default="1">
+		</member>
+		<member name="left_key" type="int" setter="set_left_key" getter="get_left_key" default="65">
+		</member>
+		<member name="right_key" type="int" setter="set_right_key" getter="get_right_key" default="68">
+		</member>
+		<member name="up_key" type="int" setter="set_up_key" getter="get_up_key" default="69">
+		</member>
+	</members>
+	<signals>
+		<signal name="orientation_changed">
+			<param index="0" name="orientation" type="Vector3" />
+			<description>
+			</description>
+		</signal>
+		<signal name="value_changed">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+			</description>
+		</signal>
+		<signal name="velocity_changed">
+			<param index="0" name="velocity" type="Vector3" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

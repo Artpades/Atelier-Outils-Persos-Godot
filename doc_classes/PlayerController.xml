@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PlayerController" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="create_default_actions">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_character" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_focused_interactable" qualifiers="const">
+			<return type="Interactable" />
+			<description>
+			</description>
+		</method>
+		<method name="interact">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="use_ability">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="ability_actions" type="Dictionary" setter="set_ability_actions" getter="get_ability_actions" default="{}">
+		</member>
+		<member name="action_down" type="StringName" setter="set_action_down" getter="get_action_down" default="&amp;&quot;move_down&quot;">
+		</member>
+		<member name="action_interact" type="StringName" setter="set_action_interact" getter="get_action_interact" default="&amp;&quot;interact&quot;">
+		</member>
+		<member name="action_jump" type="StringName" setter="set_action_jump" getter="get_action_jump" default="&amp;&quot;jump&quot;">
+		</member>
+		<member name="action_left" type="StringName" setter="set_action_left" getter="get_action_left" default="&amp;&quot;move_left&quot;">
+		</member>
+		<member name="action_right" type="StringName" setter="set_action_right" getter="get_action_right" default="&amp;&quot;move_right&quot;">
+		</member>
+		<member name="action_run" type="StringName" setter="set_action_run" getter="get_action_run" default="&amp;&quot;run&quot;">
+		</member>
+		<member name="action_up" type="StringName" setter="set_action_up" getter="get_action_up" default="&amp;&quot;move_up&quot;">
+		</member>
+		<member name="auto_target_range" type="float" setter="set_auto_target_range" getter="get_auto_target_range" default="0.0">
+		</member>
+		<member name="block_during_dialogue" type="bool" setter="set_block_during_dialogue" getter="get_block_during_dialogue" default="true">
+		</member>
+		<member name="camera_relative" type="bool" setter="set_camera_relative" getter="get_camera_relative" default="true">
+		</member>
+		<member name="create_missing_actions" type="bool" setter="set_create_missing_actions" getter="get_create_missing_actions" default="true">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="process_physics_priority" type="int" setter="set_physics_process_priority" getter="get_physics_process_priority" overrides="Node" default="-10" />
+	</members>
+	<signals>
+		<signal name="focus_changed">
+			<param index="0" name="interactable" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

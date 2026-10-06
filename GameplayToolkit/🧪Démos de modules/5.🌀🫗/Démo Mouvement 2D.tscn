@@ -1,0 +1,181 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/5.🌀🫗/demo_mouvement_2d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+
+[sub_resource type="CapsuleShape2D" id="Forme_heros"]
+radius = 11.0
+height = 36.0
+
+[sub_resource type="InputBinding" id="Liaison_deplacement"]
+event = &"value_changed"
+target = NodePath("../Heros/Directeur")
+method = &"move"
+
+[sub_resource type="InputCircleAction" id="Deplacement"]
+action_name = &"deplacement"
+description = "Déplacement : ZQSD (positions WASD), stick gauche, croix. Haut / bas : grimper, nager, voler."
+bindings = Array[InputBinding]([SubResource("Liaison_deplacement")])
+
+[sub_resource type="InputBinding" id="Liaison_saut"]
+event = &"pressed"
+target = NodePath("../Heros/Directeur")
+method = &"jump"
+
+[sub_resource type="InputBinding" id="Liaison_saut_relache"]
+event = &"released"
+target = NodePath("../Heros/Directeur")
+method = &"release_jump"
+
+[sub_resource type="InputButtonAction" id="Saut"]
+action_name = &"saut"
+description = "Saut (maintenir : plus haut ; en l'air : double saut, battement, plané)."
+key = 32
+joy_button = 0
+bindings = Array[InputBinding]([SubResource("Liaison_saut"), SubResource("Liaison_saut_relache")])
+
+[sub_resource type="InputBinding" id="Liaison_course"]
+event = &"toggled"
+target = NodePath("../Heros/Directeur")
+method = &"set_running"
+
+[sub_resource type="InputButtonAction" id="Course"]
+action_name = &"course"
+key = 4194325
+joy_button = 2
+bindings = Array[InputBinding]([SubResource("Liaison_course")])
+
+[sub_resource type="InputBinding" id="Liaison_agripper"]
+event = &"pressed"
+target = NodePath("../Heros/Corde")
+method = &"try_grab"
+pass_value = false
+
+[sub_resource type="InputButtonAction" id="Agripper"]
+action_name = &"agripper"
+description = "S'accrocher à la corde la plus proche."
+key = 69
+joy_button = 3
+bindings = Array[InputBinding]([SubResource("Liaison_agripper")])
+
+[sub_resource type="InputBinding" id="Liaison_vol"]
+event = &"pressed"
+target = NodePath("..")
+method = &"basculer_vol"
+
+[sub_resource type="InputButtonAction" id="Vol"]
+action_name = &"vol"
+description = "Contexte de mouvement « vol » forcé (MovementDirector.set_context), ou retour à l'automatique."
+key = 86
+joy_button = 10
+bindings = Array[InputBinding]([SubResource("Liaison_vol")])
+
+[sub_resource type="InputBinding" id="Liaison_ouvrir_menu"]
+event = &"released"
+target = NodePath("..")
+method = &"ouvrir_menu"
+
+[sub_resource type="InputButtonAction" id="Ouvrir_menu"]
+action_name = &"menu"
+key = 4194305
+joy_button = 6
+bindings = Array[InputBinding]([SubResource("Liaison_ouvrir_menu")])
+
+[sub_resource type="InputContext" id="Contexte_jeu"]
+context_name = &"jeu"
+description = "Contrôle du héros."
+actions = Array[InputAction]([SubResource("Deplacement"), SubResource("Saut"), SubResource("Course"), SubResource("Agripper"), SubResource("Vol"), SubResource("Ouvrir_menu")])
+
+[sub_resource type="InputBinding" id="Liaison_fermer_menu"]
+event = &"released"
+target = NodePath("..")
+method = &"fermer_menu"
+
+[sub_resource type="InputButtonAction" id="Fermer_menu"]
+action_name = &"fermer"
+key = 4194305
+joy_button = 1
+bindings = Array[InputBinding]([SubResource("Liaison_fermer_menu")])
+
+[sub_resource type="InputContext" id="Contexte_menu"]
+context_name = &"menu"
+description = "Menu des contrôles : bloque le contexte « jeu » (exclusif, priorité 10)."
+enabled = false
+priority = 10
+exclusive = true
+actions = Array[InputAction]([SubResource("Fermer_menu")])
+
+[node name="DemoMouvement" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Heros" type="CharacterBody2D" parent="."]
+position = Vector2(100, 600)
+floor_snap_length = 4.0
+
+[node name="Forme" type="CollisionShape2D" parent="Heros"]
+shape = SubResource("Forme_heros")
+
+[node name="Corps" type="Polygon2D" parent="Heros"]
+color = Color(0.35, 0.65, 1, 1)
+polygon = PackedVector2Array(-11, -18, 11, -18, 13, 18, -13, 18)
+
+[node name="Antenne" type="Jiggle2D" parent="Heros"]
+position = Vector2(0, -28)
+stiffness = 120.0
+damping = 6.0
+max_offset = 18.0
+
+[node name="Pompon" type="Polygon2D" parent="Heros/Antenne"]
+color = Color(1, 0.8, 0.3, 1)
+polygon = PackedVector2Array(-5, -5, 5, -5, 5, 5, -5, 5)
+
+[node name="Sol" type="GroundMovement2D" parent="Heros"]
+max_speed = 260.0
+max_jumps = 2
+
+[node name="Mur" type="WallMovement2D" parent="Heros"]
+
+[node name="Nage" type="SwimMovement2D" parent="Heros"]
+
+[node name="Plane" type="AerodynamicMovement2D" parent="Heros"]
+
+[node name="Corde" type="RopeMovement2D" parent="Heros"]
+grab_distance = 60.0
+
+[node name="Recul" type="Knockback2D" parent="Heros"]
+
+[node name="Directeur" type="MovementDirector" parent="Heros"]
+
+[node name="Camera" type="Camera2D" parent="Heros"]
+position_smoothing_enabled = true
+
+[node name="Entrees" type="PlayerInput" parent="."]
+contexts = Array[InputContext]([SubResource("Contexte_jeu"), SubResource("Contexte_menu")])
+auto_switch_device = true
+process_in_physics = true
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🌀 Mouvement & Physique"
+aide = "ZQSD / stick : bouger · Espace / A : sauter (double saut, saut mural, battement) · Maj / X : courir · E / Y : s'accrocher à la corde · V / RB : vol · Échap / Start : contrôles.
+Le PlayerInput n'a aucun code : ses liaisons appellent le MovementDirector (🕹️ Éditeur d'entrées dans l'inspecteur)."
+largeur = 400.0
+
+[node name="Menu" type="PanelContainer" parent="Interface"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -200.0
+offset_right = 260.0
+offset_bottom = 200.0
+
+[node name="Controles" type="PlayerInputUI" parent="Interface/Menu"]
+layout_mode = 2
+player_input = NodePath("../../../Entrees")
+save_path = "user://demo_mouvement_controles.cfg"

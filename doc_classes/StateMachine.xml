@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="StateMachine" inherits="State" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_history">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_path" qualifiers="const">
+			<return type="State[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_state" qualifiers="const">
+			<return type="State" />
+			<description>
+			</description>
+		</method>
+		<method name="get_agent_node" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_debug_snapshot" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_elapsed_time" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_history" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="is_root_machine" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_running" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="physics_update">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="restart">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="send_event">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="data" type="Variant" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="start">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="transition_to">
+			<return type="bool" />
+			<param index="0" name="target" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="update">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="agent_path" type="NodePath" setter="set_agent_path" getter="get_agent_path" default="NodePath(&quot;..&quot;)">
+		</member>
+		<member name="autostart" type="bool" setter="set_autostart" getter="get_autostart" default="true">
+		</member>
+		<member name="blackboard" type="Blackboard" setter="set_blackboard" getter="get_blackboard">
+		</member>
+		<member name="history_size" type="int" setter="set_history_size" getter="get_history_size" default="32">
+		</member>
+		<member name="process_callback" type="int" setter="set_process_callback" getter="get_process_callback" enum="StateMachine.ProcessCallback" default="0">
+		</member>
+	</members>
+	<signals>
+		<signal name="event_received">
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="data" type="Variant" />
+			<description>
+			</description>
+		</signal>
+		<signal name="started">
+			<description>
+			</description>
+		</signal>
+		<signal name="state_changed">
+			<param index="0" name="from" type="Object" />
+			<param index="1" name="to" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="stopped">
+			<description>
+			</description>
+		</signal>
+		<signal name="transitioned">
+			<param index="0" name="source" type="Object" />
+			<param index="1" name="target" type="Object" />
+			<param index="2" name="event" type="StringName" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="PROCESS_IDLE" value="0" enum="ProcessCallback">
+		</constant>
+		<constant name="PROCESS_PHYSICS" value="1" enum="ProcessCallback">
+		</constant>
+		<constant name="PROCESS_MANUAL" value="2" enum="ProcessCallback">
+		</constant>
+	</constants>
+</class>

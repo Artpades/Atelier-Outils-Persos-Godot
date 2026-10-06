@@ -1,0 +1,52 @@
+; Généré par le Sconstruct depuis src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement & Physique🫗/movement_physics_register.cpp : seule la section [icons] peut être modifiée à la main.
+
+[configuration]
+
+entry_symbol = "movement_physics_library_init"
+compatibility_minimum = "4.7"
+reloadable = true
+
+[icons]
+
+MovementComponent = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+GroundMovement2D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+GroundMovement3D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+Knockback2D = "res://🖼️Editor Icons/🌀🫗/RecoilCharacter Icon.png"
+Knockback3D = "res://🖼️Editor Icons/🌀🫗/RecoilCharacter Icon.png"
+ForceZone2D = "res://🖼️Editor Icons/🌀🫗/RecoilPhysics Icon.png"
+ForceZone3D = "res://🖼️Editor Icons/🌀🫗/RecoilPhysics Icon.png"
+AerodynamicMovement2D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+AerodynamicMovement3D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+WaterArea2D = "res://🖼️Editor Icons/🌀🫗/RigidBodyMovement.png"
+WaterArea3D = "res://🖼️Editor Icons/🌀🫗/RigidBodyMovement.png"
+SwimMovement2D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+SwimMovement3D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+WallMovement2D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+WallMovement3D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+Jiggle2D = "res://🖼️Editor Icons/🌀🫗/Recoil Icon.png"
+Jiggle3D = "res://🖼️Editor Icons/🌀🫗/Recoil Icon.png"
+Rope2D = "res://🖼️Editor Icons/🌀🫗/RigidBodyMovement.png"
+Rope3D = "res://🖼️Editor Icons/🌀🫗/RigidBodyMovement.png"
+RopeMovement2D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+RopeMovement3D = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+MovementContext = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+MovementDirector = "res://🖼️Editor Icons/🌀🫗/CharacterMovement.png"
+
+[libraries]
+
+macos.debug = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.macos.template_debug.dylib"
+macos.release = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.macos.template_release.dylib"
+windows.debug.x86_32 = "res://bin/movement_physics/gameplaytoolkit_movement_physics.windows.template_debug.x86_32.dll"
+windows.release.x86_32 = "res://bin/movement_physics/gameplaytoolkit_movement_physics.windows.template_release.x86_32.dll"
+windows.debug.x86_64 = "res://bin/movement_physics/gameplaytoolkit_movement_physics.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://bin/movement_physics/gameplaytoolkit_movement_physics.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.linux.template_release.x86_64.so"
+linux.debug.arm64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.linux.template_debug.arm64.so"
+linux.release.arm64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.linux.template_release.arm64.so"
+linux.debug.rv64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.linux.template_debug.rv64.so"
+linux.release.rv64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.linux.template_release.rv64.so"
+android.debug.arm64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.android.debug.arm64.so"
+android.release.arm64 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.android.release.arm64.so"
+android.debug.arm32 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.android.debug.arm32.so"
+android.release.arm32 = "res://bin/movement_physics/libgameplaytoolkit_movement_physics.android.release.arm32.so"

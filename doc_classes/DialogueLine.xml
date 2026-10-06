@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueLine" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="auto_advance_time" type="float" setter="set_auto_advance_time" getter="get_auto_advance_time" default="0.0">
+		</member>
+		<member name="next" type="StringName" setter="set_next" getter="get_next" default="&amp;&quot;&quot;">
+		</member>
+		<member name="portrait" type="Texture2D" setter="set_portrait" getter="get_portrait">
+		</member>
+		<member name="speaker" type="String" setter="set_speaker" getter="get_speaker" default="&quot;&quot;">
+		</member>
+		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+		</member>
+		<member name="voice" type="AudioStream" setter="set_voice" getter="get_voice">
+		</member>
+	</members>
+</class>

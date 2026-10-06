@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SwimMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_water" qualifiers="const">
+			<return type="WaterArea2D" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="700.0">
+		</member>
+		<member name="buoyancy" type="float" setter="set_buoyancy" getter="get_buoyancy" default="600.0">
+		</member>
+		<member name="drag" type="float" setter="set_drag" getter="get_drag" default="3.0">
+		</member>
+		<member name="float_depth" type="float" setter="set_float_depth" getter="get_float_depth" default="10.0">
+		</member>
+		<member name="jump_out_velocity" type="float" setter="set_jump_out_velocity" getter="get_jump_out_velocity" default="380.0">
+		</member>
+		<member name="stroke_velocity" type="float" setter="set_stroke_velocity" getter="get_stroke_velocity" default="160.0">
+		</member>
+		<member name="surface_tolerance" type="float" setter="set_surface_tolerance" getter="get_surface_tolerance" default="14.0">
+		</member>
+		<member name="swim_speed" type="float" setter="set_swim_speed" getter="get_swim_speed" default="140.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="jumped_out">
+			<description>
+			</description>
+		</signal>
+		<signal name="stroked">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

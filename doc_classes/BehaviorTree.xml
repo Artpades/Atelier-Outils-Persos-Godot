@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BehaviorTree" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_agent_node" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_debug_snapshot" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_elapsed_time" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_status" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_root_bt_node" qualifiers="const">
+			<return type="BTNode" />
+			<description>
+			</description>
+		</method>
+		<method name="get_tick_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="interrupt">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="tick">
+			<return type="int" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="active" type="bool" setter="set_active" getter="is_active" default="true">
+		</member>
+		<member name="agent_path" type="NodePath" setter="set_agent_path" getter="get_agent_path" default="NodePath(&quot;..&quot;)">
+		</member>
+		<member name="blackboard" type="Blackboard" setter="set_blackboard" getter="get_blackboard">
+		</member>
+		<member name="process_callback" type="int" setter="set_process_callback" getter="get_process_callback" enum="BehaviorTree.ProcessCallback" default="0">
+		</member>
+		<member name="tick_interval" type="float" setter="set_tick_interval" getter="get_tick_interval" default="0.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="finished">
+			<param index="0" name="status" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="ticked">
+			<param index="0" name="status" type="int" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="PROCESS_IDLE" value="0" enum="ProcessCallback">
+		</constant>
+		<constant name="PROCESS_PHYSICS" value="1" enum="ProcessCallback">
+		</constant>
+		<constant name="PROCESS_MANUAL" value="2" enum="ProcessCallback">
+		</constant>
+	</constants>
+</class>

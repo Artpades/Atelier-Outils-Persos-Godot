@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputContext" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_action">
+			<return type="void" />
+			<param index="0" name="action" type="InputAction" />
+			<description>
+			</description>
+		</method>
+		<method name="get_action" qualifiers="const">
+			<return type="InputAction" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_action_names" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="has_action" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="make_runtime_copy" qualifiers="const">
+			<return type="InputContext" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_action">
+			<return type="void" />
+			<param index="0" name="action" type="InputAction" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="actions" type="InputAction[]" setter="set_actions" getter="get_actions" default="[]">
+		</member>
+		<member name="context_name" type="StringName" setter="set_context_name" getter="get_context_name" default="&amp;&quot;contexte&quot;">
+		</member>
+		<member name="description" type="String" setter="set_description" getter="get_description" default="&quot;&quot;">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="exclusive" type="bool" setter="set_exclusive" getter="is_exclusive" default="false">
+		</member>
+		<member name="priority" type="int" setter="set_priority" getter="get_priority" default="0">
+		</member>
+	</members>
+</class>

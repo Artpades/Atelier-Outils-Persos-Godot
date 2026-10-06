@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GroundMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_facing" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="is_on_floor" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="1500.0">
+		</member>
+		<member name="air_control" type="float" setter="set_air_control" getter="get_air_control" default="0.6">
+		</member>
+		<member name="coyote_time" type="float" setter="set_coyote_time" getter="get_coyote_time" default="0.1">
+		</member>
+		<member name="deceleration" type="float" setter="set_deceleration" getter="get_deceleration" default="2000.0">
+		</member>
+		<member name="gravity_scale" type="float" setter="set_gravity_scale" getter="get_gravity_scale" default="1.0">
+		</member>
+		<member name="jump_cut" type="float" setter="set_jump_cut" getter="get_jump_cut" default="0.5">
+		</member>
+		<member name="jump_velocity" type="float" setter="set_jump_velocity" getter="get_jump_velocity" default="420.0">
+		</member>
+		<member name="max_fall_speed" type="float" setter="set_max_fall_speed" getter="get_max_fall_speed" default="1500.0">
+		</member>
+		<member name="max_jumps" type="int" setter="set_max_jumps" getter="get_max_jumps" default="1">
+		</member>
+		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="200.0">
+		</member>
+		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="GroundMovement2D.Mode" default="0">
+		</member>
+		<member name="run_multiplier" type="float" setter="set_run_multiplier" getter="get_run_multiplier" default="1.6">
+		</member>
+		<member name="visual_path" type="NodePath" setter="set_visual_path" getter="get_visual_path" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+	<signals>
+		<signal name="jumped">
+			<description>
+			</description>
+		</signal>
+		<signal name="landed">
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="MODE_PLATFORMER" value="0" enum="Mode">
+		</constant>
+		<constant name="MODE_TOP_DOWN" value="1" enum="Mode">
+		</constant>
+	</constants>
+</class>

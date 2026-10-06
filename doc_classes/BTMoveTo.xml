@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTMoveTo" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="arrive_distance" type="float" setter="set_arrive_distance" getter="get_arrive_distance" default="-1.0">
+		</member>
+		<member name="run" type="bool" setter="set_run" getter="get_run" default="false">
+		</member>
+		<member name="target_key" type="String" setter="set_target_key" getter="get_target_key" default="&quot;cible&quot;">
+		</member>
+	</members>
+</class>

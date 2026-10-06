@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTCallMethod" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="arguments" type="Array" setter="set_arguments" getter="get_arguments" default="[]">
+		</member>
+		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+		</member>
+		<member name="node_path" type="NodePath" setter="set_node_path" getter="get_node_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="result_key" type="String" setter="set_result_key" getter="get_result_key" default="&quot;&quot;">
+		</member>
+		<member name="use_result_as_status" type="bool" setter="set_use_result_as_status" getter="get_use_result_as_status" default="false">
+		</member>
+	</members>
+</class>

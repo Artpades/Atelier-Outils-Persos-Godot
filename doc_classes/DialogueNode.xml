@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueNode" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_graph_kind" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_links" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_summary" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_link">
+			<return type="void" />
+			<param index="0" name="slot" type="int" />
+			<param index="1" name="to" type="StringName" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="comment" type="String" setter="set_comment" getter="get_comment" default="&quot;&quot;">
+		</member>
+		<member name="node_id" type="StringName" setter="set_node_id" getter="get_node_id" default="&amp;&quot;&quot;">
+		</member>
+	</members>
+</class>

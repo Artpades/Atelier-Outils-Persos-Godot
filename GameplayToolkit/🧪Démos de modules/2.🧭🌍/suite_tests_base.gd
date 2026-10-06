@@ -75,11 +75,11 @@ func _empaqueter(racine: Node) -> PackedScene:
 	return scene
 
 
-## Compte les émissions d'un signal : lire compteur.n et compteur.args (arguments de la dernière émission).
-## Déconnecté automatiquement en fin de suite (les singletons survivent à la suite).
+## Compte les émissions d'un signal (jusqu'à 4 arguments) : lire compteur.n et compteur.args (deux premiers
+## arguments de la dernière émission). Déconnecté automatiquement en fin de suite (les singletons survivent à la suite).
 func _espionner(sig: Signal) -> Dictionary:
 	var compteur := {"n": 0, "args": []}
-	var enregistrer := func(a = null, b = null) -> void:
+	var enregistrer := func(a = null, b = null, _c = null, _d = null) -> void:
 		compteur.n += 1
 		compteur.args = [a, b]
 	sig.connect(enregistrer)

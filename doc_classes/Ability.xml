@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Ability" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_can_activate" qualifiers="virtual">
+			<return type="bool" />
+			<param index="0" name="system" type="Node" />
+			<param index="1" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_activate" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<param index="1" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_commit" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<param index="1" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_end" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<param index="1" name="cancelled" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_tick" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<param index="1" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_effective_id" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="ability_id" type="StringName" setter="set_ability_id" getter="get_ability_id" default="&amp;&quot;&quot;">
+		</member>
+		<member name="ability_tags" type="PackedStringArray" setter="set_ability_tags" getter="get_ability_tags" default="PackedStringArray()">
+		</member>
+		<member name="activation_blocked_tags" type="PackedStringArray" setter="set_activation_blocked_tags" getter="get_activation_blocked_tags" default="PackedStringArray()">
+		</member>
+		<member name="activation_owned_tags" type="PackedStringArray" setter="set_activation_owned_tags" getter="get_activation_owned_tags" default="PackedStringArray()">
+		</member>
+		<member name="activation_required_tags" type="PackedStringArray" setter="set_activation_required_tags" getter="get_activation_required_tags" default="PackedStringArray()">
+		</member>
+		<member name="active_duration" type="float" setter="set_active_duration" getter="get_active_duration" default="0.0">
+		</member>
+		<member name="cancel_abilities_with_tags" type="PackedStringArray" setter="set_cancel_abilities_with_tags" getter="get_cancel_abilities_with_tags" default="PackedStringArray()">
+		</member>
+		<member name="cast_time" type="float" setter="set_cast_time" getter="get_cast_time" default="0.0">
+		</member>
+		<member name="cooldown" type="float" setter="set_cooldown" getter="get_cooldown" default="1.0">
+		</member>
+		<member name="costs" type="Dictionary" setter="set_costs" getter="get_costs" default="{}">
+		</member>
+		<member name="display_name" type="String" setter="set_display_name" getter="get_display_name" default="&quot;&quot;">
+		</member>
+		<member name="effects_on_self" type="GameplayEffect[]" setter="set_effects_on_self" getter="get_effects_on_self" default="[]">
+		</member>
+		<member name="effects_on_target" type="GameplayEffect[]" setter="set_effects_on_target" getter="get_effects_on_target" default="[]">
+		</member>
+		<member name="icon" type="Resource" setter="set_icon" getter="get_icon">
+		</member>
+		<member name="level" type="float" setter="set_level" getter="get_level" default="1.0">
+		</member>
+		<member name="max_charges" type="int" setter="set_max_charges" getter="get_max_charges" default="1">
+		</member>
+		<member name="requires_target" type="bool" setter="set_requires_target" getter="get_requires_target" default="false">
+		</member>
+	</members>
+</class>

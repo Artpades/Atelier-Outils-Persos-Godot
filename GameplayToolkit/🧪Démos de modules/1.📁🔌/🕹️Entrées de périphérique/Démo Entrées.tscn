@@ -1,0 +1,154 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/1.📁🔌/🕹️Entrées de périphérique/demo_entrees.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+
+[sub_resource type="InputBinding" id="Liaison_pilotage"]
+event = &"value_changed"
+target = NodePath("..")
+method = &"piloter"
+
+[sub_resource type="InputCircleAction" id="Pilotage"]
+action_name = &"pilotage"
+description = "ZQSD (positions WASD), stick gauche, croix."
+bindings = Array[InputBinding]([SubResource("Liaison_pilotage")])
+
+[sub_resource type="InputBinding" id="Liaison_tir"]
+event = &"pressed"
+target = NodePath("..")
+method = &"tirer"
+
+[sub_resource type="InputBinding" id="Liaison_charge"]
+event = &"held"
+target = NodePath("..")
+method = &"charger"
+
+[sub_resource type="InputBinding" id="Liaison_rafale"]
+event = &"multi_pressed"
+target = NodePath("..")
+method = &"rafale"
+
+[sub_resource type="InputButtonAction" id="Tir"]
+action_name = &"tir"
+description = "Appui : tir · maintenu 0,4 s : tir chargé · triple appui : rafale."
+key = 32
+mouse_button = 1
+joy_axis = 5
+multi_press_count = 3
+bindings = Array[InputBinding]([SubResource("Liaison_tir"), SubResource("Liaison_charge"), SubResource("Liaison_rafale")])
+
+[sub_resource type="InputBinding" id="Liaison_gaz"]
+event = &"value_changed"
+target = NodePath("..")
+method = &"regler_gaz"
+
+[sub_resource type="InputAxisAction" id="Gaz"]
+action_name = &"gaz"
+description = "E / Q, RB / LB : vitesse du vaisseau."
+positive_key = 69
+negative_key = 81
+positive_joy_button = 10
+negative_joy_button = 9
+bindings = Array[InputBinding]([SubResource("Liaison_gaz")])
+
+[sub_resource type="InputBinding" id="Liaison_visee"]
+event = &"motion"
+target = NodePath("..")
+method = &"viser"
+
+[sub_resource type="InputMouseAction" id="Visee"]
+action_name = &"visee"
+description = "Mouvement de la souris : tourne la tourelle."
+motion_sensitivity = 0.01
+bindings = Array[InputBinding]([SubResource("Liaison_visee")])
+
+[sub_resource type="InputSphereAction" id="Camera"]
+action_name = &"camera"
+description = "Flèches + Page haut / bas, stick droit : affichage seulement (Vector3)."
+left_key = 4194319
+right_key = 4194321
+up_key = 4194323
+down_key = 4194324
+forward_key = 4194320
+backward_key = 4194322
+joy_axis_x = 2
+joy_axis_z = 3
+
+[sub_resource type="InputGyroAction" id="Inclinaison"]
+action_name = &"inclinaison"
+description = "Gyroscope de la manette (si elle en a un)."
+
+[sub_resource type="InputBinding" id="Liaison_pause"]
+event = &"released"
+target = NodePath("..")
+method = &"ouvrir_pause"
+
+[sub_resource type="InputButtonAction" id="Pause"]
+action_name = &"pause"
+key = 4194305
+joy_button = 6
+bindings = Array[InputBinding]([SubResource("Liaison_pause")])
+
+[sub_resource type="InputContext" id="Contexte_vaisseau"]
+context_name = &"vaisseau"
+actions = Array[InputAction]([SubResource("Pilotage"), SubResource("Tir"), SubResource("Gaz"), SubResource("Visee"), SubResource("Camera"), SubResource("Inclinaison"), SubResource("Pause")])
+
+[sub_resource type="InputBinding" id="Liaison_reprendre"]
+event = &"released"
+target = NodePath("..")
+method = &"fermer_pause"
+
+[sub_resource type="InputButtonAction" id="Reprendre"]
+action_name = &"reprendre"
+key = 4194305
+joy_button = 1
+bindings = Array[InputBinding]([SubResource("Liaison_reprendre")])
+
+[sub_resource type="InputContext" id="Contexte_pause"]
+context_name = &"pause"
+description = "Exclusif : bloque le vaisseau tant qu'il est actif."
+enabled = false
+priority = 10
+exclusive = true
+actions = Array[InputAction]([SubResource("Reprendre")])
+
+[node name="DemoEntrees" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Entrees" type="PlayerInput" parent="."]
+contexts = Array[InputContext]([SubResource("Contexte_vaisseau"), SubResource("Contexte_pause")])
+auto_switch_device = true
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🕹️ Entrées de périphérique"
+aide = "Le vaisseau est piloté par les liaisons du PlayerInput « Entrees » (aucun code d'entrée) : sélectionnez-le → 🕹️ Éditeur d'entrées. Clavier, souris ou manette : le type de périphérique bascule tout seul. Échap / Start : pause et réassignation des contrôles."
+largeur = 400.0
+
+[node name="Pause" type="PanelContainer" parent="Interface"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -460.0
+offset_top = -200.0
+offset_right = 60.0
+offset_bottom = 200.0
+
+[node name="Boite" type="VBoxContainer" parent="Interface/Pause"]
+layout_mode = 2
+
+[node name="Titre" type="Label" parent="Interface/Pause/Boite"]
+layout_mode = 2
+text = "⏸ Pause — contexte « pause » (exclusif) : Échap / B pour reprendre"
+horizontal_alignment = 1
+
+[node name="Controles" type="PlayerInputUI" parent="Interface/Pause/Boite"]
+layout_mode = 2
+size_flags_vertical = 3
+player_input = NodePath("../../../../Entrees")
+save_path = "user://demo_entrees_controles.cfg"

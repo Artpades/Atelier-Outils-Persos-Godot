@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTUseAbility" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="ability_id" type="StringName" setter="set_ability_id" getter="get_ability_id" default="&amp;&quot;&quot;">
+		</member>
+		<member name="target_key" type="String" setter="set_target_key" getter="get_target_key" default="&quot;&quot;">
+		</member>
+		<member name="wait_until_end" type="bool" setter="set_wait_until_end" getter="get_wait_until_end" default="false">
+		</member>
+	</members>
+</class>

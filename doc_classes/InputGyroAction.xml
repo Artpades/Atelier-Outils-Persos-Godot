@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputGyroAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_accelerometer" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="get_gyroscope" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="has_sensors" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_sensors_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_enable_sensors" type="bool" setter="set_auto_enable_sensors" getter="get_auto_enable_sensors" default="true">
+		</member>
+		<member name="sensitivity" type="float" setter="set_sensitivity" getter="get_sensitivity" default="1.0">
+		</member>
+		<member name="track_accelerometer" type="bool" setter="set_track_accelerometer" getter="get_track_accelerometer" default="false">
+		</member>
+	</members>
+	<signals>
+		<signal name="accelerometer_changed">
+			<param index="0" name="acceleration" type="Vector3" />
+			<description>
+			</description>
+		</signal>
+		<signal name="gyroscope_changed">
+			<param index="0" name="rotation_rate" type="Vector3" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

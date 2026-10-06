@@ -1,0 +1,91 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🧑Personnage/pion.gd" id="1_pion"]
+
+[sub_resource type="CircleShape2D" id="Forme"]
+radius = 10.0
+
+[sub_resource type="AttributeDefinition" id="Vie_max"]
+attribute_name = &"max_health"
+base_value = 60.0
+
+[sub_resource type="AttributeDefinition" id="Vie"]
+attribute_name = &"health"
+base_value = 60.0
+max_attribute = &"max_health"
+
+[sub_resource type="AttributeModifier" id="Degats_morsure"]
+attribute = &"health"
+magnitude = -8.0
+
+[sub_resource type="GameplayEffect" id="Effet_morsure"]
+modifiers = Array[AttributeModifier]([SubResource("Degats_morsure")])
+
+[sub_resource type="Ability" id="Morsure"]
+ability_id = &"morsure"
+display_name = "Morsure"
+cooldown = 1.2
+effects_on_target = Array[GameplayEffect]([SubResource("Effet_morsure")])
+requires_target = true
+
+[node name="Slime" type="Character2D"]
+display_name = "Slime"
+faction = &"slimes"
+hostile_factions = PackedStringArray("heros")
+motion_mode = 1
+
+[node name="Forme" type="CollisionShape2D" parent="."]
+shape = SubResource("Forme")
+
+[node name="Pion" type="Node2D" parent="."]
+script = ExtResource("1_pion")
+couleur = Color(0.55, 0.85, 0.3, 1)
+rayon = 10.0
+
+[node name="Deplacement" type="GroundMovement2D" parent="."]
+mode = 1
+max_speed = 80.0
+
+[node name="Vie" type="HealthComponent" parent="."]
+
+[node name="Capacites" type="AbilitySystem" parent="."]
+attribute_definitions = Array[AttributeDefinition]([SubResource("Vie_max"), SubResource("Vie")])
+granted_abilities = Array[Ability]([SubResource("Morsure")])
+
+[node name="AutomateController" type="AutomateController" parent="."]
+start_mode = 4
+wander_radius = 90.0
+wait_time = 1.0
+
+[node name="Comportement" type="BehaviorTree" parent="."]
+
+[node name="Choix" type="BTSelector" parent="Comportement"]
+reactive = true
+
+[node name="Attaquer" type="BTSequence" parent="Comportement/Choix"]
+
+[node name="TrouverHeros" type="BTFindTarget" parent="Comportement/Choix/Attaquer"]
+max_distance = 160.0
+
+[node name="Approcher" type="BTMoveTo" parent="Comportement/Choix/Attaquer"]
+arrive_distance = 26.0
+
+[node name="MordreOuAttendre" type="BTSelector" parent="Comportement/Choix/Attaquer"]
+
+[node name="Mordre" type="BTUseAbility" parent="Comportement/Choix/Attaquer/MordreOuAttendre"]
+ability_id = &"morsure"
+target_key = "cible"
+
+[node name="Recharge" type="BTWait" parent="Comportement/Choix/Attaquer/MordreOuAttendre"]
+duration = 0.3
+
+[node name="Errer" type="BTSequence" parent="Comportement/Choix"]
+
+[node name="Promenade" type="BTCallMethod" parent="Comportement/Choix/Errer"]
+node_path = NodePath("AutomateController")
+method = &"wander"
+arguments = [-1.0]
+
+[node name="Pause" type="BTWait" parent="Comportement/Choix/Errer"]
+duration = 3.0
+random_deviation = 1.0

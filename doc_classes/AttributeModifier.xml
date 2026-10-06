@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AttributeModifier" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="compute_magnitude">
+			<return type="float" />
+			<param index="0" name="source" type="AbilitySystem" />
+			<param index="1" name="target" type="AbilitySystem" />
+			<param index="2" name="level" type="float" />
+			<param index="3" name="stacks" type="int" default="1" />
+			<description>
+			</description>
+		</method>
+		<method name="get_error" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="attribute" type="StringName" setter="set_attribute" getter="get_attribute" default="&amp;&quot;&quot;">
+		</member>
+		<member name="magnitude" type="float" setter="set_magnitude" getter="get_magnitude" default="0.0">
+		</member>
+		<member name="magnitude_expression" type="String" setter="set_magnitude_expression" getter="get_magnitude_expression" default="&quot;&quot;">
+		</member>
+		<member name="magnitude_per_level" type="float" setter="set_magnitude_per_level" getter="get_magnitude_per_level" default="0.0">
+		</member>
+		<member name="operation" type="int" setter="set_operation" getter="get_operation" enum="AttributeModifier.Operation" default="0">
+		</member>
+	</members>
+	<constants>
+		<constant name="OPERATION_ADD" value="0" enum="Operation">
+		</constant>
+		<constant name="OPERATION_MULTIPLY" value="1" enum="Operation">
+		</constant>
+		<constant name="OPERATION_OVERRIDE" value="2" enum="Operation">
+		</constant>
+	</constants>
+</class>

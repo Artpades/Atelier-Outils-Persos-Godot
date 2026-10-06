@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Rope2D" inherits="Node2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_impulse_at">
+			<return type="void" />
+			<param index="0" name="position" type="float" />
+			<param index="1" name="velocity" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="attach_body">
+			<return type="void" />
+			<param index="0" name="body" type="Node" />
+			<param index="1" name="position" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="detach_body">
+			<return type="void" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="find_nearest_info" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="point" type="Vector2" />
+			<param index="1" name="max_distance" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="find_rope_of" qualifiers="static">
+			<return type="Rope2D" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_attached_position" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_closest_position" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="point" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_points" qualifiers="const">
+			<return type="PackedVector2Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_position_at" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="position" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_segment_length" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_velocity_at" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="position" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="has_body" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="reset_points">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="set_attached_position">
+			<return type="void" />
+			<param index="0" name="body" type="Node" />
+			<param index="1" name="position" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="attached_weight" type="float" setter="set_attached_weight" getter="get_attached_weight" default="1.5">
+		</member>
+		<member name="collide" type="bool" setter="set_collide" getter="get_collide" default="false">
+		</member>
+		<member name="collision_mask" type="int" setter="set_collision_mask" getter="get_collision_mask" default="1">
+		</member>
+		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0.8, 0.65, 0.4, 1)">
+		</member>
+		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.01">
+		</member>
+		<member name="end_anchor_path" type="NodePath" setter="set_end_anchor_path" getter="get_end_anchor_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="gravity" type="Vector2" setter="set_gravity" getter="get_gravity" default="Vector2(0, 980)">
+		</member>
+		<member name="iterations" type="int" setter="set_iterations" getter="get_iterations" default="12">
+		</member>
+		<member name="point_count" type="int" setter="set_point_count" getter="get_point_count" default="16">
+		</member>
+		<member name="rope_length" type="float" setter="set_rope_length" getter="get_rope_length" default="200.0">
+		</member>
+		<member name="start_anchor_path" type="NodePath" setter="set_start_anchor_path" getter="get_start_anchor_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="width" type="float" setter="set_width" getter="get_width" default="3.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="body_attached">
+			<param index="0" name="body" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="body_detached">
+			<param index="0" name="body" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

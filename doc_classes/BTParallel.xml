@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTParallel" inherits="BTComposite" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="failure_threshold" type="int" setter="set_failure_threshold" getter="get_failure_threshold" default="1">
+		</member>
+		<member name="success_threshold" type="int" setter="set_success_threshold" getter="get_success_threshold" default="0">
+		</member>
+	</members>
+</class>

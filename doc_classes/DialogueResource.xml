@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="generate_id" qualifiers="const">
+			<return type="StringName" />
+			<param index="0" name="prefix" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_dialogue_node" qualifiers="const">
+			<return type="DialogueNode" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_graph_snapshot" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="current" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="1" name="visited" type="Dictionary" default="{}" />
+			<description>
+			</description>
+		</method>
+		<method name="get_start_node" qualifiers="const">
+			<return type="DialogueNode" />
+			<description>
+			</description>
+		</method>
+		<method name="has_dialogue_node" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="validate" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="nodes" type="DialogueNode[]" setter="set_nodes" getter="get_nodes" default="[]">
+		</member>
+		<member name="start_id" type="StringName" setter="set_start_id" getter="get_start_id" default="&amp;&quot;&quot;">
+		</member>
+	</members>
+</class>

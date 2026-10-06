@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AerodynamicMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_flaps_left" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="drag_coefficient" type="float" setter="set_drag_coefficient" getter="get_drag_coefficient" default="0.002">
+		</member>
+		<member name="flap_velocity" type="float" setter="set_flap_velocity" getter="get_flap_velocity" default="250.0">
+		</member>
+		<member name="flutter_frequency" type="float" setter="set_flutter_frequency" getter="get_flutter_frequency" default="0.0">
+		</member>
+		<member name="fly_acceleration" type="float" setter="set_fly_acceleration" getter="get_fly_acceleration" default="900.0">
+		</member>
+		<member name="fly_drag" type="float" setter="set_fly_drag" getter="get_fly_drag" default="1.5">
+		</member>
+		<member name="fly_speed" type="float" setter="set_fly_speed" getter="get_fly_speed" default="260.0">
+		</member>
+		<member name="glide_acceleration" type="float" setter="set_glide_acceleration" getter="get_glide_acceleration" default="500.0">
+		</member>
+		<member name="glide_fall_speed" type="float" setter="set_glide_fall_speed" getter="get_glide_fall_speed" default="70.0">
+		</member>
+		<member name="glide_gravity_scale" type="float" setter="set_glide_gravity_scale" getter="get_glide_gravity_scale" default="0.35">
+		</member>
+		<member name="glide_speed" type="float" setter="set_glide_speed" getter="get_glide_speed" default="260.0">
+		</member>
+		<member name="lift_coefficient" type="float" setter="set_lift_coefficient" getter="get_lift_coefficient" default="0.0">
+		</member>
+		<member name="max_flaps" type="int" setter="set_max_flaps" getter="get_max_flaps" default="0">
+		</member>
+		<member name="mode" type="int" setter="set_mode" getter="get_mode" default="0">
+		</member>
+		<member name="wind_influence" type="float" setter="set_wind_influence" getter="get_wind_influence" default="2.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="flapped">
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="MODE_GLIDE" value="0" enum="Mode">
+		</constant>
+		<constant name="MODE_FLY" value="1" enum="Mode">
+		</constant>
+	</constants>
+</class>

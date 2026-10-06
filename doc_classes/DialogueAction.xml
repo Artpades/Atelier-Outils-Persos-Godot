@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueAction" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="assignments" type="PackedStringArray" setter="set_assignments" getter="get_assignments" default="PackedStringArray()">
+		</member>
+		<member name="event" type="StringName" setter="set_event" getter="get_event" default="&amp;&quot;&quot;">
+		</member>
+		<member name="event_arguments" type="Array" setter="set_event_arguments" getter="get_event_arguments" default="[]">
+		</member>
+		<member name="next" type="StringName" setter="set_next" getter="get_next" default="&amp;&quot;&quot;">
+		</member>
+	</members>
+</class>

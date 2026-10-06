@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Jiggle3D" inherits="Node3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_offset" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="impulse">
+			<return type="void" />
+			<param index="0" name="velocity" type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="reset">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="7.0">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="gravity" type="Vector3" setter="set_gravity" getter="get_gravity" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="lean_amount" type="float" setter="set_lean_amount" getter="get_lean_amount" default="1.2">
+		</member>
+		<member name="max_offset" type="float" setter="set_max_offset" getter="get_max_offset" default="0.4">
+		</member>
+		<member name="max_stretch" type="float" setter="set_max_stretch" getter="get_max_stretch" default="0.35">
+		</member>
+		<member name="squash_amount" type="float" setter="set_squash_amount" getter="get_squash_amount" default="0.05">
+		</member>
+		<member name="stiffness" type="float" setter="set_stiffness" getter="get_stiffness" default="140.0">
+		</member>
+	</members>
+</class>

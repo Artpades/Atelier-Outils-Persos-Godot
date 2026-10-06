@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GameplayEffect" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_on_applied" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<param index="1" name="source" type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_period" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_removed" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="system" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="is_periodic" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="blocked_by_tags" type="PackedStringArray" setter="set_blocked_by_tags" getter="get_blocked_by_tags" default="PackedStringArray()">
+		</member>
+		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="1.0">
+		</member>
+		<member name="duration_policy" type="int" setter="set_duration_policy" getter="get_duration_policy" enum="GameplayEffect.DurationPolicy" default="0">
+		</member>
+		<member name="effect_tags" type="PackedStringArray" setter="set_effect_tags" getter="get_effect_tags" default="PackedStringArray()">
+		</member>
+		<member name="execute_period_on_apply" type="bool" setter="set_execute_period_on_apply" getter="get_execute_period_on_apply" default="false">
+		</member>
+		<member name="granted_tags" type="PackedStringArray" setter="set_granted_tags" getter="get_granted_tags" default="PackedStringArray()">
+		</member>
+		<member name="max_stacks" type="int" setter="set_max_stacks" getter="get_max_stacks" default="1">
+		</member>
+		<member name="modifiers" type="AttributeModifier[]" setter="set_modifiers" getter="get_modifiers" default="[]">
+		</member>
+		<member name="period" type="float" setter="set_period" getter="get_period" default="0.0">
+		</member>
+		<member name="remove_effects_with_tags" type="PackedStringArray" setter="set_remove_effects_with_tags" getter="get_remove_effects_with_tags" default="PackedStringArray()">
+		</member>
+		<member name="required_tags" type="PackedStringArray" setter="set_required_tags" getter="get_required_tags" default="PackedStringArray()">
+		</member>
+		<member name="stacking" type="int" setter="set_stacking" getter="get_stacking" enum="GameplayEffect.StackingPolicy" default="0">
+		</member>
+	</members>
+	<constants>
+		<constant name="DURATION_INSTANT" value="0" enum="DurationPolicy">
+		</constant>
+		<constant name="DURATION_TIMED" value="1" enum="DurationPolicy">
+		</constant>
+		<constant name="DURATION_INFINITE" value="2" enum="DurationPolicy">
+		</constant>
+		<constant name="STACKING_SEPARATE" value="0" enum="StackingPolicy">
+		</constant>
+		<constant name="STACKING_REFRESH" value="1" enum="StackingPolicy">
+		</constant>
+		<constant name="STACKING_STACK" value="2" enum="StackingPolicy">
+		</constant>
+	</constants>
+</class>

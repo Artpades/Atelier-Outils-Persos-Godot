@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputRebinder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="cancel_rebind">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="find_conflicts" qualifiers="const">
+			<return type="Array" />
+			<param index="0" name="player" type="Node" />
+			<param index="1" name="action" type="InputAction" />
+			<param index="2" name="slot" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_action" qualifiers="const">
+			<return type="InputAction" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_slot" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_remaining_time" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_listening" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="start_rebind">
+			<return type="void" />
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="submit_event">
+			<return type="bool" />
+			<param index="0" name="event" type="InputEvent" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="cancel_key" type="int" setter="set_cancel_key" getter="get_cancel_key" default="4194305">
+		</member>
+		<member name="joy_threshold" type="float" setter="set_joy_threshold" getter="get_joy_threshold" default="0.5">
+		</member>
+		<member name="listening_timeout" type="float" setter="set_listening_timeout" getter="get_listening_timeout" default="5.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="rebind_cancelled">
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="rebind_completed">
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="rebind_started">
+			<param index="0" name="action" type="InputAction" />
+			<param index="1" name="slot" type="StringName" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

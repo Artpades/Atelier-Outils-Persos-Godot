@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputAxisAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_axis" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_velocity" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="invert" type="bool" setter="set_invert" getter="get_invert" default="false">
+		</member>
+		<member name="joy_axis" type="int" setter="set_joy_axis" getter="get_joy_axis" default="-1">
+		</member>
+		<member name="negative_joy_button" type="int" setter="set_negative_joy_button" getter="get_negative_joy_button" default="-1">
+		</member>
+		<member name="negative_key" type="int" setter="set_negative_key" getter="get_negative_key" default="0">
+		</member>
+		<member name="positive_joy_button" type="int" setter="set_positive_joy_button" getter="get_positive_joy_button" default="-1">
+		</member>
+		<member name="positive_key" type="int" setter="set_positive_key" getter="get_positive_key" default="0">
+		</member>
+	</members>
+	<signals>
+		<signal name="value_changed">
+			<param index="0" name="value" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="velocity_changed">
+			<param index="0" name="velocity" type="float" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

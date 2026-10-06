@@ -1,0 +1,98 @@
+[gd_resource type="DialogueResource" format=3]
+
+[sub_resource type="DialogueLine" id="accueil"]
+node_id = &"accueil"
+speaker = "Meunier"
+text = "Bonjour, {nom} ! Des slimes ont envahi les champs autour du moulin…"
+next = &"test_finie"
+
+[sub_resource type="DialogueBranch" id="test_finie"]
+node_id = &"test_finie"
+condition = "quete_finie"
+next_if_true = &"test_paye"
+next_if_false = &"test_acceptee"
+
+[sub_resource type="DialogueBranch" id="test_acceptee"]
+node_id = &"test_acceptee"
+condition = "quete_acceptee"
+next_if_true = &"rappel"
+next_if_false = &"menu"
+
+[sub_resource type="DialogueOption" id="option_aider"]
+text = "Je vais t'aider !"
+next = &"accepter"
+
+[sub_resource type="DialogueOption" id="option_qui"]
+text = "Qui es-tu ?"
+next = &"presentation"
+once_only = true
+
+[sub_resource type="DialogueOption" id="option_revoir"]
+text = "Au revoir."
+next = &"au_revoir"
+
+[sub_resource type="DialogueChoice" id="menu"]
+node_id = &"menu"
+prompt = "Tu veux bien m'aider ?"
+options = Array[DialogueOption]([SubResource("option_aider"), SubResource("option_qui"), SubResource("option_revoir")])
+
+[sub_resource type="DialogueLine" id="presentation"]
+node_id = &"presentation"
+speaker = "Meunier"
+text = "Je suis le meunier du village. Mon moulin fait du [b]bon pain[/b], quand on me laisse travailler !"
+next = &"menu"
+
+[sub_resource type="DialogueAction" id="accepter"]
+node_id = &"accepter"
+assignments = PackedStringArray("quete_acceptee = true")
+event = &"quete_acceptee"
+next = &"merci_aide"
+
+[sub_resource type="DialogueLine" id="merci_aide"]
+node_id = &"merci_aide"
+speaker = "Meunier"
+text = "Merci ! Il y en a {slimes_restants}. Attaque avec [b]J[/b], soigne-toi avec [b]K[/b]."
+next = &"fin"
+
+[sub_resource type="DialogueLine" id="rappel"]
+node_id = &"rappel"
+speaker = "Meunier"
+text = "Courage ! Il reste {slimes_restants} slime(s)."
+next = &"fin"
+
+[sub_resource type="DialogueBranch" id="test_paye"]
+node_id = &"test_paye"
+condition = "recompense_donnee"
+next_if_true = &"deja_paye"
+next_if_false = &"payer"
+
+[sub_resource type="DialogueAction" id="payer"]
+node_id = &"payer"
+assignments = PackedStringArray("pieces += 50", "recompense_donnee = true")
+event = &"recompense"
+next = &"merci_final"
+
+[sub_resource type="DialogueLine" id="merci_final"]
+node_id = &"merci_final"
+speaker = "Meunier"
+text = "Les champs sont libres ! Voici [color=gold]50 pièces[/color]."
+next = &"fin"
+
+[sub_resource type="DialogueLine" id="deja_paye"]
+node_id = &"deja_paye"
+speaker = "Meunier"
+text = "Merci encore, {nom}. Repasse quand tu veux !"
+next = &"fin"
+
+[sub_resource type="DialogueLine" id="au_revoir"]
+node_id = &"au_revoir"
+speaker = "Meunier"
+text = "Reviens vite…"
+next = &"fin"
+
+[sub_resource type="DialogueEnd" id="fin"]
+node_id = &"fin"
+
+[resource]
+start_id = &"accueil"
+nodes = Array[DialogueNode]([SubResource("accueil"), SubResource("test_finie"), SubResource("test_acceptee"), SubResource("menu"), SubResource("presentation"), SubResource("accepter"), SubResource("merci_aide"), SubResource("rappel"), SubResource("test_paye"), SubResource("payer"), SubResource("merci_final"), SubResource("deja_paye"), SubResource("au_revoir"), SubResource("fin")])

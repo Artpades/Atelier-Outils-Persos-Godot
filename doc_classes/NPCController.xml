@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="NPCController" inherits="AutomateController" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_interactable" qualifiers="const">
+			<return type="Interactable" />
+			<description>
+			</description>
+		</method>
+		<method name="is_talking" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="talk">
+			<return type="bool" />
+			<param index="0" name="interlocutor" type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="dialogue" type="DialogueResource" setter="set_dialogue" getter="get_dialogue">
+		</member>
+		<member name="dialogue_start_id" type="StringName" setter="set_dialogue_start_id" getter="get_dialogue_start_id" default="&amp;&quot;&quot;">
+		</member>
+		<member name="dialogue_system_path" type="NodePath" setter="set_dialogue_system_path" getter="get_dialogue_system_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="face_interlocutor" type="bool" setter="set_face_interlocutor" getter="get_face_interlocutor" default="true">
+		</member>
+		<member name="interaction_prompt" type="String" setter="set_interaction_prompt" getter="get_interaction_prompt" default="&quot;Parler&quot;">
+		</member>
+		<member name="stop_while_talking" type="bool" setter="set_stop_while_talking" getter="get_stop_while_talking" default="true">
+		</member>
+	</members>
+	<signals>
+		<signal name="talk_ended">
+			<description>
+			</description>
+		</signal>
+		<signal name="talk_started">
+			<param index="0" name="interlocutor" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

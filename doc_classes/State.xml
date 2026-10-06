@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="State" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_on_enter" qualifiers="virtual">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_event" qualifiers="virtual">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="data" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_exit" qualifiers="virtual">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_physics_update" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="_on_update" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_substate" qualifiers="const">
+			<return type="State" />
+			<description>
+			</description>
+		</method>
+		<method name="get_agent" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_blackboard" qualifiers="const">
+			<return type="Blackboard" />
+			<description>
+			</description>
+		</method>
+		<method name="get_initial_substate" qualifiers="const">
+			<return type="State" />
+			<description>
+			</description>
+		</method>
+		<method name="get_parent_state" qualifiers="const">
+			<return type="State" />
+			<description>
+			</description>
+		</method>
+		<method name="get_state_machine" qualifiers="const">
+			<return type="StateMachine" />
+			<description>
+			</description>
+		</method>
+		<method name="get_substates" qualifiers="const">
+			<return type="State[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_time_in_state" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_active" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_compound" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="send_event">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="data" type="Variant" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="transition_to">
+			<return type="bool" />
+			<param index="0" name="target" type="Variant" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="initial_state" type="NodePath" setter="set_initial_state" getter="get_initial_state" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="remember_last_substate" type="bool" setter="set_remember_last_substate" getter="get_remember_last_substate" default="false">
+		</member>
+		<member name="transitions" type="StateTransition[]" setter="set_transitions" getter="get_transitions" default="[]">
+		</member>
+	</members>
+	<signals>
+		<signal name="entered">
+			<description>
+			</description>
+		</signal>
+		<signal name="exited">
+			<description>
+			</description>
+		</signal>
+		<signal name="updated">
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

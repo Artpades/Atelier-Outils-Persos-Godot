@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GroundMovement3D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_facing" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_world_input" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="is_on_floor" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="40.0">
+		</member>
+		<member name="air_control" type="float" setter="set_air_control" getter="get_air_control" default="0.6">
+		</member>
+		<member name="camera_relative" type="bool" setter="set_camera_relative" getter="get_camera_relative" default="false">
+		</member>
+		<member name="coyote_time" type="float" setter="set_coyote_time" getter="get_coyote_time" default="0.1">
+		</member>
+		<member name="deceleration" type="float" setter="set_deceleration" getter="get_deceleration" default="50.0">
+		</member>
+		<member name="gravity_scale" type="float" setter="set_gravity_scale" getter="get_gravity_scale" default="1.0">
+		</member>
+		<member name="jump_cut" type="float" setter="set_jump_cut" getter="get_jump_cut" default="0.5">
+		</member>
+		<member name="jump_velocity" type="float" setter="set_jump_velocity" getter="get_jump_velocity" default="4.5">
+		</member>
+		<member name="max_fall_speed" type="float" setter="set_max_fall_speed" getter="get_max_fall_speed" default="50.0">
+		</member>
+		<member name="max_jumps" type="int" setter="set_max_jumps" getter="get_max_jumps" default="1">
+		</member>
+		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="5.0">
+		</member>
+		<member name="rotate_toward_movement" type="bool" setter="set_rotate_toward_movement" getter="get_rotate_toward_movement" default="true">
+		</member>
+		<member name="run_multiplier" type="float" setter="set_run_multiplier" getter="get_run_multiplier" default="1.6">
+		</member>
+		<member name="turn_speed" type="float" setter="set_turn_speed" getter="get_turn_speed" default="12.0">
+		</member>
+		<member name="visual_path" type="NodePath" setter="set_visual_path" getter="get_visual_path" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+	<signals>
+		<signal name="jumped">
+			<description>
+			</description>
+		</signal>
+		<signal name="landed">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

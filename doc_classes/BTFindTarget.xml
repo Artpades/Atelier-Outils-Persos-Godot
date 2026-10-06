@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTFindTarget" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="hostile_only" type="bool" setter="set_hostile_only" getter="get_hostile_only" default="true">
+		</member>
+		<member name="key" type="String" setter="set_key" getter="get_key" default="&quot;cible&quot;">
+		</member>
+		<member name="max_distance" type="float" setter="set_max_distance" getter="get_max_distance" default="-1.0">
+		</member>
+	</members>
+</class>

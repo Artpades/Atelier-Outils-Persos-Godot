@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MovementComponent" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_movement_step" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="external_acceleration_2d" qualifiers="static">
+			<return type="Vector2" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="external_acceleration_3d" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_body" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_move_input" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_vertical_input" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="has_jump_request">
+			<return type="bool" />
+			<param index="0" name="consume" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="is_jump_held" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_running" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="jump">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="move">
+			<return type="void" />
+			<param index="0" name="input" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="release_jump">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="set_running">
+			<return type="void" />
+			<param index="0" name="running" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_vertical_input">
+			<return type="void" />
+			<param index="0" name="value" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="active" type="bool" setter="set_active" getter="is_active" default="true">
+		</member>
+		<member name="jump_buffer_time" type="float" setter="set_jump_buffer_time" getter="get_jump_buffer_time" default="0.12">
+		</member>
+	</members>
+	<signals>
+		<signal name="activated">
+			<description>
+			</description>
+		</signal>
+		<signal name="deactivated">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

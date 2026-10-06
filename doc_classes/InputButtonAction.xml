@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputButtonAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_held_time" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_just_pressed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_just_released" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_pressed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="held_delay" type="float" setter="set_held_delay" getter="get_held_delay" default="0.4">
+		</member>
+		<member name="input_map_action" type="StringName" setter="set_input_map_action" getter="get_input_map_action" default="&amp;&quot;&quot;">
+		</member>
+		<member name="joy_axis" type="int" setter="set_joy_axis" getter="get_joy_axis" default="-1">
+		</member>
+		<member name="joy_axis_direction" type="int" setter="set_joy_axis_direction" getter="get_joy_axis_direction" enum="InputButtonAction.AxisDirection" default="1">
+		</member>
+		<member name="joy_button" type="int" setter="set_joy_button" getter="get_joy_button" default="-1">
+		</member>
+		<member name="key" type="int" setter="set_key" getter="get_key" default="0">
+		</member>
+		<member name="mouse_button" type="int" setter="set_mouse_button" getter="get_mouse_button" default="0">
+		</member>
+		<member name="multi_press_count" type="int" setter="set_multi_press_count" getter="get_multi_press_count" default="2">
+		</member>
+		<member name="multi_press_delay" type="float" setter="set_multi_press_delay" getter="get_multi_press_delay" default="0.3">
+		</member>
+	</members>
+	<signals>
+		<signal name="held">
+			<description>
+			</description>
+		</signal>
+		<signal name="multi_pressed">
+			<param index="0" name="count" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="pressed">
+			<description>
+			</description>
+		</signal>
+		<signal name="released">
+			<description>
+			</description>
+		</signal>
+		<signal name="toggled">
+			<param index="0" name="pressed" type="bool" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="AXIS_BOTH" value="0" enum="AxisDirection">
+		</constant>
+		<constant name="AXIS_POSITIVE" value="1" enum="AxisDirection">
+		</constant>
+		<constant name="AXIS_NEGATIVE" value="2" enum="AxisDirection">
+		</constant>
+	</constants>
+</class>

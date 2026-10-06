@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueChoice" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="fallback_next" type="StringName" setter="set_fallback_next" getter="get_fallback_next" default="&amp;&quot;&quot;">
+		</member>
+		<member name="options" type="DialogueOption[]" setter="set_options" getter="get_options" default="[]">
+		</member>
+		<member name="prompt" type="String" setter="set_prompt" getter="get_prompt" default="&quot;&quot;">
+		</member>
+	</members>
+</class>

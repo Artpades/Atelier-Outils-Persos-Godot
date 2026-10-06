@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="HealthComponent" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_ability_system" qualifiers="const">
+			<return type="AbilitySystem" />
+			<description>
+			</description>
+		</method>
+		<method name="get_health_ratio" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="heal">
+			<return type="float" />
+			<param index="0" name="amount" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_alive" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_invulnerable" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="kill">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="revive">
+			<return type="void" />
+			<param index="0" name="health" type="float" default="-1.0" />
+			<description>
+			</description>
+		</method>
+		<method name="take_damage">
+			<return type="float" />
+			<param index="0" name="amount" type="float" />
+			<param index="1" name="source" type="Object" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="uses_attribute" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="ability_system_path" type="NodePath" setter="set_ability_system_path" getter="get_ability_system_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="health" type="float" setter="set_health" getter="get_health" default="100.0">
+		</member>
+		<member name="health_attribute" type="StringName" setter="set_health_attribute" getter="get_health_attribute" default="&amp;&quot;health&quot;">
+		</member>
+		<member name="invulnerability_time" type="float" setter="set_invulnerability_time" getter="get_invulnerability_time" default="0.0">
+		</member>
+		<member name="max_health" type="float" setter="set_max_health" getter="get_max_health" default="100.0">
+		</member>
+		<member name="max_health_attribute" type="StringName" setter="set_max_health_attribute" getter="get_max_health_attribute" default="&amp;&quot;max_health&quot;">
+		</member>
+	</members>
+	<signals>
+		<signal name="damaged">
+			<param index="0" name="amount" type="float" />
+			<param index="1" name="source" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="died">
+			<description>
+			</description>
+		</signal>
+		<signal name="healed">
+			<param index="0" name="amount" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="health_changed">
+			<param index="0" name="health" type="float" />
+			<param index="1" name="max_health" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="revived">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

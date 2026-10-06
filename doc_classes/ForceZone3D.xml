@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ForceZone3D" inherits="Area3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="compute_acceleration" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="point" type="Vector3" />
+			<param index="1" name="velocity" type="Vector3" />
+			<description>
+			</description>
+		</method>
+		<method name="get_acceleration_on" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="affect_characters" type="bool" setter="set_affect_characters" getter="get_affect_characters" default="true">
+		</member>
+		<member name="affect_rigid_bodies" type="bool" setter="set_affect_rigid_bodies" getter="get_affect_rigid_bodies" default="true">
+		</member>
+		<member name="direction" type="Vector3" setter="set_direction" getter="get_direction" default="Vector3(1, 0, 0)">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="falloff" type="int" setter="set_falloff" getter="get_falloff" default="0">
+		</member>
+		<member name="falloff_radius" type="float" setter="set_falloff_radius" getter="get_falloff_radius" default="5.0">
+		</member>
+		<member name="local_direction" type="bool" setter="set_local_direction" getter="get_local_direction" default="true">
+		</member>
+		<member name="mode" type="int" setter="set_mode" getter="get_mode" default="0">
+		</member>
+		<member name="strength" type="float" setter="set_strength" getter="get_strength" default="15.0">
+		</member>
+		<member name="turbulence" type="float" setter="set_turbulence" getter="get_turbulence" default="0.0">
+		</member>
+		<member name="turbulence_speed" type="float" setter="set_turbulence_speed" getter="get_turbulence_speed" default="1.5">
+		</member>
+	</members>
+	<constants>
+		<constant name="MODE_DIRECTIONAL" value="0" enum="Mode">
+		</constant>
+		<constant name="MODE_ATTRACT" value="1" enum="Mode">
+		</constant>
+		<constant name="MODE_VORTEX" value="2" enum="Mode">
+		</constant>
+		<constant name="MODE_DRAG" value="3" enum="Mode">
+		</constant>
+		<constant name="FALLOFF_NONE" value="0" enum="Falloff">
+		</constant>
+		<constant name="FALLOFF_LINEAR" value="1" enum="Falloff">
+		</constant>
+		<constant name="FALLOFF_INVERSE_SQUARE" value="2" enum="Falloff">
+		</constant>
+	</constants>
+</class>

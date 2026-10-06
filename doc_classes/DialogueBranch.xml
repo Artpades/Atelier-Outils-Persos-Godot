@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueBranch" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="condition" type="String" setter="set_condition" getter="get_condition" default="&quot;&quot;">
+		</member>
+		<member name="next_if_false" type="StringName" setter="set_next_if_false" getter="get_next_if_false" default="&amp;&quot;&quot;">
+		</member>
+		<member name="next_if_true" type="StringName" setter="set_next_if_true" getter="get_next_if_true" default="&amp;&quot;&quot;">
+		</member>
+	</members>
+</class>

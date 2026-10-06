@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputAction" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_get_value" qualifiers="virtual const">
+			<return type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="_update_action" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_rebind">
+			<return type="bool" />
+			<param index="0" name="slot" type="StringName" />
+			<param index="1" name="event" type="InputEvent" />
+			<param index="2" name="joy_threshold" type="float" default="0.5" />
+			<description>
+			</description>
+		</method>
+		<method name="emit_event">
+			<return type="void" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="arguments" type="Array" default="[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_device" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_device_properties" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_device_state" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_event_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_events" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_event" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_rebind_slots" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_slot_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="slot" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_value" qualifiers="const">
+			<return type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="get_value_text" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="is_active" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_gamepad_allowed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_keyboard_mouse_allowed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_simulated" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="joy_axis_text" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="axis" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="joy_button_text" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="button" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="key_text" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="key" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="make_runtime_copy" qualifiers="const">
+			<return type="InputAction" />
+			<description>
+			</description>
+		</method>
+		<method name="mouse_button_text" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="button" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="set_device_state">
+			<return type="void" />
+			<param index="0" name="state" type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="simulate">
+			<return type="void" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="stop_simulation">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="action_name" type="StringName" setter="set_action_name" getter="get_action_name" default="&amp;&quot;action&quot;">
+		</member>
+		<member name="bindings" type="InputBinding[]" setter="set_bindings" getter="get_bindings" default="[]">
+		</member>
+		<member name="dead_zone" type="float" setter="set_dead_zone" getter="get_dead_zone" default="0.2">
+		</member>
+		<member name="description" type="String" setter="set_description" getter="get_description" default="&quot;&quot;">
+		</member>
+		<member name="device_filter" type="int" setter="set_device_filter" getter="get_device_filter" enum="InputAction.DeviceFilter" default="0">
+		</member>
+		<member name="dirty_threshold" type="float" setter="set_dirty_threshold" getter="get_dirty_threshold" default="0.01">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="physical_keys" type="bool" setter="set_physical_keys" getter="get_physical_keys" default="true">
+		</member>
+	</members>
+	<constants>
+		<constant name="DEVICE_INHERIT" value="0" enum="DeviceFilter">
+		</constant>
+		<constant name="DEVICE_ALL" value="1" enum="DeviceFilter">
+		</constant>
+		<constant name="DEVICE_KEYBOARD_MOUSE" value="2" enum="DeviceFilter">
+		</constant>
+		<constant name="DEVICE_GAMEPAD" value="3" enum="DeviceFilter">
+		</constant>
+	</constants>
+</class>

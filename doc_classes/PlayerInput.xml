@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PlayerInput" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_bindings_state">
+			<return type="void" />
+			<param index="0" name="state" type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="clear_event_log">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="enable_only">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_action" qualifiers="const">
+			<return type="InputAction" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_contexts" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_all_actions" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_axis" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_bindings_state" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_configuration_issues" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_context" qualifiers="const">
+			<return type="InputContext" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_context_stack" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_debug_snapshot" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_event_log" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_joy_guid" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_joy_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_joy_name" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_device_type" qualifiers="const">
+			<return type="int" enum="InputAction.DeviceFilter" />
+			<description>
+			</description>
+		</method>
+		<method name="get_runtime_contexts" qualifiers="const">
+			<return type="InputContext[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_value" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_vector" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_vector3" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="handle_input_event">
+			<return type="void" />
+			<param index="0" name="event" type="InputEvent" />
+			<description>
+			</description>
+		</method>
+		<method name="is_context_active" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="is_context_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="is_device_connected" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_just_pressed" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="is_just_released" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="is_pressed" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="is_setup" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="load_bindings">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="poll">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="pop_context">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="push_context">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="reset_bindings">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="save_bindings" qualifiers="const">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_context_enabled">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="setup">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="simulate">
+			<return type="void" />
+			<param index="0" name="action" type="StringName" />
+			<param index="1" name="value" type="Variant" />
+			<description>
+			</description>
+		</method>
+		<method name="start_vibration">
+			<return type="void" />
+			<param index="0" name="weak_magnitude" type="float" default="1.0" />
+			<param index="1" name="strong_magnitude" type="float" default="1.0" />
+			<param index="2" name="duration" type="float" default="0.0" />
+			<description>
+			</description>
+		</method>
+		<method name="stop_all_simulations">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="stop_simulation">
+			<return type="void" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="stop_vibration">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_switch_device" type="bool" setter="set_auto_switch_device" getter="get_auto_switch_device" default="false">
+		</member>
+		<member name="contexts" type="InputContext[]" setter="set_contexts" getter="get_contexts" default="[]">
+		</member>
+		<member name="device" type="int" setter="set_device" getter="get_device" default="0">
+		</member>
+		<member name="device_filter" type="int" setter="set_device_filter" getter="get_device_filter" enum="InputAction.DeviceFilter" default="1">
+		</member>
+		<member name="dispatch_bindings" type="bool" setter="set_dispatch_bindings" getter="get_dispatch_bindings" default="true">
+		</member>
+		<member name="joy_threshold" type="float" setter="set_joy_threshold" getter="get_joy_threshold" default="0.3">
+		</member>
+		<member name="process_in_physics" type="bool" setter="set_process_in_physics" getter="get_process_in_physics" default="false">
+		</member>
+		<member name="runtime_copies" type="bool" setter="set_runtime_copies" getter="get_runtime_copies" default="true">
+		</member>
+	</members>
+	<signals>
+		<signal name="action_triggered">
+			<param index="0" name="action" type="StringName" />
+			<param index="1" name="event" type="StringName" />
+			<param index="2" name="arguments" type="Array" />
+			<description>
+			</description>
+		</signal>
+		<signal name="binding_failed">
+			<param index="0" name="action" type="StringName" />
+			<param index="1" name="binding" type="InputBinding" />
+			<param index="2" name="reason" type="String" />
+			<description>
+			</description>
+		</signal>
+		<signal name="bindings_changed">
+			<description>
+			</description>
+		</signal>
+		<signal name="context_changed">
+			<param index="0" name="context" type="StringName" />
+			<param index="1" name="active" type="bool" />
+			<description>
+			</description>
+		</signal>
+		<signal name="device_type_changed">
+			<param index="0" name="device_type" type="int" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BehaviorGraphView" inherits="Control" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="center_on">
+			<return type="void" />
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="clear">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="fit_to_view">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_node_at" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="position" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_node_data" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_node_ids" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_node_rect" qualifiers="const">
+			<return type="Rect2" />
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_selected_id" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_snapshot" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_target" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_view_offset" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_zoom" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_collapsed" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="refresh">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="resolve_runner" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="node" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="set_selected_id">
+			<return type="void" />
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="set_snapshot">
+			<return type="void" />
+			<param index="0" name="snapshot" type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="set_target">
+			<return type="void" />
+			<param index="0" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="set_view_offset">
+			<return type="void" />
+			<param index="0" name="offset" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="set_zoom">
+			<return type="void" />
+			<param index="0" name="zoom" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="toggle_collapsed">
+			<return type="void" />
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="clip_contents" type="bool" setter="set_clip_contents" getter="is_clipping_contents" overrides="Control" default="true" />
+		<member name="editable" type="bool" setter="set_editable" getter="is_editable" default="false">
+		</member>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="1" />
+		<member name="layout_mode" type="int" setter="set_layout_mode" getter="get_layout_mode" enum="BehaviorGraphView.LayoutMode" default="0">
+		</member>
+		<member name="live_update" type="bool" setter="set_live_update" getter="is_live_update" default="true">
+		</member>
+		<member name="placeholder_text" type="String" setter="set_placeholder_text" getter="get_placeholder_text" default="&quot;Aucun comportement à afficher : choisissez une StateMachine ou un BehaviorTree.&quot;">
+		</member>
+		<member name="refresh_interval" type="float" setter="set_refresh_interval" getter="get_refresh_interval" default="0.1">
+		</member>
+		<member name="show_history" type="bool" setter="set_show_history" getter="get_show_history" default="true">
+		</member>
+		<member name="show_transition_labels" type="bool" setter="set_show_transition_labels" getter="get_show_transition_labels" default="true">
+		</member>
+		<member name="target_path" type="NodePath" setter="set_target_path" getter="get_target_path" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+	<signals>
+		<signal name="delete_requested">
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</signal>
+		<signal name="link_requested">
+			<param index="0" name="from_id" type="String" />
+			<param index="1" name="to_id" type="String" />
+			<description>
+			</description>
+		</signal>
+		<signal name="node_activated">
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</signal>
+		<signal name="node_context_menu_requested">
+			<param index="0" name="id" type="String" />
+			<param index="1" name="screen_position" type="Vector2" />
+			<description>
+			</description>
+		</signal>
+		<signal name="node_dropped">
+			<param index="0" name="id" type="String" />
+			<param index="1" name="target_id" type="String" />
+			<description>
+			</description>
+		</signal>
+		<signal name="node_selected">
+			<param index="0" name="id" type="String" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="LAYOUT_TECH_TREE" value="0" enum="LayoutMode">
+		</constant>
+		<constant name="LAYOUT_TOP_DOWN" value="1" enum="LayoutMode">
+		</constant>
+		<constant name="LAYOUT_MIND_MAP" value="2" enum="LayoutMode">
+		</constant>
+	</constants>
+</class>

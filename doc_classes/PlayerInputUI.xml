@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PlayerInputUI" inherits="VBoxContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_active_rebinder" qualifiers="const">
+			<return type="InputRebinder" />
+			<description>
+			</description>
+		</method>
+		<method name="rebuild">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="refresh">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="reset_bindings">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="save_bindings">
+			<return type="int" enum="Error" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_load" type="bool" setter="set_auto_load" getter="get_auto_load" default="true">
+		</member>
+		<member name="context_filter" type="PackedStringArray" setter="set_context_filter" getter="get_context_filter" default="PackedStringArray()">
+		</member>
+		<member name="player_input" type="NodePath" setter="set_player_input" getter="get_player_input" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="rebinder" type="NodePath" setter="set_rebinder" getter="get_rebinder" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="save_path" type="String" setter="set_save_path" getter="get_save_path" default="&quot;user://controles.cfg&quot;">
+		</member>
+		<member name="show_gamepad_tab" type="bool" setter="set_show_gamepad_tab" getter="get_show_gamepad_tab" default="true">
+		</member>
+		<member name="show_keyboard_tab" type="bool" setter="set_show_keyboard_tab" getter="get_show_keyboard_tab" default="true">
+		</member>
+	</members>
+	<signals>
+		<signal name="bindings_saved">
+			<param index="0" name="path" type="String" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

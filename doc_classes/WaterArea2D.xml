@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="WaterArea2D" inherits="Area2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="find_containing" qualifiers="static">
+			<return type="WaterArea2D" />
+			<param index="0" name="body" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_depth" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="point" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_surface_y" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="angular_drag" type="float" setter="set_angular_drag" getter="get_angular_drag" default="3.0">
+		</member>
+		<member name="buoyancy" type="float" setter="set_buoyancy" getter="get_buoyancy" default="2.0">
+		</member>
+		<member name="current" type="Vector2" setter="set_current" getter="get_current" default="Vector2(0, 0)">
+		</member>
+		<member name="float_depth" type="float" setter="set_float_depth" getter="get_float_depth" default="16.0">
+		</member>
+		<member name="linear_drag" type="float" setter="set_linear_drag" getter="get_linear_drag" default="3.0">
+		</member>
+		<member name="surface_offset" type="float" setter="set_surface_offset" getter="get_surface_offset" default="0.0">
+		</member>
+	</members>
+</class>

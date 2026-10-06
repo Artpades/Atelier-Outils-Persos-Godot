@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="RopeMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_rope" qualifiers="const">
+			<return type="Rope2D" />
+			<description>
+			</description>
+		</method>
+		<method name="is_attached" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="release">
+			<return type="void" />
+			<param index="0" name="jump" type="bool" default="false" />
+			<description>
+			</description>
+		</method>
+		<method name="try_grab">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="climb_speed" type="float" setter="set_climb_speed" getter="get_climb_speed" default="110.0">
+		</member>
+		<member name="grab_distance" type="float" setter="set_grab_distance" getter="get_grab_distance" default="40.0">
+		</member>
+		<member name="jump_up_velocity" type="float" setter="set_jump_up_velocity" getter="get_jump_up_velocity" default="320.0">
+		</member>
+		<member name="regrab_delay" type="float" setter="set_regrab_delay" getter="get_regrab_delay" default="0.3">
+		</member>
+		<member name="swing_force" type="float" setter="set_swing_force" getter="get_swing_force" default="2000.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="grabbed">
+			<param index="0" name="rope" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="released">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueBox" inherits="PanelContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_choice_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_dialogue_system" qualifiers="const">
+			<return type="DialogueSystem" />
+			<description>
+			</description>
+		</method>
+		<method name="get_displayed_text" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_speaker_text" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="is_typing" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="press_advance">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="set_dialogue_system">
+			<return type="void" />
+			<param index="0" name="system" type="DialogueSystem" />
+			<description>
+			</description>
+		</method>
+		<method name="skip_typing">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="advance_action" type="StringName" setter="set_advance_action" getter="get_advance_action" default="&amp;&quot;ui_accept&quot;">
+		</member>
+		<member name="characters_per_second" type="float" setter="set_characters_per_second" getter="get_characters_per_second" default="40.0">
+		</member>
+		<member name="custom_minimum_size" type="Vector2" setter="set_custom_minimum_size" getter="get_custom_minimum_size" overrides="Control" default="Vector2(0, 150)" />
+		<member name="dialogue_system_path" type="NodePath" setter="set_dialogue_system_path" getter="get_dialogue_system_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="hide_when_idle" type="bool" setter="set_hide_when_idle" getter="get_hide_when_idle" default="true">
+		</member>
+	</members>
+	<signals>
+		<signal name="typing_finished">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

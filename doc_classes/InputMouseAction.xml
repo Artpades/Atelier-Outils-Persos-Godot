@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputMouseAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_motion" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_mouse_position" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_pressure" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="invert_y" type="bool" setter="set_invert_y" getter="get_invert_y" default="false">
+		</member>
+		<member name="motion_sensitivity" type="float" setter="set_motion_sensitivity" getter="get_motion_sensitivity" default="1.0">
+		</member>
+		<member name="normalize_position" type="bool" setter="set_normalize_position" getter="get_normalize_position" default="false">
+		</member>
+		<member name="position_threshold" type="float" setter="set_position_threshold" getter="get_position_threshold" default="0.5">
+		</member>
+	</members>
+	<signals>
+		<signal name="motion">
+			<param index="0" name="relative" type="Vector2" />
+			<description>
+			</description>
+		</signal>
+		<signal name="position_changed">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+			</description>
+		</signal>
+		<signal name="pressure_changed">
+			<param index="0" name="pressure" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="scrolled">
+			<param index="0" name="delta" type="Vector2" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BTCooldown" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_remaining" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="reset_cooldown">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="1.0">
+		</member>
+		<member name="include_failures" type="bool" setter="set_include_failures" getter="get_include_failures" default="false">
+		</member>
+	</members>
+</class>

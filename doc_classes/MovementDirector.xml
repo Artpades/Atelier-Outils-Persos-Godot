@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MovementDirector" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_forced_context">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="create_default_contexts">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_body" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_components" qualifiers="const">
+			<return type="MovementComponent[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_context" qualifiers="const">
+			<return type="MovementContext" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_context" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_environment" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_forced_context" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_move_input" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="is_condition_met">
+			<return type="bool" />
+			<param index="0" name="context" type="MovementContext" />
+			<description>
+			</description>
+		</method>
+		<method name="is_in_air" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_in_water" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_jump_held" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_knocked" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_on_floor" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_on_rope" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_on_wall" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="jump">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="move">
+			<return type="void" />
+			<param index="0" name="input" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="release_jump">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="set_context">
+			<return type="bool" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="set_running">
+			<return type="void" />
+			<param index="0" name="running" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_vertical_input">
+			<return type="void" />
+			<param index="0" name="value" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="update_context">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="auto_configure" type="bool" setter="set_auto_configure" getter="get_auto_configure" default="true">
+		</member>
+		<member name="auto_switch" type="bool" setter="set_auto_switch" getter="get_auto_switch" default="true">
+		</member>
+		<member name="contexts" type="MovementContext[]" setter="set_contexts" getter="get_contexts" default="[]">
+		</member>
+		<member name="process_physics_priority" type="int" setter="set_physics_process_priority" getter="get_physics_process_priority" overrides="Node" default="-20" />
+	</members>
+	<signals>
+		<signal name="context_changed">
+			<param index="0" name="previous" type="StringName" />
+			<param index="1" name="current" type="StringName" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

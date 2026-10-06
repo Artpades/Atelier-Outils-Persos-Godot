@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueOption" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="condition" type="String" setter="set_condition" getter="get_condition" default="&quot;&quot;">
+		</member>
+		<member name="next" type="StringName" setter="set_next" getter="get_next" default="&amp;&quot;&quot;">
+		</member>
+		<member name="once_only" type="bool" setter="set_once_only" getter="get_once_only" default="false">
+		</member>
+		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+		</member>
+	</members>
+</class>

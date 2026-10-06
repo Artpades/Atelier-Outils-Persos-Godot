@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MovementContext" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="evaluate_expression">
+			<return type="bool" />
+			<param index="0" name="body" type="Node" />
+			<param index="1" name="director" type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="components" type="NodePath[]" setter="set_components" getter="get_components" default="[]">
+		</member>
+		<member name="condition" type="int" setter="set_condition" getter="get_condition" enum="MovementContext.Condition" default="0">
+		</member>
+		<member name="context_name" type="StringName" setter="set_context_name" getter="get_context_name" default="&amp;&quot;&quot;">
+		</member>
+		<member name="expression" type="String" setter="set_expression" getter="get_expression" default="&quot;&quot;">
+		</member>
+		<member name="priority" type="int" setter="set_priority" getter="get_priority" default="0">
+		</member>
+	</members>
+	<constants>
+		<constant name="CONDITION_ALWAYS" value="0" enum="Condition">
+		</constant>
+		<constant name="CONDITION_ON_FLOOR" value="1" enum="Condition">
+		</constant>
+		<constant name="CONDITION_IN_AIR" value="2" enum="Condition">
+		</constant>
+		<constant name="CONDITION_IN_WATER" value="3" enum="Condition">
+		</constant>
+		<constant name="CONDITION_ON_WALL" value="4" enum="Condition">
+		</constant>
+		<constant name="CONDITION_ON_ROPE" value="5" enum="Condition">
+		</constant>
+		<constant name="CONDITION_KNOCKED" value="6" enum="Condition">
+		</constant>
+		<constant name="CONDITION_MANUAL" value="7" enum="Condition">
+		</constant>
+		<constant name="CONDITION_CUSTOM" value="8" enum="Condition">
+		</constant>
+	</constants>
+</class>

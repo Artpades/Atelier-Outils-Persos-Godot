@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputBinding" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="build_call_arguments" qualifiers="const">
+			<return type="Array" />
+			<param index="0" name="signal_arguments" type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_description" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="arguments" type="Array" setter="set_arguments" getter="get_arguments" default="[]">
+		</member>
+		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+		</member>
+		<member name="event" type="StringName" setter="set_event" getter="get_event" default="&amp;&quot;pressed&quot;">
+		</member>
+		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+		</member>
+		<member name="pass_value" type="bool" setter="set_pass_value" getter="get_pass_value" default="true">
+		</member>
+		<member name="target" type="NodePath" setter="set_target" getter="get_target" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+</class>

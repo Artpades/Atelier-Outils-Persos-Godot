@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DialogueSystem" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="advance">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="choose">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="clear_seen_options">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="evaluate_condition">
+			<return type="bool" />
+			<param index="0" name="condition" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="execute_assignment">
+			<return type="bool" />
+			<param index="0" name="assignment" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_available_options" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_id" qualifiers="const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_node" qualifiers="const">
+			<return type="DialogueNode" />
+			<description>
+			</description>
+		</method>
+		<method name="get_debug_snapshot" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_dialogue" qualifiers="const">
+			<return type="DialogueResource" />
+			<description>
+			</description>
+		</method>
+		<method name="get_history" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_interlocutor" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_main" qualifiers="static">
+			<return type="DialogueSystem" />
+			<description>
+			</description>
+		</method>
+		<method name="get_wait_state" qualifiers="const">
+			<return type="int" enum="DialogueSystem.WaitState" />
+			<description>
+			</description>
+		</method>
+		<method name="interpolate">
+			<return type="String" />
+			<param index="0" name="text" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="is_running" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="start">
+			<return type="bool" />
+			<param index="0" name="dialogue" type="DialogueResource" default="null" />
+			<param index="1" name="start_id" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="2" name="interlocutor" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="default_dialogue" type="DialogueResource" setter="set_default_dialogue" getter="get_default_dialogue">
+		</member>
+		<member name="history_size" type="int" setter="set_history_size" getter="get_history_size" default="50">
+		</member>
+		<member name="variables" type="Blackboard" setter="set_variables" getter="get_variables">
+		</member>
+	</members>
+	<signals>
+		<signal name="choices_shown">
+			<param index="0" name="prompt" type="String" />
+			<param index="1" name="options" type="Array" />
+			<param index="2" name="choice" type="DialogueChoice" />
+			<description>
+			</description>
+		</signal>
+		<signal name="dialogue_ended">
+			<param index="0" name="dialogue" type="DialogueResource" />
+			<description>
+			</description>
+		</signal>
+		<signal name="dialogue_event">
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="arguments" type="Array" />
+			<description>
+			</description>
+		</signal>
+		<signal name="dialogue_started">
+			<param index="0" name="dialogue" type="DialogueResource" />
+			<description>
+			</description>
+		</signal>
+		<signal name="line_shown">
+			<param index="0" name="speaker" type="String" />
+			<param index="1" name="text" type="String" />
+			<param index="2" name="line" type="DialogueLine" />
+			<description>
+			</description>
+		</signal>
+		<signal name="option_chosen">
+			<param index="0" name="index" type="int" />
+			<param index="1" name="text" type="String" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="WAIT_NONE" value="0" enum="WaitState">
+		</constant>
+		<constant name="WAIT_LINE" value="1" enum="WaitState">
+		</constant>
+		<constant name="WAIT_CHOICE" value="2" enum="WaitState">
+		</constant>
+	</constants>
+</class>

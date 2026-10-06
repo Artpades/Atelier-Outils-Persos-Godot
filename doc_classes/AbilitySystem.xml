@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AbilitySystem" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="activate">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="add_attribute">
+			<return type="void" />
+			<param index="0" name="definition" type="AttributeDefinition" />
+			<description>
+			</description>
+		</method>
+		<method name="add_tag">
+			<return type="void" />
+			<param index="0" name="tag" type="String" />
+			<param index="1" name="count" type="int" default="1" />
+			<description>
+			</description>
+		</method>
+		<method name="add_to_base">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="amount" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_effect">
+			<return type="int" />
+			<param index="0" name="effect" type="GameplayEffect" />
+			<param index="1" name="source" type="Object" default="null" />
+			<param index="2" name="level" type="float" default="1.0" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_effect_to">
+			<return type="int" />
+			<param index="0" name="effect" type="GameplayEffect" />
+			<param index="1" name="target" type="Node" />
+			<param index="2" name="level" type="float" default="1.0" />
+			<description>
+			</description>
+		</method>
+		<method name="can_activate">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="cancel_abilities_with_tag">
+			<return type="int" />
+			<param index="0" name="tag" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="cancel_ability">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="end_ability">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="find_on" qualifiers="static">
+			<return type="AbilitySystem" />
+			<param index="0" name="node" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_ability" qualifiers="const">
+			<return type="Ability" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_ability_ids" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_activation_failure">
+			<return type="String" />
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_effects" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_attribute_names" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_base_value" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_charges" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_cooldown_remaining" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="get_effect_remaining" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="handle" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_effect_stacks" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="effect" type="GameplayEffect" />
+			<description>
+			</description>
+		</method>
+		<method name="get_tags" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_value" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="grant_ability">
+			<return type="void" />
+			<param index="0" name="ability" type="Ability" />
+			<description>
+			</description>
+		</method>
+		<method name="has_ability" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="has_all_tags" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="tags" type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="has_any_tags" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="tags" type="PackedStringArray" />
+			<description>
+			</description>
+		</method>
+		<method name="has_attribute" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="has_effect" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="effect" type="GameplayEffect" />
+			<description>
+			</description>
+		</method>
+		<method name="has_tag" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="tag" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="initialize">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="is_ability_active" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_effect">
+			<return type="bool" />
+			<param index="0" name="handle" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_effects_with_tag">
+			<return type="int" />
+			<param index="0" name="tag" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_tag">
+			<return type="void" />
+			<param index="0" name="tag" type="String" />
+			<param index="1" name="count" type="int" default="1" />
+			<description>
+			</description>
+		</method>
+		<method name="reset_cooldown">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="revoke_ability">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="set_base_value">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="value" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="update">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="attribute_definitions" type="AttributeDefinition[]" setter="set_attribute_definitions" getter="get_attribute_definitions" default="[]">
+		</member>
+		<member name="granted_abilities" type="Ability[]" setter="set_granted_abilities" getter="get_granted_abilities" default="[]">
+		</member>
+		<member name="initial_effects" type="GameplayEffect[]" setter="set_initial_effects" getter="get_initial_effects" default="[]">
+		</member>
+		<member name="initial_tags" type="PackedStringArray" setter="set_initial_tags" getter="get_initial_tags" default="PackedStringArray()">
+		</member>
+		<member name="manual_update" type="bool" setter="set_manual_update" getter="is_manual_update" default="false">
+		</member>
+	</members>
+	<signals>
+		<signal name="ability_activated">
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="ability_committed">
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="ability_ended">
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="cancelled" type="bool" />
+			<description>
+			</description>
+		</signal>
+		<signal name="ability_failed">
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="reason" type="String" />
+			<description>
+			</description>
+		</signal>
+		<signal name="ability_granted">
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="attribute_changed">
+			<param index="0" name="attribute" type="StringName" />
+			<param index="1" name="old_value" type="float" />
+			<param index="2" name="new_value" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="attribute_depleted">
+			<param index="0" name="attribute" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="cooldown_ready">
+			<param index="0" name="id" type="StringName" />
+			<description>
+			</description>
+		</signal>
+		<signal name="effect_applied">
+			<param index="0" name="effect" type="GameplayEffect" />
+			<param index="1" name="handle" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="effect_blocked">
+			<param index="0" name="effect" type="GameplayEffect" />
+			<description>
+			</description>
+		</signal>
+		<signal name="effect_removed">
+			<param index="0" name="effect" type="GameplayEffect" />
+			<param index="1" name="handle" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="tag_changed">
+			<param index="0" name="tag" type="String" />
+			<param index="1" name="present" type="bool" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>
