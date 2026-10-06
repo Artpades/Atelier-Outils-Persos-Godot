@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VisualsAsset" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="context" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="swap_visuals" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="context" type="Node" />
+			<param index="1" name="register" type="VisualsRegister" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="suit_type_name" type="String" setter="set_suit_type_name" getter="get_suit_type_name" default="&quot;&quot;">
+		</member>
+		<member name="visuals_registers" type="VisualsRegister[]" setter="set_visuals_registers" getter="get_visuals_registers" default="[]">
+		</member>
+	</members>
+</class>

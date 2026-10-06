@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CameraManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_current_camera_2d" qualifiers="static">
+			<return type="Camera2D" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+			</description>
+		</method>
+		<method name="get_current_camera_3d" qualifiers="static">
+			<return type="Camera3D" />
+			<param index="0" name="viewport" type="Viewport" />
+			<description>
+			</description>
+		</method>
+		<method name="get_instance" qualifiers="static">
+			<return type="CameraManager" />
+			<description>
+			</description>
+		</method>
+		<method name="is_transitioning_2d" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_transitioning_3d" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="switch_2d_camera">
+			<return type="void" />
+			<param index="0" name="new_camera" type="Camera2D" />
+			<param index="1" name="ease_transition" type="bool" default="true" />
+			<param index="2" name="duration" type="float" default="-1.0" />
+			<param index="3" name="transition_type" type="int" enum="Tween.TransitionType" default="7" />
+			<param index="4" name="ease_type" type="int" enum="Tween.EaseType" default="2" />
+			<description>
+			</description>
+		</method>
+		<method name="switch_3d_camera">
+			<return type="void" />
+			<param index="0" name="new_camera" type="Camera3D" />
+			<param index="1" name="ease_transition" type="bool" default="true" />
+			<param index="2" name="duration" type="float" default="-1.0" />
+			<param index="3" name="transition_type" type="int" enum="Tween.TransitionType" default="7" />
+			<param index="4" name="ease_type" type="int" enum="Tween.EaseType" default="2" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="transition_duration_2d" type="float" setter="set_transition_duration_2d" getter="get_transition_duration_2d" default="1.0">
+		</member>
+		<member name="transition_duration_3d" type="float" setter="set_transition_duration_3d" getter="get_transition_duration_3d" default="1.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="current_camera_2d_switched">
+			<param index="0" name="camera_2d" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="current_camera_3d_switched">
+			<param index="0" name="camera_3d" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

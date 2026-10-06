@@ -1,0 +1,66 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🏭Générateur d'objet/demo_generateur.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🏭Générateur d'objet/objet_carre.tscn" id="3_carre"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🏭Générateur d'objet/objet_triangle.tscn" id="4_triangle"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🏭Générateur d'objet/objet_hexagone.tscn" id="5_hexagone"]
+
+[sub_resource type="SpawnEntry" id="Entree_spawner"]
+scenes = Array[PackedScene]([ExtResource("3_carre"), ExtResource("4_triangle"), ExtResource("5_hexagone")])
+
+[sub_resource type="SpawnPoolEntry" id="Entree_pool"]
+scenes = Array[PackedScene]([ExtResource("3_carre"), ExtResource("4_triangle"), ExtResource("5_hexagone")])
+initial_pool_size_per_scene = 5
+
+[node name="DémoGénérateurDObjet" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Fond" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Couleur" type="ColorRect" parent="Fond"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="ObjetsSpawner" type="Node2D" parent="."]
+
+[node name="ObjetsPool" type="Node2D" parent="."]
+
+[node name="Spawner" type="Spawner" parent="." node_paths=PackedStringArray("parent_node")]
+entries = Array[SpawnEntry]([SubResource("Entree_spawner")])
+parent_node = NodePath("../ObjetsSpawner")
+
+[node name="Gauche" type="Marker2D" parent="Spawner"]
+position = Vector2(80, 520)
+
+[node name="Centre" type="Marker2D" parent="Spawner"]
+position = Vector2(190, 520)
+
+[node name="Droite" type="Marker2D" parent="Spawner"]
+position = Vector2(300, 520)
+
+[node name="PoolSpawner" type="PoolSpawner" parent="." node_paths=PackedStringArray("parent_node") groups=["pool_spawner_demo"]]
+entries = Array[SpawnEntry]([SubResource("Entree_pool")])
+parent_node = NodePath("../ObjetsPool")
+
+[node name="Gauche" type="Marker2D" parent="PoolSpawner"]
+position = Vector2(420, 520)
+
+[node name="Centre" type="Marker2D" parent="PoolSpawner"]
+position = Vector2(530, 520)
+
+[node name="Droite" type="Marker2D" parent="PoolSpawner"]
+position = Vector2(640, 520)
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🏭 Générateur d'objet"
+aide = "Même entrée de part et d'autre : le Spawner instancie à chaque spawn et détruit en fin de vie ; le PoolSpawner pré-alloue 5 instances par scène puis les recycle (il s'agrandit si le pool s'épuise : avertissement dans la console)."

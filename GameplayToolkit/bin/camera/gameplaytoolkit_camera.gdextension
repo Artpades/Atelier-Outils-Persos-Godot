@@ -1,0 +1,32 @@
+; Généré par le Sconstruct depuis src/1.🧰Ensemble d'Outils/2.🧭Widgets & Spatialité🌍/🎞️Gestion de Caméras🎛️/camera_register.cpp : seule la section [icons] peut être modifiée à la main.
+
+[configuration]
+
+entry_symbol = "camera_library_init"
+compatibility_minimum = "4.7"
+reloadable = true
+
+[icons]
+
+CameraManager = "res://🖼️Editor Icons/🎥🎞️/CameraManager Icon.png"
+CameraPanner = "res://🖼️Editor Icons/🎥🎞️/VirtualCamera Icon.png"
+OrbitalCamera = "res://🖼️Editor Icons/🎥🎞️/OrbitalCamera Icon.png"
+
+[libraries]
+
+macos.debug = "res://bin/camera/libgameplaytoolkit_camera.macos.template_debug.dylib"
+macos.release = "res://bin/camera/libgameplaytoolkit_camera.macos.template_release.dylib"
+windows.debug.x86_32 = "res://bin/camera/gameplaytoolkit_camera.windows.template_debug.x86_32.dll"
+windows.release.x86_32 = "res://bin/camera/gameplaytoolkit_camera.windows.template_release.x86_32.dll"
+windows.debug.x86_64 = "res://bin/camera/gameplaytoolkit_camera.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://bin/camera/gameplaytoolkit_camera.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://bin/camera/libgameplaytoolkit_camera.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://bin/camera/libgameplaytoolkit_camera.linux.template_release.x86_64.so"
+linux.debug.arm64 = "res://bin/camera/libgameplaytoolkit_camera.linux.template_debug.arm64.so"
+linux.release.arm64 = "res://bin/camera/libgameplaytoolkit_camera.linux.template_release.arm64.so"
+linux.debug.rv64 = "res://bin/camera/libgameplaytoolkit_camera.linux.template_debug.rv64.so"
+linux.release.rv64 = "res://bin/camera/libgameplaytoolkit_camera.linux.template_release.rv64.so"
+android.debug.arm64 = "res://bin/camera/libgameplaytoolkit_camera.android.debug.arm64.so"
+android.release.arm64 = "res://bin/camera/libgameplaytoolkit_camera.android.release.arm64.so"
+android.debug.arm32 = "res://bin/camera/libgameplaytoolkit_camera.android.debug.arm32.so"
+android.release.arm32 = "res://bin/camera/libgameplaytoolkit_camera.android.release.arm32.so"

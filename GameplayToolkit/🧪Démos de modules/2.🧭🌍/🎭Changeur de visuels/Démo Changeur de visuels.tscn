@@ -1,0 +1,209 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🎭Changeur de visuels/demo_changeur_visuels.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🎭Changeur de visuels/accessoire_defaut.tscn" id="3_acc_defaut"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🎭Changeur de visuels/accessoire_feu.tscn" id="4_acc_feu"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🎭Changeur de visuels/accessoire_glace.tscn" id="5_acc_glace"]
+
+[sub_resource type="Gradient" id="Degrade_defaut"]
+colors = PackedColorArray(0.85, 0.85, 0.9, 1, 0.35, 0.35, 0.42, 1)
+
+[sub_resource type="GradientTexture2D" id="Texture_defaut"]
+gradient = SubResource("Degrade_defaut")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="QuadMesh" id="Mesh_defaut"]
+size = Vector2(56, 56)
+
+[sub_resource type="VisualsRegister" id="Registre_defaut_Corps"]
+node_visual = NodePath("../Personnage/Corps")
+texture = SubResource("Texture_defaut")
+
+[sub_resource type="VisualsRegister" id="Registre_defaut_Bouclier"]
+node_visual = NodePath("../Personnage/Bouclier")
+texture = SubResource("Texture_defaut")
+
+[sub_resource type="VisualsRegister" id="Registre_defaut_Aura"]
+node_visual = NodePath("../Personnage/Aura")
+mesh = SubResource("Mesh_defaut")
+
+[sub_resource type="VisualsRegister" id="Registre_defaut_Chapeau"]
+node_visual = NodePath("../Personnage/Chapeau")
+modeling_import = ExtResource("3_acc_defaut")
+
+[sub_resource type="VisualsRegister" id="Registre_defaut_Portrait"]
+node_visual = NodePath("../Hud/Portrait")
+texture = SubResource("Texture_defaut")
+
+[sub_resource type="VisualsAsset" id="Tenue_defaut"]
+suit_type_name = "défaut"
+visuals_registers = Array[VisualsRegister]([SubResource("Registre_defaut_Corps"), SubResource("Registre_defaut_Bouclier"), SubResource("Registre_defaut_Aura"), SubResource("Registre_defaut_Chapeau"), SubResource("Registre_defaut_Portrait")])
+
+[sub_resource type="Gradient" id="Degrade_feu"]
+colors = PackedColorArray(1, 0.9, 0.3, 1, 0.85, 0.15, 0.05, 1)
+
+[sub_resource type="GradientTexture2D" id="Texture_feu"]
+gradient = SubResource("Degrade_feu")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="PrismMesh" id="Mesh_feu"]
+size = Vector3(64, 64, 1)
+
+[sub_resource type="VisualsRegister" id="Registre_feu_Corps"]
+node_visual = NodePath("../Personnage/Corps")
+texture = SubResource("Texture_feu")
+
+[sub_resource type="VisualsRegister" id="Registre_feu_Bouclier"]
+node_visual = NodePath("../Personnage/Bouclier")
+texture = SubResource("Texture_feu")
+
+[sub_resource type="VisualsRegister" id="Registre_feu_Aura"]
+node_visual = NodePath("../Personnage/Aura")
+mesh = SubResource("Mesh_feu")
+
+[sub_resource type="VisualsRegister" id="Registre_feu_Chapeau"]
+node_visual = NodePath("../Personnage/Chapeau")
+modeling_import = ExtResource("4_acc_feu")
+
+[sub_resource type="VisualsRegister" id="Registre_feu_Portrait"]
+node_visual = NodePath("../Hud/Portrait")
+texture = SubResource("Texture_feu")
+
+[sub_resource type="VisualsAsset" id="Tenue_feu"]
+suit_type_name = "feu"
+visuals_registers = Array[VisualsRegister]([SubResource("Registre_feu_Corps"), SubResource("Registre_feu_Bouclier"), SubResource("Registre_feu_Aura"), SubResource("Registre_feu_Chapeau"), SubResource("Registre_feu_Portrait")])
+
+[sub_resource type="Gradient" id="Degrade_glace"]
+colors = PackedColorArray(0.95, 1, 1, 1, 0.2, 0.45, 0.95, 1)
+
+[sub_resource type="GradientTexture2D" id="Texture_glace"]
+gradient = SubResource("Degrade_glace")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="SphereMesh" id="Mesh_glace"]
+radius = 32.0
+height = 64.0
+
+[sub_resource type="VisualsRegister" id="Registre_glace_Corps"]
+node_visual = NodePath("../Personnage/Corps")
+texture = SubResource("Texture_glace")
+
+[sub_resource type="VisualsRegister" id="Registre_glace_Bouclier"]
+node_visual = NodePath("../Personnage/Bouclier")
+texture = SubResource("Texture_glace")
+
+[sub_resource type="VisualsRegister" id="Registre_glace_Aura"]
+node_visual = NodePath("../Personnage/Aura")
+mesh = SubResource("Mesh_glace")
+
+[sub_resource type="VisualsRegister" id="Registre_glace_Chapeau"]
+node_visual = NodePath("../Personnage/Chapeau")
+modeling_import = ExtResource("5_acc_glace")
+
+[sub_resource type="VisualsRegister" id="Registre_glace_Portrait"]
+node_visual = NodePath("../Hud/Portrait")
+texture = SubResource("Texture_glace")
+
+[sub_resource type="VisualsAsset" id="Tenue_glace"]
+suit_type_name = "glace"
+visuals_registers = Array[VisualsRegister]([SubResource("Registre_glace_Corps"), SubResource("Registre_glace_Bouclier"), SubResource("Registre_glace_Aura"), SubResource("Registre_glace_Chapeau"), SubResource("Registre_glace_Portrait")])
+
+[sub_resource type="Gradient" id="Degrade_ombre"]
+colors = PackedColorArray(0.45, 0.25, 0.6, 1, 0.05, 0.02, 0.1, 1)
+
+[sub_resource type="GradientTexture2D" id="Texture_ombre"]
+gradient = SubResource("Degrade_ombre")
+width = 96
+height = 96
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="VisualsRegister" id="Registre_ombre_Corps"]
+node_visual = NodePath("../Personnage/Corps")
+texture = SubResource("Texture_ombre")
+
+[sub_resource type="VisualsAsset" id="Tenue_ombre"]
+suit_type_name = "ombre (corps seul)"
+visuals_registers = Array[VisualsRegister]([SubResource("Registre_ombre_Corps")])
+
+[node name="DémoChangeurDeVisuels" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Fond" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Couleur" type="ColorRect" parent="Fond"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="Personnage" type="Node2D" parent="."]
+position = Vector2(340, 360)
+
+[node name="Aura" type="MeshInstance2D" parent="Personnage"]
+modulate = Color(1, 1, 1, 0.8)
+position = Vector2(-150, 0)
+
+[node name="Corps" type="Sprite2D" parent="Personnage"]
+
+[node name="Bouclier" type="Polygon2D" parent="Personnage"]
+position = Vector2(80, -30)
+polygon = PackedVector2Array(0, 0, 60, 0, 60, 50, 30, 80, 0, 50)
+uv = PackedVector2Array(0, 0, 96, 0, 96, 80, 48, 96, 0, 80)
+
+[node name="Chapeau" type="Node2D" parent="Personnage"]
+position = Vector2(0, -48)
+
+[node name="Etiquettes" type="Label" parent="Personnage"]
+modulate = Color(1, 1, 1, 0.5)
+offset_left = -190.0
+offset_top = 70.0
+offset_right = 190.0
+offset_bottom = 120.0
+text = "MeshInstance2D · Sprite2D · Polygon2D
+(conteneur au-dessus : scène instanciée)"
+horizontal_alignment = 1
+
+[node name="Hud" type="CanvasLayer" parent="."]
+
+[node name="Portrait" type="TextureRect" parent="Hud"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 120.0
+offset_bottom = 120.0
+
+[node name="LegendePortrait" type="Label" parent="Hud"]
+modulate = Color(1, 1, 1, 0.5)
+offset_left = 130.0
+offset_top = 60.0
+offset_right = 330.0
+offset_bottom = 86.0
+text = "← TextureRect (interface)"
+
+[node name="Swapper" type="VisualsSwapper" parent="."]
+visuals_assets = Array[VisualsAsset]([SubResource("Tenue_defaut"), SubResource("Tenue_feu"), SubResource("Tenue_glace"), SubResource("Tenue_ombre")])
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🎭 Changeur de visuels"
+aide = "Chaque tenue (VisualsAsset) liste des VisualsRegister : chemin d'un nœud + ressource. Selon le type du nœud, la texture, le mesh ou une scène (dans un conteneur) est appliqué. La tenue « ombre » ne change que le corps : le reste est conservé."

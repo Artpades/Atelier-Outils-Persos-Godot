@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[node name="Casquette" type="Node2D"]
+
+[node name="Forme0" type="Polygon2D" parent="."]
+color = Color(0.6, 0.6, 0.65, 1)
+polygon = PackedVector2Array(-34, 0, 34, 0, 26, -22, -26, -22)

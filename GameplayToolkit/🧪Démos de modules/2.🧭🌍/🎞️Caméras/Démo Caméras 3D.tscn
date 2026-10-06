@@ -1,0 +1,108 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🎞️Caméras/demo_cameras_3d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Ciel_materiau"]
+sky_horizon_color = Color(0.64, 0.65, 0.67, 1)
+ground_horizon_color = Color(0.64, 0.65, 0.67, 1)
+
+[sub_resource type="Sky" id="Ciel"]
+sky_material = SubResource("Ciel_materiau")
+
+[sub_resource type="Environment" id="Environnement"]
+background_mode = 2
+sky = SubResource("Ciel")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="Mat_sol"]
+albedo_color = Color(0.32, 0.34, 0.38, 1)
+
+[sub_resource type="PlaneMesh" id="Mesh_sol"]
+material = SubResource("Mat_sol")
+size = Vector2(20, 20)
+
+[sub_resource type="StandardMaterial3D" id="Mat_rouge"]
+albedo_color = Color(0.9, 0.3, 0.25, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_vert"]
+albedo_color = Color(0.3, 0.8, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bleu"]
+albedo_color = Color(0.3, 0.5, 0.95, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_jaune"]
+albedo_color = Color(0.95, 0.8, 0.25, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_cube"]
+material = SubResource("Mat_rouge")
+
+[sub_resource type="SphereMesh" id="Mesh_sphere"]
+material = SubResource("Mat_vert")
+
+[sub_resource type="CylinderMesh" id="Mesh_cylindre"]
+material = SubResource("Mat_bleu")
+height = 3.0
+
+[sub_resource type="TorusMesh" id="Mesh_tore"]
+material = SubResource("Mat_jaune")
+
+[node name="DémoCaméras3D" type="Node3D"]
+script = ExtResource("1_demo")
+
+[node name="Environnement" type="WorldEnvironment" parent="."]
+environment = SubResource("Environnement")
+
+[node name="Soleil" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 8, 0)
+shadow_enabled = true
+
+[node name="Sol" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_sol")
+
+[node name="Cube" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.5, 0)
+mesh = SubResource("Mesh_cube")
+
+[node name="Sphère" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.5, 0)
+mesh = SubResource("Mesh_sphere")
+
+[node name="Cylindre" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -3)
+mesh = SubResource("Mesh_cylindre")
+
+[node name="Tore" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 3)
+mesh = SubResource("Mesh_tore")
+
+[node name="CamFace" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 9)
+current = true
+
+[node name="CamDessus" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0.5)
+fov = 50.0
+
+[node name="CamCote" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, 0)
+fov = 35.0
+
+[node name="Orbitale" type="OrbitalCamera" parent="." node_paths=PackedStringArray("arm_3d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+arm_3d = NodePath("Bras")
+
+[node name="Bras" type="SpringArm3D" parent="Orbitale"]
+transform = Transform3D(1, 0, 0, 0, 0.939, 0.343, 0, -0.343, 0.939, 0, 0, 0)
+spring_length = 7.0
+
+[node name="CamOrbitale" type="Camera3D" parent="Orbitale/Bras"]
+fov = 60.0
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🎞️ Caméras 3D"
+aide = "Choisir une caméra pour y basculer. Cliquer une autre caméra pendant une transition l'interrompt : elle repart de la position atteinte.
+Clic droit maintenu (hors panneau) : orbiter avec la caméra orbitale."

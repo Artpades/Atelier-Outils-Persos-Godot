@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SceneManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_instance" qualifiers="static">
+			<return type="SceneManager" />
+			<description>
+			</description>
+		</method>
+		<method name="get_progress_percent" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_loading" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="load_scene_async">
+			<return type="void" />
+			<param index="0" name="scene_path" type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="log_activated" type="bool" setter="set_log_activated" getter="get_log_activated" default="false">
+		</member>
+	</members>
+	<signals>
+		<signal name="load_finished">
+			<description>
+			</description>
+		</signal>
+		<signal name="loading_progress">
+			<param index="0" name="percent" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="loading_started">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

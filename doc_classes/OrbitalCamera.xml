@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OrbitalCamera" inherits="Node3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="look_around">
+			<return type="void" />
+			<param index="0" name="direction" type="Vector2" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="arm_3d" type="SpringArm3D" setter="set_arm_3d" getter="get_arm_3d">
+		</member>
+		<member name="max_pitch" type="float" setter="set_max_pitch" getter="get_max_pitch" default="85.0">
+		</member>
+		<member name="min_pitch" type="float" setter="set_min_pitch" getter="get_min_pitch" default="-85.0">
+		</member>
+		<member name="sensitivity" type="float" setter="set_sensitivity" getter="get_sensitivity" default="0.005">
+		</member>
+		<member name="smooth_speed" type="float" setter="set_smooth_speed" getter="get_smooth_speed" default="15.0">
+		</member>
+		<member name="use_smoothing" type="bool" setter="set_use_smoothing" getter="get_use_smoothing" default="true">
+		</member>
+	</members>
+</class>

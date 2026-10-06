@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CameraPanner" inherits="Camera2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="teleport">
+			<return type="void" />
+			<param index="0" name="position" type="Vector2" />
+			<param index="1" name="zoom" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="action_pan_down" type="StringName" setter="set_action_pan_down" getter="get_action_pan_down" default="&amp;&quot;ui_down&quot;">
+		</member>
+		<member name="action_pan_left" type="StringName" setter="set_action_pan_left" getter="get_action_pan_left" default="&amp;&quot;ui_left&quot;">
+		</member>
+		<member name="action_pan_right" type="StringName" setter="set_action_pan_right" getter="get_action_pan_right" default="&amp;&quot;ui_right&quot;">
+		</member>
+		<member name="action_pan_up" type="StringName" setter="set_action_pan_up" getter="get_action_pan_up" default="&amp;&quot;ui_up&quot;">
+		</member>
+		<member name="action_zoom_in" type="StringName" setter="set_action_zoom_in" getter="get_action_zoom_in" default="&amp;&quot;ui_page_up&quot;">
+		</member>
+		<member name="action_zoom_out" type="StringName" setter="set_action_zoom_out" getter="get_action_zoom_out" default="&amp;&quot;ui_page_down&quot;">
+		</member>
+		<member name="joypad_pan_speed" type="float" setter="set_joypad_pan_speed" getter="get_joypad_pan_speed" default="500.0">
+		</member>
+		<member name="joypad_zoom_speed" type="float" setter="set_joypad_zoom_speed" getter="get_joypad_zoom_speed" default="2.0">
+		</member>
+		<member name="lerp_speed" type="float" setter="set_lerp_speed" getter="get_lerp_speed" default="20.0">
+		</member>
+		<member name="max_zoom" type="float" setter="set_max_zoom" getter="get_max_zoom" default="10.0">
+		</member>
+		<member name="min_zoom" type="float" setter="set_min_zoom" getter="get_min_zoom" default="0.1">
+		</member>
+		<member name="pan_mouse_button" type="int" setter="set_pan_mouse_button" getter="get_pan_mouse_button" enum="MouseButton" default="3">
+		</member>
+		<member name="touch_pan_sensitivity" type="float" setter="set_touch_pan_sensitivity" getter="get_touch_pan_sensitivity" default="1.0">
+		</member>
+		<member name="zoom_factor" type="float" setter="set_zoom_factor" getter="get_zoom_factor" default="1.15">
+		</member>
+	</members>
+</class>

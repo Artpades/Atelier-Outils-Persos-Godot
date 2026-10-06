@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Spawner" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="spawn">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="entries" type="SpawnEntry[]" setter="set_entries" getter="get_entries" default="[]">
+		</member>
+		<member name="parent_node" type="Node" setter="set_parent_node" getter="get_parent_node">
+		</member>
+	</members>
+	<signals>
+		<signal name="spawned">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>
