@@ -1,0 +1,117 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/3.✨🎵/demo_pop_3d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="Texture2D" path="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/piece.png" id="3_piece"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/3.✨🎵/objet_pop_3d.tscn" id="4_gemme"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Dark/texture_01.png" id="5_sol"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Red/texture_03.png" id="6_rouge"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Ciel_materiau"]
+
+[sub_resource type="Sky" id="Ciel"]
+sky_material = SubResource("Ciel_materiau")
+
+[sub_resource type="Environment" id="Environnement"]
+background_mode = 2
+sky = SubResource("Ciel")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="Materiau_sol"]
+albedo_texture = ExtResource("5_sol")
+uv1_scale = Vector3(6, 6, 6)
+
+[sub_resource type="PlaneMesh" id="Mesh_sol"]
+material = SubResource("Materiau_sol")
+size = Vector2(20, 12)
+
+[sub_resource type="StandardMaterial3D" id="Materiau_cible"]
+albedo_texture = ExtResource("6_rouge")
+
+[sub_resource type="BoxMesh" id="Mesh_cible"]
+material = SubResource("Materiau_cible")
+size = Vector3(1, 1.6, 1)
+
+[sub_resource type="PopStyle" id="Style_degats"]
+speed_min = 220.0
+speed_max = 320.0
+spread_degrees = 40.0
+gravity = 900.0
+font_size = 48
+negative_color = Color(1, 0.3, 0.25, 1)
+
+[sub_resource type="PopStyle" id="Style_pieces"]
+lifetime = 1.8
+speed_min = 300.0
+speed_max = 450.0
+spread_degrees = 70.0
+gravity = 1500.0
+use_floor = true
+floor_offset = 165.0
+bounce = 0.5
+spin_min = -540.0
+spin_max = 540.0
+start_scale = 0.5
+pop_scale = 1.2
+icon_size = Vector2(30, 30)
+always_on_top_3d = false
+
+[sub_resource type="PopStyle" id="Style_gemmes"]
+lifetime = 1.6
+speed_min = 250.0
+speed_max = 350.0
+spread_degrees = 60.0
+gravity = 1200.0
+use_floor = true
+floor_offset = 160.0
+bounce = 0.4
+pop_scale = 1.3
+always_on_top_3d = false
+
+[node name="DémoPop3D" type="Node3D"]
+script = ExtResource("1_demo")
+piece = ExtResource("3_piece")
+gemme = ExtResource("4_gemme")
+
+[node name="Environnement" type="WorldEnvironment" parent="."]
+environment = SubResource("Environnement")
+
+[node name="Soleil" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 6, 0)
+shadow_enabled = true
+
+[node name="Sol" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_sol")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, -1.8, 3, 7)
+current = true
+
+[node name="Cible" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.8, 0)
+mesh = SubResource("Mesh_cible")
+
+[node name="Degats" type="PopSpawner" parent="Cible"]
+style = SubResource("Style_degats")
+offset = Vector3(0, 1, 0)
+
+[node name="DegatsEcran" type="PopSpawner" parent="Cible"]
+style = SubResource("Style_degats")
+offset = Vector3(0, 1, 0)
+screen_space_3d = true
+
+[node name="Butin" type="PopSpawner" parent="Cible"]
+style = SubResource("Style_pieces")
+offset = Vector3(0, 1, 0)
+max_pops = 128
+
+[node name="Gemmes" type="PopSpawner" parent="Cible"]
+style = SubResource("Style_gemmes")
+offset = Vector3(0, 1, 0)
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "💥 Pops en 3D"
+aide = "En 3D, les pops font face à la caméra ; les distances du PopStyle sont en pixels, converties par unit_scale_3d (0,01 : 100 px = 1 m), si bien que les styles 2D restent utilisables. « À l'écran » (screen_space_3d) affiche un pop 2D à la position projetée de la cible : texte net, taille constante. La cible se déplace : les pops restent là où ils sont apparus."

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PopSpawner" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_count">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_active_pops">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="pop">
+			<return type="Node" />
+			<param index="0" name="text" type="String" default="&quot;&quot;" />
+			<param index="1" name="texture" type="Texture2D" default="null" />
+			<param index="2" name="scene" type="PackedScene" default="null" />
+			<param index="3" name="color" type="Color" default="Color(0, 0, 0, 0)" />
+			<param index="4" name="at" type="Variant" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="pop_number">
+			<return type="Node" />
+			<param index="0" name="value" type="float" />
+			<param index="1" name="decimals" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="pop_scene">
+			<return type="Node" />
+			<param index="0" name="scene" type="PackedScene" />
+			<description>
+			</description>
+		</method>
+		<method name="pop_text">
+			<return type="Node" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="color" type="Color" default="Color(0, 0, 0, 0)" />
+			<description>
+			</description>
+		</method>
+		<method name="pop_texture">
+			<return type="Node" />
+			<param index="0" name="texture" type="Texture2D" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="container" type="Node" setter="set_container" getter="get_container">
+		</member>
+		<member name="max_pops" type="int" setter="set_max_pops" getter="get_max_pops" default="64">
+		</member>
+		<member name="offset" type="Vector3" setter="set_offset" getter="get_offset" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="screen_space_3d" type="bool" setter="set_screen_space_3d" getter="get_screen_space_3d" default="false">
+		</member>
+		<member name="style" type="PopStyle" setter="set_style" getter="get_style">
+		</member>
+		<member name="target" type="Node" setter="set_target" getter="get_target">
+		</member>
+		<member name="unit_scale_3d" type="float" setter="set_unit_scale_3d" getter="get_unit_scale_3d" default="0.01">
+		</member>
+	</members>
+	<signals>
+		<signal name="popped">
+			<param index="0" name="pop" type="Node" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

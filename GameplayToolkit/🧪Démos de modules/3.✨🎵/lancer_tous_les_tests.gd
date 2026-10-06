@@ -1,6 +1,6 @@
 extends SceneTree
 
-## 🧪 Lance la suite de tests du module d'effets spéciaux (bibliothèque fx), sans interface.
+## 🧪 Lance les suites de tests du module d'effets spéciaux (bibliothèque fx), sans interface.
 ##
 ## Depuis le dossier du projet Godot :
 ##   godot --headless --path . -s "res://🧪Démos de modules/3.✨🎵/lancer_tous_les_tests.gd"
@@ -10,6 +10,7 @@ const JournalTests := preload("../2.🧭🌍/journal_tests.gd")
 
 const SUITES := {
 	"Effets spéciaux et sensations": preload("suite_tests_effets.gd"),
+	"Pop de texte, d'images et d'objets": preload("suite_tests_pop.gd"),
 }
 
 

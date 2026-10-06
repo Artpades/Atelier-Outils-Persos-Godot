@@ -13,6 +13,10 @@
 #include "👆Changeur du visuel du curseur/cursor_style.hpp"
 #include "🌈Fondu Couleur/Texture/fx_fade.hpp"
 #include "🌈Fondu Couleur/Texture/screen_fader.hpp"
+#include "💥Pop de Texte-d'image-d'objets/fx_pop.hpp"
+#include "💥Pop de Texte-d'image-d'objets/pop_instance.hpp"
+#include "💥Pop de Texte-d'image-d'objets/pop_spawner.hpp"
+#include "💥Pop de Texte-d'image-d'objets/pop_style.hpp"
 #include "🔁Music Looper/music_looper.hpp"
 #include "🗨️Infobulle Personnalisable/custom_tooltip.hpp"
 #include "🗨️Infobulle Personnalisable/tooltip_content.hpp"
@@ -44,11 +48,18 @@ static void initialize_fx(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(FXFollower);         // @icon res://🖼️Editor Icons/✨🎵/Follower FX Icon.png
     GDREGISTER_CLASS(FXAudio);            // @icon res://🖼️Editor Icons/✨🎵/Fx Audio icon.png
     GDREGISTER_CLASS(FXFade);
+    GDREGISTER_CLASS(FXPop);
 
     // 🌈 Fondu de l'écran · 🛟 Dock · 🔁 Musique
     GDREGISTER_CLASS(ScreenFader);
     GDREGISTER_CLASS(FloatingDock);
     GDREGISTER_CLASS(MusicLooper); // @icon res://🖼️Editor Icons/✨🎵/MusicManager.png
+
+    // 💥 Pops : les instances sont créées par PopSpawner / FXPop uniquement (classes internes).
+    GDREGISTER_CLASS(PopStyle);
+    GDREGISTER_CLASS(PopSpawner);
+    GDREGISTER_INTERNAL_CLASS(PopInstance2D);
+    GDREGISTER_INTERNAL_CLASS(PopInstance3D);
 
     // Ressources de l'infobulle et du curseur
     GDREGISTER_CLASS(TooltipContent);

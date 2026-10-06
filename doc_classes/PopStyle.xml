@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PopStyle" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_alpha_at" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="age" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_scale_at" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="age" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="always_on_top_3d" type="bool" setter="set_always_on_top_3d" getter="get_always_on_top_3d" default="true">
+		</member>
+		<member name="bounce" type="float" setter="set_bounce" getter="get_bounce" default="0.5">
+		</member>
+		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.0">
+		</member>
+		<member name="direction_degrees" type="float" setter="set_direction_degrees" getter="get_direction_degrees" default="0.0">
+		</member>
+		<member name="end_scale" type="float" setter="set_end_scale" getter="get_end_scale" default="0.6">
+		</member>
+		<member name="fade_out_duration" type="float" setter="set_fade_out_duration" getter="get_fade_out_duration" default="0.3">
+		</member>
+		<member name="floor_friction" type="float" setter="set_floor_friction" getter="get_floor_friction" default="0.6">
+		</member>
+		<member name="floor_offset" type="float" setter="set_floor_offset" getter="get_floor_offset" default="40.0">
+		</member>
+		<member name="font" type="Font" setter="set_font" getter="get_font">
+		</member>
+		<member name="font_size" type="int" setter="set_font_size" getter="get_font_size" default="32">
+		</member>
+		<member name="gravity" type="float" setter="set_gravity" getter="get_gravity" default="600.0">
+		</member>
+		<member name="icon_size" type="Vector2" setter="set_icon_size" getter="get_icon_size" default="Vector2(32, 32)">
+		</member>
+		<member name="lifetime" type="float" setter="set_lifetime" getter="get_lifetime" default="1.0">
+		</member>
+		<member name="negative_color" type="Color" setter="set_negative_color" getter="get_negative_color" default="Color(1, 0.35, 0.3, 1)">
+		</member>
+		<member name="outline_color" type="Color" setter="set_outline_color" getter="get_outline_color" default="Color(0, 0, 0, 1)">
+		</member>
+		<member name="outline_size" type="int" setter="set_outline_size" getter="get_outline_size" default="8">
+		</member>
+		<member name="pop_in_duration" type="float" setter="set_pop_in_duration" getter="get_pop_in_duration" default="0.18">
+		</member>
+		<member name="pop_scale" type="float" setter="set_pop_scale" getter="get_pop_scale" default="1.4">
+		</member>
+		<member name="positive_color" type="Color" setter="set_positive_color" getter="get_positive_color" default="Color(0.4, 1, 0.45, 1)">
+		</member>
+		<member name="scale_curve" type="Curve" setter="set_scale_curve" getter="get_scale_curve">
+		</member>
+		<member name="spacing" type="float" setter="set_spacing" getter="get_spacing" default="4.0">
+		</member>
+		<member name="spawn_radius" type="float" setter="set_spawn_radius" getter="get_spawn_radius" default="0.0">
+		</member>
+		<member name="speed_max" type="float" setter="set_speed_max" getter="get_speed_max" default="250.0">
+		</member>
+		<member name="speed_min" type="float" setter="set_speed_min" getter="get_speed_min" default="150.0">
+		</member>
+		<member name="spin_max" type="float" setter="set_spin_max" getter="get_spin_max" default="0.0">
+		</member>
+		<member name="spin_min" type="float" setter="set_spin_min" getter="get_spin_min" default="0.0">
+		</member>
+		<member name="spread_degrees" type="float" setter="set_spread_degrees" getter="get_spread_degrees" default="40.0">
+		</member>
+		<member name="start_scale" type="float" setter="set_start_scale" getter="get_start_scale" default="0.2">
+		</member>
+		<member name="text_color" type="Color" setter="set_text_color" getter="get_text_color" default="Color(1, 1, 1, 1)">
+		</member>
+		<member name="use_floor" type="bool" setter="set_use_floor" getter="get_use_floor" default="false">
+		</member>
+		<member name="z_index" type="int" setter="set_z_index" getter="get_z_index" default="100">
+		</member>
+	</members>
+</class>

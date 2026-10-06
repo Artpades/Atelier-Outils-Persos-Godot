@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXPop" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0, 0, 0, 0)">
+		</member>
+		<member name="count" type="int" setter="set_count" getter="get_count" default="1">
+		</member>
+		<member name="offset" type="Vector3" setter="set_offset" getter="get_offset" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="scene" type="PackedScene" setter="set_scene" getter="get_scene">
+		</member>
+		<member name="screen_space_3d" type="bool" setter="set_screen_space_3d" getter="get_screen_space_3d" default="false">
+		</member>
+		<member name="style" type="PopStyle" setter="set_style" getter="get_style">
+		</member>
+		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+		</member>
+		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+		</member>
+		<member name="unit_scale_3d" type="float" setter="set_unit_scale_3d" getter="get_unit_scale_3d" default="0.01">
+		</member>
+	</members>
+</class>
