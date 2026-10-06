@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CursorChanger" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="activate">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="deactivate">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="is_active" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_current" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="activation_mode" type="int" setter="set_activation_mode" getter="get_activation_mode" enum="CursorChanger.ActivationMode" default="0">
+		</member>
+		<member name="pressed_button" type="int" setter="set_pressed_button" getter="get_pressed_button" enum="MouseButton" default="1">
+		</member>
+		<member name="pressed_style" type="CursorStyle" setter="set_pressed_style" getter="get_pressed_style">
+		</member>
+		<member name="style" type="CursorStyle" setter="set_style" getter="get_style">
+		</member>
+		<member name="target" type="Node" setter="set_target" getter="get_target">
+		</member>
+	</members>
+	<constants>
+		<constant name="ACTIVATION_ALWAYS" value="0" enum="ActivationMode">
+		</constant>
+		<constant name="ACTIVATION_HOVER" value="1" enum="ActivationMode">
+		</constant>
+		<constant name="ACTIVATION_MANUAL" value="2" enum="ActivationMode">
+		</constant>
+	</constants>
+</class>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TimeManipulatorFX" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="is_hit_stopping" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="set_time_scale">
+			<return type="void" />
+			<param index="0" name="target_scale" type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="trigger_hit_stop">
+			<return type="void" />
+			<param index="0" name="duration" type="float" />
+			<param index="1" name="scale" type="float" default="0.0" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="recovery_speed" type="float" setter="set_recovery_speed" getter="get_recovery_speed" default="5.0">
+		</member>
+		<member name="target_time_scale" type="float" setter="set_target_time_scale" getter="get_target_time_scale" default="1.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="hit_stop_finished">
+			<description>
+			</description>
+		</signal>
+		<signal name="hit_stop_started">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ScreenFader" inherits="CanvasLayer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="fade_in">
+			<return type="void" />
+			<param index="0" name="duration" type="float" default="-1.0" />
+			<description>
+			</description>
+		</method>
+		<method name="fade_out">
+			<return type="void" />
+			<param index="0" name="duration" type="float" default="-1.0" />
+			<description>
+			</description>
+		</method>
+		<method name="fade_to">
+			<return type="void" />
+			<param index="0" name="progress" type="float" />
+			<param index="1" name="duration" type="float" default="-1.0" />
+			<description>
+			</description>
+		</method>
+		<method name="is_covered" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_fading" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="always_process" type="bool" setter="set_always_process" getter="get_always_process" default="true">
+		</member>
+		<member name="block_input" type="bool" setter="set_block_input" getter="get_block_input" default="true">
+		</member>
+		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0, 0, 0, 1)">
+		</member>
+		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+		</member>
+		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="2">
+		</member>
+		<member name="mask" type="Texture2D" setter="set_mask" getter="get_mask">
+		</member>
+		<member name="mask_smoothness" type="float" setter="set_mask_smoothness" getter="get_mask_smoothness" default="0.1">
+		</member>
+		<member name="progress" type="float" setter="set_progress" getter="get_progress" default="0.0">
+		</member>
+		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+		</member>
+		<member name="transition" type="int" setter="set_transition" getter="get_transition" enum="Tween.TransitionType" default="1">
+		</member>
+	</members>
+	<signals>
+		<signal name="fade_finished">
+			<param index="0" name="progress" type="float" />
+			<description>
+			</description>
+		</signal>
+		<signal name="faded_in">
+			<description>
+			</description>
+		</signal>
+		<signal name="faded_out">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

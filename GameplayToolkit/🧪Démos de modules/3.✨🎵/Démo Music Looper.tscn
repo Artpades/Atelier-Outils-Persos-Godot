@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/3.✨🎵/demo_music_looper.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="AudioStream" path="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/musique_boucle.wav" id="3_wav"]
+[ext_resource type="AudioStream" path="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/musique_boucle.ogg" id="4_ogg"]
+
+[node name="DémoMusicLooper" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+musique_wav = ExtResource("3_wav")
+musique_ogg = ExtResource("4_ogg")
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.12, 0.17, 1)
+
+[node name="Titre" type="Label" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 680.0
+offset_bottom = 63.0
+text = "🔁 Musique de démo : intro 0–2 s · boucle 2–6 s · fin 6–8 s"
+
+[node name="Frise" type="Control" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 100.0
+offset_right = 680.0
+offset_bottom = 200.0
+
+[node name="Etat" type="Label" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 230.0
+offset_right = 680.0
+offset_bottom = 340.0
+
+[node name="Lecteur" type="MusicLooper" parent="."]
+stream = ExtResource("3_wav")
+loop_start = 2.0
+loop_end = 6.0
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🔁 Music Looper"
+aide = "Le morceau joue son intro, répète la section [loop_start, loop_end] (loop_count fois, -1 : sans fin), puis sa fin. En WAV, ou en OGG bouclé jusqu'à la fin du fichier, la boucle est exacte à l'échantillon ; sinon le retour est fait à chaque frame."

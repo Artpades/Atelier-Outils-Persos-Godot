@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXFade" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(1, 1, 1, 0)">
+		</member>
+		<member name="color_property" type="String" setter="set_color_property" getter="get_color_property" default="&quot;modulate&quot;">
+		</member>
+		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+		</member>
+		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="2">
+		</member>
+		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="FXFade.FadeMode" default="0">
+		</member>
+		<member name="revert_on_stop" type="bool" setter="set_revert_on_stop" getter="get_revert_on_stop" default="true">
+		</member>
+		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+		</member>
+		<member name="texture_property" type="String" setter="set_texture_property" getter="get_texture_property" default="&quot;texture&quot;">
+		</member>
+		<member name="transition" type="int" setter="set_transition" getter="get_transition" enum="Tween.TransitionType" default="1">
+		</member>
+	</members>
+	<constants>
+		<constant name="FADE_COLOR" value="0" enum="FadeMode">
+		</constant>
+		<constant name="FADE_TEXTURE" value="1" enum="FadeMode">
+		</constant>
+	</constants>
+</class>

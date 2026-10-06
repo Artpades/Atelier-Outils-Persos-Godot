@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXTargeter" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="add_lerp" type="bool" setter="set_add_lerp" getter="get_add_lerp" default="false">
+		</member>
+		<member name="depth_margin" type="float" setter="set_depth_margin" getter="get_depth_margin" default="1.5">
+		</member>
+		<member name="enable_camera_3d_depth_control" type="bool" setter="set_enable_camera_3d_depth_control" getter="get_enable_camera_3d_depth_control" default="true">
+		</member>
+		<member name="lerp_speed" type="float" setter="set_lerp_speed" getter="get_lerp_speed" default="5.0">
+		</member>
+		<member name="max_distance" type="float" setter="set_max_distance" getter="get_max_distance" default="50.0">
+		</member>
+		<member name="min_distance" type="float" setter="set_min_distance" getter="get_min_distance" default="5.0">
+		</member>
+		<member name="nodes_to_target" type="NodePath[]" setter="set_nodes_to_target" getter="get_nodes_to_target" default="[]">
+		</member>
+	</members>
+</class>

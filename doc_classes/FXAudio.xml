@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXAudio" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_audio_player" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="bus" type="StringName" setter="set_bus" getter="get_bus" default="&amp;&quot;Master&quot;">
+		</member>
+		<member name="max_pitch" type="float" setter="set_max_pitch" getter="get_max_pitch" default="1.1">
+		</member>
+		<member name="min_pitch" type="float" setter="set_min_pitch" getter="get_min_pitch" default="0.9">
+		</member>
+		<member name="pitch_scale" type="float" setter="set_pitch_scale" getter="get_pitch_scale" default="1.0">
+		</member>
+		<member name="positional" type="bool" setter="set_positional" getter="get_positional" default="false">
+		</member>
+		<member name="randomize_pitch_scale" type="bool" setter="set_randomize_pitch_scale" getter="get_randomize_pitch_scale" default="false">
+		</member>
+		<member name="stop_sound_on_stop" type="bool" setter="set_stop_sound_on_stop" getter="get_stop_sound_on_stop" default="false">
+		</member>
+		<member name="stream" type="AudioStream" setter="set_stream" getter="get_stream">
+		</member>
+		<member name="volume_db" type="float" setter="set_volume_db" getter="get_volume_db" default="0.0">
+		</member>
+	</members>
+</class>

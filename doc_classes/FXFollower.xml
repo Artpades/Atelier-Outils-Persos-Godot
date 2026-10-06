@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXFollower" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="auto_zoom_2d" type="bool" setter="set_auto_zoom_2d" getter="get_auto_zoom_2d" default="true">
+		</member>
+		<member name="follow_speed" type="float" setter="set_follow_speed" getter="get_follow_speed" default="5.0">
+		</member>
+		<member name="max_zoom" type="Vector2" setter="set_max_zoom" getter="get_max_zoom" default="Vector2(2, 2)">
+		</member>
+		<member name="min_zoom" type="Vector2" setter="set_min_zoom" getter="get_min_zoom" default="Vector2(0.5, 0.5)">
+		</member>
+		<member name="targets" type="NodePath[]" setter="set_targets" getter="get_targets" default="[]">
+		</member>
+		<member name="use_interpolation" type="bool" setter="set_use_interpolation" getter="get_use_interpolation" default="true">
+		</member>
+		<member name="zoom_margin" type="float" setter="set_zoom_margin" getter="get_zoom_margin" default="100.0">
+		</member>
+	</members>
+</class>

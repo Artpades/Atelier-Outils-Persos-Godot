@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CustomTooltip" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_panel" qualifiers="const">
+			<return type="PanelContainer" />
+			<description>
+			</description>
+		</method>
+		<method name="hide_tooltip">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="is_tooltip_visible" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="show_tooltip">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="content" type="TooltipContent" setter="set_content" getter="get_content">
+		</member>
+		<member name="delay" type="float" setter="set_delay" getter="get_delay" default="0.5">
+		</member>
+		<member name="fade_duration" type="float" setter="set_fade_duration" getter="get_fade_duration" default="0.15">
+		</member>
+		<member name="follow_mouse" type="bool" setter="set_follow_mouse" getter="get_follow_mouse" default="true">
+		</member>
+		<member name="layer" type="int" setter="set_layer" getter="get_layer" default="128">
+		</member>
+		<member name="offset" type="Vector2" setter="set_offset" getter="get_offset" default="Vector2(16, 16)">
+		</member>
+		<member name="panel_style" type="StyleBox" setter="set_panel_style" getter="get_panel_style">
+		</member>
+		<member name="target" type="Node" setter="set_target" getter="get_target">
+		</member>
+		<member name="tooltip_theme" type="Theme" setter="set_tooltip_theme" getter="get_tooltip_theme">
+		</member>
+	</members>
+	<signals>
+		<signal name="tooltip_hidden">
+			<description>
+			</description>
+		</signal>
+		<signal name="tooltip_shown">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

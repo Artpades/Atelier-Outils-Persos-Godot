@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXStretchAndSquash" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="enable_impact_squash" type="bool" setter="set_enable_impact_squash" getter="get_enable_impact_squash" default="true">
+		</member>
+		<member name="impact_recovery_speed" type="float" setter="set_impact_recovery_speed" getter="get_impact_recovery_speed" default="12.0">
+		</member>
+		<member name="impact_threshold" type="float" setter="set_impact_threshold" getter="get_impact_threshold" default="300.0">
+		</member>
+		<member name="max_impact_squash" type="float" setter="set_max_impact_squash" getter="get_max_impact_squash" default="0.4">
+		</member>
+		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="600.0">
+		</member>
+		<member name="max_stretch" type="float" setter="set_max_stretch" getter="get_max_stretch" default="0.5">
+		</member>
+		<member name="orient_to_velocity" type="bool" setter="set_orient_to_velocity" getter="get_orient_to_velocity" default="false">
+		</member>
+		<member name="smooth_speed" type="float" setter="set_smooth_speed" getter="get_smooth_speed" default="15.0">
+		</member>
+	</members>
+</class>

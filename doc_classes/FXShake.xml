@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXShake" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="decrease_over_time" type="bool" setter="set_decrease_over_time" getter="get_decrease_over_time" default="true">
+		</member>
+		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+		</member>
+		<member name="frequency" type="float" setter="set_frequency" getter="get_frequency" default="15.0">
+		</member>
+		<member name="max_amplitude" type="float" setter="set_max_amplitude" getter="get_max_amplitude" default="10.0">
+		</member>
+	</members>
+</class>

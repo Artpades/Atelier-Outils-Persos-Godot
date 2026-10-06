@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FXChangeSize" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+		</member>
+		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="1">
+		</member>
+		<member name="final_scale" type="float" setter="set_final_scale" getter="get_final_scale" default="1.2">
+		</member>
+		<member name="original_value" type="float" setter="set_original_value" getter="get_original_value" default="1.0">
+		</member>
+		<member name="transition" type="int" setter="set_transition" getter="get_transition" enum="Tween.TransitionType" default="10">
+		</member>
+	</members>
+</class>

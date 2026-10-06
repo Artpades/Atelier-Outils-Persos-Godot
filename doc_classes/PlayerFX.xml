@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PlayerFX" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_default_target" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="play">
+			<return type="void" />
+			<param index="0" name="node" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<param index="0" name="node" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="node_to_play_effects" type="Node" setter="set_node_to_play_effects" getter="get_node_to_play_effects">
+		</member>
+		<member name="play_effect" type="Callable" setter="" getter="_get_play_button" default="Callable()">
+		</member>
+		<member name="special_effects" type="Effect[]" setter="set_special_effects" getter="get_special_effects" default="[]">
+		</member>
+		<member name="stop_effect" type="Callable" setter="" getter="_get_stop_button" default="Callable()">
+		</member>
+	</members>
+</class>

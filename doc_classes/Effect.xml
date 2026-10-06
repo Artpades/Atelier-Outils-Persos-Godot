@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Effect" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_physics_process_fx" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<param index="1" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_play_fx" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_process_fx" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<param index="1" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="_stop_fx" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="target" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="get_player_fx" qualifiers="const">
+			<return type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="is_activated" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="physics_process_fx">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<param index="1" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="play_fx">
+			<return type="void" />
+			<param index="0" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="process_fx">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<param index="1" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+		<method name="set_player_fx">
+			<return type="void" />
+			<param index="0" name="player" type="Node" />
+			<description>
+			</description>
+		</method>
+		<method name="stop_fx">
+			<return type="void" />
+			<param index="0" name="target" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="effects_on_play_fx" type="Effect[]" setter="set_effects_on_play_fx" getter="get_effects_on_play_fx" default="[]">
+		</member>
+		<member name="effects_on_stop_fx" type="Effect[]" setter="set_effects_on_stop_fx" getter="get_effects_on_stop_fx" default="[]">
+		</member>
+		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="true" />
+	</members>
+	<signals>
+		<signal name="fx_played">
+			<description>
+			</description>
+		</signal>
+		<signal name="fx_stopped">
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

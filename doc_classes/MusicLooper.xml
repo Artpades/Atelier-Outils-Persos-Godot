@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MusicLooper" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_effective_loop_end" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="get_loops_done" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_playback_position" qualifiers="const">
+			<return type="float" />
+			<description>
+			</description>
+		</method>
+		<method name="is_loop_sample_accurate" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_paused" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_playing" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="play">
+			<return type="void" />
+			<param index="0" name="from_position" type="float" default="0.0" />
+			<param index="1" name="fade_in" type="float" default="0.0" />
+			<description>
+			</description>
+		</method>
+		<method name="set_paused">
+			<return type="void" />
+			<param index="0" name="paused" type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<param index="0" name="fade_out" type="float" default="0.0" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="autoplay" type="bool" setter="set_autoplay" getter="get_autoplay" default="false">
+		</member>
+		<member name="bus" type="StringName" setter="set_bus" getter="get_bus" default="&amp;&quot;Master&quot;">
+		</member>
+		<member name="listen" type="Callable" setter="" getter="_get_play_button" default="Callable()">
+		</member>
+		<member name="loop_count" type="int" setter="set_loop_count" getter="get_loop_count" default="-1">
+		</member>
+		<member name="loop_enabled" type="bool" setter="set_loop_enabled" getter="get_loop_enabled" default="true">
+		</member>
+		<member name="loop_end" type="float" setter="set_loop_end" getter="get_loop_end" default="0.0">
+		</member>
+		<member name="loop_start" type="float" setter="set_loop_start" getter="get_loop_start" default="0.0">
+		</member>
+		<member name="stop_listening" type="Callable" setter="" getter="_get_stop_button" default="Callable()">
+		</member>
+		<member name="stream" type="AudioStream" setter="set_stream" getter="get_stream">
+		</member>
+		<member name="volume_db" type="float" setter="set_volume_db" getter="get_volume_db" default="0.0">
+		</member>
+	</members>
+	<signals>
+		<signal name="finished">
+			<description>
+			</description>
+		</signal>
+		<signal name="looped">
+			<param index="0" name="loops_done" type="int" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

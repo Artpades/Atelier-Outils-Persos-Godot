@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CursorStyle" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_frame_at" qualifiers="const">
+			<return type="Texture2D" />
+			<param index="0" name="time" type="float" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="frames" type="Texture2D[]" setter="set_frames" getter="get_frames" default="[]">
+		</member>
+		<member name="frames_per_second" type="float" setter="set_frames_per_second" getter="get_frames_per_second" default="10.0">
+		</member>
+		<member name="hotspot" type="Vector2" setter="set_hotspot" getter="get_hotspot" default="Vector2(0, 0)">
+		</member>
+		<member name="shape" type="int" setter="set_shape" getter="get_shape" enum="Input.CursorShape" default="0">
+		</member>
+	</members>
+</class>

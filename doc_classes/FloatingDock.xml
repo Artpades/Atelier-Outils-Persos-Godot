@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FloatingDock" inherits="Container" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_hovered_item" qualifiers="const">
+			<return type="Control" />
+			<description>
+			</description>
+		</method>
+		<method name="get_item_influence" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="follow_focus" type="bool" setter="set_follow_focus" getter="get_follow_focus" default="true">
+		</member>
+		<member name="hover_lift" type="float" setter="set_hover_lift" getter="get_hover_lift" default="0.0">
+		</member>
+		<member name="hover_margin" type="float" setter="set_hover_margin" getter="get_hover_margin" default="16.0">
+		</member>
+		<member name="hover_spacing" type="float" setter="set_hover_spacing" getter="get_hover_spacing" default="12.0">
+		</member>
+		<member name="influence_radius" type="float" setter="set_influence_radius" getter="get_influence_radius" default="160.0">
+		</member>
+		<member name="item_anchor" type="int" setter="set_item_anchor" getter="get_item_anchor" enum="FloatingDock.ItemAnchor" default="2">
+		</member>
+		<member name="item_size" type="Vector2" setter="set_item_size" getter="get_item_size" default="Vector2(64, 64)">
+		</member>
+		<member name="magnification" type="float" setter="set_magnification" getter="get_magnification" default="1.8">
+		</member>
+		<member name="resize_mode" type="int" setter="set_resize_mode" getter="get_resize_mode" enum="FloatingDock.ResizeMode" default="0">
+		</member>
+		<member name="separation" type="float" setter="set_separation" getter="get_separation" default="8.0">
+		</member>
+		<member name="smoothing" type="float" setter="set_smoothing" getter="get_smoothing" default="12.0">
+		</member>
+		<member name="vertical" type="bool" setter="set_vertical" getter="is_vertical" default="false">
+		</member>
+	</members>
+	<signals>
+		<signal name="hovered_item_changed">
+			<param index="0" name="item" type="Control" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="ANCHOR_BEGIN" value="0" enum="Anchor">
+		</constant>
+		<constant name="ANCHOR_CENTER" value="1" enum="ItemAnchor">
+		</constant>
+		<constant name="ANCHOR_END" value="2" enum="Anchor">
+		</constant>
+		<constant name="RESIZE_SIZE" value="0" enum="ResizeMode">
+		</constant>
+		<constant name="RESIZE_SCALE" value="1" enum="ResizeMode">
+		</constant>
+	</constants>
+</class>
