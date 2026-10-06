@@ -1,0 +1,245 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/5.🌀🫗/demo_mouvement_3d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+
+[sub_resource type="CapsuleShape3D" id="Forme_heros"]
+
+[sub_resource type="CapsuleMesh" id="Maillage_heros"]
+
+[sub_resource type="StandardMaterial3D" id="Materiau_heros"]
+albedo_color = Color(0.35, 0.65, 1, 1)
+
+[sub_resource type="BoxMesh" id="Maillage_nez"]
+size = Vector3(0.25, 0.25, 0.5)
+
+[sub_resource type="SphereMesh" id="Maillage_pompon"]
+radius = 0.15
+height = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Materiau_pompon"]
+albedo_color = Color(1, 0.8, 0.3, 1)
+
+[sub_resource type="InputBinding" id="Liaison_deplacement"]
+event = &"value_changed"
+target = NodePath("../Heros/Directeur")
+method = &"move"
+
+[sub_resource type="InputCircleAction" id="Deplacement"]
+action_name = &"deplacement"
+description = "ZQSD (positions WASD), stick gauche, croix : relatif à la caméra."
+bindings = Array[InputBinding]([SubResource("Liaison_deplacement")])
+
+[sub_resource type="InputBinding" id="Liaison_saut"]
+event = &"pressed"
+target = NodePath("../Heros/Directeur")
+method = &"jump"
+
+[sub_resource type="InputBinding" id="Liaison_saut_relache"]
+event = &"released"
+target = NodePath("../Heros/Directeur")
+method = &"release_jump"
+
+[sub_resource type="InputButtonAction" id="Saut"]
+action_name = &"saut"
+description = "Saut (double saut, saut mural ; maintenu : plané, monter en nageant / en volant)."
+key = 32
+joy_button = 0
+bindings = Array[InputBinding]([SubResource("Liaison_saut"), SubResource("Liaison_saut_relache")])
+
+[sub_resource type="InputBinding" id="Liaison_course"]
+event = &"toggled"
+target = NodePath("../Heros/Directeur")
+method = &"set_running"
+
+[sub_resource type="InputButtonAction" id="Course"]
+action_name = &"course"
+key = 4194325
+joy_button = 2
+bindings = Array[InputBinding]([SubResource("Liaison_course")])
+
+[sub_resource type="InputBinding" id="Liaison_vertical"]
+event = &"value_changed"
+target = NodePath("../Heros/Directeur")
+method = &"set_vertical_input"
+
+[sub_resource type="InputAxisAction" id="Vertical"]
+action_name = &"vertical"
+description = "Monter / descendre (nage, vol, corde) : F / C, RB / LB."
+positive_key = 70
+negative_key = 67
+positive_joy_button = 10
+negative_joy_button = 9
+bindings = Array[InputBinding]([SubResource("Liaison_vertical")])
+
+[sub_resource type="InputBinding" id="Liaison_agripper"]
+event = &"pressed"
+target = NodePath("../Heros/Corde")
+method = &"try_grab"
+pass_value = false
+
+[sub_resource type="InputButtonAction" id="Agripper"]
+action_name = &"agripper"
+description = "S'accrocher à la corde la plus proche."
+key = 69
+joy_button = 3
+bindings = Array[InputBinding]([SubResource("Liaison_agripper")])
+
+[sub_resource type="InputBinding" id="Liaison_vol"]
+event = &"pressed"
+target = NodePath("..")
+method = &"basculer_vol"
+
+[sub_resource type="InputButtonAction" id="Vol"]
+action_name = &"vol"
+description = "Contexte de mouvement « vol » forcé (MovementDirector.set_context), ou retour à l'automatique."
+key = 86
+joy_button = 4
+bindings = Array[InputBinding]([SubResource("Liaison_vol")])
+
+[sub_resource type="InputBinding" id="Liaison_regard"]
+event = &"motion"
+target = NodePath("..")
+method = &"orbiter"
+
+[sub_resource type="InputMouseAction" id="Regard"]
+action_name = &"regard"
+description = "Souris : tourner la caméra."
+motion_sensitivity = 0.004
+bindings = Array[InputBinding]([SubResource("Liaison_regard")])
+
+[sub_resource type="InputBinding" id="Liaison_camera"]
+event = &"value_changed"
+target = NodePath("..")
+method = &"tourner_camera"
+
+[sub_resource type="InputCircleAction" id="Camera"]
+action_name = &"camera"
+description = "Flèches, stick droit : tourner la caméra."
+up_key = 4194320
+down_key = 4194322
+left_key = 4194319
+right_key = 4194321
+joy_axis_x = 2
+joy_axis_y = 3
+dpad_up = -1
+dpad_down = -1
+dpad_left = -1
+dpad_right = -1
+bindings = Array[InputBinding]([SubResource("Liaison_camera")])
+
+[sub_resource type="InputBinding" id="Liaison_ouvrir_menu"]
+event = &"released"
+target = NodePath("..")
+method = &"ouvrir_menu"
+
+[sub_resource type="InputButtonAction" id="Ouvrir_menu"]
+action_name = &"menu"
+key = 4194305
+joy_button = 6
+bindings = Array[InputBinding]([SubResource("Liaison_ouvrir_menu")])
+
+[sub_resource type="InputContext" id="Contexte_jeu"]
+context_name = &"jeu"
+description = "Contrôle du héros et de la caméra."
+actions = Array[InputAction]([SubResource("Deplacement"), SubResource("Saut"), SubResource("Course"), SubResource("Vertical"), SubResource("Agripper"), SubResource("Vol"), SubResource("Regard"), SubResource("Camera"), SubResource("Ouvrir_menu")])
+
+[sub_resource type="InputBinding" id="Liaison_fermer_menu"]
+event = &"released"
+target = NodePath("..")
+method = &"fermer_menu"
+
+[sub_resource type="InputButtonAction" id="Fermer_menu"]
+action_name = &"fermer"
+key = 4194305
+joy_button = 1
+bindings = Array[InputBinding]([SubResource("Liaison_fermer_menu")])
+
+[sub_resource type="InputContext" id="Contexte_menu"]
+context_name = &"menu"
+description = "Menu des contrôles : bloque le contexte « jeu » (exclusif, priorité 10)."
+enabled = false
+priority = 10
+exclusive = true
+actions = Array[InputAction]([SubResource("Fermer_menu")])
+
+[node name="DemoMouvement3D" type="Node3D"]
+script = ExtResource("1_demo")
+
+[node name="Heros" type="CharacterBody3D" parent="."]
+position = Vector3(0, 1.5, 6)
+
+[node name="Forme" type="CollisionShape3D" parent="Heros"]
+shape = SubResource("Forme_heros")
+
+[node name="Corps" type="MeshInstance3D" parent="Heros"]
+mesh = SubResource("Maillage_heros")
+surface_material_override/0 = SubResource("Materiau_heros")
+
+[node name="Nez" type="MeshInstance3D" parent="Heros"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, -0.5)
+mesh = SubResource("Maillage_nez")
+
+[node name="Antenne" type="Jiggle3D" parent="Heros"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+
+[node name="Pompon" type="MeshInstance3D" parent="Heros/Antenne"]
+mesh = SubResource("Maillage_pompon")
+surface_material_override/0 = SubResource("Materiau_pompon")
+
+[node name="Sol" type="GroundMovement3D" parent="Heros"]
+max_jumps = 2
+camera_relative = true
+
+[node name="Mur" type="WallMovement3D" parent="Heros"]
+
+[node name="Nage" type="SwimMovement3D" parent="Heros"]
+camera_relative = true
+
+[node name="Plane" type="AerodynamicMovement3D" parent="Heros"]
+camera_relative = true
+
+[node name="Corde" type="RopeMovement3D" parent="Heros"]
+grab_distance = 2.0
+
+[node name="Recul" type="Knockback3D" parent="Heros"]
+
+[node name="Directeur" type="MovementDirector" parent="Heros"]
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="Camera" type="Camera3D" parent="Pivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+h_offset = 1.8
+current = true
+
+[node name="Entrees" type="PlayerInput" parent="."]
+contexts = Array[InputContext]([SubResource("Contexte_jeu"), SubResource("Contexte_menu")])
+auto_switch_device = true
+process_in_physics = true
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🌀 Mouvement & Physique 3D"
+aide = "ZQSD / stick gauche : bouger (relatif à la caméra) · souris, flèches / stick droit : caméra · Espace / A : sauter (double saut, saut mural, plané) · Maj / X : courir · F / C, RB / LB : monter / descendre (nage, vol, corde) · E / Y : corde · V / Back : vol · Échap / Start : contrôles.
+Le PlayerInput n'a aucun code : ses liaisons appellent le MovementDirector (🕹️ Éditeur d'entrées dans l'inspecteur)."
+largeur = 400.0
+
+[node name="Menu" type="PanelContainer" parent="Interface"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -460.0
+offset_top = -200.0
+offset_right = 60.0
+offset_bottom = 200.0
+
+[node name="Controles" type="PlayerInputUI" parent="Interface/Menu"]
+layout_mode = 2
+player_input = NodePath("../../../Entrees")
+save_path = "user://demo_mouvement_3d_controles.cfg"
