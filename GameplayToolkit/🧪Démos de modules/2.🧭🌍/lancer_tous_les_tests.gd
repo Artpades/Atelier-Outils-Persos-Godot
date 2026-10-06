@@ -13,6 +13,7 @@ const SUITES := {
 	"Générateur d'objet": preload("🏭Générateur d'objet/suite_tests_generateur.gd"),
 	"Gestionnaire de scènes": preload("🎬Gestionnaire de scènes/suite_tests_gestionnaire_scenes.gd"),
 	"Changeur de visuels": preload("🎭Changeur de visuels/suite_tests_visuels.gd"),
+	"Glisser-déposer d'objet": preload("✊📦🤚Glisser-Déposer d'objet/suite_tests_glisser_deposer.gd"),
 }
 
 

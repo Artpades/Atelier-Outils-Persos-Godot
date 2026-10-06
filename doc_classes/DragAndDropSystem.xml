@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DragAndDropSystem" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_draggable_at">
+			<return type="DraggableComponent" />
+			<param index="0" name="position" type="Vector2" />
+			<description>
+			</description>
+		</method>
+		<method name="get_grabbed_component" qualifiers="const">
+			<return type="DraggableComponent" />
+			<description>
+			</description>
+		</method>
+		<method name="get_hovered_component" qualifiers="const">
+			<return type="DraggableComponent" />
+			<description>
+			</description>
+		</method>
+		<method name="grab">
+			<return type="void" />
+			<param index="0" name="component" type="DraggableComponent" />
+			<description>
+			</description>
+		</method>
+		<method name="initialize_draggables">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="is_free" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="is_occupied" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="register_draggable">
+			<return type="void" />
+			<param index="0" name="component" type="DraggableComponent" />
+			<description>
+			</description>
+		</method>
+		<method name="release">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="unregister_draggable">
+			<return type="void" />
+			<param index="0" name="component" type="DraggableComponent" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="action_button" type="int" setter="set_action_button" getter="get_action_button" enum="MouseButton" default="1">
+		</member>
+		<member name="draggables" type="DraggableComponent[]" setter="set_draggables" getter="get_draggables" default="[]">
+		</member>
+		<member name="input_mode" type="int" setter="set_input_mode" getter="get_input_mode" enum="DragAndDropSystem.InputMode" default="0">
+		</member>
+	</members>
+	<signals>
+		<signal name="depointed">
+			<param index="0" name="node" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="grabbed">
+			<param index="0" name="node" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="pointed">
+			<param index="0" name="node" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="released">
+			<param index="0" name="node" type="Object" />
+			<description>
+			</description>
+		</signal>
+		<signal name="snapped">
+			<param index="0" name="node" type="Object" />
+			<param index="1" name="snap_target" type="Object" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="INPUT_MODE_HOLD" value="0" enum="InputMode">
+		</constant>
+		<constant name="INPUT_MODE_TOGGLE" value="1" enum="InputMode">
+		</constant>
+	</constants>
+</class>

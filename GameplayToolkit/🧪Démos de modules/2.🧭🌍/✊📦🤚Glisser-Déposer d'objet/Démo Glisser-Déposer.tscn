@@ -1,0 +1,338 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/✊📦🤚Glisser-Déposer d'objet/demo_glisser_deposer.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/✊📦🤚Glisser-Déposer d'objet/pastille_demo.gd" id="3_pastille"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Ciel_materiau"]
+sky_horizon_color = Color(0.64, 0.65, 0.67, 1)
+ground_horizon_color = Color(0.64, 0.65, 0.67, 1)
+
+[sub_resource type="Sky" id="Ciel"]
+sky_material = SubResource("Ciel_materiau")
+
+[sub_resource type="Environment" id="Environnement"]
+background_mode = 1
+background_color = Color(0.11, 0.12, 0.15, 1)
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.6
+sky = SubResource("Ciel")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="Mat_sol"]
+albedo_color = Color(0.22, 0.24, 0.28, 1)
+
+[sub_resource type="PlaneMesh" id="Mesh_sol"]
+material = SubResource("Mat_sol")
+size = Vector2(9, 5)
+
+[sub_resource type="StandardMaterial3D" id="Mat_socle"]
+albedo_color = Color(0.5, 0.52, 0.58, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_socle"]
+material = SubResource("Mat_socle")
+top_radius = 0.65
+bottom_radius = 0.65
+height = 0.04
+
+[sub_resource type="StandardMaterial3D" id="Mat_rouge"]
+albedo_color = Color(0.9, 0.3, 0.25, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bleu"]
+albedo_color = Color(0.3, 0.5, 0.95, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_vert"]
+albedo_color = Color(0.3, 0.8, 0.4, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_cube"]
+
+[sub_resource type="SphereMesh" id="Mesh_sphere"]
+
+[sub_resource type="DraggableComponent" id="Comp_carte1"]
+target_node_path = NodePath("../Plateau2D/Carte1")
+release_behavior = 1
+snap_distance_threshold = 50.0
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Emplacement1"), NodePath("../Plateau2D/Emplacement2"), NodePath("../Plateau2D/Emplacement3")])
+
+[sub_resource type="DraggableComponent" id="Comp_carte2"]
+target_node_path = NodePath("../Plateau2D/Carte2")
+release_behavior = 1
+snap_distance_threshold = 50.0
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Emplacement1"), NodePath("../Plateau2D/Emplacement2"), NodePath("../Plateau2D/Emplacement3")])
+
+[sub_resource type="DraggableComponent" id="Comp_carte3"]
+target_node_path = NodePath("../Plateau2D/Carte3")
+release_behavior = 1
+snap_distance_threshold = 50.0
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Emplacement1"), NodePath("../Plateau2D/Emplacement2"), NodePath("../Plateau2D/Emplacement3")])
+
+[sub_resource type="DraggableComponent" id="Comp_jeton_retour"]
+target_node_path = NodePath("../Plateau2D/JetonRetour")
+local_bounds_2d = Rect2(-28, -28, 56, 56)
+release_behavior = 0
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Pastille1"), NodePath("../Plateau2D/Pastille2"), NodePath("../Plateau2D/Pastille3")])
+
+[sub_resource type="DraggableComponent" id="Comp_jeton_proche"]
+target_node_path = NodePath("../Plateau2D/JetonAimantProche")
+local_bounds_2d = Rect2(-28, -28, 56, 56)
+release_behavior = 2
+snap_behavior = 1
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Pastille1"), NodePath("../Plateau2D/Pastille2"), NodePath("../Plateau2D/Pastille3")])
+
+[sub_resource type="DraggableComponent" id="Comp_jeton_permanent"]
+target_node_path = NodePath("../Plateau2D/JetonAimantPermanent")
+local_bounds_2d = Rect2(-28, -28, 56, 56)
+release_behavior = 2
+snap_behavior = 2
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Pastille1"), NodePath("../Plateau2D/Pastille2"), NodePath("../Plateau2D/Pastille3")])
+
+[sub_resource type="DraggableComponent" id="Comp_jeton_sur_place"]
+target_node_path = NodePath("../Plateau2D/JetonSurPlace")
+local_bounds_2d = Rect2(-28, -28, 56, 56)
+release_behavior = 3
+snap_behavior = 0
+snap_targets = Array[NodePath]([NodePath("../Plateau2D/Pastille1"), NodePath("../Plateau2D/Pastille2"), NodePath("../Plateau2D/Pastille3")])
+
+[sub_resource type="DraggableComponent" id="Comp_cube_rouge"]
+target_node_path = NodePath("../CubeRouge")
+drag_plane_3d = 5
+release_behavior = 1
+snap_distance_threshold = 0.8
+snap_targets = Array[NodePath]([NodePath("../Socle1"), NodePath("../Socle2"), NodePath("../Socle3")])
+
+[sub_resource type="DraggableComponent" id="Comp_cube_bleu"]
+target_node_path = NodePath("../CubeBleu")
+drag_plane_3d = 5
+release_behavior = 2
+snap_behavior = 2
+snap_distance_threshold = 0.8
+snap_targets = Array[NodePath]([NodePath("../Socle1"), NodePath("../Socle2"), NodePath("../Socle3")])
+
+[sub_resource type="DraggableComponent" id="Comp_sphere"]
+target_node_path = NodePath("../SphereVerte")
+drag_plane_3d = 0
+release_behavior = 0
+snap_targets = Array[NodePath]([NodePath("../Socle1"), NodePath("../Socle2"), NodePath("../Socle3")])
+
+[node name="DémoGlisserDéposer" type="Node3D"]
+script = ExtResource("1_demo")
+
+[node name="Environnement" type="WorldEnvironment" parent="."]
+environment = SubResource("Environnement")
+
+[node name="Soleil" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 8, 0)
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(0, 9.1, 7.8)
+rotation = Vector3(-0.9048, 0, 0)
+current = true
+fov = 40.0
+h_offset = 2.824
+v_offset = 2.626
+
+[node name="Sol" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_sol")
+
+[node name="Socle1" type="Marker3D" parent="."]
+position = Vector3(-2.5, 0.5, 1.4)
+
+[node name="Disque" type="MeshInstance3D" parent="Socle1"]
+position = Vector3(0, -0.48, 0)
+mesh = SubResource("Mesh_socle")
+
+[node name="Socle2" type="Marker3D" parent="."]
+position = Vector3(0, 0.5, 1.4)
+
+[node name="Disque" type="MeshInstance3D" parent="Socle2"]
+position = Vector3(0, -0.48, 0)
+mesh = SubResource("Mesh_socle")
+
+[node name="Socle3" type="Marker3D" parent="."]
+position = Vector3(2.5, 0.5, 1.4)
+
+[node name="Disque" type="MeshInstance3D" parent="Socle3"]
+position = Vector3(0, -0.48, 0)
+mesh = SubResource("Mesh_socle")
+
+[node name="CubeRouge" type="MeshInstance3D" parent="."]
+position = Vector3(-2.5, 0.5, -1)
+material_override = SubResource("Mat_rouge")
+mesh = SubResource("Mesh_cube")
+
+[node name="CubeBleu" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.5, -1)
+material_override = SubResource("Mat_bleu")
+mesh = SubResource("Mesh_cube")
+
+[node name="SphereVerte" type="MeshInstance3D" parent="."]
+position = Vector3(2.5, 0.5, -1)
+material_override = SubResource("Mat_vert")
+mesh = SubResource("Mesh_sphere")
+
+[node name="GlisserDeposer" type="DragAndDropSystem" parent="."]
+draggables = Array[DraggableComponent]([SubResource("Comp_carte1"), SubResource("Comp_carte2"), SubResource("Comp_carte3"), SubResource("Comp_jeton_retour"), SubResource("Comp_jeton_proche"), SubResource("Comp_jeton_permanent"), SubResource("Comp_jeton_sur_place"), SubResource("Comp_cube_rouge"), SubResource("Comp_cube_bleu"), SubResource("Comp_sphere")])
+
+[node name="Plateau2D" type="CanvasLayer" parent="."]
+
+[node name="TitreControl" type="Label" parent="Plateau2D"]
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 356.0
+offset_bottom = 30.0
+theme_override_font_sizes/font_size = 15
+text = "🃏 Control"
+
+[node name="TitreNode2D" type="Label" parent="Plateau2D"]
+offset_left = 300.0
+offset_top = 8.0
+offset_right = 640.0
+offset_bottom = 30.0
+theme_override_font_sizes/font_size = 15
+text = "⚪ Node2D"
+
+[node name="TitreNode3D" type="Label" parent="Plateau2D"]
+offset_left = 16.0
+offset_top = 300.0
+offset_right = 356.0
+offset_bottom = 322.0
+theme_override_font_sizes/font_size = 15
+text = "🧊 Node3D"
+
+[node name="Emplacement1" type="ColorRect" parent="Plateau2D"]
+offset_left = 24.0
+offset_top = 170.0
+offset_right = 88.0
+offset_bottom = 254.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="Emplacement2" type="ColorRect" parent="Plateau2D"]
+offset_left = 104.0
+offset_top = 170.0
+offset_right = 168.0
+offset_bottom = 254.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="Emplacement3" type="ColorRect" parent="Plateau2D"]
+offset_left = 184.0
+offset_top = 170.0
+offset_right = 248.0
+offset_bottom = 254.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="Carte1" type="ColorRect" parent="Plateau2D"]
+offset_left = 24.0
+offset_top = 44.0
+offset_right = 88.0
+offset_bottom = 128.0
+pivot_offset = Vector2(32, 42)
+mouse_filter = 2
+color = Color(0.85, 0.35, 0.3, 1)
+
+[node name="Lettre" type="Label" parent="Plateau2D/Carte1"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 30
+text = "A"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Carte2" type="ColorRect" parent="Plateau2D"]
+offset_left = 104.0
+offset_top = 44.0
+offset_right = 168.0
+offset_bottom = 128.0
+pivot_offset = Vector2(32, 42)
+mouse_filter = 2
+color = Color(0.35, 0.55, 0.9, 1)
+
+[node name="Lettre" type="Label" parent="Plateau2D/Carte2"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 30
+text = "B"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Carte3" type="ColorRect" parent="Plateau2D"]
+offset_left = 184.0
+offset_top = 44.0
+offset_right = 248.0
+offset_bottom = 128.0
+pivot_offset = Vector2(32, 42)
+mouse_filter = 2
+color = Color(0.9, 0.75, 0.3, 1)
+
+[node name="Lettre" type="Label" parent="Plateau2D/Carte3"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 30
+text = "C"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Pastille1" type="Node2D" parent="Plateau2D"]
+position = Vector2(395, 225)
+script = ExtResource("3_pastille")
+couleur = Color(0.85, 0.85, 0.9, 1)
+rayon = 32.0
+anneau = true
+
+[node name="Pastille2" type="Node2D" parent="Plateau2D"]
+position = Vector2(505, 225)
+script = ExtResource("3_pastille")
+couleur = Color(0.85, 0.85, 0.9, 1)
+rayon = 32.0
+anneau = true
+
+[node name="Pastille3" type="Node2D" parent="Plateau2D"]
+position = Vector2(615, 225)
+script = ExtResource("3_pastille")
+couleur = Color(0.85, 0.85, 0.9, 1)
+rayon = 32.0
+anneau = true
+
+[node name="JetonRetour" type="Node2D" parent="Plateau2D"]
+position = Vector2(340, 85)
+script = ExtResource("3_pastille")
+couleur = Color(0.85, 0.35, 0.3, 1)
+texte = "Retour"
+
+[node name="JetonAimantProche" type="Node2D" parent="Plateau2D"]
+position = Vector2(450, 85)
+script = ExtResource("3_pastille")
+couleur = Color(0.35, 0.55, 0.9, 1)
+texte = "Si proche"
+
+[node name="JetonAimantPermanent" type="Node2D" parent="Plateau2D"]
+position = Vector2(560, 85)
+script = ExtResource("3_pastille")
+couleur = Color(0.3, 0.75, 0.45, 1)
+texte = "Permanent"
+
+[node name="JetonSurPlace" type="Node2D" parent="Plateau2D"]
+position = Vector2(670, 85)
+script = ExtResource("3_pastille")
+couleur = Color(0.9, 0.75, 0.3, 1)
+texte = "Sur place"
+
+[node name="Interface" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "✊📦🤚 Glisser-déposer d'objet"
+aide = "Cartes : posées sur l'emplacement proche, sinon retour. Jetons : comportement écrit dessous. Cubes glissés au sol vers les socles (rouge : sinon retour ; bleu : aimanté en passant). Sphère : face à la caméra, toujours retour."

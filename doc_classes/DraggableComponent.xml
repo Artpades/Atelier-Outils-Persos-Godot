@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DraggableComponent" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="save_initial_position">
+			<return type="void" />
+			<param index="0" name="node" type="Node" default="null" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="bounds_3d" type="AABB" setter="set_bounds_3d" getter="get_bounds_3d" default="AABB(-0.5, -0.5, -0.5, 1, 1, 1)">
+		</member>
+		<member name="drag_plane_3d" type="int" setter="set_drag_plane_3d" getter="get_drag_plane_3d" enum="DraggableComponent.DragPlane" default="0">
+		</member>
+		<member name="initial_position_2d" type="Vector2" setter="set_initial_position_2d" getter="get_initial_position_2d">
+		</member>
+		<member name="initial_position_3d" type="Vector3" setter="set_initial_position_3d" getter="get_initial_position_3d">
+		</member>
+		<member name="local_bounds_2d" type="Rect2" setter="set_local_bounds_2d" getter="get_local_bounds_2d" default="Rect2(-32, -32, 64, 64)">
+		</member>
+		<member name="release_behavior" type="int" setter="set_release_behavior" getter="get_release_behavior" enum="DraggableComponent.ReleaseBehavior" default="1">
+		</member>
+		<member name="snap_behavior" type="int" setter="set_snap_behavior" getter="get_snap_behavior" enum="DraggableComponent.SnapMode" default="1">
+		</member>
+		<member name="snap_distance_threshold" type="float" setter="set_snap_distance_threshold" getter="get_snap_distance_threshold" default="50.0">
+		</member>
+		<member name="snap_targets" type="NodePath[]" setter="set_snap_targets" getter="get_snap_targets" default="[]">
+		</member>
+		<member name="snap_to_cursor" type="bool" setter="set_snap_to_cursor" getter="get_snap_to_cursor" default="false">
+		</member>
+		<member name="target_node" type="Node" setter="set_target_node" getter="get_target_node">
+		</member>
+		<member name="target_node_path" type="NodePath" setter="set_target_node_path" getter="get_target_node_path" default="NodePath(&quot;&quot;)">
+		</member>
+	</members>
+	<constants>
+		<constant name="DRAG_PLANE_CAMERA" value="0" enum="DragPlane">
+		</constant>
+		<constant name="DRAG_PLANE_OBJECT_X" value="1" enum="DragPlane">
+		</constant>
+		<constant name="DRAG_PLANE_OBJECT_Y" value="2" enum="DragPlane">
+		</constant>
+		<constant name="DRAG_PLANE_OBJECT_Z" value="3" enum="DragPlane">
+		</constant>
+		<constant name="DRAG_PLANE_WORLD_X" value="4" enum="DragPlane">
+		</constant>
+		<constant name="DRAG_PLANE_WORLD_Y" value="5" enum="DragPlane">
+		</constant>
+		<constant name="DRAG_PLANE_WORLD_Z" value="6" enum="DragPlane">
+		</constant>
+		<constant name="RELEASE_RETURN_TO_INITIAL" value="0" enum="ReleaseBehavior">
+		</constant>
+		<constant name="RELEASE_SNAP_TO_VALID_POINT" value="1" enum="ReleaseBehavior">
+		</constant>
+		<constant name="RELEASE_LEAVE_IN_PLACE" value="2" enum="ReleaseBehavior">
+		</constant>
+		<constant name="RELEASE_DO_NOTHING" value="3" enum="ReleaseBehavior">
+		</constant>
+		<constant name="SNAP_NONE" value="0" enum="SnapMode">
+		</constant>
+		<constant name="SNAP_WHEN_CLOSE" value="1" enum="SnapMode">
+		</constant>
+		<constant name="SNAP_ALWAYS" value="2" enum="SnapMode">
+		</constant>
+	</constants>
+</class>
