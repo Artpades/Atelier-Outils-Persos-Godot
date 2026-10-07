@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DrawingBrush" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🖌️ Réglages d'un pinceau du système de dessin (l'équivalent d'un sous-outil de Clip Studio Paint).
+	</brief_description>
+	<description>
+		Un trait est une suite de « tampons » espacés de [member spacing] × taille. Chaque tampon est la forme du pinceau (ronde avec [member hardness], ou [member tip_texture]), multipliée par la texture de grain ([member texture]) et par l'opacité.
+		Dans un même trait, les tampons ne s'accumulent pas au-delà de l'opacité du trait (repasser sur un trait à 50 % le laisse à 50 %) ; [member flow] règle la vitesse à laquelle ils s'en approchent (1 : encre, faible : aérographe).
+		[b]Dynamique[/b] : la taille et l'opacité peuvent dépendre de la pression du stylet et/ou de la vitesse du trait ([member size_dynamics], [member opacity_dynamics], combinaisons de [enum Dynamic]). L'entrée passe par une courbe facultative ([member pressure_curve], [member velocity_curve]) puis donne un facteur entre le minimum ([member size_min], [member opacity_min]) et 1.
+		[b]Shader[/b] : avec un [member material], le trait en cours est affiché et appliqué au calque à travers ce shader (rendu GPU par [DrawingCanvas]).
+		[codeblock]
+		var plume := DrawingBrush.create_preset(DrawingBrush.PRESET_PEN)
+		plume.size = 6.0
+		plume.size_dynamics = DrawingBrush.DYNAMIC_PRESSURE | DrawingBrush.DYNAMIC_VELOCITY
+		$Toile.brush = plume
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="create_grain_texture" qualifiers="static">
+			<return type="ImageTexture" />
+			<param index="0" name="size" type="int" default="128" />
+			<param index="1" name="seed" type="int" default="7" />
+			<param index="2" name="contrast" type="float" default="1.6" />
+			<description>
+				Crée une texture de grain de papier en niveaux de gris, répétable sans raccord ([param size] × [param size] pixels). [param contrast] supérieur à 1 accentue le grain. À utiliser comme [member texture].
+			</description>
+		</method>
+		<method name="create_preset" qualifiers="static">
+			<return type="DrawingBrush" />
+			<param index="0" name="preset" type="int" enum="DrawingBrush.Preset" />
+			<description>
+				Crée un pinceau préréglé (voir [enum Preset]), nommé ([member Resource.resource_name]).
+			</description>
+		</method>
+		<method name="get_dab_opacity" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="pressure" type="float" />
+			<param index="1" name="velocity" type="float" />
+			<description>
+				Opacité d'un tampon : [member opacity] × [method get_opacity_factor].
+			</description>
+		</method>
+		<method name="get_dab_size" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="pressure" type="float" />
+			<param index="1" name="velocity" type="float" />
+			<description>
+				Diamètre d'un tampon en pixels : [member size] × [method get_size_factor].
+			</description>
+		</method>
+		<method name="get_opacity_factor" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="pressure" type="float" />
+			<param index="1" name="velocity" type="float" />
+			<description>
+				Facteur (de [member opacity_min] à 1) appliqué à l'opacité pour une pression (0-1) et une vitesse (pixels de l'écran par seconde), selon [member opacity_dynamics]. 1 sans dynamique.
+			</description>
+		</method>
+		<method name="get_size_factor" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="pressure" type="float" />
+			<param index="1" name="velocity" type="float" />
+			<description>
+				Facteur (de [member size_min] à 1) appliqué à la taille pour une pression (0-1) et une vitesse (pixels de l'écran par seconde), selon [member size_dynamics]. 1 sans dynamique.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="angle" type="float" setter="set_angle" getter="get_angle" default="0.0">
+			Angle de la forme, en degrés (visible avec une [member roundness] inférieure à 1 ou une [member tip_texture]).
+		</member>
+		<member name="blend_mode" type="int" setter="set_blend_mode" getter="get_blend_mode" enum="DrawingBrush.BrushBlend" default="0">
+			Manière d'appliquer le trait au calque : par-dessus, derrière les pixels existants ou en effaçant.
+		</member>
+		<member name="flow" type="float" setter="set_flow" getter="get_flow" default="1.0">
+			Densité : part de l'écart vers l'opacité du trait comblée à chaque tampon. 1 : chaque tampon atteint l'opacité ; faible : la couleur s'accumule progressivement (aérographe).
+		</member>
+		<member name="follow_direction" type="bool" setter="set_follow_direction" getter="get_follow_direction" default="false">
+			Si [code]true[/code], la forme tourne avec la direction du trait (en plus de [member angle]).
+		</member>
+		<member name="hardness" type="float" setter="set_hardness" getter="get_hardness" default="0.9">
+			Dureté du bord de la forme ronde : 1 net (anticrénelé sur un pixel), 0 entièrement dégradé. Sans effet avec une [member tip_texture].
+		</member>
+		<member name="material" type="ShaderMaterial" setter="set_material" getter="get_material">
+			ShaderMaterial (shader [code]canvas_item[/code]) à travers lequel le trait est rendu. [code]TEXTURE[/code] y contient le trait (couleur du pinceau, alpha = couverture) ; dans [code]vertex()[/code], [code]VERTEX[/code] est la position en pixels du dessin. Le trait est affiché avec ce shader pendant le dessin, puis rendu par le GPU et appliqué au calque à la fin du trait. Sans rendu disponible (headless), le trait est appliqué sans le shader.
+		</member>
+		<member name="opacity" type="float" setter="set_opacity" getter="get_opacity" default="1.0">
+			Opacité maximale du trait (0-1).
+		</member>
+		<member name="opacity_dynamics" type="int" setter="set_opacity_dynamics" getter="get_opacity_dynamics" default="0">
+			Entrées qui pilotent l'opacité : combinaison de [constant DYNAMIC_PRESSURE] et [constant DYNAMIC_VELOCITY] (0 : aucune).
+		</member>
+		<member name="opacity_min" type="float" setter="set_opacity_min" getter="get_opacity_min" default="0.0">
+			Facteur d'opacité quand l'entrée de la dynamique est nulle (pression nulle, vitesse maximale...).
+		</member>
+		<member name="pressure_curve" type="Curve" setter="set_pressure_curve" getter="get_pressure_curve">
+			Courbe de réponse à la pression (abscisse : pression 0-1, ordonnée : entrée 0-1). Sans courbe : linéaire.
+		</member>
+		<member name="roundness" type="float" setter="set_roundness" getter="get_roundness" default="1.0">
+			Rapport hauteur / largeur de la forme (1 : cercle, faible : ellipse aplatie, pour une plume calligraphique).
+		</member>
+		<member name="size" type="float" setter="set_size" getter="get_size" default="12.0">
+			Diamètre du pinceau en pixels du dessin (pleine pression, sans dynamique).
+		</member>
+		<member name="size_dynamics" type="int" setter="set_size_dynamics" getter="get_size_dynamics" default="1">
+			Entrées qui pilotent la taille : combinaison de [constant DYNAMIC_PRESSURE] et [constant DYNAMIC_VELOCITY] (0 : aucune).
+		</member>
+		<member name="size_min" type="float" setter="set_size_min" getter="get_size_min" default="0.2">
+			Facteur de taille quand l'entrée de la dynamique est nulle.
+		</member>
+		<member name="spacing" type="float" setter="set_spacing" getter="get_spacing" default="0.1">
+			Espacement des tampons, en fraction du diamètre courant (0,1 : un tampon tous les dixièmes de diamètre).
+		</member>
+		<member name="stabilization" type="int" setter="set_stabilization" getter="get_stabilization" default="6">
+			Stabilisation du trait (0-100) : moyenne glissante des derniers points du pointeur (jusqu'à 26). Corrige les tremblements, au prix d'un léger retard ; le trait rattrape le pointeur au relâchement. Appliquée par [DrawingCanvas].
+		</member>
+		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+			Texture de grain (papier, toile) appliquée en coordonnées du dessin : sa luminance module la couverture (clair : la peinture accroche).
+		</member>
+		<member name="texture_scale" type="float" setter="set_texture_scale" getter="get_texture_scale" default="1.0">
+			Échelle de la texture de grain.
+		</member>
+		<member name="texture_strength" type="float" setter="set_texture_strength" getter="get_texture_strength" default="1.0">
+			Force du grain (0 : sans effet, 1 : couverture multipliée par la luminance).
+		</member>
+		<member name="tip_texture" type="Texture2D" setter="set_tip_texture" getter="get_tip_texture">
+			Forme du pinceau. Une texture avec alpha est utilisée par son alpha (forme opaque sur fond transparent) ; sans alpha, par sa luminance inversée (forme noire sur fond blanc). Inscrite dans le carré du diamètre, proportions conservées. Sans texture : forme ronde.
+		</member>
+		<member name="velocity_curve" type="Curve" setter="set_velocity_curve" getter="get_velocity_curve">
+			Courbe de réponse à la vitesse (abscisse : vitesse / [member velocity_max], ordonnée : entrée). Sans courbe : 1 à l'arrêt, 0 à [member velocity_max] (le trait s'affine en allant vite, comme à l'encre).
+		</member>
+		<member name="velocity_max" type="float" setter="set_velocity_max" getter="get_velocity_max" default="2500.0">
+			Vitesse (pixels de l'écran par seconde) à laquelle l'effet de la vitesse est complet.
+		</member>
+	</members>
+	<constants>
+		<constant name="BRUSH_BLEND_NORMAL" value="0" enum="BrushBlend">
+			Peint par-dessus les pixels existants.
+		</constant>
+		<constant name="BRUSH_BLEND_BEHIND" value="1" enum="BrushBlend">
+			Peint derrière les pixels existants (« Arrière » de CSP) : seules les zones transparentes se remplissent.
+		</constant>
+		<constant name="BRUSH_BLEND_ERASE" value="2" enum="BrushBlend">
+			Efface (gomme).
+		</constant>
+		<constant name="DYNAMIC_PRESSURE" value="1" enum="Dynamic">
+			Pression du stylet (1 à la souris).
+		</constant>
+		<constant name="DYNAMIC_VELOCITY" value="2" enum="Dynamic">
+			Vitesse du trait.
+		</constant>
+		<constant name="PRESET_PEN" value="0" enum="Preset">
+			« Plume G » : encrage net, taille à la pression.
+		</constant>
+		<constant name="PRESET_PENCIL" value="1" enum="Preset">
+			Crayon : grain de papier, taille et opacité à la pression.
+		</constant>
+		<constant name="PRESET_MARKER" value="2" enum="Preset">
+			Feutre : aucune dynamique, bord net, légèrement transparent.
+		</constant>
+		<constant name="PRESET_AIRBRUSH" value="3" enum="Preset">
+			Aérographe : très doux, faible densité, opacité à la pression.
+		</constant>
+		<constant name="PRESET_WATERCOLOR" value="4" enum="Preset">
+			Lavis : doux et transparent, opacité à la pression, la vitesse affine le trait.
+		</constant>
+		<constant name="PRESET_INK_VELOCITY" value="5" enum="Preset">
+			Encre à la vitesse : plus le trait est rapide, plus il est fin (et pression).
+		</constant>
+		<constant name="PRESET_HARD_ERASER" value="6" enum="Preset">
+			Gomme dure.
+		</constant>
+		<constant name="PRESET_SOFT_ERASER" value="7" enum="Preset">
+			Gomme douce, opacité à la pression.
+		</constant>
+	</constants>
+</class>

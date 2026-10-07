@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DrawingLayer" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🗂️ Calque matriciel d'un [DrawingDocument] : pixels RGBA8 et réglages de fusion.
+	</brief_description>
+	<description>
+		Les réglages (visibilité, opacité, mode de fusion, verrous, écrêtage) se modifient directement, ou par [method DrawingDocument.set_layer_property] pour qu'ils soient annulables. Les pixels se modifient par les outils du document ; [method set_image] remplace tout le contenu (le document recadre le calque à sa taille).
+		Modifier un réglage émet [signal Resource.changed] : le document recompose son image.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="create" qualifiers="static">
+			<return type="DrawingLayer" />
+			<param index="0" name="size" type="Vector2i" />
+			<param index="1" name="name" type="String" default="&quot;&quot;" />
+			<description>
+				Calque transparent de la taille donnée.
+			</description>
+		</method>
+		<method name="get_image" qualifiers="const">
+			<return type="Image" />
+			<description>
+				Copie du contenu (RGBA8, alpha non prémultiplié).
+			</description>
+		</method>
+		<method name="get_pixel" qualifiers="const">
+			<return type="Color" />
+			<param index="0" name="x" type="int" />
+			<param index="1" name="y" type="int" />
+			<description>
+				Couleur d'un pixel.
+			</description>
+		</method>
+		<method name="get_size" qualifiers="const">
+			<return type="Vector2i" />
+			<description>
+				Taille en pixels.
+			</description>
+		</method>
+		<method name="is_empty" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] si tous les pixels sont transparents.
+			</description>
+		</method>
+		<method name="set_image">
+			<return type="void" />
+			<param index="0" name="image" type="Image" />
+			<description>
+				Remplace le contenu (converti en RGBA8). La taille du calque devient celle de l'image ; dans un document, le calque est ensuite recadré à la taille du document.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="alpha_locked" type="bool" setter="set_alpha_locked" getter="is_alpha_locked" default="false">
+			Verrou de transparence : les outils recolorent les pixels déjà peints sans modifier leur alpha (on ne peut ni peindre ailleurs ni effacer).
+		</member>
+		<member name="blend_mode" type="int" setter="set_blend_mode" getter="get_blend_mode" enum="DrawingLayer.LayerBlend" default="0">
+			Mode de fusion avec les calques inférieurs.
+		</member>
+		<member name="clipped" type="bool" setter="set_clipped" getter="is_clipped" default="false">
+			Écrêter au calque inférieur : le calque n'est visible que là où le calque de base (le premier non écrêté en dessous) est peint. Masquer la base masque aussi les calques écrêtés.
+		</member>
+		<member name="layer_name" type="String" setter="set_layer_name" getter="get_layer_name" default="&quot;&quot;">
+			Nom affiché.
+		</member>
+		<member name="locked" type="bool" setter="set_locked" getter="is_locked" default="false">
+			Calque verrouillé : aucun outil ne le modifie.
+		</member>
+		<member name="opacity" type="float" setter="set_opacity" getter="get_opacity" default="1.0">
+			Opacité du calque (0-1).
+		</member>
+		<member name="png_data" type="PackedByteArray" setter="set_png_data" getter="get_png_data" default="PackedByteArray()">
+			Pixels encodés en PNG : forme sauvegardée du calque (fichiers .tres et .res compacts). Réencodé seulement quand les pixels ont changé.
+		</member>
+		<member name="visible" type="bool" setter="set_visible" getter="is_visible" default="true">
+			Visibilité. Un calque masqué n'est pas composé, et on ne peut pas y peindre.
+		</member>
+	</members>
+	<constants>
+		<constant name="LAYER_BLEND_NORMAL" value="0" enum="LayerBlend">
+			Normal.
+		</constant>
+		<constant name="LAYER_BLEND_MULTIPLY" value="1" enum="LayerBlend">
+			Produit : assombrit (ombres).
+		</constant>
+		<constant name="LAYER_BLEND_SCREEN" value="2" enum="LayerBlend">
+			Écran : éclaircit.
+		</constant>
+		<constant name="LAYER_BLEND_OVERLAY" value="3" enum="LayerBlend">
+			Incrustation : contraste selon le fond.
+		</constant>
+		<constant name="LAYER_BLEND_DARKEN" value="4" enum="LayerBlend">
+			Obscurcir : la plus sombre des deux couleurs.
+		</constant>
+		<constant name="LAYER_BLEND_LIGHTEN" value="5" enum="LayerBlend">
+			Éclaircir : la plus claire des deux couleurs.
+		</constant>
+		<constant name="LAYER_BLEND_COLOR_DODGE" value="6" enum="LayerBlend">
+			Densité couleur - : éclaircit fortement (lumières).
+		</constant>
+		<constant name="LAYER_BLEND_COLOR_BURN" value="7" enum="LayerBlend">
+			Densité couleur + : assombrit fortement.
+		</constant>
+		<constant name="LAYER_BLEND_ADD" value="8" enum="LayerBlend">
+			Ajout : somme des couleurs.
+		</constant>
+		<constant name="LAYER_BLEND_SUBTRACT" value="9" enum="LayerBlend">
+			Soustraction.
+		</constant>
+		<constant name="LAYER_BLEND_DIFFERENCE" value="10" enum="LayerBlend">
+			Différence.
+		</constant>
+		<constant name="LAYER_BLEND_SOFT_LIGHT" value="11" enum="LayerBlend">
+			Lumière tamisée.
+		</constant>
+		<constant name="LAYER_BLEND_HARD_LIGHT" value="12" enum="LayerBlend">
+			Lumière crue.
+		</constant>
+		<constant name="LAYER_BLEND_MAX" value="13" enum="LayerBlend">
+			Nombre de modes de fusion.
+		</constant>
+	</constants>
+</class>

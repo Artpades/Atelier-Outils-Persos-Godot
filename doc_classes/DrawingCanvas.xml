@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DrawingCanvas" inherits="Control" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🖼️ Toile interactive affichant un [DrawingDocument] et permettant d'y dessiner (souris, stylet, tactile).
+	</brief_description>
+	<description>
+		Outils ([enum Tool]) : pinceau, gomme, pot de peinture, pipette, sélections, main. Navigation : zoom, déplacement, rotation et miroir de la vue (le dessin n'est pas modifié).
+		[b]Souris / stylet[/b] (raccourcis de Clip Studio Paint) :
+		- Molette : zoom au curseur ; Alt + molette : rotation. Clic du milieu ou Espace + glisser : déplacer ; Ctrl + Espace + glisser : zoom ; Maj + Espace + glisser : rotation.
+		- Alt + clic avec le pinceau, la gomme ou le pot : pipette temporaire. Bout gomme du stylet : gomme ([member pen_eraser]).
+		- La pression et la vitesse du pointeur sont transmises au pinceau (voir [member DrawingBrush.size_dynamics]) ; [member DrawingBrush.stabilization] lisse le trait.
+		- Sélections : Maj ajoute, Alt soustrait, Maj + Alt intersecte ; un clic sans glisser désélectionne.
+		[b]Tactile[/b] ([member touch_gestures]) : un doigt dessine, deux doigts déplacent, zooment et tournent la vue ; un trait tout juste commencé par le premier doigt est annulé.
+		[b]Clavier[/b] ([member shortcuts_enabled], toile survolée ou ayant le focus) : B pinceau, E gomme, G pot, I pipette, M sélection (rectangle / ellipse), L lasso, W baguette, H main, X échange des couleurs, [ et ] taille, - et = rotation, Ctrl+Z / Ctrl+Y (ou Ctrl+Maj+Z), Ctrl+A, Ctrl+D, Ctrl+Maj+I, Suppr, Ctrl+0 ajuster, Ctrl+1 taille réelle, Ctrl+plus / Ctrl+moins.
+		L'image composée est affichée en tuiles, mises à jour seulement là où elle change. Un pinceau à shader est affiché à travers son shader pendant le trait, puis rendu par le GPU et appliqué au calque. Sans document assigné, un document de [member default_document_size] est créé au lancement du jeu.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="actual_size">
+			<return type="void" />
+			<description>
+				Zoom 100 %, dessin centré.
+			</description>
+		</method>
+		<method name="canvas_to_screen" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="canvas_position" type="Vector2" />
+			<description>
+				Position dans la toile (coordonnées locales) d'un point du dessin.
+			</description>
+		</method>
+		<method name="fit_to_view">
+			<return type="void" />
+			<description>
+				Affiche tout le dessin, centré (la rotation est conservée). Il reste ajusté au fil des redimensionnements de la toile, jusqu'au prochain zoom ou déplacement manuel.
+			</description>
+		</method>
+		<method name="get_active_brush" qualifiers="const">
+			<return type="DrawingBrush" />
+			<description>
+				Pinceau de l'outil courant : [member eraser] avec [constant TOOL_ERASER], sinon [member brush] (ou les pinceaux par défaut s'ils ne sont pas assignés).
+			</description>
+		</method>
+		<method name="get_pointer_position" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Position du pointeur sur le dessin (pixels), ou (-1, -1) hors de la toile.
+			</description>
+		</method>
+		<method name="get_view_transform" qualifiers="const">
+			<return type="Transform2D" />
+			<description>
+				Transformation du dessin vers la toile (zoom, déplacement, rotation, miroir).
+			</description>
+		</method>
+		<method name="is_dragging" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] pendant un trait, une sélection, un déplacement de la vue...
+			</description>
+		</method>
+		<method name="is_stroking" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] pendant un trait.
+			</description>
+		</method>
+		<method name="reset_rotation">
+			<return type="void" />
+			<description>
+				Annule la rotation et le miroir de la vue (le centre de la toile reste fixe).
+			</description>
+		</method>
+		<method name="rotate_at">
+			<return type="void" />
+			<param index="0" name="degrees" type="float" />
+			<param index="1" name="screen_position" type="Vector2" />
+			<description>
+				Tourne la vue en gardant fixe le point [param screen_position] (coordonnées locales).
+			</description>
+		</method>
+		<method name="screen_to_canvas" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="screen_position" type="Vector2" />
+			<description>
+				Point du dessin (pixels) sous une position de la toile (coordonnées locales).
+			</description>
+		</method>
+		<method name="swap_colors">
+			<return type="void" />
+			<description>
+				Échange les couleurs principale et secondaire.
+			</description>
+		</method>
+		<method name="zoom_at">
+			<return type="void" />
+			<param index="0" name="factor" type="float" />
+			<param index="1" name="screen_position" type="Vector2" />
+			<description>
+				Zoome d'un facteur en gardant fixe le point [param screen_position] (coordonnées locales).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="brush" type="DrawingBrush" setter="set_brush" getter="get_brush">
+			Pinceau de l'outil pinceau. [code]null[/code] : « Plume G » par défaut.
+		</member>
+		<member name="checkerboard" type="bool" setter="set_checkerboard" getter="get_checkerboard" default="true">
+			Affiche un damier sous un fond transparent.
+		</member>
+		<member name="clip_contents" type="bool" setter="set_clip_contents" getter="is_clipping_contents" overrides="Control" default="true" />
+		<member name="default_document_size" type="Vector2i" setter="set_default_document_size" getter="get_default_document_size" default="Vector2i(1280, 720)">
+			Taille du document créé au lancement du jeu si [member document] n'est pas assigné.
+		</member>
+		<member name="document" type="DrawingDocument" setter="set_document" getter="get_document">
+			Document affiché et modifié.
+		</member>
+		<member name="eraser" type="DrawingBrush" setter="set_eraser" getter="get_eraser">
+			Pinceau de l'outil gomme. [code]null[/code] : gomme dure par défaut.
+		</member>
+		<member name="eyedropper_all_layers" type="bool" setter="set_eyedropper_all_layers" getter="get_eyedropper_all_layers" default="true">
+			La pipette prélève la couleur affichée (tous les calques et le fond), sinon celle du calque courant.
+		</member>
+		<member name="fill_contiguous" type="bool" setter="set_fill_contiguous" getter="get_fill_contiguous" default="true">
+			Le pot ne remplit que la zone contiguë (sinon tous les pixels semblables).
+		</member>
+		<member name="fill_expand" type="int" setter="set_fill_expand" getter="get_fill_expand" default="1">
+			Extension de la zone remplie par le pot, en pixels (voir [method DrawingDocument.fill]).
+		</member>
+		<member name="fill_gap_closing" type="int" setter="set_fill_gap_closing" getter="get_fill_gap_closing" default="0">
+			Fermeture des trous du pot, en pixels.
+		</member>
+		<member name="fill_reference" type="int" setter="set_fill_reference" getter="get_fill_reference" enum="DrawingDocument.FillReference" default="1">
+			Référence du pot et de la baguette magique : calque courant ou tous les calques.
+		</member>
+		<member name="fill_tolerance" type="float" setter="set_fill_tolerance" getter="get_fill_tolerance" default="0.1">
+			Tolérance de couleur du pot (0-1).
+		</member>
+		<member name="flip_h" type="bool" setter="set_flip_h" getter="get_flip_h" default="false">
+			Miroir horizontal de la vue (le dessin n'est pas retourné).
+		</member>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="2" />
+		<member name="max_zoom" type="float" setter="set_max_zoom" getter="get_max_zoom" default="64.0">
+			Zoom maximal.
+		</member>
+		<member name="min_zoom" type="float" setter="set_min_zoom" getter="get_min_zoom" default="0.02">
+			Zoom minimal.
+		</member>
+		<member name="mouse_default_cursor_shape" type="int" setter="set_default_cursor_shape" getter="get_default_cursor_shape" overrides="Control" enum="Control.CursorShape" default="3" />
+		<member name="pen_eraser" type="bool" setter="set_pen_eraser" getter="get_pen_eraser" default="true">
+			Le bout gomme d'un stylet (pen_inverted) utilise la gomme.
+		</member>
+		<member name="primary_color" type="Color" setter="set_primary_color" getter="get_primary_color" default="Color(0, 0, 0, 1)">
+			Couleur du pinceau et du pot.
+		</member>
+		<member name="secondary_color" type="Color" setter="set_secondary_color" getter="get_secondary_color" default="Color(1, 1, 1, 1)">
+			Couleur secondaire (échangée avec X).
+		</member>
+		<member name="selection_mode" type="int" setter="set_selection_mode" getter="get_selection_mode" enum="DrawingDocument.SelectionMode" default="0">
+			Mode des outils de sélection sans touche de modification.
+		</member>
+		<member name="shortcuts_enabled" type="bool" setter="set_shortcuts_enabled" getter="get_shortcuts_enabled" default="true">
+			Active les raccourcis clavier.
+		</member>
+		<member name="show_brush_cursor" type="bool" setter="set_show_brush_cursor" getter="get_show_brush_cursor" default="true">
+			Affiche le contour du pinceau sous le pointeur.
+		</member>
+		<member name="texture_filter" type="int" setter="set_texture_filter" getter="get_texture_filter" overrides="CanvasItem" enum="CanvasItem.TextureFilter" default="1" />
+		<member name="texture_repeat" type="int" setter="set_texture_repeat" getter="get_texture_repeat" overrides="CanvasItem" enum="CanvasItem.TextureRepeat" default="2" />
+		<member name="tool" type="int" setter="set_tool" getter="get_tool" enum="DrawingCanvas.Tool" default="0">
+			Outil courant.
+		</member>
+		<member name="touch_gestures" type="bool" setter="set_touch_gestures" getter="get_touch_gestures" default="true">
+			Gère le tactile directement (un doigt dessine, deux doigts naviguent) ; la souris émulée depuis le tactile est alors ignorée.
+		</member>
+		<member name="touch_rotation" type="bool" setter="set_touch_rotation" getter="get_touch_rotation" default="true">
+			Le geste à deux doigts tourne aussi la vue.
+		</member>
+		<member name="view_background" type="Color" setter="set_view_background" getter="get_view_background" default="Color(0.24, 0.24, 0.27, 1)">
+			Couleur autour du dessin.
+		</member>
+		<member name="view_offset" type="Vector2" setter="set_view_offset" getter="get_view_offset" default="Vector2(0, 0)">
+			Décalage (pixels de la toile) du centre du dessin par rapport au centre de la toile.
+		</member>
+		<member name="view_rotation" type="float" setter="set_view_rotation" getter="get_view_rotation" default="0.0">
+			Rotation de la vue, en degrés.
+		</member>
+		<member name="wand_tolerance" type="float" setter="set_wand_tolerance" getter="get_wand_tolerance" default="0.1">
+			Tolérance de couleur de la baguette magique (0-1).
+		</member>
+		<member name="zoom" type="float" setter="set_zoom" getter="get_zoom" default="1.0">
+			Zoom de la vue (1 : un pixel du dessin par pixel de la toile).
+		</member>
+	</members>
+	<signals>
+		<signal name="color_picked">
+			<param index="0" name="color" type="Color" />
+			<description>
+				Émis quand la pipette prélève une couleur.
+			</description>
+		</signal>
+		<signal name="document_changed">
+			<description>
+				Émis quand un autre document est assigné.
+			</description>
+		</signal>
+		<signal name="primary_color_changed">
+			<param index="0" name="color" type="Color" />
+			<description>
+				Émis quand la couleur principale change.
+			</description>
+		</signal>
+		<signal name="secondary_color_changed">
+			<param index="0" name="color" type="Color" />
+			<description>
+				Émis quand la couleur secondaire change.
+			</description>
+		</signal>
+		<signal name="stroke_finished">
+			<description>
+				Émis à la fin d'un trait.
+			</description>
+		</signal>
+		<signal name="stroke_rejected">
+			<description>
+				Émis quand un trait est refusé (calque courant masqué ou verrouillé).
+			</description>
+		</signal>
+		<signal name="stroke_started">
+			<description>
+				Émis au début d'un trait.
+			</description>
+		</signal>
+		<signal name="tool_changed">
+			<param index="0" name="tool" type="int" />
+			<description>
+				Émis quand l'outil change.
+			</description>
+		</signal>
+		<signal name="view_changed">
+			<description>
+				Émis quand le zoom, le déplacement, la rotation ou le miroir de la vue changent.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="TOOL_BRUSH" value="0" enum="Tool">
+			Pinceau ([member brush]).
+		</constant>
+		<constant name="TOOL_ERASER" value="1" enum="Tool">
+			Gomme ([member eraser]).
+		</constant>
+		<constant name="TOOL_FILL" value="2" enum="Tool">
+			Pot de peinture.
+		</constant>
+		<constant name="TOOL_EYEDROPPER" value="3" enum="Tool">
+			Pipette.
+		</constant>
+		<constant name="TOOL_SELECT_RECT" value="4" enum="Tool">
+			Sélection rectangulaire.
+		</constant>
+		<constant name="TOOL_SELECT_ELLIPSE" value="5" enum="Tool">
+			Sélection elliptique.
+		</constant>
+		<constant name="TOOL_SELECT_LASSO" value="6" enum="Tool">
+			Lasso (sélection à main levée).
+		</constant>
+		<constant name="TOOL_SELECT_WAND" value="7" enum="Tool">
+			Baguette magique.
+		</constant>
+		<constant name="TOOL_PAN" value="8" enum="Tool">
+			Main : déplacer la vue.
+		</constant>
+		<constant name="TOOL_MAX" value="9" enum="Tool">
+			Nombre d'outils.
+		</constant>
+	</constants>
+</class>

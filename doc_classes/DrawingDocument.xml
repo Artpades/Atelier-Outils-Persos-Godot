@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DrawingDocument" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📄 Dessin matriciel multi-calques : le moteur du système de dessin, utilisable sans interface.
+	</brief_description>
+	<description>
+		Contient les calques ([DrawingLayer], index 0 = le plus bas), la sélection et l'historique, et tient à jour l'image composée (calques fusionnés, sans le fond).
+		- [b]Traits[/b] : [method begin_stroke], [method stroke_to] (position, pression, vitesse), [method end_stroke], appliqués au calque courant et limités à la sélection.
+		- [b]Remplissage[/b] : [method fill] avec tolérance, référence (calque courant ou tous les calques), fermeture des trous et extension.
+		- [b]Sélection[/b] : masque 0-255 (rectangle, ellipse, lasso, baguette magique), modes [enum SelectionMode].
+		- [b]Historique[/b] : chaque opération (pixels, calques, réglages, sélection) est annulable ([method undo], [method redo]).
+		La ressource se sauvegarde (.tres / .res) avec ses calques (pixels en PNG) ; l'historique et la sélection ne le sont pas.
+		[codeblock]
+		var doc := DrawingDocument.create(Vector2i(512, 512))
+		var plume := DrawingBrush.create_preset(DrawingBrush.PRESET_PEN)
+		doc.draw_line(Vector2(20, 20), Vector2(200, 120), plume, Color.BLACK)
+		doc.add_layer("Couleurs", 0)
+		doc.fill(Vector2i(60, 30), Color.ORANGE, 0.1, DrawingDocument.FILL_REFERENCE_ALL_LAYERS, 4)
+		doc.export_png("user://dessin.png")
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_layer">
+			<return type="DrawingLayer" />
+			<param index="0" name="name" type="String" default="&quot;&quot;" />
+			<param index="1" name="index" type="int" default="-1" />
+			<description>
+				Ajoute un calque vide en [param index] (-1 : juste au-dessus du calque courant), qui devient le calque courant. Sans nom : « Calque N ». Annulable.
+			</description>
+		</method>
+		<method name="begin_stroke">
+			<return type="bool" />
+			<param index="0" name="brush" type="DrawingBrush" />
+			<param index="1" name="color" type="Color" />
+			<param index="2" name="deferred_commit" type="bool" default="false" />
+			<description>
+				Commence un trait sur le calque courant avec [param brush] et [param color]. Renvoie [code]false[/code] si le calque est absent, masqué ou verrouillé. Avec [param deferred_commit], le calque n'est pas modifié pendant le trait (aperçu par [method get_stroke_preview], signal [signal stroke_changed]) : le trait est appliqué par [method commit_stroke_image] (rendu d'un shader) ou [method end_stroke].
+			</description>
+		</method>
+		<method name="can_redo" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] s'il y a une étape à rétablir.
+			</description>
+		</method>
+		<method name="can_undo" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] s'il y a une étape à annuler.
+			</description>
+		</method>
+		<method name="cancel_stroke">
+			<return type="void" />
+			<description>
+				Annule le trait en cours : le calque retrouve son état d'avant le trait, rien n'est ajouté à l'historique.
+			</description>
+		</method>
+		<method name="clear_history">
+			<return type="void" />
+			<description>
+				Vide l'historique.
+			</description>
+		</method>
+		<method name="clear_layer">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Efface tout un calque (sans tenir compte de la sélection). Annulable.
+			</description>
+		</method>
+		<method name="clear_selection_content">
+			<return type="void" />
+			<description>
+				Efface le contenu de la sélection sur le calque courant (tout le calque sans sélection).
+			</description>
+		</method>
+		<method name="commit_stroke_image">
+			<return type="void" />
+			<param index="0" name="image" type="Image" />
+			<param index="1" name="position" type="Vector2i" />
+			<description>
+				Termine un trait différé en appliquant [param image] (RGBA8, alpha non prémultiplié) placée en [param position], selon le mode du pinceau, le verrou de transparence et la sélection. Utilisé par [DrawingCanvas] avec le rendu GPU d'un pinceau à shader.
+			</description>
+		</method>
+		<method name="create" qualifiers="static">
+			<return type="DrawingDocument" />
+			<param index="0" name="size" type="Vector2i" />
+			<param index="1" name="background" type="Color" default="Color(1, 1, 1, 1)" />
+			<description>
+				Document de la taille donnée, avec un calque vide et le fond [param background].
+			</description>
+		</method>
+		<method name="create_from_image" qualifiers="static">
+			<return type="DrawingDocument" />
+			<param index="0" name="image" type="Image" />
+			<description>
+				Document à la taille de l'image, l'image formant son unique calque ; fond transparent.
+			</description>
+		</method>
+		<method name="deselect">
+			<return type="void" />
+			<description>
+				Retire la sélection. Annulable.
+			</description>
+		</method>
+		<method name="draw_line">
+			<return type="void" />
+			<param index="0" name="from" type="Vector2" />
+			<param index="1" name="to" type="Vector2" />
+			<param index="2" name="brush" type="DrawingBrush" />
+			<param index="3" name="color" type="Color" />
+			<param index="4" name="pressure" type="float" default="1.0" />
+			<description>
+				Trace un segment en un seul trait (pression constante) : raccourci de [method begin_stroke], [method stroke_to] et [method end_stroke].
+			</description>
+		</method>
+		<method name="duplicate_layer">
+			<return type="DrawingLayer" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Duplique un calque (pixels et réglages, nom suivi de « (copie) ») juste au-dessus. Annulable.
+			</description>
+		</method>
+		<method name="end_stroke">
+			<return type="void" />
+			<description>
+				Termine le trait en cours et l'ajoute à l'historique (nommé comme le pinceau). Un trait différé est appliqué tel quel, sans shader.
+			</description>
+		</method>
+		<method name="export_png" qualifiers="const">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="with_background" type="bool" default="true" />
+			<description>
+				Enregistre l'image composée en PNG (sur le fond si [param with_background]).
+			</description>
+		</method>
+		<method name="fill">
+			<return type="bool" />
+			<param index="0" name="position" type="Vector2i" />
+			<param index="1" name="color" type="Color" />
+			<param index="2" name="tolerance" type="float" default="0.0" />
+			<param index="3" name="reference" type="int" enum="DrawingDocument.FillReference" default="0" />
+			<param index="4" name="gap_closing" type="int" default="0" />
+			<param index="5" name="expand" type="int" default="0" />
+			<param index="6" name="contiguous" type="bool" default="true" />
+			<description>
+				Pot de peinture en [param position] sur le calque courant ; renvoie [code]false[/code] si rien n'a été rempli.
+				- [param tolerance] (0-1) : écart de couleur accepté (par composante).
+				- [param reference] : couleurs du calque courant, ou de l'image composée (traits sur un calque, aplats sur un autre).
+				- [param gap_closing] (pixels) : la zone ne fuit pas par les trous des traits plus étroits que cette valeur.
+				- [param expand] (pixels) : agrandit la zone (sous les traits anticrénelés), ou la rétrécit si négatif.
+				- [param contiguous] : sinon, tous les pixels semblables du dessin.
+			</description>
+		</method>
+		<method name="fill_selection">
+			<return type="void" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Remplit la sélection (tout le calque sans sélection) avec [param color].
+			</description>
+		</method>
+		<method name="find_layer" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="layer" type="DrawingLayer" />
+			<description>
+				Index du calque, ou -1.
+			</description>
+		</method>
+		<method name="get_composite_image" qualifiers="const">
+			<return type="Image" />
+			<param index="0" name="with_background" type="bool" default="true" />
+			<description>
+				Calques fusionnés (RGBA8), sur la couleur de fond si [param with_background].
+			</description>
+		</method>
+		<method name="get_current" qualifiers="const">
+			<return type="DrawingLayer" />
+			<description>
+				Calque courant (celui que modifient les outils).
+			</description>
+		</method>
+		<method name="get_layer" qualifiers="const">
+			<return type="DrawingLayer" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Calque à l'index donné, ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_layer_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de calques.
+			</description>
+		</method>
+		<method name="get_redo_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre d'étapes à rétablir.
+			</description>
+		</method>
+		<method name="get_redo_name" qualifiers="const">
+			<return type="String" />
+			<description>
+				Nom de la prochaine étape à rétablir.
+			</description>
+		</method>
+		<method name="get_selection_bounds" qualifiers="const">
+			<return type="Rect2i" />
+			<description>
+				Rectangle englobant la sélection (vide sans sélection).
+			</description>
+		</method>
+		<method name="get_selection_image" qualifiers="const">
+			<return type="Image" />
+			<description>
+				Masque de sélection ([constant Image.FORMAT_L8]), ou [code]null[/code] sans sélection.
+			</description>
+		</method>
+		<method name="get_selection_value" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="x" type="int" />
+			<param index="1" name="y" type="int" />
+			<description>
+				Valeur du masque (0-1) en un pixel ; 1 partout sans sélection.
+			</description>
+		</method>
+		<method name="get_stroke_brush" qualifiers="const">
+			<return type="DrawingBrush" />
+			<description>
+				Pinceau du trait en cours.
+			</description>
+		</method>
+		<method name="get_stroke_preview" qualifiers="const">
+			<return type="Image" />
+			<param index="0" name="rect" type="Rect2i" />
+			<description>
+				Trait différé en cours, en image RGBA8 sur [param rect] (couleur du pinceau, alpha = couverture × sélection).
+			</description>
+		</method>
+		<method name="get_stroke_rect" qualifiers="const">
+			<return type="Rect2i" />
+			<description>
+				Zone touchée par le trait en cours.
+			</description>
+		</method>
+		<method name="get_undo_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre d'étapes à annuler.
+			</description>
+		</method>
+		<method name="get_undo_name" qualifiers="const">
+			<return type="String" />
+			<description>
+				Nom de la prochaine étape à annuler (« Remplissage », « Nouveau calque », nom du pinceau...).
+			</description>
+		</method>
+		<method name="has_selection" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] si une sélection limite les outils.
+			</description>
+		</method>
+		<method name="insert_layer">
+			<return type="void" />
+			<param index="0" name="layer" type="DrawingLayer" />
+			<param index="1" name="index" type="int" default="-1" />
+			<description>
+				Insère un calque existant (recadré à la taille du document) en [param index] (-1 : au-dessus du calque courant). Annulable.
+			</description>
+		</method>
+		<method name="invert_selection">
+			<return type="void" />
+			<description>
+				Inverse la sélection (sans sélection : tout sélectionner).
+			</description>
+		</method>
+		<method name="is_stroke_deferred" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] pendant un trait commencé avec [code]deferred_commit[/code].
+			</description>
+		</method>
+		<method name="is_stroking" qualifiers="const">
+			<return type="bool" />
+			<description>
+				[code]true[/code] pendant un trait.
+			</description>
+		</method>
+		<method name="merge_down">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Fusionne un calque dans celui du dessous, selon son mode de fusion, son opacité et son écrêtage. Renvoie [code]false[/code] pour le calque le plus bas ou si le calque inférieur est verrouillé. Annulable.
+			</description>
+		</method>
+		<method name="move_layer">
+			<return type="void" />
+			<param index="0" name="from" type="int" />
+			<param index="1" name="to" type="int" />
+			<description>
+				Déplace un calque dans la pile. Annulable.
+			</description>
+		</method>
+		<method name="pick_color" qualifiers="const">
+			<return type="Color" />
+			<param index="0" name="position" type="Vector2i" />
+			<param index="1" name="all_layers" type="bool" default="true" />
+			<description>
+				Couleur affichée en [param position] (tous les calques, sur le fond), ou couleur du calque courant.
+			</description>
+		</method>
+		<method name="redo">
+			<return type="bool" />
+			<description>
+				Rétablit la dernière étape annulée.
+			</description>
+		</method>
+		<method name="refresh_composite">
+			<return type="void" />
+			<description>
+				Recompose toute l'image (après une modification directe des pixels d'un calque, par exemple).
+			</description>
+		</method>
+		<method name="remove_layer">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Supprime un calque (le document garde au moins un calque). Annulable.
+			</description>
+		</method>
+		<method name="select_all">
+			<return type="void" />
+			<description>
+				Sélectionne tout.
+			</description>
+		</method>
+		<method name="select_by_color">
+			<return type="void" />
+			<param index="0" name="position" type="Vector2i" />
+			<param index="1" name="tolerance" type="float" default="0.0" />
+			<param index="2" name="reference" type="int" enum="DrawingDocument.FillReference" default="0" />
+			<param index="3" name="contiguous" type="bool" default="true" />
+			<param index="4" name="mode" type="int" enum="DrawingDocument.SelectionMode" default="0" />
+			<description>
+				Baguette magique : sélectionne la zone de couleur semblable à celle de [param position].
+			</description>
+		</method>
+		<method name="select_ellipse">
+			<return type="void" />
+			<param index="0" name="rect" type="Rect2i" />
+			<param index="1" name="mode" type="int" enum="DrawingDocument.SelectionMode" default="0" />
+			<description>
+				Sélection elliptique inscrite dans [param rect] (bord anticrénelé). Un rectangle vide en mode remplacer désélectionne.
+			</description>
+		</method>
+		<method name="select_polygon">
+			<return type="void" />
+			<param index="0" name="points" type="PackedVector2Array" />
+			<param index="1" name="mode" type="int" enum="DrawingDocument.SelectionMode" default="0" />
+			<description>
+				Sélection polygonale (lasso) en pixels du dessin, règle pair-impair.
+			</description>
+		</method>
+		<method name="select_rect">
+			<return type="void" />
+			<param index="0" name="rect" type="Rect2i" />
+			<param index="1" name="mode" type="int" enum="DrawingDocument.SelectionMode" default="0" />
+			<description>
+				Sélection rectangulaire. Un rectangle vide en mode remplacer désélectionne.
+			</description>
+		</method>
+		<method name="set_layer_property">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="property" type="StringName" />
+			<param index="2" name="value" type="Variant" />
+			<description>
+				Modifie un réglage d'un calque ([code]visible[/code], [code]opacity[/code], [code]blend_mode[/code], [code]layer_name[/code], [code]alpha_locked[/code], [code]clipped[/code], [code]locked[/code]) de façon annulable. Les changements successifs d'un même réglage en moins d'une seconde forment une seule étape (curseur d'opacité).
+			</description>
+		</method>
+		<method name="stroke_to">
+			<return type="void" />
+			<param index="0" name="position" type="Vector2" />
+			<param index="1" name="pressure" type="float" default="1.0" />
+			<param index="2" name="velocity" type="float" default="0.0" />
+			<description>
+				Prolonge le trait jusqu'à [param position] (pixels du dessin). Les tampons sont placés le long du segment, pression et vitesse interpolées. [param velocity] en pixels de l'écran par seconde (voir [member DrawingBrush.velocity_max]).
+			</description>
+		</method>
+		<method name="undo">
+			<return type="bool" />
+			<description>
+				Annule la dernière étape (termine d'abord un trait en cours).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="background_color" type="Color" setter="set_background_color" getter="get_background_color" default="Color(1, 1, 1, 1)">
+			Couleur du fond (le « papier »), sous tous les calques. Alpha nul : fond transparent (damier dans la toile, PNG transparent).
+		</member>
+		<member name="current_layer" type="int" setter="set_current_layer" getter="get_current_layer" default="0">
+			Index du calque courant.
+		</member>
+		<member name="history_limit" type="int" setter="set_history_limit" getter="get_history_limit" default="64">
+			Nombre maximal d'étapes gardées dans l'historique.
+		</member>
+		<member name="layers" type="DrawingLayer[]" setter="set_layers" getter="get_layers" default="[]">
+			Calques, du plus bas au plus haut.
+		</member>
+		<member name="size" type="Vector2i" setter="set_size" getter="get_size" default="Vector2i(1024, 768)">
+			Taille du dessin en pixels. La changer recadre ou agrandit les calques (ancrés en haut à gauche) et vide l'historique et la sélection.
+		</member>
+	</members>
+	<signals>
+		<signal name="current_layer_changed">
+			<param index="0" name="index" type="int" />
+			<description>
+				Émis quand le calque courant change.
+			</description>
+		</signal>
+		<signal name="history_changed">
+			<description>
+				Émis quand l'historique change (nouvelle étape, annulation...).
+			</description>
+		</signal>
+		<signal name="layers_changed">
+			<description>
+				Émis quand la pile de calques ou un réglage de calque change.
+			</description>
+		</signal>
+		<signal name="region_changed">
+			<param index="0" name="rect" type="Rect2i" />
+			<description>
+				Émis quand l'image composée change dans [param rect] (pixels du dessin).
+			</description>
+		</signal>
+		<signal name="selection_changed">
+			<description>
+				Émis quand la sélection change.
+			</description>
+		</signal>
+		<signal name="stroke_changed">
+			<param index="0" name="rect" type="Rect2i" />
+			<description>
+				Émis quand l'aperçu d'un trait différé change dans [param rect].
+			</description>
+		</signal>
+		<signal name="stroke_finished">
+			<description>
+				Émis à la fin d'un trait (appliqué ou vide).
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="SELECTION_REPLACE" value="0" enum="SelectionMode">
+			Remplace la sélection.
+		</constant>
+		<constant name="SELECTION_ADD" value="1" enum="SelectionMode">
+			Ajoute à la sélection.
+		</constant>
+		<constant name="SELECTION_SUBTRACT" value="2" enum="SelectionMode">
+			Retire de la sélection.
+		</constant>
+		<constant name="SELECTION_INTERSECT" value="3" enum="SelectionMode">
+			Garde l'intersection (sans sélection : la forme seule).
+		</constant>
+		<constant name="FILL_REFERENCE_LAYER" value="0" enum="FillReference">
+			Couleurs du calque courant.
+		</constant>
+		<constant name="FILL_REFERENCE_ALL_LAYERS" value="1" enum="FillReference">
+			Couleurs de l'image composée (« Tous les calques » de CSP).
+		</constant>
+	</constants>
+</class>

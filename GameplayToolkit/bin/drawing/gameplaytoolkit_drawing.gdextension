@@ -1,0 +1,34 @@
+; Généré par le Sconstruct depuis src/1.🧰Ensemble d'Outils/2.🧭Widgets & Spatialité🌍/✏️Système de dessin/drawing_register.cpp : seule la section [icons] peut être modifiée à la main.
+
+[configuration]
+
+entry_symbol = "drawing_library_init"
+compatibility_minimum = "4.7"
+reloadable = true
+
+[icons]
+
+DrawingBrush = "res://🖼️Editor Icons/🧭🌍/DrawingBrush Icon.png"
+DrawingLayer = "res://🖼️Editor Icons/🧭🌍/DrawingLayer Icon.png"
+DrawingDocument = "res://🖼️Editor Icons/🧭🌍/DrawingDocument Icon.png"
+DrawingCanvas = "res://🖼️Editor Icons/🧭🌍/Canva Icon.png"
+DrawingStudio = "res://🖼️Editor Icons/🧭🌍/DrawingStudio Icon.png"
+
+[libraries]
+
+macos.debug = "res://bin/drawing/libgameplaytoolkit_drawing.macos.template_debug.dylib"
+macos.release = "res://bin/drawing/libgameplaytoolkit_drawing.macos.template_release.dylib"
+windows.debug.x86_32 = "res://bin/drawing/gameplaytoolkit_drawing.windows.template_debug.x86_32.dll"
+windows.release.x86_32 = "res://bin/drawing/gameplaytoolkit_drawing.windows.template_release.x86_32.dll"
+windows.debug.x86_64 = "res://bin/drawing/gameplaytoolkit_drawing.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://bin/drawing/gameplaytoolkit_drawing.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://bin/drawing/libgameplaytoolkit_drawing.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://bin/drawing/libgameplaytoolkit_drawing.linux.template_release.x86_64.so"
+linux.debug.arm64 = "res://bin/drawing/libgameplaytoolkit_drawing.linux.template_debug.arm64.so"
+linux.release.arm64 = "res://bin/drawing/libgameplaytoolkit_drawing.linux.template_release.arm64.so"
+linux.debug.rv64 = "res://bin/drawing/libgameplaytoolkit_drawing.linux.template_debug.rv64.so"
+linux.release.rv64 = "res://bin/drawing/libgameplaytoolkit_drawing.linux.template_release.rv64.so"
+android.debug.arm64 = "res://bin/drawing/libgameplaytoolkit_drawing.android.debug.arm64.so"
+android.release.arm64 = "res://bin/drawing/libgameplaytoolkit_drawing.android.release.arm64.so"
+android.debug.arm32 = "res://bin/drawing/libgameplaytoolkit_drawing.android.debug.arm32.so"
+android.release.arm32 = "res://bin/drawing/libgameplaytoolkit_drawing.android.release.arm32.so"

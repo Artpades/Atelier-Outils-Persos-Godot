@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DrawingStudio" inherits="Control" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🎛️ Atelier de dessin complet inspiré de Clip Studio Paint : une [DrawingCanvas] entourée de ses panneaux.
+	</brief_description>
+	<description>
+		- Barre du haut : fichier (nouveau, ouvrir, enregistrer), annuler / rétablir, vue (ajuster, 100 %, rotation, miroir).
+		- À gauche : outils, puis les réglages de l'outil courant (pinceau : préréglage, taille, opacité, densité, dureté, espacement, stabilisation, angle, rondeur, dynamique de la taille et de l'opacité à la pression et / ou à la vitesse, grain ; pot : tolérance, fermeture des trous, extension...).
+		- À droite : couleurs, puis calques (visibilité, mode de fusion, opacité, verrous, écrêtage, ordre, fusion).
+		Fichiers : ouvre les images (.png, .jpg, .webp) et les [DrawingDocument] (.tres, .res) ; enregistre en image (calques fusionnés) ou en document (calques conservés). Raccourcis Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Maj+S.
+		Dans l'éditeur, l'écran principal « Dessin » est un DrawingStudio : le menu contextuel du dock FileSystem y ouvre les images et les documents du projet (une image enregistrée est réimportée).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="edit_document">
+			<return type="void" />
+			<param index="0" name="document" type="DrawingDocument" />
+			<param index="1" name="path" type="String" default="&quot;&quot;" />
+			<description>
+				Édite un document déjà chargé ; [param path] devient le chemin d'enregistrement.
+			</description>
+		</method>
+		<method name="get_canvas" qualifiers="const">
+			<return type="DrawingCanvas" />
+			<description>
+				Toile de l'atelier (outils, couleurs, vue).
+			</description>
+		</method>
+		<method name="get_current_path" qualifiers="const">
+			<return type="String" />
+			<description>
+				Chemin du fichier ouvert ou enregistré (vide pour un nouveau dessin).
+			</description>
+		</method>
+		<method name="new_document">
+			<return type="void" />
+			<param index="0" name="size" type="Vector2i" />
+			<param index="1" name="background" type="Color" default="Color(1, 1, 1, 1)" />
+			<description>
+				Nouveau dessin (fond [param background], transparent si son alpha est nul).
+			</description>
+		</method>
+		<method name="open_file">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Ouvre une image (un calque) ou un [DrawingDocument].
+			</description>
+		</method>
+		<method name="save">
+			<return type="int" enum="Error" />
+			<description>
+				Enregistre au chemin courant, sinon ouvre la boîte « Enregistrer sous ».
+			</description>
+		</method>
+		<method name="save_as">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Enregistre en [param path] : image .png, .jpg, .webp (calques fusionnés) ou document .tres, .res (calques conservés). Émet [signal document_saved].
+			</description>
+		</method>
+		<method name="show_message">
+			<return type="void" />
+			<param index="0" name="message" type="String" />
+			<description>
+				Affiche un message dans la barre d'état.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="brushes" type="DrawingBrush[]" setter="set_brushes" getter="get_brushes" default="[]">
+			Préréglages proposés pour le pinceau. Vide : préréglages intégrés (Plume G, crayon, feutre, aérographe, lavis, encre à la vitesse).
+		</member>
+		<member name="document" type="DrawingDocument" setter="set_document" getter="get_document">
+			Document édité.
+		</member>
+		<member name="erasers" type="DrawingBrush[]" setter="set_erasers" getter="get_erasers" default="[]">
+			Préréglages proposés pour la gomme. Vide : gomme dure et gomme douce.
+		</member>
+		<member name="file_access" type="int" setter="set_file_access" getter="get_file_access" default="2">
+			Accès des boîtes de dialogue de fichier ([enum FileDialog.Access]).
+		</member>
+		<member name="show_file_buttons" type="bool" setter="set_show_file_buttons" getter="get_show_file_buttons" default="true">
+			Affiche les boutons et raccourcis de fichier.
+		</member>
+	</members>
+	<signals>
+		<signal name="document_opened">
+			<param index="0" name="path" type="String" />
+			<description>
+				Émis après l'ouverture d'un fichier.
+			</description>
+		</signal>
+		<signal name="document_saved">
+			<param index="0" name="path" type="String" />
+			<description>
+				Émis après un enregistrement.
+			</description>
+		</signal>
+	</signals>
+</class>

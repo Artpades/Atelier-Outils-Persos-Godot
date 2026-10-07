@@ -16,6 +16,7 @@ const SUITES := {
 	"Glisser-déposer d'objet": preload("✊📦🤚Glisser-Déposer d'objet/suite_tests_glisser_deposer.gd"),
 	"HUD spatial interactif": preload("🖥️HUD interactive dans Monde 3D/suite_tests_hud.gd"),
 	"Succès - Réalisation": preload("🏆Succès - Réalisation/suite_tests_succes.gd"),
+	"Système de dessin": preload("✏️Système de dessin/suite_tests_dessin.gd"),
 }
 
 
