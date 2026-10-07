@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Gauge" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📊 Jauge de valeur bornée entre un minimum et un maximum, avec notification de changement et de franchissement de seuils.
+	</brief_description>
+	<description>
+		Ressource représentant une jauge : la valeur courante [member current_value] est toujours bornée entre [member min_value] et [member max_value].
+		Utilisable pour des barres de vie, de mana, d'endurance, des compteurs de ressources, ou tout système nécessitant une valeur bornée avec notification de changement.
+		Les signaux ne sont émis que si la valeur change réellement après bornage. Des seuils, exprimés en pourcentage de la plage min-max, peuvent être surveillés avec [member thresholds].
+		[codeblock]
+		var vie := Gauge.new()
+		vie.max_value = 200.0
+		vie.thresholds = PackedFloat32Array([25.0, 50.0])
+		vie.threshold_crossed_down.connect(func(seuil): print("Sous ", seuil, " %"))
+		vie.depleted.connect(_mourir)
+		vie.add(-160.0) # 200 → 40 (20 %) : émet threshold_crossed_down(50) puis threshold_crossed_down(25)
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add">
+			<return type="float" />
+			<param index="0" name="amount" type="float" />
+			<description>
+				Ajoute [param amount] à la valeur courante (négatif pour retirer) et renvoie la variation réellement appliquée après bornage. Ex. : retirer 30 à une jauge à 10 (minimum 0) renvoie -10.
+			</description>
+		</method>
+		<method name="deplete">
+			<return type="void" />
+			<description>
+				Vide la jauge : la valeur courante passe à [member min_value].
+			</description>
+		</method>
+		<method name="fill">
+			<return type="void" />
+			<description>
+				Remplit la jauge : la valeur courante passe à [member max_value].
+			</description>
+		</method>
+		<method name="get_percent" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie le remplissage entre 0 et 100.
+			</description>
+		</method>
+		<method name="get_previous_value" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie la valeur courante avant son dernier changement.
+			</description>
+		</method>
+		<method name="get_ratio" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie le remplissage entre 0 ([member min_value]) et 1 ([member max_value]). Renvoie 0 si la plage est nulle.
+			</description>
+		</method>
+		<method name="is_empty" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si la valeur courante est au minimum.
+			</description>
+		</method>
+		<method name="is_full" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si la valeur courante est au maximum.
+			</description>
+		</method>
+		<method name="set_ratio">
+			<return type="void" />
+			<param index="0" name="ratio" type="float" />
+			<description>
+				Place la valeur courante à [param ratio] de la plage (0 = minimum, 1 = maximum).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="current_value" type="float" setter="set_current_value" getter="get_current_value" default="100.0">
+			Valeur courante, automatiquement bornée entre [member min_value] et [member max_value]. Si elle change, émet [signal current_value_changed], les signaux de seuils franchis, puis [signal filled] ou [signal depleted] si une borne est atteinte.
+		</member>
+		<member name="max_value" type="float" setter="set_max_value" getter="get_max_value" default="100.0">
+			Valeur maximale. Si elle devient inférieure à [member min_value], celui-ci est abaissé d'autant. La valeur courante est rebornée.
+		</member>
+		<member name="min_value" type="float" setter="set_min_value" getter="get_min_value" default="0.0">
+			Valeur minimale. Si elle dépasse [member max_value], celui-ci est relevé d'autant. La valeur courante est rebornée.
+		</member>
+		<member name="thresholds" type="PackedFloat32Array" setter="set_thresholds" getter="get_thresholds" default="PackedFloat32Array()">
+			Seuils surveillés, en pourcentage de la plage min-max (0 = minimum, 100 = maximum). Évalués à chaque changement de [member current_value] ; lors d'un grand saut, chaque seuil traversé est signalé, dans l'ordre du franchissement.
+		</member>
+	</members>
+	<signals>
+		<signal name="current_value_changed">
+			<param index="0" name="new_value" type="float" />
+			<param index="1" name="previous_value" type="float" />
+			<description>
+				Émis lorsque la valeur courante change réellement (après bornage).
+			</description>
+		</signal>
+		<signal name="depleted">
+			<description>
+				Émis lorsque la valeur courante atteint [member min_value].
+			</description>
+		</signal>
+		<signal name="filled">
+			<description>
+				Émis lorsque la valeur courante atteint [member max_value].
+			</description>
+		</signal>
+		<signal name="max_value_changed">
+			<param index="0" name="new_value" type="float" />
+			<description>
+				Émis lorsque la valeur maximale change.
+			</description>
+		</signal>
+		<signal name="min_value_changed">
+			<param index="0" name="new_value" type="float" />
+			<description>
+				Émis lorsque la valeur minimale change.
+			</description>
+		</signal>
+		<signal name="threshold_crossed_down">
+			<param index="0" name="threshold_percent" type="float" />
+			<description>
+				Émis lorsque la valeur descend jusqu'à un seuil de [member thresholds] ou en dessous, alors qu'elle était au-dessus.
+			</description>
+		</signal>
+		<signal name="threshold_crossed_up">
+			<param index="0" name="threshold_percent" type="float" />
+			<description>
+				Émis lorsque la valeur monte jusqu'à un seuil de [member thresholds] ou au-dessus, alors qu'elle était en dessous.
+			</description>
+		</signal>
+	</signals>
+</class>

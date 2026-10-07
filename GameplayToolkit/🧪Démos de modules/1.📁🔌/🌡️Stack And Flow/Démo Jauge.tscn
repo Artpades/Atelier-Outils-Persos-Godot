@@ -1,0 +1,121 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/1.📁🔌/🌡️Stack And Flow/demo_jauge.gd" id="1_demo"]
+
+[sub_resource type="Gauge" id="Gauge_vie"]
+max_value = 200.0
+current_value = 200.0
+thresholds = PackedFloat32Array(25, 50, 75)
+
+[node name="DémoJauge" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+jauge = SubResource("Gauge_vie")
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="Marges" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Colonnes" type="HBoxContainer" parent="Marges"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Commandes" type="VBoxContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Titre" type="Label" parent="Marges/Colonnes/Commandes"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🌡️ Jauge de vie (Gauge)"
+
+[node name="Barre" type="ProgressBar" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+max_value = 200.0
+value = 200.0
+show_percentage = false
+
+[node name="Etiquette" type="Label" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Actions" type="HBoxContainer" parent="Marges/Colonnes/Commandes"]
+layout_mode = 2
+
+[node name="BoutonDegats" type="Button" parent="Marges/Colonnes/Commandes/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⚔️ Dégâts -15"
+
+[node name="BoutonSoin" type="Button" parent="Marges/Colonnes/Commandes/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🧪 Soin +10"
+
+[node name="Extremes" type="HBoxContainer" parent="Marges/Colonnes/Commandes"]
+layout_mode = 2
+
+[node name="BoutonRemplir" type="Button" parent="Marges/Colonnes/Commandes/Extremes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "💚 Remplir"
+
+[node name="BoutonVider" type="Button" parent="Marges/Colonnes/Commandes/Extremes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "💀 Vider"
+
+[node name="EtiquetteMax" type="Label" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Maximum : 200"
+
+[node name="SliderMax" type="HSlider" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 10.0
+max_value = 400.0
+step = 10.0
+value = 200.0
+
+[node name="BoutonTests" type="Button" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🧪 Relancer les tests"
+
+[node name="Journal" type="RichTextLabel" parent="Marges/Colonnes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+scroll_following = true
