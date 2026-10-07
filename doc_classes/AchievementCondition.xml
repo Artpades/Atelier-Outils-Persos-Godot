@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AchievementCondition" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🚩 Condition d'un [Achievement], remplie une fois pour toutes (drapeau). Base des autres conditions.
+	</brief_description>
+	<description>
+		Équivalent du [code]CustomFlagCondition[/code] de tModLoader. La condition est remplie :
+		- par code, avec [method complete] (ou [method AchievementManager.complete_condition]) ;
+		- ou à la réception d'un évènement ([method AchievementManager.notify]) dont le nom vaut [member event_name] et dont l'identifiant figure dans [member event_ids] (liste vide : n'importe quel identifiant).
+		Chaque changement d'état émet [signal Resource.changed] : le succès qui contient la condition se réévalue. Une condition remplie le reste jusqu'à [method reset] et ignore les évènements suivants.
+		Les classes dérivées redéfinissent la progression : [AchievementCounterCondition] (valeur à atteindre) et [AchievementCollectionCondition] (identifiants à tous obtenir).
+		[b]Condition personnalisée[/b] : un script qui hérite de cette classe peut redéfinir [method _handle_event] :
+		[codeblock]
+		extends AchievementCondition
+		## Remplie en finissant un niveau sans subir de dégât.
+		var _touche := false
+
+		func _handle_event(event: StringName, _id: String, _amount: float) -&gt; bool:
+			match event:
+				&amp;"player_hit": _touche = true
+				&amp;"level_started": _touche = false
+				&amp;"level_finished": if not _touche: complete()
+				_: return false
+			return true
+		[/codeblock]
+		L'état d'un script (variables) n'est pas sauvegardé : seul l'état rempli / non rempli l'est.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_handle_event" qualifiers="virtual">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="id" type="String" />
+			<param index="2" name="amount" type="float" />
+			<description>
+				À redéfinir dans un script pour une logique personnalisée : reçoit chaque évènement transmis à la condition non remplie, à la place du test [method matches]. Renvoie [code]true[/code] si l'évènement concerne la condition ; appeler [method complete] pour la remplir.
+			</description>
+		</method>
+		<method name="complete">
+			<return type="void" />
+			<description>
+				Remplit la condition (un compteur passe à sa cible, une collection est complétée) et émet [signal completed].
+			</description>
+		</method>
+		<method name="get_progress" qualifiers="const">
+			<return type="float" />
+			<description>
+				Progression entre 0 et 1.
+			</description>
+		</method>
+		<method name="get_progress_text" qualifiers="const">
+			<return type="String" />
+			<description>
+				Progression lisible, sans décimales inutiles : [code]"3/10"[/code], [code]"2.5/10"[/code], [code]"0/1"[/code] pour un drapeau. Une valeur au-delà de la cible est affichée plafonnée.
+			</description>
+		</method>
+		<method name="get_state" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				État sauvegardable de la condition (utilisé par [method Achievement.get_state]).
+			</description>
+		</method>
+		<method name="get_target" qualifiers="const">
+			<return type="float" />
+			<description>
+				Valeur à atteindre : 1 pour un drapeau.
+			</description>
+		</method>
+		<method name="get_value" qualifiers="const">
+			<return type="float" />
+			<description>
+				Valeur actuelle : 0 ou 1 pour un drapeau.
+			</description>
+		</method>
+		<method name="is_completed" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si la condition est remplie.
+			</description>
+		</method>
+		<method name="matches" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="id" type="String" />
+			<description>
+				Vrai si l'évènement [param event] d'identifiant [param id] concerne cette condition : même nom que [member event_name] (non vide) et identifiant présent dans [member event_ids] (ou liste vide).
+			</description>
+		</method>
+		<method name="notify">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="id" type="String" default="&quot;&quot;" />
+			<param index="2" name="amount" type="float" default="1.0" />
+			<description>
+				Transmet un évènement à la condition. Renvoie [code]true[/code] s'il l'a fait progresser ; sans effet si elle est déjà remplie.
+			</description>
+		</method>
+		<method name="reset">
+			<return type="void" />
+			<description>
+				Remet la condition à zéro.
+			</description>
+		</method>
+		<method name="set_state">
+			<return type="void" />
+			<param index="0" name="state" type="Dictionary" />
+			<description>
+				Restaure un état produit par [method get_state], sans émettre de signal.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="condition_name" type="StringName" setter="set_condition_name" getter="get_condition_name" default="&amp;&quot;&quot;">
+			Nom de la condition dans son succès : utilisé par [method Achievement.get_condition], [method AchievementManager.complete_condition], [member Achievement.tracked_condition], et comme clé de sauvegarde (sinon son rang dans la liste).
+		</member>
+		<member name="event_ids" type="PackedStringArray" setter="set_event_ids" getter="get_event_ids" default="PackedStringArray()">
+			Identifiants acceptés pour [member event_name] (ex. [code]["slime", "zombie"][/code]). Vide : n'importe quel identifiant. Un identifiant numérique passé à [method AchievementManager.notify] est comparé sous forme de texte.
+		</member>
+		<member name="event_name" type="StringName" setter="set_event_name" getter="get_event_name" default="&amp;&quot;&quot;">
+			Nom de l'évènement de jeu qui fait progresser la condition (ex. [code]&amp;"enemy_killed"[/code]). Vide : condition remplie uniquement par code.
+		</member>
+	</members>
+	<signals>
+		<signal name="completed">
+			<description>
+				Émis quand la condition devient remplie.
+			</description>
+		</signal>
+	</signals>
+</class>

@@ -1,0 +1,259 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🏆Succès - Réalisation/demo_succes.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🏆Succès - Réalisation/condition_clics_rapides.gd" id="3_clics"]
+
+[sub_resource type="Gradient" id="Degrade_Icone_combat"]
+colors = PackedColorArray(1, 0.45, 0.35, 1, 0.55, 0.12, 0.1, 1)
+
+[sub_resource type="GradientTexture2D" id="Icone_combat"]
+gradient = SubResource("Degrade_Icone_combat")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.35)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Degrade_Icone_objets"]
+colors = PackedColorArray(1, 0.88, 0.4, 1, 0.7, 0.45, 0.08, 1)
+
+[sub_resource type="GradientTexture2D" id="Icone_objets"]
+gradient = SubResource("Degrade_Icone_objets")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.35)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Degrade_Icone_exploration"]
+colors = PackedColorArray(0.5, 0.95, 0.55, 1, 0.1, 0.45, 0.2, 1)
+
+[sub_resource type="GradientTexture2D" id="Icone_exploration"]
+gradient = SubResource("Degrade_Icone_exploration")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.35)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Degrade_Icone_defi"]
+colors = PackedColorArray(0.85, 0.55, 1, 1, 0.35, 0.12, 0.55, 1)
+
+[sub_resource type="GradientTexture2D" id="Icone_defi"]
+gradient = SubResource("Degrade_Icone_defi")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.35)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Degrade_Icone_meta"]
+colors = PackedColorArray(0.55, 0.8, 1, 1, 0.12, 0.3, 0.65, 1)
+
+[sub_resource type="GradientTexture2D" id="Icone_meta"]
+gradient = SubResource("Degrade_Icone_meta")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.35)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Gradient" id="Degrade_Icone_verrouillee"]
+colors = PackedColorArray(0.42, 0.42, 0.46, 1, 0.16, 0.16, 0.19, 1)
+
+[sub_resource type="GradientTexture2D" id="Icone_verrouillee"]
+gradient = SubResource("Degrade_Icone_verrouillee")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.35)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="AchievementCondition" id="Cond_premier_sang"]
+event_name = &"enemy_killed"
+
+[sub_resource type="AchievementCounterCondition" id="Cond_slimes"]
+event_name = &"enemy_killed"
+event_ids = PackedStringArray("slime")
+target = 10.0
+
+[sub_resource type="AchievementCounterCondition" id="Cond_pieces"]
+event_name = &"coin_collected"
+target = 100.0
+
+[sub_resource type="AchievementCollectionCondition" id="Cond_gemmes"]
+event_name = &"gem_found"
+required_ids = PackedStringArray("rubis", "saphir", "émeraude", "topaze", "améthyste")
+
+[sub_resource type="AchievementCollectionCondition" id="Cond_biomes"]
+event_name = &"biome_visited"
+required_ids = PackedStringArray("forêt", "désert", "toundra", "jungle")
+
+[sub_resource type="AchievementCounterCondition" id="Cond_score"]
+event_name = &"score"
+target = 1000.0
+value_mode = 1
+
+[sub_resource type="AchievementCondition" id="Cond_boss_vaincu"]
+condition_name = &"vaincu"
+event_name = &"boss_defeated"
+
+[sub_resource type="AchievementCounterCondition" id="Cond_boss_fui"]
+condition_name = &"fui"
+event_name = &"boss_fled"
+target = 3.0
+
+[sub_resource type="AchievementCondition" id="Cond_clics"]
+script = ExtResource("3_clics")
+event_name = &"clic_frenetique"
+clics = 5
+delai = 1.5
+
+[sub_resource type="AchievementCounterCondition" id="Cond_cinq_succes"]
+event_name = &"achievement_unlocked"
+target = 5.0
+
+[sub_resource type="AchievementCollectionCondition" id="Cond_aventurier"]
+event_name = &"achievement_unlocked"
+required_ids = PackedStringArray("joaillier", "explorateur", "record")
+
+[sub_resource type="Achievement" id="Succes_premier_sang"]
+id = &"premier_sang"
+display_name = "Premier sang"
+description = "Vaincre un ennemi, n'importe lequel."
+icon = SubResource("Icone_combat")
+locked_icon = SubResource("Icone_verrouillee")
+category = 1
+conditions = Array[AchievementCondition]([SubResource("Cond_premier_sang")])
+
+[sub_resource type="Achievement" id="Succes_chasseur_slimes"]
+id = &"chasseur_slimes"
+display_name = "Fléau des slimes"
+description = "Vaincre 10 slimes."
+icon = SubResource("Icone_combat")
+locked_icon = SubResource("Icone_verrouillee")
+category = 1
+conditions = Array[AchievementCondition]([SubResource("Cond_slimes")])
+
+[sub_resource type="Achievement" id="Succes_tresorier"]
+id = &"tresorier"
+display_name = "Trésorier"
+description = "Amasser 100 pièces."
+icon = SubResource("Icone_objets")
+locked_icon = SubResource("Icone_verrouillee")
+category = 2
+conditions = Array[AchievementCondition]([SubResource("Cond_pieces")])
+
+[sub_resource type="Achievement" id="Succes_joaillier"]
+id = &"joaillier"
+display_name = "Joaillier"
+description = "Trouver chaque gemme : rubis, saphir, émeraude, topaze et améthyste."
+icon = SubResource("Icone_objets")
+locked_icon = SubResource("Icone_verrouillee")
+category = 2
+conditions = Array[AchievementCondition]([SubResource("Cond_gemmes")])
+
+[sub_resource type="Achievement" id="Succes_explorateur"]
+id = &"explorateur"
+display_name = "Grand voyageur"
+description = "Visiter la forêt, le désert, la toundra et la jungle."
+icon = SubResource("Icone_exploration")
+locked_icon = SubResource("Icone_verrouillee")
+category = 3
+conditions = Array[AchievementCondition]([SubResource("Cond_biomes")])
+
+[sub_resource type="Achievement" id="Succes_record"]
+id = &"record"
+display_name = "Champion"
+description = "Atteindre un score de 1 000 en une seule partie."
+icon = SubResource("Icone_defi")
+locked_icon = SubResource("Icone_verrouillee")
+category = 4
+conditions = Array[AchievementCondition]([SubResource("Cond_score")])
+
+[sub_resource type="Achievement" id="Succes_pile_ou_face"]
+id = &"pile_ou_face"
+display_name = "Pile ou face"
+description = "Vaincre le boss… ou le fuir 3 fois."
+icon = SubResource("Icone_defi")
+locked_icon = SubResource("Icone_verrouillee")
+category = 4
+conditions = Array[AchievementCondition]([SubResource("Cond_boss_vaincu"), SubResource("Cond_boss_fui")])
+completion_mode = 1
+
+[sub_resource type="Achievement" id="Succes_doigts_de_fee"]
+id = &"doigts_de_fee"
+display_name = "Doigts de fée"
+description = "Cliquer 5 fois en moins d'une seconde et demie (condition écrite en GDScript)."
+icon = SubResource("Icone_defi")
+locked_icon = SubResource("Icone_verrouillee")
+category = 4
+hidden = true
+conditions = Array[AchievementCondition]([SubResource("Cond_clics")])
+
+[sub_resource type="Achievement" id="Succes_chasseur_succes"]
+id = &"chasseur_succes"
+display_name = "Chasseur de succès"
+description = "Débloquer 5 succès."
+icon = SubResource("Icone_meta")
+locked_icon = SubResource("Icone_verrouillee")
+category = 0
+conditions = Array[AchievementCondition]([SubResource("Cond_cinq_succes")])
+
+[sub_resource type="Achievement" id="Succes_aventurier"]
+id = &"aventurier"
+display_name = "Aventurier accompli"
+description = "Débloquer Joaillier, Grand voyageur et Champion."
+icon = SubResource("Icone_meta")
+locked_icon = SubResource("Icone_verrouillee")
+category = 0
+conditions = Array[AchievementCondition]([SubResource("Cond_aventurier")])
+
+[node name="DémoSuccès" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.09, 0.09, 0.11, 1)
+
+[node name="Gestionnaire" type="AchievementManager" parent="."]
+achievements = Array[Achievement]([SubResource("Succes_premier_sang"), SubResource("Succes_chasseur_slimes"), SubResource("Succes_tresorier"), SubResource("Succes_joaillier"), SubResource("Succes_explorateur"), SubResource("Succes_record"), SubResource("Succes_pile_ou_face"), SubResource("Succes_doigts_de_fee"), SubResource("Succes_chasseur_succes"), SubResource("Succes_aventurier")])
+save_path = "user://demo_succes.cfg"
+notification_position = 1
+
+[node name="Marges" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -440.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="Zone" type="VBoxContainer" parent="Marges"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Panneau" type="PanelContainer" parent="."]
+layout_mode = 0
+script = ExtResource("2_panneau")
+titre = "🏆 Succès - Réalisation"
+aide = "Les boutons de gauche simulent le jeu : ils appellent seulement notify(évènement, id, quantité). Chaque condition décide si l'évènement la concerne. La progression est sauvegardée et retrouvée au prochain lancement."

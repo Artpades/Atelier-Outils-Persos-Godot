@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Achievement" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🏆 Succès : présentation (nom, description, icône, catégorie) et conditions de déblocage.
+	</brief_description>
+	<description>
+		Équivalent du [code]ModAchievement[/code] de tModLoader. Un succès contient une liste de [member conditions] ([AchievementCondition], [AchievementCounterCondition], [AchievementCollectionCondition] ou condition scriptée). Il se débloque quand elles sont remplies — toutes, ou une seule selon [member completion_mode] — puis émet [signal unlocked]. Chaque progrès d'une condition émet [signal progressed].
+		La barre de progression affichée suit [member progress_tracker] (comme [code]UseConditionsCompletedTracker[/code] / [code]UseTrackerFromCondition[/code] dans tModLoader).
+		L'état de jeu ([method is_unlocked], [method get_unlock_time], état des conditions) n'est jamais enregistré dans la ressource : il est sauvegardé par l'[AchievementManager] ([method get_state] / [method set_state]).
+		Les succès se configurent dans l'inspecteur (propriété [member AchievementManager.achievements], ou fichiers [code].tres[/code] partagés) ou par code :
+		[codeblock]
+		var succes := Achievement.new()
+		succes.id = &amp;"chasseur_slimes"
+		succes.display_name = "Fléau des slimes"
+		succes.description = "Vaincre 10 slimes."
+		succes.category = Achievement.CATEGORY_SLAYER
+		var tues := AchievementCounterCondition.new()
+		tues.event_name = &amp;"enemy_killed"
+		tues.event_ids = ["slime"]
+		tues.target = 10
+		succes.add_condition(tues)
+		$Achievements.register_achievement(succes)
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_condition">
+			<return type="void" />
+			<param index="0" name="condition" type="AchievementCondition" />
+			<description>
+				Ajoute une condition (et écoute ses changements). Pour modifier [member conditions] en place, réaffecter le tableau ensuite.
+			</description>
+		</method>
+		<method name="evaluate">
+			<return type="bool" />
+			<description>
+				Débloque le succès si ses conditions sont remplies. Renvoie [code]true[/code] s'il vient d'être débloqué. Appelé automatiquement à chaque changement d'une condition.
+			</description>
+		</method>
+		<method name="get_completed_condition_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de conditions remplies.
+			</description>
+		</method>
+		<method name="get_condition" qualifiers="const">
+			<return type="AchievementCondition" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+				Condition nommée [param name] ([member AchievementCondition.condition_name]), ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_current_icon" qualifiers="const">
+			<return type="Texture2D" />
+			<description>
+				Icône à afficher selon l'état : [member locked_icon] tant que le succès est verrouillé (si elle est définie), sinon [member icon].
+			</description>
+		</method>
+		<method name="get_progress" qualifiers="const">
+			<return type="float" />
+			<description>
+				Progression entre 0 et 1 selon [member progress_tracker] (1 une fois débloqué, 0 avec [constant TRACKER_NONE]).
+			</description>
+		</method>
+		<method name="get_progress_text" qualifiers="const">
+			<return type="String" />
+			<description>
+				Progression lisible : [code]"4/10"[/code] (condition suivie), [code]"1/3"[/code] (conditions remplies), [code]"33%"[/code] (meilleure condition en [constant COMPLETION_ANY]). Vide si [method has_progress] est faux.
+			</description>
+		</method>
+		<method name="get_state" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				État sauvegardable : [code]{ unlocked, unlock_time, conditions }[/code], [code]conditions[/code] étant indexé par nom de condition (sinon par rang).
+			</description>
+		</method>
+		<method name="get_unlock_time" qualifiers="const">
+			<return type="float" />
+			<description>
+				Date du déblocage en secondes Unix (UTC), 0 tant que le succès est verrouillé.
+			</description>
+		</method>
+		<method name="has_progress" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si le succès affiche une barre de progression : [member progress_tracker] différent de [constant TRACKER_NONE] et plus d'une étape (compteur de cible supérieure à 1, ou plusieurs conditions).
+			</description>
+		</method>
+		<method name="is_unlocked" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si le succès est débloqué.
+			</description>
+		</method>
+		<method name="notify">
+			<return type="bool" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="id" type="String" default="&quot;&quot;" />
+			<param index="2" name="amount" type="float" default="1.0" />
+			<description>
+				Transmet un évènement aux conditions non remplies (sans effet une fois débloqué). Renvoie [code]true[/code] si l'une d'elles a progressé. D'ordinaire appelé par [method AchievementManager.notify].
+			</description>
+		</method>
+		<method name="reset">
+			<return type="void" />
+			<description>
+				Reverrouille le succès, remet ses conditions à zéro et émet [signal progressed] avec 0.
+			</description>
+		</method>
+		<method name="set_state">
+			<return type="void" />
+			<param index="0" name="state" type="Dictionary" />
+			<description>
+				Restaure un état produit par [method get_state], sans émettre de signal. Une condition absente de l'état est remise à zéro.
+			</description>
+		</method>
+		<method name="unlock">
+			<return type="void" />
+			<description>
+				Débloque le succès sans attendre ses conditions (elles sont remplies), comme une commande de triche ou un succès donné par un évènement scénarisé.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="category" type="int" setter="set_category" getter="get_category" enum="Achievement.Category" default="0">
+			Catégorie (celles de Terraria), pour filtrer un menu des succès ([method AchievementManager.get_achievements_in_category]).
+		</member>
+		<member name="completion_mode" type="int" setter="set_completion_mode" getter="get_completion_mode" enum="Achievement.CompletionMode" default="0">
+			Toutes les conditions sont nécessaires, ou une seule suffit.
+		</member>
+		<member name="conditions" type="AchievementCondition[]" setter="set_conditions" getter="get_conditions" default="[]">
+			Conditions de déblocage. Un succès sans condition ne se débloque que par [method unlock].
+		</member>
+		<member name="description" type="String" setter="set_description" getter="get_description" default="&quot;&quot;">
+			Description affichée (par exemple dans un menu ou une info-bulle).
+		</member>
+		<member name="display_name" type="String" setter="set_display_name" getter="get_display_name" default="&quot;&quot;">
+			Nom affiché (notification de déblocage, menu...).
+		</member>
+		<member name="hidden" type="bool" setter="set_hidden" getter="is_hidden" default="false">
+			Succès secret : à l'interface d'afficher « ??? » tant qu'il est verrouillé. N'a aucun effet sur le déblocage.
+		</member>
+		<member name="icon" type="Texture2D" setter="set_icon" getter="get_icon">
+			Icône du succès débloqué (affichée aussi dans la notification).
+		</member>
+		<member name="id" type="StringName" setter="set_id" getter="get_id" default="&amp;&quot;&quot;">
+			Identifiant unique, utilisé par l'[AchievementManager] et comme clé de sauvegarde. Le changer fait perdre la progression sauvegardée.
+		</member>
+		<member name="locked_icon" type="Texture2D" setter="set_locked_icon" getter="get_locked_icon">
+			Icône facultative du succès verrouillé (ex. version grise de [member icon]).
+		</member>
+		<member name="progress_tracker" type="int" setter="set_progress_tracker" getter="get_progress_tracker" enum="Achievement.ProgressTracker" default="0">
+			Ce que mesure la barre de progression.
+		</member>
+		<member name="tracked_condition" type="StringName" setter="set_tracked_condition" getter="get_tracked_condition" default="&amp;&quot;&quot;">
+			Nom de la condition suivie avec [constant TRACKER_FROM_CONDITION].
+		</member>
+	</members>
+	<signals>
+		<signal name="progressed">
+			<param index="0" name="progress" type="float" />
+			<description>
+				Émis quand une condition progresse, quand le succès se débloque ([param progress] = 1) ou est réinitialisé (0).
+			</description>
+		</signal>
+		<signal name="unlocked">
+			<description>
+				Émis une fois, au déblocage.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="CATEGORY_NONE" value="0" enum="Category">
+			Sans catégorie.
+		</constant>
+		<constant name="CATEGORY_SLAYER" value="1" enum="Category">
+			Combat (« Slayer » dans Terraria).
+		</constant>
+		<constant name="CATEGORY_COLLECTOR" value="2" enum="Category">
+			Objets (« Collector »).
+		</constant>
+		<constant name="CATEGORY_EXPLORER" value="3" enum="Category">
+			Exploration (« Explorer »).
+		</constant>
+		<constant name="CATEGORY_CHALLENGER" value="4" enum="Category">
+			Défis difficiles (« Challenger »).
+		</constant>
+		<constant name="COMPLETION_ALL" value="0" enum="CompletionMode">
+			Toutes les conditions doivent être remplies (comportement de Terraria).
+		</constant>
+		<constant name="COMPLETION_ANY" value="1" enum="CompletionMode">
+			Une seule condition suffit (« vaincre le boss ou le fuir 3 fois »).
+		</constant>
+		<constant name="TRACKER_AUTO" value="0" enum="ProgressTracker">
+			Une seule condition : sa progression. Plusieurs : nombre de conditions remplies ([constant COMPLETION_ALL]) ou meilleure progression ([constant COMPLETION_ANY]).
+		</constant>
+		<constant name="TRACKER_NONE" value="1" enum="ProgressTracker">
+			Pas de barre de progression : débloqué ou non.
+		</constant>
+		<constant name="TRACKER_CONDITIONS_COMPLETED" value="2" enum="ProgressTracker">
+			Nombre de conditions remplies sur le total.
+		</constant>
+		<constant name="TRACKER_FROM_CONDITION" value="3" enum="ProgressTracker">
+			Progression de la condition nommée [member tracked_condition].
+		</constant>
+	</constants>
+</class>

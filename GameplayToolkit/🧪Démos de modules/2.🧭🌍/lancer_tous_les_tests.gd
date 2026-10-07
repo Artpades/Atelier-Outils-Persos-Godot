@@ -14,6 +14,8 @@ const SUITES := {
 	"Gestionnaire de scènes": preload("🎬Gestionnaire de scènes/suite_tests_gestionnaire_scenes.gd"),
 	"Changeur de visuels": preload("🎭Changeur de visuels/suite_tests_visuels.gd"),
 	"Glisser-déposer d'objet": preload("✊📦🤚Glisser-Déposer d'objet/suite_tests_glisser_deposer.gd"),
+	"HUD spatial interactif": preload("🖥️HUD interactive dans Monde 3D/suite_tests_hud.gd"),
+	"Succès - Réalisation": preload("🏆Succès - Réalisation/suite_tests_succes.gd"),
 }
 
 

@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[sub_resource type="StyleBoxFlat" id="Style_fond"]
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+bg_color = Color(0.03, 0.08, 0.05, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.25, 0.8, 0.45, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Ecran" type="PanelContainer"]
+theme_override_styles/panel = SubResource("Style_fond")
+
+[node name="Lignes" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Entete" type="HBoxContainer" parent="Lignes"]
+layout_mode = 2
+
+[node name="Titre" type="Label" parent="Lignes/Entete"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.45, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "📟 Journal du cube"
+
+[node name="Vider" type="Button" parent="Lignes/Entete"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Vider"
+
+[node name="Liste" type="ItemList" parent="Lignes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.6, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 16

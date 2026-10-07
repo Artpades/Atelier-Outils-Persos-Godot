@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InteractiveHUD3D" inherits="Node3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🖥️ Interface graphique (Control) affichée sur un panneau dans le monde 3D, utilisable au curseur.
+	</brief_description>
+	<description>
+		Le nœud crée lui-même, en enfants internes jamais sauvegardés, un [SubViewport] qui affiche le contenu ([member content_scene] ou [method set_content]) et un quad texturé par ce SubViewport ([member viewport_size] × [member pixel_size] mètres). Le contenu est aussi visible dans l'éditeur.
+		Le rayon du pointeur ([member pointer_source] : souris, centre de l'écran ou rayon fourni par code) est intersecté avec le quad ; le point touché est converti en pixels du SubViewport, où les évènements souris sont renvoyés. Boutons, curseurs, listes, champs de texte... fonctionnent comme à l'écran.
+		- [b]Plusieurs HUD[/b] : seul le plus proche du pointeur reçoit l'évènement (parmi ceux de même [member pointer_source], interactifs, visibles et non suspendus).
+		- [b]Capture[/b] : un bouton pressé sur le HUD le capture ; jusqu'au relâchement, le HUD suit le pointeur même hors du quad (glisser un curseur au-delà du bord). Le relâchement est capté dans [method Node._input] : il n'est jamais perdu.
+		- [b]Clavier[/b] : après un clic sur le HUD, les touches lui sont renvoyées tant qu'un de ses Control a le focus (champ de texte...) ; un clic ailleurs lui retire le focus.
+		- [b]Priorité[/b] : appuis et mouvements passent par [method Node._unhandled_input] (une interface à l'écran placée au-dessus garde la priorité) et sont consommés quand ils touchent le HUD.
+		- [b]Mouvement[/b] : le survol est réévalué à chaque image, même sans mouvement de souris (caméra ou HUD qui bougent).
+		[codeblock]
+		@onready var hud: InteractiveHUD3D = $Terminal
+
+		func _ready() -&gt; void:
+			hud.get_content().get_node("%Valider").pressed.connect(_valider)
+			hud.pointer_entered.connect(func(): $Terminal/Lumiere.visible = true)
+
+		# Laser de manette VR : pointer_source = POINTER_SOURCE_MANUAL
+		func _process(_delta: float) -&gt; void:
+			hud.set_pointer_ray($Main.global_position, -$Main.global_basis.z)
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_pointer_ray">
+			<return type="void" />
+			<description>
+				Retire le rayon manuel : le pointeur quitte le HUD et un bouton capturé est relâché.
+			</description>
+		</method>
+		<method name="get_content" qualifiers="const">
+			<return type="Node" />
+			<description>
+				Nœud affiché dans le SubViewport (instance de [member content_scene], ou nœud passé à [method set_content]), ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_pointer_position" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Dernière position du pointeur sur le HUD, en pixels du SubViewport. Pendant une capture, elle peut sortir du SubViewport. Vaut [code](-1, -1)[/code] quand le HUD n'est ni survolé ni capturé.
+			</description>
+		</method>
+		<method name="get_quad_size" qualifiers="const">
+			<return type="Vector2" />
+			<description>
+				Taille du quad en mètres : [member viewport_size] × [member pixel_size].
+			</description>
+		</method>
+		<method name="get_sub_viewport" qualifiers="const">
+			<return type="SubViewport" />
+			<description>
+				SubViewport interne qui affiche le contenu (pour régler par exemple son [member Viewport.msaa_2d] ou son [member SubViewport.render_target_update_mode]).
+			</description>
+		</method>
+		<method name="hud_to_world" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="pixel" type="Vector2" />
+			<description>
+				Position globale du point du quad correspondant au pixel [param pixel] du SubViewport (billboard compris). Utile pour placer un effet sur un bouton ou projeter un pixel à l'écran avec [method Camera3D.unproject_position].
+			</description>
+		</method>
+		<method name="is_captured" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai entre l'appui d'un bouton sur le HUD et le relâchement du dernier bouton appuyé.
+			</description>
+		</method>
+		<method name="is_focused" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai après un clic sur le HUD, jusqu'à un clic ailleurs : le clavier lui est alors renvoyé (voir [member forward_keyboard]).
+			</description>
+		</method>
+		<method name="is_hovered" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si le pointeur est sur le HUD (et que ce HUD est le plus proche).
+			</description>
+		</method>
+		<method name="press_pointer">
+			<return type="void" />
+			<param index="0" name="button" type="int" enum="MouseButton" default="1" />
+			<description>
+				Appuie le bouton [param button] au point visé par le rayon manuel ([method set_pointer_ray]). Demande [constant POINTER_SOURCE_MANUAL]. Pour la molette, appeler [method press_pointer] puis [method release_pointer] avec [constant MOUSE_BUTTON_WHEEL_UP] / [constant MOUSE_BUTTON_WHEEL_DOWN].
+			</description>
+		</method>
+		<method name="ray_to_hud" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="origin" type="Vector3" />
+			<param index="1" name="direction" type="Vector3" />
+			<description>
+				Pixel du SubViewport touché par le rayon global ([param origin], [param direction]), ou [code]null[/code] (hors du quad, parallèle, derrière l'origine, ou vu de dos sans [member double_sided]). Test géométrique : ignore [member interactive], [member max_distance] et l'occultation.
+			</description>
+		</method>
+		<method name="release_pointer">
+			<return type="void" />
+			<param index="0" name="button" type="int" enum="MouseButton" default="1" />
+			<description>
+				Relâche le bouton [param button] appuyé par [method press_pointer]. Demande [constant POINTER_SOURCE_MANUAL].
+			</description>
+		</method>
+		<method name="screen_to_hud" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="screen_position" type="Vector2" />
+			<description>
+				Pixel du SubViewport sous la position [param screen_position] de l'écran (coordonnées du Viewport, caméra courante), ou [code]null[/code]. Voir [method ray_to_hud].
+			</description>
+		</method>
+		<method name="set_content">
+			<return type="void" />
+			<param index="0" name="content" type="Node" />
+			<description>
+				Remplace le contenu par [param content] (l'ancien est libéré). Un [Control] est étiré sur tout le SubViewport.
+			</description>
+		</method>
+		<method name="set_pointer_ray">
+			<return type="void" />
+			<param index="0" name="origin" type="Vector3" />
+			<param index="1" name="direction" type="Vector3" />
+			<description>
+				Définit le rayon du pointeur en coordonnées globales, pour [constant POINTER_SOURCE_MANUAL] (laser, manette, XR...). Le survol est mis à jour immédiatement ; à appeler à chaque image si la source bouge.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="always_on_top" type="bool" setter="set_always_on_top" getter="get_always_on_top" default="false">
+			Le quad est dessiné par-dessus les objets 3D (test de profondeur désactivé, priorité de rendu maximale).
+		</member>
+		<member name="billboard" type="int" setter="set_billboard" getter="get_billboard" enum="InteractiveHUD3D.BillboardMode" default="0">
+			Orientation du quad : celle du nœud, toujours face à la caméra, ou face à la caméra autour de l'axe Y seulement (étiquette au-dessus d'un personnage). L'échelle du nœud est conservée.
+		</member>
+		<member name="check_occlusion" type="bool" setter="set_check_occlusion" getter="get_check_occlusion" default="false">
+			Si vrai, le HUD n'est pas touché quand un corps physique (couches [member occlusion_mask]) se trouve entre l'origine du rayon et le quad.
+		</member>
+		<member name="content_scene" type="PackedScene" setter="set_content_scene" getter="get_content_scene">
+			Scène instanciée dans le SubViewport. Sa racine, si c'est un [Control], est étirée sur tout le SubViewport. Le contenu est aussi instancié dans l'éditeur (aperçu).
+		</member>
+		<member name="double_sided" type="bool" setter="set_double_sided" getter="get_double_sided" default="true">
+			Si vrai, le quad est visible et utilisable des deux côtés (vu de dos, l'image est en miroir). Sinon, il est invisible et ignoré par le pointeur de dos.
+		</member>
+		<member name="forward_keyboard" type="bool" setter="set_forward_keyboard" getter="get_forward_keyboard" default="true">
+			Si vrai, les touches sont renvoyées au HUD quand il a le focus ([method is_focused]) et qu'un de ses Control a le focus clavier. Les touches consommées par le HUD ne parviennent plus au jeu.
+		</member>
+		<member name="interactive" type="bool" setter="set_interactive" getter="is_interactive" default="true">
+			Si faux, le HUD n'est qu'un affichage : le pointeur le traverse.
+		</member>
+		<member name="max_distance" type="float" setter="set_max_distance" getter="get_max_distance" default="0.0">
+			Distance maximale (en mètres, depuis l'origine du rayon) à laquelle le HUD peut être utilisé. 0 : illimitée.
+		</member>
+		<member name="modulate" type="Color" setter="set_modulate" getter="get_modulate" default="Color(1, 1, 1, 1)">
+			Couleur multipliée à l'image du HUD (albédo du matériau). Une transparence active le mélange alpha.
+		</member>
+		<member name="occlusion_mask" type="int" setter="set_occlusion_mask" getter="get_occlusion_mask" default="1">
+			Couches physiques testées par [member check_occlusion].
+		</member>
+		<member name="pixel_size" type="float" setter="set_pixel_size" getter="get_pixel_size" default="0.0025">
+			Taille d'un pixel du SubViewport dans le monde, en mètres.
+		</member>
+		<member name="pointer_source" type="int" setter="set_pointer_source" getter="get_pointer_source" enum="InteractiveHUD3D.PointerSource" default="0">
+			Origine du rayon du pointeur : souris, centre de l'écran (souris capturée, viseur) ou rayon fourni par code ([method set_pointer_ray]).
+		</member>
+		<member name="transparent_background" type="bool" setter="set_transparent_background" getter="get_transparent_background" default="true">
+			Si vrai, le fond du SubViewport est transparent : seuls les Control dessinés sont visibles.
+		</member>
+		<member name="unshaded" type="bool" setter="set_unshaded" getter="get_unshaded" default="true">
+			Si vrai, le quad n'est pas éclairé par la scène (couleurs de l'interface intactes).
+		</member>
+		<member name="viewport_size" type="Vector2i" setter="set_viewport_size" getter="get_viewport_size" default="Vector2i(512, 320)">
+			Taille du SubViewport en pixels (résolution de l'interface).
+		</member>
+	</members>
+	<signals>
+		<signal name="pointer_entered">
+			<description>
+				Émis quand le pointeur arrive sur le HUD.
+			</description>
+		</signal>
+		<signal name="pointer_exited">
+			<description>
+				Émis quand le pointeur quitte le HUD (ou qu'il devient caché, non interactif, ou masqué par un HUD plus proche).
+			</description>
+		</signal>
+		<signal name="pointer_pressed">
+			<param index="0" name="position" type="Vector2" />
+			<param index="1" name="button_index" type="int" />
+			<description>
+				Émis à l'appui d'un bouton (hors molette) sur le HUD, avec la position en pixels du SubViewport.
+			</description>
+		</signal>
+		<signal name="pointer_released">
+			<param index="0" name="position" type="Vector2" />
+			<param index="1" name="button_index" type="int" />
+			<description>
+				Émis au relâchement d'un bouton capturé, même hors du quad.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="POINTER_SOURCE_MOUSE" value="0" enum="PointerSource">
+			Rayon de la caméra courante passant par le curseur de la souris.
+		</constant>
+		<constant name="POINTER_SOURCE_SCREEN_CENTER" value="1" enum="PointerSource">
+			Rayon de la caméra courante passant par le centre de l'écran (jeu à la première personne, souris capturée). Les clics visent le centre quelle que soit leur position.
+		</constant>
+		<constant name="POINTER_SOURCE_MANUAL" value="2" enum="PointerSource">
+			Rayon fourni par [method set_pointer_ray] ; boutons par [method press_pointer] / [method release_pointer]. La souris est ignorée.
+		</constant>
+		<constant name="BILLBOARD_DISABLED" value="0" enum="BillboardMode">
+			Le quad suit l'orientation du nœud.
+		</constant>
+		<constant name="BILLBOARD_ENABLED" value="1" enum="BillboardMode">
+			Le quad fait toujours face à la caméra.
+		</constant>
+		<constant name="BILLBOARD_Y" value="2" enum="BillboardMode">
+			Le quad tourne autour de l'axe Y pour faire face à la caméra, en restant vertical.
+		</constant>
+	</constants>
+</class>

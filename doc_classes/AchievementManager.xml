@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AchievementManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🏆 Gestionnaire de succès : évènements de jeu, déblocages, sauvegarde et notifications à l'écran.
+	</brief_description>
+	<description>
+		Équivalent de l'[code]AchievementManager[/code] / [code]AchievementsHelper[/code] de Terraria. Il contient la liste des [member achievements] et transmet à leurs conditions les évènements signalés par le jeu avec [method notify] — le jeu n'a pas à connaître les succès :
+		[codeblock]
+		# Autoload « Achievements » (scène contenant un AchievementManager configuré)
+		func _on_ennemi_mort(ennemi: Ennemi) -&gt; void:
+			Achievements.notify(&amp;"enemy_killed", ennemi.type_id)
+
+		func _on_piece_ramassee(valeur: int) -&gt; void:
+			Achievements.notify(&amp;"coin_collected", "", valeur)
+
+		func _ready() -&gt; void:
+			Achievements.achievement_unlocked.connect(func(succes: Achievement):
+				Steam.setAchievement(succes.id)) # plateforme externe
+		[/codeblock]
+		Au déblocage d'un succès, le gestionnaire émet [signal achievement_unlocked], affiche une notification ([member show_notifications]) et joue [member unlock_sound], sauvegarde ([member auto_save]), puis émet lui-même l'évènement [code]&amp;"achievement_unlocked"[/code] avec l'id du succès : une [AchievementCounterCondition] ou une [AchievementCollectionCondition] sur cet évènement crée des méta-succès (« débloquer 5 succès », « débloquer A, B et C »).
+		La progression est sauvegardée dans [member save_path] (un [ConfigFile], une section par succès, chiffré si [member save_password] est défini), rechargée au [code]_ready[/code] ([member auto_load]) et sauvegardée à chaque déblocage et à la sortie de l'arbre ([member auto_save]). Pour un système de sauvegarde externe : [method get_state] / [method set_state].
+		Dans l'éditeur, le gestionnaire n'affiche rien et ne lit ni n'écrit de sauvegarde.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_progress">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="condition" type="StringName" />
+			<param index="2" name="amount" type="float" default="1.0" />
+			<description>
+				Ajoute [param amount] à la condition à compteur [param condition] du succès [param id] (sans effet s'il est déjà débloqué).
+			</description>
+		</method>
+		<method name="complete_condition">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<param index="1" name="condition" type="StringName" />
+			<description>
+				Remplit la condition [param condition] du succès [param id] (comme [code]Condition.Complete()[/code] dans tModLoader).
+			</description>
+		</method>
+		<method name="get_achievement" qualifiers="const">
+			<return type="Achievement" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+				Succès d'identifiant [param id], ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_achievement_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de succès.
+			</description>
+		</method>
+		<method name="get_achievements_in_category" qualifiers="const">
+			<return type="Achievement[]" />
+			<param index="0" name="category" type="int" enum="Achievement.Category" />
+			<description>
+				Succès de la catégorie [param category], dans l'ordre de [member achievements].
+			</description>
+		</method>
+		<method name="get_completion_ratio" qualifiers="const">
+			<return type="float" />
+			<description>
+				Part des succès débloqués, entre 0 et 1.
+			</description>
+		</method>
+		<method name="get_notification_container" qualifiers="const">
+			<return type="BoxContainer" />
+			<description>
+				Conteneur des notifications affichées (une [PanelContainer] par notification, avec la méta [code]achievement_id[/code]), ou [code]null[/code] hors de l'arbre. Permet d'en modifier le thème.
+			</description>
+		</method>
+		<method name="get_state" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				État de tous les succès [code]{ id: état }[/code] (voir [method Achievement.get_state]), pour un système de sauvegarde externe.
+			</description>
+		</method>
+		<method name="get_unlocked_achievements" qualifiers="const">
+			<return type="Achievement[]" />
+			<description>
+				Succès débloqués, dans l'ordre de [member achievements].
+			</description>
+		</method>
+		<method name="get_unlocked_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de succès débloqués.
+			</description>
+		</method>
+		<method name="has_achievement" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+				Vrai si un succès d'identifiant [param id] existe.
+			</description>
+		</method>
+		<method name="is_unlocked" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+				Vrai si le succès [param id] existe et est débloqué.
+			</description>
+		</method>
+		<method name="load_achievements">
+			<return type="int" enum="Error" />
+			<description>
+				Recharge l'état depuis [member save_path] (avec [member save_password] s'il est défini). Fichier absent : renvoie [constant OK] sans rien changer. N'émet aucun signal de déblocage.
+			</description>
+		</method>
+		<method name="notify">
+			<return type="void" />
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="id" type="Variant" default="&quot;&quot;" />
+			<param index="2" name="amount" type="float" default="1.0" />
+			<description>
+				Signale un évènement de jeu [param event] (identifiant [param id] de type quelconque, comparé sous forme de texte ; quantité [param amount]) à toutes les conditions des succès verrouillés. Émet [signal event_notified] avant de le transmettre.
+			</description>
+		</method>
+		<method name="register_achievement">
+			<return type="void" />
+			<param index="0" name="achievement" type="Achievement" />
+			<description>
+				Ajoute un succès. Refusé si un autre succès a le même [member Achievement.id].
+			</description>
+		</method>
+		<method name="reset_achievement">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+				Reverrouille le succès [param id] et remet ses conditions à zéro.
+			</description>
+		</method>
+		<method name="reset_all">
+			<return type="void" />
+			<description>
+				Reverrouille tous les succès.
+			</description>
+		</method>
+		<method name="save_achievements" qualifiers="const">
+			<return type="int" enum="Error" />
+			<description>
+				Sauvegarde l'état de tous les succès dans [member save_path] (chiffré si [member save_password] est défini).
+			</description>
+		</method>
+		<method name="set_state">
+			<return type="void" />
+			<param index="0" name="state" type="Dictionary" />
+			<description>
+				Restaure un état produit par [method get_state] (clés [StringName] ou [String]), sans émettre de signal. Les succès absents de l'état sont reverrouillés.
+			</description>
+		</method>
+		<method name="show_notification">
+			<return type="void" />
+			<param index="0" name="achievement" type="Achievement" />
+			<description>
+				Affiche la notification de déblocage de [param achievement] (appelé automatiquement si [member show_notifications]).
+			</description>
+		</method>
+		<method name="unlock">
+			<return type="void" />
+			<param index="0" name="id" type="StringName" />
+			<description>
+				Débloque le succès [param id] sans attendre ses conditions.
+			</description>
+		</method>
+		<method name="unregister_achievement">
+			<return type="void" />
+			<param index="0" name="achievement" type="Achievement" />
+			<description>
+				Retire un succès : il ne reçoit plus les évènements et ses déblocages ne sont plus signalés.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="achievements" type="Achievement[]" setter="set_achievements" getter="get_achievements" default="[]">
+			Succès gérés. L'ordre est celui des listes renvoyées (menu des succès).
+		</member>
+		<member name="auto_load" type="bool" setter="set_auto_load" getter="get_auto_load" default="true">
+			Si vrai, l'état est rechargé depuis [member save_path] au [code]_ready[/code].
+		</member>
+		<member name="auto_save" type="bool" setter="set_auto_save" getter="get_auto_save" default="true">
+			Si vrai, l'état est sauvegardé à chaque déblocage et à la sortie de l'arbre (fermeture du jeu).
+		</member>
+		<member name="notification_duration" type="float" setter="set_notification_duration" getter="get_notification_duration" default="3.0">
+			Durée d'affichage d'une notification, en secondes (hors apparition et disparition).
+		</member>
+		<member name="notification_position" type="int" setter="set_notification_position" getter="get_notification_position" enum="AchievementManager.NotificationPosition" default="2">
+			Coin ou bord de l'écran où s'empilent les notifications.
+		</member>
+		<member name="save_password" type="String" setter="set_save_password" getter="get_save_password" default="&quot;&quot;">
+			Mot de passe de chiffrement de la sauvegarde (vide : fichier texte lisible). Décourage la modification à la main.
+		</member>
+		<member name="save_path" type="String" setter="set_save_path" getter="get_save_path" default="&quot;user://achievements.cfg&quot;">
+			Fichier de sauvegarde des succès.
+		</member>
+		<member name="show_notifications" type="bool" setter="set_show_notifications" getter="get_show_notifications" default="true">
+			Si vrai, une notification (icône, « Succès débloqué ! », nom) s'affiche à chaque déblocage. Désactiver pour afficher sa propre notification depuis [signal achievement_unlocked].
+		</member>
+		<member name="unlock_sound" type="AudioStream" setter="set_unlock_sound" getter="get_unlock_sound">
+			Son facultatif joué à chaque déblocage.
+		</member>
+	</members>
+	<signals>
+		<signal name="achievement_progressed">
+			<param index="0" name="achievement" type="Achievement" />
+			<param index="1" name="progress" type="float" />
+			<description>
+				Émis quand un succès progresse, se débloque (1) ou est réinitialisé (0).
+			</description>
+		</signal>
+		<signal name="achievement_unlocked">
+			<param index="0" name="achievement" type="Achievement" />
+			<description>
+				Émis au déblocage d'un succès (pas au chargement d'une sauvegarde).
+			</description>
+		</signal>
+		<signal name="event_notified">
+			<param index="0" name="event" type="StringName" />
+			<param index="1" name="id" type="String" />
+			<param index="2" name="amount" type="float" />
+			<description>
+				Émis à chaque [method notify], avant la transmission aux conditions.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="NOTIFICATION_POSITION_TOP_LEFT" value="0" enum="NotificationPosition">
+			En haut à gauche.
+		</constant>
+		<constant name="NOTIFICATION_POSITION_TOP_CENTER" value="1" enum="NotificationPosition">
+			En haut, au centre.
+		</constant>
+		<constant name="NOTIFICATION_POSITION_TOP_RIGHT" value="2" enum="NotificationPosition">
+			En haut à droite.
+		</constant>
+		<constant name="NOTIFICATION_POSITION_BOTTOM_LEFT" value="3" enum="NotificationPosition">
+			En bas à gauche (les notifications s'empilent vers le haut).
+		</constant>
+		<constant name="NOTIFICATION_POSITION_BOTTOM_CENTER" value="4" enum="NotificationPosition">
+			En bas, au centre.
+		</constant>
+		<constant name="NOTIFICATION_POSITION_BOTTOM_RIGHT" value="5" enum="NotificationPosition">
+			En bas à droite.
+		</constant>
+	</constants>
+</class>

@@ -1,0 +1,159 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🖥️HUD interactive dans Monde 3D/demo_hud.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🖥️HUD interactive dans Monde 3D/contenu_panneau_controle.tscn" id="3_controle"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🖥️HUD interactive dans Monde 3D/contenu_bulle.tscn" id="4_bulle"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/2.🧭🌍/🖥️HUD interactive dans Monde 3D/contenu_ecran.tscn" id="5_ecran"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Ciel_materiau"]
+sky_horizon_color = Color(0.64, 0.65, 0.67, 1)
+ground_horizon_color = Color(0.64, 0.65, 0.67, 1)
+
+[sub_resource type="Sky" id="Ciel"]
+sky_material = SubResource("Ciel_materiau")
+
+[sub_resource type="Environment" id="Environnement"]
+background_mode = 1
+background_color = Color(0.11, 0.12, 0.15, 1)
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.6
+sky = SubResource("Ciel")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="Mat_sol"]
+albedo_color = Color(0.22, 0.24, 0.28, 1)
+
+[sub_resource type="PlaneMesh" id="Mesh_sol"]
+material = SubResource("Mat_sol")
+size = Vector2(12, 9)
+
+[sub_resource type="StandardMaterial3D" id="Mat_mur"]
+albedo_color = Color(0.3, 0.32, 0.38, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_mur"]
+material = SubResource("Mat_mur")
+size = Vector3(5, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="Forme_mur"]
+size = Vector3(5, 3, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_pilier"]
+albedo_color = Color(0.55, 0.5, 0.45, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_pilier"]
+material = SubResource("Mat_pilier")
+size = Vector3(0.4, 2.8, 0.4)
+
+[sub_resource type="BoxShape3D" id="Forme_pilier"]
+size = Vector3(0.4, 2.8, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_cube"]
+albedo_color = Color(0.95, 0.45, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_cube"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_socle"]
+albedo_color = Color(0.4, 0.42, 0.48, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_socle"]
+material = SubResource("Mat_socle")
+top_radius = 0.06
+bottom_radius = 0.1
+height = 1.1
+
+[node name="DémoHUDSpatial" type="Node3D"]
+script = ExtResource("1_demo")
+
+[node name="Environnement" type="WorldEnvironment" parent="."]
+environment = SubResource("Environnement")
+
+[node name="Soleil" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 8, 0)
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="."]
+current = true
+fov = 50.0
+h_offset = 1.6
+
+[node name="Sol" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_sol")
+
+[node name="Mur" type="StaticBody3D" parent="."]
+position = Vector3(1.2, 1.5, -2.6)
+
+[node name="Mesh" type="MeshInstance3D" parent="Mur"]
+mesh = SubResource("Mesh_mur")
+
+[node name="Forme" type="CollisionShape3D" parent="Mur"]
+shape = SubResource("Forme_mur")
+
+[node name="Pilier" type="StaticBody3D" parent="."]
+position = Vector3(2.3, 1.4, -1.4)
+
+[node name="Mesh" type="MeshInstance3D" parent="Pilier"]
+mesh = SubResource("Mesh_pilier")
+
+[node name="Forme" type="CollisionShape3D" parent="Pilier"]
+shape = SubResource("Forme_pilier")
+
+[node name="Cube" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.5, 0)
+material_override = SubResource("Mat_cube")
+mesh = SubResource("Mesh_cube")
+
+[node name="Socle" type="MeshInstance3D" parent="."]
+position = Vector3(-1.8, 0.55, 0.6)
+mesh = SubResource("Mesh_socle")
+
+[node name="HUDs" type="Node3D" parent="."]
+
+[node name="PanneauControle" type="InteractiveHUD3D" parent="HUDs"]
+transform = Transform3D(0.906, 0, 0.423, 0, 1, 0, -0.423, 0, 0.906, -1.8, 1.75, 0.6)
+content_scene = ExtResource("3_controle")
+viewport_size = Vector2i(380, 330)
+pixel_size = 0.004
+
+[node name="Bulle" type="InteractiveHUD3D" parent="HUDs"]
+position = Vector3(0, 1.65, 0)
+content_scene = ExtResource("4_bulle")
+viewport_size = Vector2i(260, 110)
+pixel_size = 0.0055
+billboard = 2
+
+[node name="Ecran" type="InteractiveHUD3D" parent="HUDs"]
+position = Vector3(1.2, 1.6, -2.48)
+content_scene = ExtResource("5_ecran")
+viewport_size = Vector2i(440, 280)
+pixel_size = 0.0075
+double_sided = false
+transparent_background = false
+check_occlusion = true
+
+[node name="Interface" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="Viseur" type="Label" parent="Interface"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 28
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "🖥️ HUD spatial interactif"
+aide = "Interfaces Godot affichées dans la scène 3D et utilisables au curseur. Clic droit glissé : tourner la caméra · molette hors des HUD : zoom · molette sur l'écran mural : défiler · Échap : quitter le viseur."

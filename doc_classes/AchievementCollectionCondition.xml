@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AchievementCollectionCondition" inherits="AchievementCondition" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🗂️ Condition d'un [Achievement] remplie quand chaque identifiant d'une liste a été obtenu au moins une fois.
+	</brief_description>
+	<description>
+		Équivalent d'une liste de [code]ItemPickupCondition[/code] de tModLoader : « ramasser chaque gemme », « visiter chaque biome », « vaincre chaque boss ». Chaque évènement [member AchievementCondition.event_name] dont l'identifiant est dans [member required_ids] marque cet identifiant comme obtenu ([member AchievementCondition.event_ids] n'est pas utilisé).
+		Avec l'évènement [code]&amp;"achievement_unlocked"[/code], émis par l'[AchievementManager] à chaque déblocage, une collection d'id de succès crée un méta-succès (« débloquer A, B et C »).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="collect">
+			<return type="bool" />
+			<param index="0" name="id" type="String" />
+			<description>
+				Marque [param id] comme obtenu. Renvoie [code]true[/code] s'il faisait partie des identifiants manquants.
+			</description>
+		</method>
+		<method name="get_collected_ids" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Identifiants déjà obtenus, dans l'ordre d'obtention.
+			</description>
+		</method>
+		<method name="get_missing_ids" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Identifiants de [member required_ids] encore manquants.
+			</description>
+		</method>
+		<method name="has_collected" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="String" />
+			<description>
+				Vrai si [param id] a déjà été obtenu.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="required_ids" type="PackedStringArray" setter="set_required_ids" getter="get_required_ids" default="PackedStringArray()">
+			Identifiants à obtenir.
+		</member>
+	</members>
+</class>
