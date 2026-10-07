@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/1.📁🔌/📱Gestion d'entrée de touché d'écran/demo_entrees_mobiles.gd" id="1_demo"]
+
+[node name="DémoEntréesMobiles" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="Mobile" type="MobileInput" parent="."]
+unique_name_in_owner = true
+long_press_duration = 0.8
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="Marges" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Colonnes" type="HBoxContainer" parent="Marges"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Commandes" type="VBoxContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Titre" type="Label" parent="Marges/Colonnes/Commandes"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "📱 Entrées mobiles"
+
+[node name="Aide" type="Label" parent="Marges/Colonnes/Commandes"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
+theme_override_font_sizes/font_size = 13
+text = "Dans la zone : glisser déplace la carte, pincer la redimensionne, appui long = couleur suivante, double tap = réinitialiser."
+autowrap_mode = 3
+
+[node name="CaseSouris" type="CheckBox" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🖱️ La souris émule un doigt"
+
+[node name="BoutonPincement" type="Button" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🤏 Simuler un pincement"
+
+[node name="BoutonSwipe" type="Button" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "👉 Simuler un swipe"
+
+[node name="BoutonDoubleTap" type="Button" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "👆👆 Simuler un double tap"
+
+[node name="CaseInclinaison" type="CheckBox" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🌍 Simuler l'inclinaison (gravité)"
+
+[node name="EtiquetteCapteurs" type="Label" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+
+[node name="Espace" type="Control" parent="Marges/Colonnes/Commandes"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="BoutonTests" type="Button" parent="Marges/Colonnes/Commandes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🧪 Relancer les tests"
+
+[node name="Zone" type="ColorRect" parent="Marges/Colonnes"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.4
+mouse_filter = 2
+color = Color(0.16, 0.18, 0.23, 1)
+
+[node name="Journal" type="RichTextLabel" parent="Marges/Colonnes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+scroll_following = true
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13

@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MobileInput" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📱 Entrées d'appareil mobile : écran tactile, gestes (tap, double tap, appui long, swipe, pincement) et capteurs de mouvement.
+	</brief_description>
+	<description>
+		Nœud qui intercepte les entrées tactiles et les capteurs de l'appareil et les traduit en signaux prêts à l'emploi :
+		- [b]Toucher[/b] : [signal touch_pressed], [signal touch_released], [signal drag] et [signal multi_touch_changed], émis dès la réception de l'évènement (dans [method Node._input]).
+		- [b]Gestes[/b] : [signal tap], [signal double_tap], [signal long_press], [signal swipe], [signal pinch] (deux doigts), et [signal pan] / [signal magnify] (gestes du pavé tactile).
+		- [b]Capteurs[/b] : gyroscope, accéléromètre, gravité et magnétomètre, lus à chaque image. Chaque capteur émet [code]&lt;capteur&gt;_updated[/code] à chaque image et [code]&lt;capteur&gt;_changed[/code] seulement quand sa valeur change. Une zone morte sphérique ([member sensor_dead_zone]) s'applique après la sensibilité.
+		Les gestes à un doigt ([signal tap], [signal double_tap], [signal swipe]) ignorent un doigt qui a été posé en même temps qu'un autre : relâcher les doigts d'un pincement ne produit pas de swipe.
+		Un [signal tap] n'est signalé qu'après [member double_tap_delay] sans second tap, pour ne pas être confondu avec un [signal double_tap].
+		[b]Note :[/b] sur ordinateur, activer [member ProjectSettings.input_devices/pointing/emulate_touch_from_mouse] (ou [method Input.set_emulate_touch_from_mouse]) pour tester un doigt à la souris. Les capteurs doivent être activés dans [b]Paramètres du projet → Périphériques d'entrée → Capteurs[/b].
+		[codeblock]
+		@onready var mobile: MobileInput = $MobileInput
+
+		func _ready() -> void:
+			mobile.swipe.connect(func(direction, _depart, _vitesse):
+				if direction == MobileInput.SWIPE_LEFT: page_suivante())
+			mobile.pinch.connect(func(facteur, _centre): camera.zoom = zoom_initial * facteur)
+			mobile.pinch_started.connect(func(_centre): zoom_initial = camera.zoom)
+			mobile.gravity_changed.connect(func(gravite): bille.inclinaison = Vector2(gravite.x, -gravite.y))
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_accelerometer" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Dernière valeur de l'accéléromètre (m/s², gravité comprise), sensibilité et zone morte appliquées.
+			</description>
+		</method>
+		<method name="get_finger_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de doigts actuellement posés sur l'écran (au plus [member max_fingers]).
+			</description>
+		</method>
+		<method name="get_finger_position" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Position du doigt [param index], ou [code]null[/code] s'il n'est pas posé.
+			</description>
+		</method>
+		<method name="get_fingers" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Doigts posés, sous la forme [code]{ index: { "position", "start_position", "velocity", "press_time" } }[/code]. [code]press_time[/code] est en secondes depuis le démarrage du moteur.
+			</description>
+		</method>
+		<method name="get_gravity" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Dernier vecteur de gravité, sensibilité et zone morte appliquées.
+			</description>
+		</method>
+		<method name="get_gyroscope" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Dernière vitesse de rotation du gyroscope (rad/s par axe), sensibilité et zone morte appliquées.
+			</description>
+		</method>
+		<method name="get_magnetometer" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Dernier champ magnétique (µT), sensibilité et zone morte appliquées.
+			</description>
+		</method>
+		<method name="get_primary_finger_position" qualifiers="const">
+			<return type="Variant" />
+			<description>
+				Position du doigt posé de plus petit index, ou [code]null[/code] si aucun doigt n'est posé. Raccourci pour le toucher simple.
+			</description>
+		</method>
+		<method name="get_sensor_sensitivity" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="sensor" type="int" enum="MobileInput.Sensor" />
+			<description>
+				Multiplicateur appliqué aux valeurs brutes du capteur [param sensor].
+			</description>
+		</method>
+		<method name="get_sensor_value" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="sensor" type="int" enum="MobileInput.Sensor" />
+			<description>
+				Dernière valeur du capteur [param sensor] (sensibilité et zone morte appliquées). Reste nulle si le capteur est désactivé.
+			</description>
+		</method>
+		<method name="handle_input_event">
+			<return type="void" />
+			<param index="0" name="event" type="InputEvent" />
+			<description>
+				Traite [param event] comme s'il venait de [method Node._input] : utile pour relayer des évènements depuis un autre nœud ou pour simuler des touchers dans des tests.
+			</description>
+		</method>
+		<method name="has_finger" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Vrai si le doigt [param index] est posé.
+			</description>
+		</method>
+		<method name="is_pinching" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai pendant un pincement, c'est-à-dire tant qu'exactement deux doigts sont posés.
+			</description>
+		</method>
+		<method name="is_sensor_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="sensor" type="int" enum="MobileInput.Sensor" />
+			<description>
+				Vrai si le capteur [param sensor] est lu à chaque image.
+			</description>
+		</method>
+		<method name="reset_touches">
+			<return type="void" />
+			<description>
+				Oublie les doigts posés, le tap en attente et le pincement en cours, sans émettre de geste. Appelée automatiquement quand la fenêtre perd le focus ou que l'application passe en arrière-plan (les relâchements peuvent alors se perdre).
+			</description>
+		</method>
+		<method name="set_sensor_enabled">
+			<return type="void" />
+			<param index="0" name="sensor" type="int" enum="MobileInput.Sensor" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				Active ou désactive la lecture du capteur [param sensor]. Désactivé, sa valeur revient à zéro et ses signaux ne sont plus émis.
+			</description>
+		</method>
+		<method name="set_sensor_sensitivity">
+			<return type="void" />
+			<param index="0" name="sensor" type="int" enum="MobileInput.Sensor" />
+			<param index="1" name="sensitivity" type="float" />
+			<description>
+				Règle le multiplicateur appliqué aux valeurs brutes du capteur [param sensor].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="accelerometer_sensitivity" type="float" setter="set_sensor_sensitivity" getter="get_sensor_sensitivity" default="0.1">
+			Multiplicateur de l'accéléromètre. Les valeurs brutes sont élevées (~9.8 m/s² au repos).
+		</member>
+		<member name="double_tap_delay" type="float" setter="set_double_tap_delay" getter="get_double_tap_delay" default="0.4">
+			Délai maximal (secondes) entre deux taps pour former un [signal double_tap]. C'est aussi le retard avec lequel un [signal tap] simple est signalé.
+		</member>
+		<member name="gravity_sensitivity" type="float" setter="set_sensor_sensitivity" getter="get_sensor_sensitivity" default="0.1">
+			Multiplicateur de la gravité (valeur brute ~9.8 m/s²).
+		</member>
+		<member name="gyroscope_sensitivity" type="float" setter="set_sensor_sensitivity" getter="get_sensor_sensitivity" default="1.0">
+			Multiplicateur du gyroscope : plus haut pour une réponse plus vive, plus bas pour plus de stabilité.
+		</member>
+		<member name="long_press_duration" type="float" setter="set_long_press_duration" getter="get_long_press_duration" default="0.6">
+			Durée (secondes) d'appui immobile (à moins de [member tap_max_distance]) d'un doigt seul avant d'émettre [signal long_press]. Un appui long ne produit pas de tap au relâchement.
+		</member>
+		<member name="magnetometer_sensitivity" type="float" setter="set_sensor_sensitivity" getter="get_sensor_sensitivity" default="0.02">
+			Multiplicateur du magnétomètre (valeurs brutes de 25 à 65 µT selon le lieu).
+		</member>
+		<member name="max_fingers" type="int" setter="set_max_fingers" getter="get_max_fingers" default="5">
+			Nombre maximal de doigts suivis simultanément. Les doigts supplémentaires sont ignorés.
+		</member>
+		<member name="sensor_dead_zone" type="float" setter="set_sensor_dead_zone" getter="get_sensor_dead_zone" default="0.15">
+			Longueur en dessous de laquelle la valeur d'un capteur (après sensibilité) est ramenée à zéro. Zone morte sphérique : elle porte sur la longueur du vecteur, pas sur chaque axe.
+		</member>
+		<member name="swipe_min_distance" type="float" setter="set_swipe_min_distance" getter="get_swipe_min_distance" default="100.0">
+			Distance minimale (pixels) entre l'appui et le relâchement pour un [signal swipe].
+		</member>
+		<member name="swipe_min_velocity" type="float" setter="set_swipe_min_velocity" getter="get_swipe_min_velocity" default="500.0">
+			Vitesse minimale (pixels/seconde) du doigt au dernier glissement avant le relâchement pour un [signal swipe]. Filtre les mouvements lents.
+		</member>
+		<member name="tap_max_distance" type="float" setter="set_tap_max_distance" getter="get_tap_max_distance" default="20.0">
+			Déplacement maximal (pixels) entre l'appui et le relâchement pour un tap. Au-delà, c'est un glissement. Deux taps distants de plus du double de cette valeur ne forment pas un double tap.
+		</member>
+		<member name="tap_max_duration" type="float" setter="set_tap_max_duration" getter="get_tap_max_duration" default="0.3">
+			Durée maximale (secondes) entre l'appui et le relâchement pour un tap. Au-delà, c'est un appui maintenu.
+		</member>
+		<member name="use_accelerometer" type="bool" setter="set_sensor_enabled" getter="is_sensor_enabled" default="true">
+			Lit l'accéléromètre à chaque image ([signal accelerometer_updated], [signal accelerometer_changed]).
+		</member>
+		<member name="use_gravity" type="bool" setter="set_sensor_enabled" getter="is_sensor_enabled" default="true">
+			Lit le vecteur de gravité à chaque image ([signal gravity_updated], [signal gravity_changed]).
+		</member>
+		<member name="use_gyroscope" type="bool" setter="set_sensor_enabled" getter="is_sensor_enabled" default="true">
+			Lit le gyroscope à chaque image ([signal gyroscope_updated], [signal gyroscope_changed]).
+		</member>
+		<member name="use_magnetometer" type="bool" setter="set_sensor_enabled" getter="is_sensor_enabled" default="true">
+			Lit le magnétomètre à chaque image ([signal magnetometer_updated], [signal magnetometer_changed]).
+		</member>
+	</members>
+	<signals>
+		<signal name="accelerometer_changed">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis seulement quand l'accélération change (tolérance 0.001 par axe).
+			</description>
+		</signal>
+		<signal name="accelerometer_updated">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis à chaque image avec l'accélération de l'appareil.
+			</description>
+		</signal>
+		<signal name="double_tap">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+				Émis au relâchement du second tap rapide, proche du premier. Aucun [signal tap] n'est alors émis.
+			</description>
+		</signal>
+		<signal name="drag">
+			<param index="0" name="finger_index" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<param index="2" name="relative" type="Vector2" />
+			<param index="3" name="pressure" type="float" />
+			<description>
+				Émis quand un doigt posé glisse. [param relative] est le déplacement depuis le dernier évènement ; [param pressure] la pression du stylet (1.0 si non gérée).
+			</description>
+		</signal>
+		<signal name="gravity_changed">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis seulement quand le vecteur de gravité change.
+			</description>
+		</signal>
+		<signal name="gravity_updated">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis à chaque image avec le vecteur de gravité (inclinaison de l'appareil).
+			</description>
+		</signal>
+		<signal name="gyroscope_changed">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis seulement quand la vitesse de rotation change.
+			</description>
+		</signal>
+		<signal name="gyroscope_updated">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis à chaque image avec la vitesse de rotation (rad/s).
+			</description>
+		</signal>
+		<signal name="long_press">
+			<param index="0" name="finger_index" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<description>
+				Émis une fois quand un doigt seul reste posé et immobile pendant [member long_press_duration].
+			</description>
+		</signal>
+		<signal name="magnetometer_changed">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis seulement quand le champ magnétique change.
+			</description>
+		</signal>
+		<signal name="magnetometer_updated">
+			<param index="0" name="value" type="Vector3" />
+			<description>
+				Émis à chaque image avec le champ magnétique (boussole).
+			</description>
+		</signal>
+		<signal name="magnify">
+			<param index="0" name="factor" type="float" />
+			<description>
+				Geste de magnification du pavé tactile ([InputEventMagnifyGesture]).
+			</description>
+		</signal>
+		<signal name="multi_touch_changed">
+			<param index="0" name="finger_count" type="int" />
+			<description>
+				Émis quand le nombre de doigts posés change.
+			</description>
+		</signal>
+		<signal name="pan">
+			<param index="0" name="delta" type="Vector2" />
+			<description>
+				Geste de défilement du pavé tactile ([InputEventPanGesture]).
+			</description>
+		</signal>
+		<signal name="pinch">
+			<param index="0" name="scale_factor" type="float" />
+			<param index="1" name="center" type="Vector2" />
+			<description>
+				Émis quand l'écart entre les deux doigts change pendant un pincement. [param scale_factor] est relatif au début du geste (supérieur à 1 : les doigts s'écartent, zoom avant) ; [param center] est le milieu des deux doigts.
+			</description>
+		</signal>
+		<signal name="pinch_ended">
+			<description>
+				Émis quand un pincement se termine (un doigt est levé ou posé en plus).
+			</description>
+		</signal>
+		<signal name="pinch_started">
+			<param index="0" name="center" type="Vector2" />
+			<description>
+				Émis quand un second doigt est posé : le pincement commence, [param center] est le milieu des deux doigts.
+			</description>
+		</signal>
+		<signal name="swipe">
+			<param index="0" name="direction" type="int" />
+			<param index="1" name="start_position" type="Vector2" />
+			<param index="2" name="velocity" type="Vector2" />
+			<description>
+				Émis au relâchement d'un glissement rapide et assez long. [param direction] est une valeur de [enum SwipeDirection] (axe dominant du déplacement).
+			</description>
+		</signal>
+		<signal name="tap">
+			<param index="0" name="position" type="Vector2" />
+			<description>
+				Émis pour un appui bref et immobile, une fois [member double_tap_delay] écoulé sans second tap.
+			</description>
+		</signal>
+		<signal name="touch_pressed">
+			<param index="0" name="finger_index" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<description>
+				Émis quand un doigt touche l'écran.
+			</description>
+		</signal>
+		<signal name="touch_released">
+			<param index="0" name="finger_index" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<description>
+				Émis quand un doigt quitte l'écran (y compris un toucher annulé par le système, qui ne produit alors aucun geste).
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="SWIPE_NONE" value="0" enum="SwipeDirection">
+			Aucune direction.
+		</constant>
+		<constant name="SWIPE_LEFT" value="1" enum="SwipeDirection">
+			Vers la gauche.
+		</constant>
+		<constant name="SWIPE_RIGHT" value="2" enum="SwipeDirection">
+			Vers la droite.
+		</constant>
+		<constant name="SWIPE_UP" value="3" enum="SwipeDirection">
+			Vers le haut.
+		</constant>
+		<constant name="SWIPE_DOWN" value="4" enum="SwipeDirection">
+			Vers le bas.
+		</constant>
+		<constant name="SENSOR_GYROSCOPE" value="0" enum="Sensor">
+			Gyroscope : vitesse de rotation (rad/s).
+		</constant>
+		<constant name="SENSOR_ACCELEROMETER" value="1" enum="Sensor">
+			Accéléromètre : accélération, gravité comprise (m/s²).
+		</constant>
+		<constant name="SENSOR_GRAVITY" value="2" enum="Sensor">
+			Gravité : direction de la pesanteur (m/s²).
+		</constant>
+		<constant name="SENSOR_MAGNETOMETER" value="3" enum="Sensor">
+			Magnétomètre : champ magnétique (µT).
+		</constant>
+		<constant name="SENSOR_MAX" value="4" enum="Sensor">
+			Nombre de capteurs.
+		</constant>
+	</constants>
+</class>
