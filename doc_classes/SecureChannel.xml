@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SecureChannel" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🔐 Canal chiffré symétrique : chiffrement authentifié AES-256-CBC + HMAC-SHA256 avec protection contre le rejeu.
+	</brief_description>
+	<description>
+		Chiffre et authentifie des données avec une clé de 64 octets (32 pour AES-256-CBC, 32 pour HMAC-SHA256, schéma « chiffrer puis authentifier »). Un paquet modifié, chiffré avec une autre clé ou rejoué est refusé par [method decrypt].
+		Format d'un paquet : [version 1 octet][compteur 8 octets][IV 16 octets][texte chiffré][HMAC 32 octets]. Le compteur protège contre le rejeu avec une fenêtre glissante de 64 messages : les paquets arrivés dans le désordre (canal non fiable) restent acceptés, une seule fois chacun.
+		Un canal sert UN sens de communication : l'émetteur appelle [method encrypt], le destinataire (autre instance, même clé) appelle [method decrypt]. Pour un échange dans les deux sens, utiliser une clé par sens (c'est ce que fait [NetworkSession]).
+		Utilisable seul, par exemple pour chiffrer un fichier de sauvegarde avec une clé dérivée d'un mot de passe ([method derive_key]).
+		[codeblock]
+		var emetteur := SecureChannel.new()
+		var recepteur := SecureChannel.new()
+		recepteur.set_key(emetteur.generate_key()) # la clé doit être transmise par un moyen sûr
+		var paquet := emetteur.encrypt(&quot;secret&quot;.to_utf8_buffer())
+		var texte := recepteur.decrypt(paquet).get_string_from_utf8()
+		if recepteur.get_last_error() != OK:
+		    push_warning(&quot;Paquet refusé&quot;)
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="decrypt">
+			<return type="PackedByteArray" />
+			<param index="0" name="packet" type="PackedByteArray" />
+			<description>
+				Vérifie puis déchiffre un paquet produit par [method encrypt]. En cas d'échec, renvoie un tableau vide et [method get_last_error] donne la cause : [constant ERR_UNCONFIGURED] (aucune clé), [constant ERR_INVALID_DATA] (paquet mal formé), [constant ERR_UNAUTHORIZED] (paquet modifié ou mauvaise clé), [constant ERR_ALREADY_EXISTS] (rejeu ou paquet plus ancien que la fenêtre de 64 messages).
+			</description>
+		</method>
+		<method name="derive_key" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="password" type="String" />
+			<param index="1" name="salt" type="PackedByteArray" />
+			<param index="2" name="iterations" type="int" default="10000" />
+			<param index="3" name="length" type="int" default="64" />
+			<description>
+				Dérive une clé de [param length] octets du mot de passe [param password] et du sel [param salt] (PBKDF2-HMAC-SHA256, [param iterations] itérations). Même mot de passe et même sel donnent toujours la même clé ; utiliser un sel aléatoire ([method random_bytes]) conservé avec les données chiffrées.
+			</description>
+		</method>
+		<method name="encrypt">
+			<return type="PackedByteArray" />
+			<param index="0" name="plaintext" type="PackedByteArray" />
+			<description>
+				Chiffre et authentifie [param plaintext] avec la clé installée, et renvoie le paquet. Chaque appel utilise un IV aléatoire et incrémente le compteur d'envoi. Renvoie un tableau vide si aucune clé n'est installée.
+			</description>
+		</method>
+		<method name="fingerprint" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="data" type="PackedByteArray" />
+			<description>
+				Empreinte lisible de [param data] : les 16 premiers octets de son SHA-256, en 8 groupes de 4 caractères hexadécimaux (ex. [code]AB12 CD34 ...[/code]). Deux joueurs qui lisent la même empreinte à voix haute vérifient qu'aucun intermédiaire n'a remplacé une clé.
+			</description>
+		</method>
+		<method name="generate_key">
+			<return type="PackedByteArray" />
+			<description>
+				Génère une clé aléatoire de [constant KEY_SIZE] octets, l'installe (compteurs remis à zéro) et la renvoie.
+			</description>
+		</method>
+		<method name="get_key" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Renvoie la clé installée (64 octets), ou un tableau vide.
+			</description>
+		</method>
+		<method name="get_last_error" qualifiers="const">
+			<return type="int" enum="Error" />
+			<description>
+				Résultat du dernier [method decrypt] : [constant OK] ou la cause du refus.
+			</description>
+		</method>
+		<method name="get_sent_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de paquets chiffrés depuis l'installation de la clé (valeur du compteur d'envoi).
+			</description>
+		</method>
+		<method name="has_key" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si une clé est installée.
+			</description>
+		</method>
+		<method name="random_bytes" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="size" type="int" />
+			<description>
+				Renvoie [param size] octets aléatoires sûrs pour la cryptographie.
+			</description>
+		</method>
+		<method name="reset_counters">
+			<return type="void" />
+			<description>
+				Remet à zéro le compteur d'envoi et la fenêtre de réception (la clé est conservée). À n'utiliser qu'avec une nouvelle clé : réutiliser des compteurs avec la même clé permettrait de rejouer d'anciens paquets.
+			</description>
+		</method>
+		<method name="set_key">
+			<return type="int" enum="Error" />
+			<param index="0" name="key" type="PackedByteArray" />
+			<description>
+				Installe une clé de [constant KEY_SIZE] octets (32 pour AES, 32 pour HMAC) et remet les compteurs à zéro. Renvoie [constant ERR_INVALID_PARAMETER] si la taille est incorrecte.
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="KEY_SIZE" value="64">
+			Taille d'une clé de canal en octets (32 AES-256 + 32 HMAC-SHA256).
+		</constant>
+	</constants>
+</class>

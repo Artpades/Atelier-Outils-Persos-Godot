@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="NetworkSession" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🌐 Session multijoueur : héberger ou rejoindre une partie, joueurs avec leur système d'exploitation, messages, chiffrement du transport et de bout en bout.
+	</brief_description>
+	<description>
+		Héberge ([method host]) ou rejoint ([method join], [method join_device]) une partie en ENet (UDP) ou WebSocket (TCP, compatible avec un export Web). Une poignée de main vérifie que le client exécute le même jeu ([member game_id]) et la même version ([member game_version]), qu'il connaît le [member password] (preuve HMAC sur un défi aléatoire : le mot de passe ne circule jamais) et que les exigences de sécurité sont compatibles. Un refus est signalé avec une raison ([enum Reason]).
+		Chaque joueur est décrit par un [Dictionary] : [code]peer_id[/code], [code]name[/code], [code]data[/code] ([member player_data]), [code]os[/code], [code]os_version[/code], [code]distribution[/code], [code]model[/code], [code]engine_version[/code], [code]game_version[/code] et [code]fingerprint[/code] (vide sans chiffrement de bout en bout). [signal player_joined] est émis pour chaque joueur, joueur local compris ; [signal player_left] aussi, y compris à la fin de la session.
+		La session utilise le [MultiplayerAPI] de sa branche ([method Node.get_multiplayer], qui doit être un [SceneMultiplayer]) : les RPC, [MultiplayerSpawner] et [MultiplayerSynchronizer] du jeu fonctionnent normalement. Ses propres paquets ([method SceneMultiplayer.send_bytes]) commencent par l'octet 0xC7 ; les autres paquets sont laissés au jeu. Une seule NetworkSession par MultiplayerAPI.
+		[b]Sécurité[/b], deux niveaux cumulables :
+		- [member transport_encryption] : tout le trafic (RPC compris) est chiffré entre chaque client et l'hôte, en DTLS (ENet) ou TLS / wss:// (WebSocket). L'hôte génère un certificat auto-signé ; un client ne l'authentifie que s'il a ce certificat dans [member trusted_certificate] (sinon : chiffré, mais hôte non vérifié).
+		- [member end_to_end_encryption] : les messages de [method send_message] sont chiffrés de l'émetteur au destinataire ([SecureChannel] : AES-256 + HMAC-SHA256, une clé par sens, transmise chiffrée en RSA-2048 et signée). L'hôte qui relaie un message entre deux clients ne peut pas le lire, et un message en clair injecté est rejeté ([signal security_warning]). Les clés publiques transitant par l'hôte, comparer les empreintes ([method get_local_fingerprint] chez l'un, [method get_peer_fingerprint] chez l'autre) prouve qu'aucune n'a été substituée. Le chiffrement de bout en bout ne protège pas les RPC : combiner les deux niveaux pour tout protéger.
+		Un client dont [member end_to_end_encryption] est vrai refuse un hôte qui ne le propose pas (pas de rétrogradation silencieuse) ; un client sans exigence adopte le choix de l'hôte.
+		[codeblock]
+		@onready var session: NetworkSession = $NetworkSession
+		
+		func _ready():
+		    session.player_joined.connect(func(id, infos): print(infos.name, &quot; a rejoint depuis &quot;, infos.os))
+		    session.message_received.connect(func(de, donnees, chiffre): print(de, &quot; : &quot;, donnees))
+		    session.connection_failed.connect(func(raison, message): print(&quot;Refusé : &quot;, message))
+		
+		func heberger():
+		    session.end_to_end_encryption = true
+		    session.password = &quot;secret&quot;
+		    session.host()
+		
+		func rejoindre(adresse: String):
+		    session.password = &quot;secret&quot;
+		    session.join(adresse)
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="close">
+			<return type="void" />
+			<description>
+				Quitte la partie (client) ou la ferme (hôte : tous les clients reçoivent [constant REASON_HOST_LOST]). Émet [signal player_left] pour chaque joueur puis [signal session_ended] avec [constant REASON_CLOSED]. Appelé automatiquement à la sortie de l'arbre.
+			</description>
+		</method>
+		<method name="get_last_message" qualifiers="const">
+			<return type="String" />
+			<description>
+				Message lisible de la dernière fin de session ou du dernier refus.
+			</description>
+		</method>
+		<method name="get_last_reason" qualifiers="const">
+			<return type="int" enum="NetworkSession.Reason" />
+			<description>
+				Raison de la dernière fin de session ou du dernier refus.
+			</description>
+		</method>
+		<method name="get_local_fingerprint" qualifiers="const">
+			<return type="String" />
+			<description>
+				Empreinte de notre clé d'identité (voir [method SecureChannel.fingerprint]). Vide sans chiffrement de bout en bout.
+			</description>
+		</method>
+		<method name="get_local_peer_id" qualifiers="const">
+			<return type="int" />
+			<description>
+				Notre identifiant réseau : 1 pour l'hôte, 0 hors ligne.
+			</description>
+		</method>
+		<method name="get_peer_fingerprint" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="peer_id" type="int" />
+			<description>
+				Empreinte de la clé de [param peer_id] telle que nous l'avons reçue. Si elle diffère de ce que ce joueur lit chez lui avec [method get_local_fingerprint], un intermédiaire a substitué sa clé.
+			</description>
+		</method>
+		<method name="get_player_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre de joueurs dans la partie, joueur local compris.
+			</description>
+		</method>
+		<method name="get_player_ids" qualifiers="const">
+			<return type="PackedInt32Array" />
+			<description>
+				Identifiants de tous les joueurs, joueur local compris (l'hôte est 1).
+			</description>
+		</method>
+		<method name="get_player_info" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="peer_id" type="int" />
+			<description>
+				Informations du joueur [param peer_id] (voir la description de la classe), ou un [Dictionary] vide.
+			</description>
+		</method>
+		<method name="get_players" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Tous les joueurs : [code]{ identifiant: informations }[/code] (copies).
+			</description>
+		</method>
+		<method name="get_security_summary" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Résumé de la sécurité de la session : [code]transport_encryption[/code], [code]transport_verified[/code] (hôte authentifié par son certificat), [code]end_to_end[/code], [code]password_protected[/code] et [code]secure_links[/code] (identifiants des joueurs avec un lien chiffré de bout en bout établi).
+			</description>
+		</method>
+		<method name="get_state" qualifiers="const">
+			<return type="int" enum="NetworkSession.State" />
+			<description>
+				État de la session.
+			</description>
+		</method>
+		<method name="has_player" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="peer_id" type="int" />
+			<description>
+				Vrai si [param peer_id] est dans la partie.
+			</description>
+		</method>
+		<method name="has_secure_link" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="peer_id" type="int" />
+			<description>
+				Vrai quand les messages avec [param peer_id] sont chiffrés de bout en bout dans les deux sens.
+			</description>
+		</method>
+		<method name="host">
+			<return type="int" enum="Error" />
+			<param index="0" name="port" type="int" default="-1" />
+			<description>
+				Héberge une partie sur [param port] ([member port] si -1). L'hôte est le joueur 1. Avec le chiffrement, génère si besoin les clés RSA (environ 0,4 s chacune). Émet [signal hosting_started] puis [signal player_joined] pour l'hôte. Renvoie une erreur si le port est déjà pris.
+			</description>
+		</method>
+		<method name="is_end_to_end_active" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si la session en cours chiffre les messages de bout en bout (décidé par l'hôte).
+			</description>
+		</method>
+		<method name="is_host" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si cet appareil héberge la partie.
+			</description>
+		</method>
+		<method name="is_online" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si une partie est en cours (hôte ou client accepté).
+			</description>
+		</method>
+		<method name="is_transport_encrypted" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si le transport de la session en cours est chiffré (DTLS ou TLS).
+			</description>
+		</method>
+		<method name="join">
+			<return type="int" enum="Error" />
+			<param index="0" name="address" type="String" />
+			<param index="1" name="port" type="int" default="-1" />
+			<description>
+				Rejoint la partie de [param address] (adresse IP ou nom d'hôte ; en WebSocket, une URL ws:// ou wss:// complète est aussi acceptée) sur [param port] ([member port] si -1). Le résultat arrive par [signal session_joined] ou [signal connection_failed].
+			</description>
+		</method>
+		<method name="join_device">
+			<return type="int" enum="Error" />
+			<param index="0" name="device" type="Dictionary" />
+			<description>
+				Rejoint un appareil trouvé par [LanDiscovery] : adresse, port, transport et chiffrement du transport de sa partie. Refuse ([constant ERR_UNAUTHORIZED] et [signal connection_failed]) si [member transport_encryption] est vrai et que l'hôte ne chiffre pas le transport.
+			</description>
+		</method>
+		<method name="kick">
+			<return type="int" enum="Error" />
+			<param index="0" name="peer_id" type="int" />
+			<param index="1" name="message" type="String" default="&quot;&quot;" />
+			<description>
+				Hôte seulement : expulse [param peer_id]. Il reçoit [signal session_ended] avec [constant REASON_KICKED] et [param message], les autres joueurs [signal player_left].
+			</description>
+		</method>
+		<method name="send_message">
+			<return type="int" enum="Error" />
+			<param index="0" name="data" type="Variant" />
+			<param index="1" name="peer_id" type="int" default="0" />
+			<param index="2" name="reliable" type="bool" default="true" />
+			<param index="3" name="channel" type="int" default="0" />
+			<description>
+				Envoie [param data] (tout [Variant] sans objet) à [param peer_id] : 0 pour tout le monde, un identifiant négatif pour tout le monde sauf ce joueur. Avec le chiffrement de bout en bout, chiffré séparément pour chaque destinataire ; un message fiable vers un joueur dont la clé n'est pas encore échangée est mis en attente (jamais envoyé en clair), un message non fiable est abandonné. [param channel] : canal du transport (les messages d'un même canal fiable arrivent dans l'ordre).
+			</description>
+		</method>
+		<method name="update_player_data">
+			<return type="int" enum="Error" />
+			<param index="0" name="data" type="Dictionary" />
+			<description>
+				Remplace [member player_data] et le diffuse à tous les joueurs ([signal player_updated] chez chacun, nous compris).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="allow_version_mismatch" type="bool" setter="set_allow_version_mismatch" getter="is_version_mismatch_allowed" default="false">
+			Hôte : accepte les clients d'une autre [member game_version] (même jeu).
+		</member>
+		<member name="certificate_common_name" type="String" setter="set_certificate_common_name" getter="get_certificate_common_name" default="&quot;gameplaytoolkit.local&quot;">
+			Nom commun du certificat de transport : utilisé pour générer le certificat auto-signé de l'hôte et pour le vérifier côté client.
+		</member>
+		<member name="connection_timeout" type="float" setter="set_connection_timeout" getter="get_connection_timeout" default="8.0">
+			Durée maximale de la connexion et de la poignée de main avant [constant REASON_TIMEOUT].
+		</member>
+		<member name="discovery" type="Node" setter="set_discovery" getter="get_discovery">
+			[LanDiscovery] à tenir à jour : pendant que cette session héberge, la découverte annonce la partie (port, transport, joueurs, mot de passe, chiffrement), avec le [member game_id] et la [member game_version] de la session.
+		</member>
+		<member name="end_to_end_encryption" type="bool" setter="set_end_to_end_encryption" getter="is_end_to_end_encryption_enabled" default="false">
+			Hôte : la partie chiffre les messages de bout en bout. Client : exige que l'hôte le propose (sinon [constant REASON_SECURITY_MISMATCH]). Un client sans exigence adopte le choix de l'hôte.
+		</member>
+		<member name="game_id" type="String" setter="set_game_id" getter="get_game_id" default="&quot;GameplayToolkit&quot;">
+			Identifiant du jeu, comparé pendant la poignée de main. Vide : [code]application/config/name[/code] du projet.
+		</member>
+		<member name="game_version" type="String" setter="set_game_version" getter="get_game_version" default="&quot;&quot;">
+			Version du jeu, comparée pendant la poignée de main. Vide : [code]application/config/version[/code] du projet.
+		</member>
+		<member name="identity_key" type="CryptoKey" setter="set_identity_key" getter="get_identity_key">
+			Clé RSA privée d'identité pour le chiffrement de bout en bout. Générée si absente ; la sauvegarder et la réaffecter garde la même empreinte d'une partie à l'autre (les joueurs ne la vérifient qu'une fois).
+		</member>
+		<member name="max_players" type="int" setter="set_max_players" getter="get_max_players" default="8">
+			Nombre maximal de joueurs, hôte compris. Un client en trop est refusé avec [constant REASON_SESSION_FULL].
+		</member>
+		<member name="password" type="String" setter="set_password" getter="get_password" default="&quot;&quot;">
+			Mot de passe de la partie (hôte) ou mot de passe à présenter (client). Vide : partie ouverte.
+		</member>
+		<member name="player_data" type="Dictionary" setter="set_player_data" getter="get_player_data" default="{}">
+			Données personnalisées du joueur local (couleur, personnage...), transmises aux autres joueurs. Pendant une partie, utiliser [method update_player_data] pour les diffuser.
+		</member>
+		<member name="player_name" type="String" setter="set_player_name" getter="get_player_name" default="&quot;artpade&quot;">
+			Nom du joueur local. Vide : l'utilisateur du système, sinon le modèle de l'appareil.
+		</member>
+		<member name="port" type="int" setter="set_port" getter="get_port" default="47500">
+			Port de la partie (UDP pour ENet, TCP pour WebSocket).
+		</member>
+		<member name="transport" type="int" setter="set_transport" getter="get_transport" enum="NetworkSession.Transport" default="0">
+			Transport réseau. Un client qui utilise [method join_device] prend celui de l'hôte.
+		</member>
+		<member name="transport_certificate" type="X509Certificate" setter="set_transport_certificate" getter="get_transport_certificate">
+			Certificat de transport de l'hôte. Généré (auto-signé) s'il est absent quand [member transport_encryption] est vrai. À distribuer aux clients pour leur [member trusted_certificate].
+		</member>
+		<member name="transport_encryption" type="bool" setter="set_transport_encryption" getter="is_transport_encryption_enabled" default="false">
+			Chiffre tout le trafic entre chaque client et l'hôte : DTLS (ENet) ou TLS / wss:// (WebSocket). Doit être identique chez l'hôte et le client.
+		</member>
+		<member name="transport_key" type="CryptoKey" setter="set_transport_key" getter="get_transport_key">
+			Clé privée du certificat de transport de l'hôte. Générée avec [member transport_certificate] si absente.
+		</member>
+		<member name="trusted_certificate" type="X509Certificate" setter="set_trusted_certificate" getter="get_trusted_certificate">
+			Client : certificat de l'hôte à accepter. S'il est défini, la connexion échoue si l'hôte présente un autre certificat (protection contre un faux hôte). S'il est vide, le transport est chiffré mais l'hôte n'est pas authentifié.
+		</member>
+	</members>
+	<signals>
+		<signal name="connection_failed">
+			<param index="0" name="reason" type="int" />
+			<param index="1" name="message" type="String" />
+			<description>
+				Émis quand une connexion n'aboutit pas : hôte injoignable, refus (mot de passe, version, partie complète, sécurité...), délai dépassé. [param reason] est une valeur de [enum Reason].
+			</description>
+		</signal>
+		<signal name="hosting_started">
+			<param index="0" name="port" type="int" />
+			<description>
+				Émis quand la partie est hébergée sur [param port].
+			</description>
+		</signal>
+		<signal name="message_received">
+			<param index="0" name="from_peer_id" type="int" />
+			<param index="1" name="data" type="Variant" />
+			<param index="2" name="encrypted" type="bool" />
+			<description>
+				Émis à la réception d'un message de [method send_message]. [param encrypted] est vrai s'il était chiffré de bout en bout.
+			</description>
+		</signal>
+		<signal name="peer_rejected">
+			<param index="0" name="peer_id" type="int" />
+			<param index="1" name="reason" type="int" />
+			<param index="2" name="message" type="String" />
+			<description>
+				Hôte : émis quand un client est refusé pendant la poignée de main.
+			</description>
+		</signal>
+		<signal name="player_joined">
+			<param index="0" name="peer_id" type="int" />
+			<param index="1" name="info" type="Dictionary" />
+			<description>
+				Émis pour chaque joueur de la partie, joueur local compris (à l'ouverture de la session, puis à chaque arrivée).
+			</description>
+		</signal>
+		<signal name="player_left">
+			<param index="0" name="peer_id" type="int" />
+			<param index="1" name="info" type="Dictionary" />
+			<description>
+				Émis quand un joueur quitte la partie, et pour chaque joueur (local compris) à la fin de la session.
+			</description>
+		</signal>
+		<signal name="player_updated">
+			<param index="0" name="peer_id" type="int" />
+			<param index="1" name="info" type="Dictionary" />
+			<description>
+				Émis quand les données d'un joueur changent ([method update_player_data]).
+			</description>
+		</signal>
+		<signal name="secure_link_established">
+			<param index="0" name="peer_id" type="int" />
+			<description>
+				Émis quand les messages avec [param peer_id] deviennent chiffrés de bout en bout dans les deux sens.
+			</description>
+		</signal>
+		<signal name="security_warning">
+			<param index="0" name="peer_id" type="int" />
+			<param index="1" name="message" type="String" />
+			<description>
+				Émis quand un paquet est rejeté pour une raison de sécurité : message en clair dans une partie chiffrée, signature de clé invalide, message chiffré altéré ou rejoué. Peut indiquer une attaque.
+			</description>
+		</signal>
+		<signal name="session_ended">
+			<param index="0" name="reason" type="int" />
+			<param index="1" name="message" type="String" />
+			<description>
+				Émis quand une partie en cours se termine (après les [signal player_left]). [param reason] est une valeur de [enum Reason].
+			</description>
+		</signal>
+		<signal name="session_joined">
+			<param index="0" name="local_peer_id" type="int" />
+			<description>
+				Client : émis quand l'hôte accepte cet appareil, avant les [signal player_joined] des joueurs déjà présents.
+			</description>
+		</signal>
+		<signal name="state_changed">
+			<param index="0" name="state" type="int" />
+			<description>
+				Émis à chaque changement d'état ([enum State]).
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="TRANSPORT_ENET" value="0" enum="Transport">
+			UDP via ENet : faible latence, recommandé pour un jeu en réseau local. Chiffrement en DTLS.
+		</constant>
+		<constant name="TRANSPORT_WEBSOCKET" value="1" enum="Transport">
+			TCP via WebSocket : fonctionne avec un export Web (un navigateur suffit côté client, sans installer le jeu). Chiffrement en TLS (wss://).
+		</constant>
+		<constant name="STATE_OFFLINE" value="0" enum="State">
+			Aucune session.
+		</constant>
+		<constant name="STATE_CONNECTING" value="1" enum="State">
+			Client : connexion au transport de l'hôte en cours.
+		</constant>
+		<constant name="STATE_AUTHENTICATING" value="2" enum="State">
+			Client : connecté, poignée de main en cours.
+		</constant>
+		<constant name="STATE_CONNECTED" value="3" enum="State">
+			Client accepté dans la partie.
+		</constant>
+		<constant name="STATE_HOSTING" value="4" enum="State">
+			Hôte de la partie.
+		</constant>
+		<constant name="REASON_NONE" value="0" enum="Reason">
+			Aucune raison (pas encore de fin de session).
+		</constant>
+		<constant name="REASON_CLOSED" value="1" enum="Reason">
+			Fermeture demandée localement ([method close]).
+		</constant>
+		<constant name="REASON_CONNECTION_FAILED" value="2" enum="Reason">
+			Hôte injoignable, ou chiffrement du transport refusé (certificat inattendu, réglages différents).
+		</constant>
+		<constant name="REASON_HOST_LOST" value="3" enum="Reason">
+			Connexion à l'hôte perdue, ou hôte fermé.
+		</constant>
+		<constant name="REASON_TIMEOUT" value="4" enum="Reason">
+			Connexion ou poignée de main plus longue que [member connection_timeout].
+		</constant>
+		<constant name="REASON_WRONG_PASSWORD" value="5" enum="Reason">
+			Mot de passe absent ou incorrect.
+		</constant>
+		<constant name="REASON_GAME_MISMATCH" value="6" enum="Reason">
+			L'hôte exécute un autre jeu.
+		</constant>
+		<constant name="REASON_VERSION_MISMATCH" value="7" enum="Reason">
+			Autre version du jeu ou du module réseau : mettre à jour.
+		</constant>
+		<constant name="REASON_SESSION_FULL" value="8" enum="Reason">
+			Partie complète ([member max_players]).
+		</constant>
+		<constant name="REASON_SECURITY_MISMATCH" value="9" enum="Reason">
+			Exigences de chiffrement incompatibles (le client exige un chiffrement que l'hôte ne propose pas, ou clé publique invalide).
+		</constant>
+		<constant name="REASON_INVALID_HANDSHAKE" value="10" enum="Reason">
+			Poignée de main illisible.
+		</constant>
+		<constant name="REASON_KICKED" value="11" enum="Reason">
+			Expulsé par l'hôte ([method kick]).
+		</constant>
+	</constants>
+</class>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="LanDiscovery" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		📡 Découverte des appareils à proximité (réseau local) qui exécutent un jeu fait avec ce module : système d'exploitation, version, partie hébergée.
+	</brief_description>
+	<description>
+		Chaque appareil qui annonce ([member advertise]) répond aux recherches avec son nom, son système d'exploitation, son modèle, son jeu et sa version, et la partie qu'il héberge éventuellement. Un appareil qui cherche ([method start_search]) envoie une requête UDP en broadcast (et à [member extra_query_addresses]) sur chaque port de [member port] à [code]port + port_range - 1[/code], et tient à jour la liste des appareils qui répondent.
+		[b]Un appareil sans le logiciel ne répond jamais[/b] : il n'apparaît pas dans la liste et ne peut pas rejoindre une partie. Pour se connecter, un appareil doit exécuter le même jeu ([member game_id]) et la même version ([member game_version]) ; la clé [code]compatibility[/code] de chaque appareil le signale (voir [enum Compatibility]).
+		Chaque appareil est un [Dictionary] : [code]device_id[/code], [code]name[/code], [code]os[/code], [code]os_version[/code], [code]distribution[/code], [code]model[/code], [code]engine_version[/code], [code]game_id[/code], [code]game_version[/code], [code]protocol[/code], [code]address[/code], [code]session[/code] (Dictionary : [code]hosting[/code], [code]host_name[/code], [code]port[/code], [code]transport[/code], [code]players[/code], [code]max_players[/code], [code]password_required[/code], [code]transport_encryption[/code], [code]end_to_end_encryption[/code]), [code]compatibility[/code], [code]can_join[/code], [code]latency_ms[/code] (-1 si inconnue) et [code]last_seen_msec[/code].
+		Plusieurs instances sur la même machine prennent chacune le premier port libre de la plage. Relier ce nœud à [member NetworkSession.discovery] pour annoncer automatiquement la partie hébergée.
+		[codeblock]
+		@onready var decouverte: LanDiscovery = $LanDiscovery
+		
+		func _ready():
+		    decouverte.device_found.connect(func(appareil):
+		        print(appareil.name, &quot; (&quot;, appareil.os, &quot;) &quot;, &quot;peut être rejoint&quot; if appareil.can_join else &quot;&quot;))
+		    decouverte.start_search()
+		[/codeblock]
+		Sur Android, la réception du broadcast UDP peut demander la permission [code]CHANGE_WIFI_MULTICAST_STATE[/code] ; un export Web ne peut ni annoncer ni chercher (pas d'UDP dans un navigateur).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_session_info">
+			<return type="void" />
+			<description>
+				Retire la partie hébergée des annonces (équivaut à [code]set_session_info({})[/code]).
+			</description>
+		</method>
+		<method name="get_bound_port" qualifiers="const">
+			<return type="int" />
+			<description>
+				Port UDP réellement ouvert : le premier libre de [member port] à [code]port + port_range - 1[/code] si l'appareil annonce, un port quelconque s'il cherche seulement, 0 s'il est arrêté.
+			</description>
+		</method>
+		<method name="get_device" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="device_id" type="String" />
+			<description>
+				Appareil trouvé d'identifiant [param device_id] (copie), ou un [Dictionary] vide.
+			</description>
+		</method>
+		<method name="get_device_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Nombre d'appareils trouvés.
+			</description>
+		</method>
+		<method name="get_device_id" qualifiers="const">
+			<return type="String" />
+			<description>
+				Identifiant aléatoire de cette instance (distingue deux jeux lancés sur la même machine).
+			</description>
+		</method>
+		<method name="get_devices" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Liste des appareils trouvés (copies). Voir la description de la classe pour les clés de chaque appareil.
+			</description>
+		</method>
+		<method name="get_joinable_devices" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Appareils qui hébergent une partie que cet appareil peut rejoindre : même jeu, même version, partie non complète ([code]can_join[/code] vrai).
+			</description>
+		</method>
+		<method name="get_local_device_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Ce que cet appareil annonce : identité, système d'exploitation, jeu et partie hébergée (mêmes clés qu'un appareil trouvé).
+			</description>
+		</method>
+		<method name="get_session_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Informations de partie actuellement annoncées (voir [method set_session_info]).
+			</description>
+		</method>
+		<method name="is_running" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si le port de découverte est ouvert.
+			</description>
+		</method>
+		<method name="is_searching" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si l'appareil cherche les autres (requêtes toutes les [member query_interval] secondes).
+			</description>
+		</method>
+		<method name="refresh">
+			<return type="void" />
+			<description>
+				Envoie une requête immédiatement, sans attendre [member query_interval].
+			</description>
+		</method>
+		<method name="set_session_info">
+			<return type="void" />
+			<param index="0" name="info" type="Dictionary" />
+			<description>
+				Informations de la partie hébergée ajoutées aux annonces (clé [code]session[/code] des appareils trouvés). Renseignées automatiquement par [NetworkSession] quand ce nœud est sa [member NetworkSession.discovery]. Les appareils qui nous cherchent sont prévenus aussitôt d'un changement.
+			</description>
+		</method>
+		<method name="start">
+			<return type="int" enum="Error" />
+			<description>
+				Ouvre le port de découverte. Si [member advertise] est vrai, l'appareil répond aux recherches. Appelé automatiquement à l'entrée dans l'arbre si [member autostart] est vrai.
+			</description>
+		</method>
+		<method name="start_search">
+			<return type="int" enum="Error" />
+			<description>
+				Commence à chercher les appareils (ouvre le port si besoin) : une requête part aussitôt, puis toutes les [member query_interval] secondes.
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<description>
+				Ferme le port, prévient les appareils qui nous cherchaient (ils émettent [signal device_lost] aussitôt) et vide la liste, en émettant [signal device_lost] pour chaque appareil.
+			</description>
+		</method>
+		<method name="stop_search">
+			<return type="void" />
+			<description>
+				Arrête d'envoyer des requêtes. Les appareils déjà trouvés expirent après [member device_timeout] secondes.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="advertise" type="bool" setter="set_advertise" getter="is_advertising" default="true">
+			Si vrai, l'appareil répond aux recherches (il est visible des autres). Si faux, il peut chercher sans être vu.
+		</member>
+		<member name="autostart" type="bool" setter="set_autostart" getter="is_autostart" default="true">
+			Si vrai, [method start] est appelé à l'entrée dans l'arbre (pas dans l'éditeur).
+		</member>
+		<member name="device_name" type="String" setter="set_device_name" getter="get_device_name" default="&quot;artpade&quot;">
+			Nom affiché chez les autres appareils. Vide : l'utilisateur du système (variable USER / USERNAME), sinon le modèle de l'appareil.
+		</member>
+		<member name="device_timeout" type="float" setter="set_device_timeout" getter="get_device_timeout" default="4.0">
+			Un appareil qui ne répond plus depuis ce délai est retiré de la liste ([signal device_lost]).
+		</member>
+		<member name="extra_query_addresses" type="PackedStringArray" setter="set_extra_query_addresses" getter="get_extra_query_addresses" default="PackedStringArray(&quot;127.0.0.1&quot;)">
+			Adresses interrogées en plus du broadcast 255.255.255.255 (par défaut 127.0.0.1, pour trouver les instances de la même machine). Ajouter une adresse précise permet de trouver un appareil d'un réseau où le broadcast est filtré.
+		</member>
+		<member name="game_id" type="String" setter="set_game_id" getter="get_game_id" default="&quot;GameplayToolkit&quot;">
+			Identifiant du jeu annoncé et comparé à celui des autres appareils. Vide : [code]application/config/name[/code] du projet. Remplacé par celui de la [NetworkSession] reliée quand elle héberge.
+		</member>
+		<member name="game_version" type="String" setter="set_game_version" getter="get_game_version" default="&quot;&quot;">
+			Version du jeu annoncée et comparée. Vide : [code]application/config/version[/code] du projet.
+		</member>
+		<member name="include_other_games" type="bool" setter="set_include_other_games" getter="is_including_other_games" default="true">
+			Si faux, les appareils qui exécutent un autre jeu fait avec ce module ([constant OTHER_GAME]) sont ignorés.
+		</member>
+		<member name="port" type="int" setter="set_port" getter="get_port" default="47474">
+			Premier port UDP de la plage de découverte.
+		</member>
+		<member name="port_range" type="int" setter="set_port_range" getter="get_port_range" default="4">
+			Nombre de ports de la plage de découverte : autant d'instances peuvent annoncer sur la même machine. Doit être identique sur tous les appareils.
+		</member>
+		<member name="query_interval" type="float" setter="set_query_interval" getter="get_query_interval" default="1.0">
+			Délai entre deux requêtes pendant la recherche.
+		</member>
+	</members>
+	<signals>
+		<signal name="device_found">
+			<param index="0" name="device" type="Dictionary" />
+			<description>
+				Émis quand un nouvel appareil répond. Voir la description de la classe pour les clés de [param device].
+			</description>
+		</signal>
+		<signal name="device_lost">
+			<param index="0" name="device" type="Dictionary" />
+			<description>
+				Émis quand un appareil disparaît : arrêt annoncé, ou plus de réponse depuis [member device_timeout] secondes.
+			</description>
+		</signal>
+		<signal name="device_updated">
+			<param index="0" name="device" type="Dictionary" />
+			<description>
+				Émis quand les informations d'un appareil changent (partie hébergée, nombre de joueurs, version...). Pas émis pour la seule mise à jour de la latence.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="COMPATIBLE" value="0" enum="Compatibility">
+			Même jeu, même version, même protocole : l'appareil peut rejoindre ou être rejoint.
+		</constant>
+		<constant name="VERSION_MISMATCH" value="1" enum="Compatibility">
+			Même jeu, autre version : l'un des deux appareils doit mettre le jeu à jour (sauf [member NetworkSession.allow_version_mismatch]).
+		</constant>
+		<constant name="OTHER_GAME" value="2" enum="Compatibility">
+			Autre jeu fait avec ce module : connexion impossible.
+		</constant>
+		<constant name="PROTOCOL_MISMATCH" value="3" enum="Compatibility">
+			Autre version du module réseau : mise à jour nécessaire.
+		</constant>
+	</constants>
+</class>

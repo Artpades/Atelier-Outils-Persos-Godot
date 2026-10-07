@@ -1,0 +1,229 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/1.📁🔌/🗄️Multijoueur/demo_multijoueur.gd" id="1_demo"]
+
+[node name="DémoMultijoueur" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="Decouverte" type="LanDiscovery" parent="."]
+unique_name_in_owner = true
+
+[node name="Session" type="NetworkSession" parent="."]
+unique_name_in_owner = true
+max_players = 6
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="Marges" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Colonnes" type="HBoxContainer" parent="Marges"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Appareils" type="VBoxContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitreAppareils" type="Label" parent="Marges/Colonnes/Appareils"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "📡 Appareils à proximité"
+
+[node name="InfoLocal" type="Label" parent="Marges/Colonnes/Appareils"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 3
+
+[node name="Defilement" type="ScrollContainer" parent="Marges/Colonnes/Appareils"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ListeAppareils" type="VBoxContainer" parent="Marges/Colonnes/Appareils/Defilement"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BoutonsVirtuels" type="HBoxContainer" parent="Marges/Colonnes/Appareils"]
+layout_mode = 2
+
+[node name="BoutonBot" type="Button" parent="Marges/Colonnes/Appareils/BoutonsVirtuels"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Crée un second appareil dans ce même programme (sa propre découverte et sa propre session) : il rejoint votre partie si vous hébergez, sinon il héberge la sienne. Il renvoie en écho les messages reçus."
+text = "🤖 Ajouter un appareil virtuel"
+
+[node name="BoutonRetirerBots" type="Button" parent="Marges/Colonnes/Appareils/BoutonsVirtuels"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Retirer"
+
+[node name="Aide" type="Label" parent="Marges/Colonnes/Appareils"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.64, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "ℹ️ Seuls les appareils qui exécutent un jeu fait avec ce module répondent : un appareil sans le logiciel n'apparaît pas et ne peut pas se connecter. Lancez cette scène sur un autre ordinateur du même réseau pour le voir ici."
+autowrap_mode = 3
+
+[node name="Reglages" type="VBoxContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitreReglages" type="Label" parent="Marges/Colonnes/Reglages"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "⚙️ Cet appareil"
+
+[node name="Grille" type="GridContainer" parent="Marges/Colonnes/Reglages"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+columns = 2
+
+[node name="LabelNom" type="Label" parent="Marges/Colonnes/Reglages/Grille"]
+layout_mode = 2
+text = "Nom"
+
+[node name="Nom" type="LineEdit" parent="Marges/Colonnes/Reglages/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelMotDePasse" type="Label" parent="Marges/Colonnes/Reglages/Grille"]
+layout_mode = 2
+text = "Mot de passe"
+
+[node name="MotDePasse" type="LineEdit" parent="Marges/Colonnes/Reglages/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "(aucun)"
+secret = true
+
+[node name="LabelTransport" type="Label" parent="Marges/Colonnes/Reglages/Grille"]
+layout_mode = 2
+text = "Transport"
+
+[node name="Transport" type="OptionButton" parent="Marges/Colonnes/Reglages/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ChiffrementTransport" type="CheckBox" parent="Marges/Colonnes/Reglages"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Chiffre tout le trafic (RPC compris) entre chaque client et l'hôte : DTLS pour ENet, TLS (wss://) pour WebSocket. Un certificat auto-signé est généré par l'hôte."
+text = "🔒 Chiffrer le transport (DTLS / TLS)"
+
+[node name="BoutEnBout" type="CheckBox" parent="Marges/Colonnes/Reglages"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Chiffre chaque message de l'émetteur jusqu'au destinataire (AES-256 + HMAC-SHA256, clés échangées par RSA). L'hôte qui relaie un message entre deux clients ne peut pas le lire."
+text = "🛡️ Chiffrement de bout en bout"
+
+[node name="Boutons" type="HBoxContainer" parent="Marges/Colonnes/Reglages"]
+layout_mode = 2
+
+[node name="BoutonHeberger" type="Button" parent="Marges/Colonnes/Reglages/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🏠 Héberger"
+
+[node name="BoutonQuitter" type="Button" parent="Marges/Colonnes/Reglages/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🚪 Quitter"
+
+[node name="Etat" type="Label" parent="Marges/Colonnes/Reglages"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Securite" type="RichTextLabel" parent="Marges/Colonnes/Reglages"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+bbcode_enabled = true
+fit_content = true
+
+[node name="TitreJoueurs" type="Label" parent="Marges/Colonnes/Reglages"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "👥 Joueurs"
+
+[node name="Joueurs" type="RichTextLabel" parent="Marges/Colonnes/Reglages"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+bbcode_enabled = true
+
+[node name="Discussion" type="VBoxContainer" parent="Marges/Colonnes"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TitreDiscussion" type="Label" parent="Marges/Colonnes/Discussion"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "💬 Messages et journal"
+
+[node name="Journal" type="RichTextLabel" parent="Marges/Colonnes/Discussion"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+bbcode_enabled = true
+scroll_following = true
+
+[node name="Saisie" type="HBoxContainer" parent="Marges/Colonnes/Discussion"]
+layout_mode = 2
+
+[node name="Message" type="LineEdit" parent="Marges/Colonnes/Discussion/Saisie"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Message à tous les joueurs…"
+
+[node name="BoutonEnvoyer" type="Button" parent="Marges/Colonnes/Discussion/Saisie"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Envoyer"
+
+[node name="BoutonTests" type="Button" parent="Marges/Colonnes/Discussion"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🧪 Lancer les tests automatiques (≈ 25 s)"
