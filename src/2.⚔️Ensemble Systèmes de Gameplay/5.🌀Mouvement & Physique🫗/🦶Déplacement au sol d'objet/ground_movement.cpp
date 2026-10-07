@@ -378,3 +378,46 @@ void GroundMovement3D::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "rotate_toward_movement"), "set_rotate_toward_movement", "get_rotate_toward_movement");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "turn_speed", PROPERTY_HINT_RANGE, "0,50,0.01,or_greater"), "set_turn_speed", "get_turn_speed");
 }
+
+// 🐞 Débogage
+
+String GroundMovement2D::_debug_text() const
+{
+    return String(is_on_floor() ? U"au sol" : U"en l'air") + U" · sauts " + String::num_int64(ground.jumps_used) + "/" + String::num_int64(ground.max_jumps) + (running ? String(U" · course") : String());
+}
+
+void GroundMovement2D::_draw_debug(DebugGizmos &p_debug)
+{
+    if (CharacterBody2D *character = Object::cast_to<CharacterBody2D>(get_body()))
+    {
+        Vector2 position = character->get_global_position();
+        p_debug.arrow(position, position + facing * 24.0f, debug_colors::HEADING, 6.0f);
+        if (character->is_on_floor())
+        {
+            p_debug.arrow(position, position + character->get_floor_normal() * 30.0f, debug_colors::NORMAL, 6.0f);
+        }
+    }
+    MovementComponent::_draw_debug(p_debug);
+}
+
+String GroundMovement3D::_debug_text() const
+{
+    return String(is_on_floor() ? U"au sol" : U"en l'air") + U" · sauts " + String::num_int64(ground.jumps_used) + "/" + String::num_int64(ground.max_jumps) + (running ? String(U" · course") : String());
+}
+
+void GroundMovement3D::_draw_debug(DebugGizmos &p_debug)
+{
+    if (CharacterBody3D *character = Object::cast_to<CharacterBody3D>(get_body()))
+    {
+        Vector3 position = character->get_global_position();
+        Vector2 world = get_world_input();
+        p_debug.arrow3(position + Vector3(0, 0.05f, 0), position + Vector3(world.x, 0.05f, world.y), debug_colors::INPUT);
+        p_debug.arrow3(position, position + Vector3(facing.x, 0, facing.y) * 0.8f, debug_colors::HEADING);
+        if (character->is_on_floor())
+        {
+            p_debug.arrow3(position, position + character->get_floor_normal(), debug_colors::NORMAL);
+        }
+        p_debug.arrow3(position, position + character->get_velocity() * 0.25f, debug_colors::VELOCITY);
+        p_debug.text3(position + Vector3(0, 1.4f, 0), String(get_name()) + U" · " + _debug_text());
+    }
+}

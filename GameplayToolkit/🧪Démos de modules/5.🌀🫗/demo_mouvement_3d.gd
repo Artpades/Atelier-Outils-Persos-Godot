@@ -28,6 +28,7 @@ var tangage := -0.35
 var rotation_camera := Vector2.ZERO
 var _etat: Label
 var _fin_reassignation := 0
+var _case_debug: CheckBox
 var _pics: Area3D
 
 
@@ -40,6 +41,7 @@ func _ready() -> void:
 	panneau.ajouter_bouton("🫨 Secouer", func(): $Heros/Antenne.impulse(Vector3(6, 2, 0)), rangee)
 	panneau.ajouter_bouton("📳 Vibrer", func(): entrees.start_vibration(0.6, 0.8, 0.3), rangee)
 	panneau.ajouter_bouton("⚙️ Contrôles", ouvrir_menu)
+	_case_debug = panneau.ajouter_case("🐞 Gizmos de débogage (F1)", false, func(actif: bool): _appliquer_debug(actif))
 	panneau.ajouter_bouton("🧪 Lancer les tests du module", func(): panneau.lancer_tests("Mouvement & Physique", SuiteTests, self))
 
 	directeur.context_changed.connect(func(_ancien: StringName, nom: StringName): panneau.journaliser("🎬 contexte : [b]%s[/b]" % nom))
@@ -78,6 +80,19 @@ func _capturer_souris(capturer: bool) -> void:
 
 
 # 🔗 Méthodes appelées par les liaisons du PlayerInput
+
+## Gizmos de débogage : debug_mode de tous les nœuds du module Mouvement & Physique de la scène (composants,
+## directeur, eau, zones de force, corde, trémoussement, recul).
+func basculer_debug() -> void:
+	_case_debug.button_pressed = not _case_debug.button_pressed
+
+
+func _appliquer_debug(actif: bool) -> void:
+	for noeud in find_children("*", "", true, false):
+		if "debug_mode" in noeud:
+			noeud.debug_mode = actif
+	panneau.journaliser("🐞 gizmos %s" % ("affichés" if actif else "masqués"))
+
 
 func orbiter(mouvement: Vector2) -> void:
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:

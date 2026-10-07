@@ -235,3 +235,35 @@ void AerodynamicMovement3D::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_camera_relative"), &AerodynamicMovement3D::get_camera_relative);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "camera_relative"), "set_camera_relative", "get_camera_relative");
 }
+
+// 🐞 Débogage
+
+String AerodynamicMovement2D::_debug_text() const
+{
+    return String(aero.mode == 1 ? U"vol libre" : U"plané") + U" · battements " + String::num_int64(aero.flaps_left) + "/" + String::num_int64(aero.max_flaps);
+}
+
+void AerodynamicMovement2D::_draw_debug(DebugGizmos &p_debug)
+{
+    if (Node2D *body = Object::cast_to<Node2D>(get_body()))
+    {
+        Vector2 position = body->get_global_position();
+        p_debug.arrow(position, position + external_acceleration_2d(body) * aero.wind_influence * 0.05f, debug_colors::FORCE, 8.0f, 3.0f);
+    }
+    MovementComponent::_draw_debug(p_debug);
+}
+
+String AerodynamicMovement3D::_debug_text() const
+{
+    return String(aero.mode == 1 ? U"vol libre" : U"plané") + U" · battements " + String::num_int64(aero.flaps_left) + "/" + String::num_int64(aero.max_flaps);
+}
+
+void AerodynamicMovement3D::_draw_debug(DebugGizmos &p_debug)
+{
+    if (Node3D *body = Object::cast_to<Node3D>(get_body()))
+    {
+        Vector3 position = body->get_global_position();
+        p_debug.arrow3(position, position + external_acceleration_3d(body) * aero.wind_influence * 0.05f, debug_colors::FORCE, 0.2f, 3.0f);
+    }
+    MovementComponent::_draw_debug(p_debug);
+}

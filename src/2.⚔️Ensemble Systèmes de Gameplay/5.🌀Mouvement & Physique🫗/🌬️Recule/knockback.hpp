@@ -1,6 +1,8 @@
 #ifndef KNOCKBACK_HPP
 #define KNOCKBACK_HPP
 
+#include "../🧩Commun/debug_gizmos.hpp"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/variant/vector2.hpp>
 #include <godot_cpp/variant/vector3.hpp>
@@ -70,6 +72,9 @@ class Knockback2D : public Node
 
     double lock_remaining = 0.0;
     Vector2 continuous_velocity;
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 
 /// 🌬️ Recul d'un corps 3D (CharacterBody3D ou RigidBody3D) : mêmes règles qu'en 2D (Y vers le haut).
@@ -127,6 +132,9 @@ class Knockback3D : public Node
 
     double lock_remaining = 0.0;
     Vector3 continuous_velocity;
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 } // namespace godot
 

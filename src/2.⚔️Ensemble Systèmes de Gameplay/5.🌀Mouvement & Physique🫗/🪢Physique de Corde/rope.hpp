@@ -101,6 +101,9 @@ class Rope2D : public Node2D
     Vector2 _start_position() const;
     Node2D *_end_anchor() const;
     void _simulate(double p_delta);
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 
 /// 🪢 Corde 3D : même simulation qu'en 2D, rendue en ligne (ImmediateMesh) de couleur color.
@@ -187,6 +190,9 @@ class Rope3D : public Node3D
     Node3D *_end_anchor() const;
     void _simulate(double p_delta);
     void _redraw();
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 
 /// 🧗‍♂️ Déplacement sur corde 2D : try_grab() s'accroche à la corde la plus proche (grab_distance), puis,
@@ -216,6 +222,8 @@ class RopeMovement2D : public MovementComponent
   protected:
     static void _bind_methods();
     void _physics_step(double p_delta) override;
+    String _debug_text() const override;
+    void _draw_debug(DebugGizmos &p_debug) override;
 
   private:
     double grab_distance = 40.0;
@@ -253,6 +261,8 @@ class RopeMovement3D : public MovementComponent
   protected:
     static void _bind_methods();
     void _physics_step(double p_delta) override;
+    String _debug_text() const override;
+    void _draw_debug(DebugGizmos &p_debug) override;
 
   private:
     double grab_distance = 1.0;

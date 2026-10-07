@@ -127,6 +127,9 @@ class MovementDirector : public Node
     float vertical_input = 0.0f;
 
     void _apply(const Ref<MovementContext> &p_context);
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 } // namespace godot
 

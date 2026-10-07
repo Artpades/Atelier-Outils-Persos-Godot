@@ -18,6 +18,7 @@ func _executer() -> void:
 	await _tester_corde()
 	await _tester_orchestrateur()
 	await _tester_3d_divers()
+	await _tester_debug_mode()
 
 
 # 🧱 Construction
@@ -258,10 +259,11 @@ func _tester_eau_et_nage() -> void:
 
 	var nageur := _corps_2d(Vector2(20100, 250))
 	var nage: SwimMovement2D = _composant(nageur, SwimMovement2D)
+	nage.style = SwimMovement2D.STYLE_SURFACE
 	await _physique(150)
 	_verifier("Nage : remonte à la profondeur d'équilibre", absf(eau.get_depth(nageur.global_position) - nage.float_depth) < 12, str(eau.get_depth(nageur.global_position)))
 	nage.move(Vector2(0, 1))
-	await _physique(40)
+	await _physique(60)
 	_verifier("Nage : plonge avec la commande", eau.get_depth(nageur.global_position) > 60, str(eau.get_depth(nageur.global_position)))
 	nage.move(Vector2.ZERO)
 	await _physique(200)
@@ -269,6 +271,8 @@ func _tester_eau_et_nage() -> void:
 	nage.jump()
 	await _physique(3)
 	_verifier("Nage : saut hors de l'eau près de la surface", sorties.n == 1 and nageur.velocity.y < -200, str(nageur.velocity))
+	nageur.queue_free()
+	await _tester_nage_directionnelle_2d(eau)
 
 
 # 🧗 Mur
@@ -439,8 +443,11 @@ func _tester_3d_divers() -> void:
 	_verifier("Eau 3D : surface = haut de la boîte", is_equal_approx(eau.get_surface_y(), 0.0))
 	var nageur := _corps_3d(Vector3(0, -3, 2000))
 	var nage: SwimMovement3D = _composant(nageur, SwimMovement3D)
+	nage.style = SwimMovement3D.STYLE_SURFACE
 	await _physique(150)
 	_verifier("Nage 3D : remonte vers la surface", absf(eau.get_depth(nageur.global_position) - nage.float_depth) < 0.4, str(eau.get_depth(nageur.global_position)))
+	nageur.queue_free()
+	await _tester_nage_3d(eau)
 
 	var corde := Rope3D.new()
 	corde.position = Vector3(0, 10, 3000)
@@ -465,3 +472,136 @@ func _tester_3d_divers() -> void:
 	support.position.x += 1
 	await _frames(2)
 	_verifier("Trémousse 3D : traîne et s'incline", antenne.get_offset().x < -0.01 and not antenne.transform.basis.is_equal_approx(Basis()), str(antenne.get_offset()))
+
+
+# 🐟 Nage directionnelle (Mario Galaxy) et poisson
+
+func _tester_nage_directionnelle_2d(eau: WaterArea2D) -> void:
+	var nageur := _corps_2d(Vector2(19800, 200))
+	var nage: SwimMovement2D = _composant(nageur, SwimMovement2D)
+	_verifier("Nage : style directionnel par défaut", nage.style == SwimMovement2D.STYLE_DIRECTIONAL)
+	await _physique(30)
+	var profondeur := eau.get_depth(nageur.global_position)
+	_verifier("Directionnel : flottabilité neutre sous l'eau (ni remontée ni chute)", absf(profondeur - 200) < 8, str(profondeur))
+	nage.move(Vector2(1, 0))
+	await _physique(40)
+	_verifier("Directionnel : file vers la commande, avec élan", nage.get_heading().is_equal_approx(Vector2(1, 0)) and nage.get_speed() > 100 and nageur.position.x > 19830, "%s %s %s" % [nage.get_heading(), nage.get_speed(), nageur.position])
+	nage.move(Vector2(0, 1))
+	await _physique(5)
+	var angle := nage.get_heading().angle()
+	_verifier("Directionnel : virage progressif (turn_speed)", angle > 0.1 and angle < PI / 2 - 0.1, str(nage.get_heading()))
+	await _physique(30)
+	_verifier("Directionnel : orienté vers le bas, corps incliné", nage.get_heading().is_equal_approx(Vector2(0, 1)) and absf(nageur.rotation - PI / 2) < 0.1, "%s %s" % [nage.get_heading(), nageur.rotation])
+	nage.move(Vector2.ZERO)
+	await _physique(5)
+	_verifier("Directionnel : l'élan se conserve sans commande", nage.get_speed() > 80, str(nage.get_speed()))
+	await _physique(150)
+	_verifier("Directionnel : puis s'arrête", nage.get_speed() < 5, str(nage.get_speed()))
+	var coups := _espionner(nage.stroked)
+	var vitesse := nage.get_speed()
+	nage.jump()
+	await _physique(2)
+	_verifier("Coup de nage : élan dans la direction de nage", coups.n == 1 and nage.get_speed() > vitesse + 100, str(nage.get_speed()))
+	nage.jump()
+	await _physique(2)
+	_verifier("Coup de nage : délai entre deux coups", coups.n == 1)
+	nage.move(Vector2(0, -1))
+	await _physique(240)
+	profondeur = eau.get_depth(nageur.global_position)
+	_verifier("Surface : on n'émerge pas en nageant, et pousser vers le haut n'y fait pas nager", profondeur > nage.float_depth - 6 and profondeur < nage.float_depth + 15 and nage.get_speed() < 20, "%s %s" % [profondeur, nage.get_speed()])
+	var sorties := _espionner(nage.jumped_out)
+	nage.jump()
+	await _physique(2)
+	_verifier("Surface : le saut fait sortir de l'eau", sorties.n == 1 and nageur.velocity.y < -200, str(nageur.velocity))
+	nage.move(Vector2.ZERO)
+	nage.set_active(false)
+	_verifier("Désactivé : corps redressé", nageur.rotation == 0.0)
+	nageur.queue_free()
+
+	var poisson := _corps_2d(Vector2(19800, 250))
+	var nage_poisson: SwimMovement2D = _composant(poisson, SwimMovement2D)
+	nage_poisson.style = SwimMovement2D.STYLE_FISH
+	await _physique(90)
+	_verifier("Poisson : nage toujours (vitesse de croisière)", nage_poisson.get_speed() > nage_poisson.swim_speed * nage_poisson.cruise_ratio * 0.9, str(nage_poisson.get_speed()))
+	var angles := []
+	for i in 8:
+		await _physique(3)
+		angles.append(poisson.rotation)
+	_verifier("Poisson : le corps ondule", angles.max() - angles.min() > 0.05, str(angles))
+	poisson.queue_free()
+
+
+func _tester_nage_3d(eau: WaterArea3D) -> void:
+	var nageur := _corps_3d(Vector3(0, -2.5, 2000))
+	var nage: SwimMovement3D = _composant(nageur, SwimMovement3D)
+	await _physique(10)
+	nage.move(Vector2(0, -1))
+	await _physique(50)
+	_verifier("Nage 3D directionnelle : file vers -Z, corps orienté", nage.get_heading().is_equal_approx(Vector3(0, 0, -1)) and nageur.position.z < 1999 and (-nageur.global_basis.z).dot(nage.get_heading()) > 0.95, "%s %s" % [nage.get_heading(), nageur.position])
+	nage.set_vertical_input(-1.0)
+	await _physique(40)
+	_verifier("Nage 3D : plonge (tangage), corps incliné", nage.get_heading().y < -0.4 and (-nageur.global_basis.z).y < -0.3, "%s %s" % [nage.get_heading(), -nageur.global_basis.z])
+	nage.set_vertical_input(0.0)
+	nage.move(Vector2.ZERO)
+	nage.set_active(false)
+	_verifier("Nage 3D désactivée : corps redressé", nageur.global_basis.y.is_equal_approx(Vector3.UP), str(nageur.global_basis))
+	nageur.queue_free()
+
+	var poisson := _corps_3d(Vector3(3, -2.5, 2000))
+	var nage_poisson: SwimMovement3D = _composant(poisson, SwimMovement3D)
+	nage_poisson.style = SwimMovement3D.STYLE_FISH
+	await _physique(30)
+	var depart := nage_poisson.get_heading()
+	_verifier("Poisson 3D : nage à la vitesse de croisière", nage_poisson.get_speed() > 1.0, str(nage_poisson.get_speed()))
+	nage_poisson.move(Vector2(1, 0))
+	await _physique(20)
+	_verifier("Poisson 3D : move.x tourne (lacet)", nage_poisson.get_heading().angle_to(depart) > 0.5 and absf(nage_poisson.get_heading().y) < 0.01, str(nage_poisson.get_heading()))
+	nage_poisson.move(Vector2.ZERO)
+	nage_poisson.set_vertical_input(1.0)
+	await _physique(10)
+	_verifier("Poisson 3D : vertical cabre (tangage)", nage_poisson.get_heading().y > 0.2, str(nage_poisson.get_heading()))
+	poisson.queue_free()
+
+
+# 🐞 debug_mode : toutes les classes dessinent leurs gizmos sans erreur
+
+func _tester_debug_mode() -> void:
+	var noeuds := []
+	var eau := _zone_2d(WaterArea2D, Vector2(40000, 200), Vector2(300, 200))
+	var vent := _zone_2d(ForceZone2D, Vector2(40400, 200), Vector2(100, 100))
+	var corps := _corps_2d(Vector2(40000, 150))
+	for classe in [GroundMovement2D, SwimMovement2D, WallMovement2D, AerodynamicMovement2D, RopeMovement2D, Knockback2D, MovementDirector]:
+		noeuds.append(_composant(corps, classe))
+	var antenne := Jiggle2D.new()
+	corps.add_child(antenne)
+	var corde := Rope2D.new()
+	corde.position = Vector2(40200, 0)
+	_ajouter(corde)
+	noeuds.append_array([eau, vent, antenne, corde])
+	var corps_3d := _corps_3d(Vector3(0, 1, 4000))
+	for classe in [GroundMovement3D, SwimMovement3D, WallMovement3D, AerodynamicMovement3D, RopeMovement3D, Knockback3D, MovementDirector]:
+		noeuds.append(_composant(corps_3d, classe))
+	var zone_3d := ForceZone3D.new()
+	var forme := CollisionShape3D.new()
+	forme.shape = BoxShape3D.new()
+	zone_3d.add_child(forme)
+	zone_3d.position = Vector3(3, 0, 4000)
+	_ajouter(zone_3d)
+	var corde_3d := Rope3D.new()
+	corde_3d.position = Vector3(-3, 4, 4000)
+	_ajouter(corde_3d)
+	var antenne_3d := Jiggle3D.new()
+	corps_3d.add_child(antenne_3d)
+	noeuds.append_array([zone_3d, corde_3d, antenne_3d])
+	var sans_propriete := noeuds.filter(func(n): return not "debug_mode" in n)
+	_verifier("debug_mode présent sur toutes les classes du module", sans_propriete.is_empty(), str(sans_propriete))
+	for noeud in noeuds:
+		noeud.debug_mode = true
+	noeuds[5].apply_knockback(Vector2(1, -1))
+	await _physique(20)
+	for noeud in noeuds:
+		noeud.debug_mode = false
+	await _physique(2)
+	_verifier("debug_mode : gizmos dessinés puis libérés sans erreur", true)
+	corps.queue_free()
+	corps_3d.queue_free()

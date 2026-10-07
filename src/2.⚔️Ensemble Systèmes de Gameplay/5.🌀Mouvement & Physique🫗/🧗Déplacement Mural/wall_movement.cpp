@@ -173,3 +173,37 @@ void WallMovement3D::_physics_step(double p_delta)
 }
 
 void WallMovement3D::_bind_methods() { bind_wall_common<WallMovement3D>(); }
+
+// 🐞 Débogage
+
+String WallMovement2D::_debug_text() const
+{
+    return is_climbing() ? String(U"escalade") : (is_sliding() ? String(U"glissade") : (is_touching_wall() ? String(U"contre un mur") : String(U"pas de mur")));
+}
+
+void WallMovement2D::_draw_debug(DebugGizmos &p_debug)
+{
+    CharacterBody2D *character = Object::cast_to<CharacterBody2D>(get_body());
+    if (character && character->is_on_wall())
+    {
+        Vector2 position = character->get_global_position();
+        p_debug.arrow(position, position + character->get_wall_normal() * 40.0f, debug_colors::NORMAL, 8.0f, 3.0f);
+    }
+    MovementComponent::_draw_debug(p_debug);
+}
+
+String WallMovement3D::_debug_text() const
+{
+    return is_climbing() ? String(U"escalade") : (is_sliding() ? String(U"glissade") : (is_touching_wall() ? String(U"contre un mur") : String(U"pas de mur")));
+}
+
+void WallMovement3D::_draw_debug(DebugGizmos &p_debug)
+{
+    CharacterBody3D *character = Object::cast_to<CharacterBody3D>(get_body());
+    if (character && character->is_on_wall())
+    {
+        Vector3 position = character->get_global_position();
+        p_debug.arrow3(position, position + character->get_wall_normal(), debug_colors::NORMAL, 0.2f, 3.0f);
+    }
+    MovementComponent::_draw_debug(p_debug);
+}

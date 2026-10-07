@@ -106,10 +106,33 @@ void Jiggle2D::_notification(int p_what)
     else if (p_what == NOTIFICATION_PROCESS)
     {
         _step(get_process_delta_time());
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
+    }
+    else if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        debug.release();
     }
 }
 
-void Jiggle2D::_bind_methods() { bind_jiggle_common<Jiggle2D>(Variant::VECTOR2); }
+void Jiggle2D::_draw_debug()
+{
+    debug.begin(this, false);
+    Vector2 current = get_global_position();
+    Vector2 rest = current - offset;
+    debug.circle(rest, float(jiggle.max_offset), Color(1.0f, 0.6f, 0.9f, 0.5f), false, 1.0f);
+    debug.line(rest, current, debug_colors::HEADING, 2.0f);
+    debug.circle(rest, 2.5f, debug_colors::HEADING, true);
+    debug.end();
+}
+
+void Jiggle2D::_bind_methods()
+{
+    bind_jiggle_common<Jiggle2D>(Variant::VECTOR2);
+    bind_debug_mode<Jiggle2D>();
+}
 
 // 🫨 3D
 
@@ -182,7 +205,29 @@ void Jiggle3D::_notification(int p_what)
     else if (p_what == NOTIFICATION_PROCESS)
     {
         _step(get_process_delta_time());
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
+    }
+    else if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        debug.release();
     }
 }
 
-void Jiggle3D::_bind_methods() { bind_jiggle_common<Jiggle3D>(Variant::VECTOR3); }
+void Jiggle3D::_draw_debug()
+{
+    debug.begin(this, true);
+    Vector3 current = get_global_position();
+    Vector3 rest = current - offset;
+    debug.sphere3(rest, float(jiggle.max_offset), Color(1.0f, 0.6f, 0.9f, 0.5f));
+    debug.line3(rest, current, debug_colors::HEADING, 2.0f);
+    debug.end();
+}
+
+void Jiggle3D::_bind_methods()
+{
+    bind_jiggle_common<Jiggle3D>(Variant::VECTOR3);
+    bind_debug_mode<Jiggle3D>();
+}

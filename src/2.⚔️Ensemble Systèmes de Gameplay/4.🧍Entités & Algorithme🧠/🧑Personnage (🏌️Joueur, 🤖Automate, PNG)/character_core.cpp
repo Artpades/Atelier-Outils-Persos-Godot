@@ -143,6 +143,13 @@ void CharacterCore::forward_movement(Node *p_owner)
     bool blocked = is_movement_blocked(p_owner);
     Vector2 input = blocked ? Vector2() : move_input;
     bool run = running && !blocked;
+    if (forwarded_once && input == forwarded_input && run == forwarded_running)
+    {
+        return; // rien de nouveau : l'intention donnée ailleurs (directement au directeur) est conservée
+    }
+    forwarded_once = true;
+    forwarded_input = input;
+    forwarded_running = run;
     if (Node *director = find_movement_director(p_owner))
     {
         director->call("move", input);

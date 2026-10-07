@@ -82,6 +82,8 @@ class AerodynamicMovement2D : public MovementComponent
     static void _bind_methods();
     void _notification(int p_what);
     void _physics_step(double p_delta) override;
+    String _debug_text() const override;
+    void _draw_debug(DebugGizmos &p_debug) override;
     void _on_activated() override { aero.flaps_left = aero.max_flaps; }
 
   private:
@@ -109,6 +111,8 @@ class AerodynamicMovement3D : public MovementComponent
     static void _bind_methods();
     void _notification(int p_what);
     void _physics_step(double p_delta) override;
+    String _debug_text() const override;
+    void _draw_debug(DebugGizmos &p_debug) override;
     void _on_activated() override { aero.flaps_left = aero.max_flaps; }
 
   private:

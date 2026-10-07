@@ -437,7 +437,53 @@ void MovementDirector::_notification(int p_what)
     else if (p_what == NOTIFICATION_PHYSICS_PROCESS)
     {
         update_context();
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
     }
+    else if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        debug.release();
+    }
+}
+
+void MovementDirector::_draw_debug()
+{
+    Node *body = get_body();
+    bool body_3d = Object::cast_to<Node3D>(body) != nullptr;
+    debug.begin(this, body_3d);
+    PackedStringArray flags;
+    if (is_on_floor())
+    {
+        flags.push_back(U"sol");
+    }
+    if (is_in_water())
+    {
+        flags.push_back(U"eau");
+    }
+    if (is_on_wall())
+    {
+        flags.push_back(U"mur");
+    }
+    if (is_on_rope())
+    {
+        flags.push_back(U"corde");
+    }
+    if (is_knocked())
+    {
+        flags.push_back(U"recul");
+    }
+    String text = String(U"🎬 ") + String(current) + (String(forced).is_empty() ? String() : String(U" (forcé)")) + U" · " + (flags.is_empty() ? String(U"en l'air") : String(", ").join(flags));
+    if (Node2D *body_2d = Object::cast_to<Node2D>(body))
+    {
+        debug.text(body_2d->get_global_position() + Vector2(-60, -64), text, Color(1.0f, 0.85f, 0.4f), 12);
+    }
+    else if (Node3D *body_3d_node = Object::cast_to<Node3D>(body))
+    {
+        debug.text3(body_3d_node->get_global_position() + Vector3(0, 1.8f, 0), text, Color(1.0f, 0.85f, 0.4f), 36);
+    }
+    debug.end();
 }
 
 void MovementDirector::_bind_methods()
@@ -478,4 +524,5 @@ void MovementDirector::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "auto_configure"), "set_auto_configure", "get_auto_configure");
 
     ADD_SIGNAL(MethodInfo("context_changed", PropertyInfo(Variant::STRING_NAME, "previous"), PropertyInfo(Variant::STRING_NAME, "current")));
+    bind_debug_mode<MovementDirector>();
 }

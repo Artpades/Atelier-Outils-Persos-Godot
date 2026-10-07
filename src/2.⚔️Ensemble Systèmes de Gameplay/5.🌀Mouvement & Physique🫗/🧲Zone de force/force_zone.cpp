@@ -169,11 +169,16 @@ void ForceZone2D::_notification(int p_what)
         {
             zones.remove_at(index);
         }
+        debug.release();
         break;
     }
     case NOTIFICATION_PHYSICS_PROCESS:
     {
         elapsed += get_physics_process_delta_time();
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
         if (!settings.enabled || !settings.affect_rigid_bodies)
         {
             break;
@@ -193,7 +198,45 @@ void ForceZone2D::_notification(int p_what)
     }
 }
 
-void ForceZone2D::_bind_methods() { bind_force_zone_common<ForceZone2D>(Variant::VECTOR2); }
+void ForceZone2D::_draw_debug()
+{
+    static const char32_t *modes[] = {U"directionnel", U"attraction", U"tourbillon", U"freinage"};
+    debug.begin(this, false);
+    debug.shape_outline(this, settings.enabled ? debug_colors::ZONE : Color(0.5f, 0.5f, 0.5f, 0.6f));
+    // Champ d'accélération échantillonné sur une grille 5 × 5 autour de la zone.
+    Vector2 center = get_global_position();
+    float extent = 40.0f;
+    for (int i = 0; i < get_child_count(); i++)
+    {
+        if (CollisionShape2D *shape = Object::cast_to<CollisionShape2D>(get_child(i)))
+        {
+            if (shape->get_shape().is_valid())
+            {
+                Rect2 rect = shape->get_shape()->get_rect();
+                extent = MAX(rect.size.x, rect.size.y) * 0.5f * shape->get_global_transform().get_scale().x;
+                center = shape->get_global_position();
+            }
+            break;
+        }
+    }
+    for (int x = -2; x <= 2; x++)
+    {
+        for (int y = -2; y <= 2; y++)
+        {
+            Vector2 point = center + Vector2(x, y) * extent * 0.4f;
+            Vector2 acceleration = compute_acceleration(point, Vector2());
+            debug.arrow(point, point + acceleration.limit_length(1.0f) * extent * 0.18f, debug_colors::FORCE, 5.0f, 1.5f);
+        }
+    }
+    debug.text(center + Vector2(-50, -extent - 8), String(U"🧲 ") + String(modes[CLAMP(int(settings.mode), 0, 3)]) + U" · " + String::num(settings.strength, 0), debug_colors::TEXT, 11);
+    debug.end();
+}
+
+void ForceZone2D::_bind_methods()
+{
+    bind_force_zone_common<ForceZone2D>(Variant::VECTOR2);
+    bind_debug_mode<ForceZone2D>();
+}
 
 // 🧲 3D
 
@@ -277,11 +320,16 @@ void ForceZone3D::_notification(int p_what)
         {
             zones.remove_at(index);
         }
+        debug.release();
         break;
     }
     case NOTIFICATION_PHYSICS_PROCESS:
     {
         elapsed += get_physics_process_delta_time();
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
         if (!settings.enabled || !settings.affect_rigid_bodies)
         {
             break;
@@ -301,4 +349,41 @@ void ForceZone3D::_notification(int p_what)
     }
 }
 
-void ForceZone3D::_bind_methods() { bind_force_zone_common<ForceZone3D>(Variant::VECTOR3); }
+void ForceZone3D::_draw_debug()
+{
+    static const char32_t *modes[] = {U"directionnel", U"attraction", U"tourbillon", U"freinage"};
+    debug.begin(this, true);
+    debug.shape_outline3(this, settings.enabled ? debug_colors::ZONE : Color(0.5f, 0.5f, 0.5f, 0.6f));
+    Vector3 center = get_global_position();
+    float extent = 1.5f;
+    for (int i = 0; i < get_child_count(); i++)
+    {
+        if (CollisionShape3D *shape = Object::cast_to<CollisionShape3D>(get_child(i)))
+        {
+            center = shape->get_global_position();
+            Ref<BoxShape3D> box = shape->get_shape();
+            if (box.is_valid())
+            {
+                extent = MAX(box->get_size().x, box->get_size().z) * 0.5f;
+            }
+            break;
+        }
+    }
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int z = -1; z <= 1; z++)
+        {
+            Vector3 point = center + Vector3(x, 0, z) * extent * 0.6f;
+            Vector3 acceleration = compute_acceleration(point, Vector3());
+            debug.arrow3(point, point + acceleration.limit_length(1.0f) * extent * 0.5f, debug_colors::FORCE, 0.12f, 1.5f);
+        }
+    }
+    debug.text3(center + Vector3(0, extent + 0.3f, 0), String(U"🧲 ") + String(modes[CLAMP(int(settings.mode), 0, 3)]) + U" · " + String::num(settings.strength, 1));
+    debug.end();
+}
+
+void ForceZone3D::_bind_methods()
+{
+    bind_force_zone_common<ForceZone3D>(Variant::VECTOR3);
+    bind_debug_mode<ForceZone3D>();
+}

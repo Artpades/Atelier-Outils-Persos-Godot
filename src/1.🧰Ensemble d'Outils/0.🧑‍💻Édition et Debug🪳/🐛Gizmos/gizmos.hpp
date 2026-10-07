@@ -42,24 +42,20 @@ namespace godot
 // Propriétaire UNIQUE des ressources RenderingServer partagées par les gizmos 3D : registres (mesh et
 // matériaux par instance), shader de texte, matériau par défaut. Remplace les anciennes variables
 // statiques, détruites après le moteur au déchargement de la bibliothèque (RID fuités, risque de crash).
-// Créé à la première utilisation, détruit au déchargement du module (tool_editor_register.cpp) ; ses RID
-// sont libérés dans NOTIFICATION_PREDELETE. Les RID d'instance (gizmos) restent à la charge de leur
-// propriétaire (GizmoHost, HandlersManager, script).
-class GizmoResources : public Object
+// Créé à la première utilisation, détruit au déchargement de CHAQUE module qui l'utilise (destroy() dans son
+// registre : tool_editor_register.cpp, movement_physics_register.cpp...) ; ses RID sont libérés par le
+// destructeur. Les RID d'instance (gizmos) restent à la charge de leur propriétaire (GizmoHost,
+// HandlersManager, DebugGizmos, script).
+class GizmoResources
 {
-    GDCLASS(GizmoResources, Object)
-
   private:
     inline static GizmoResources *singleton = nullptr; // pointeur : destruction triviale au déchargement
 
-  protected:
-    static void _bind_methods() {}
-    void _notification(int p_what)
+  public:
+    // Classe C++ ordinaire (pas une classe Godot) : chaque bibliothèque qui inclut ce header a son propre
+    // exemplaire sans enregistrer de classe (deux bibliothèques ne peuvent pas enregistrer le même nom).
+    ~GizmoResources()
     {
-        if (p_what != NOTIFICATION_PREDELETE)
-        {
-            return;
-        }
         RenderingServer *rs = RenderingServer::get_singleton();
         if (rs)
         {
@@ -97,7 +93,6 @@ class GizmoResources : public Object
         default_material.unref();
     }
 
-  public:
     Dictionary mesh_rids;      // RID d'instance -> RID de mesh
     Dictionary materials;      // RID d'instance -> Ref<StandardMaterial3D> (draw_3D_icon)
     Dictionary text_materials; // RID d'instance -> Array de RID de matériaux de glyphes (draw_3D_text)

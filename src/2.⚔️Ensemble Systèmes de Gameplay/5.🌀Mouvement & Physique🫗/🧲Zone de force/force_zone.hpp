@@ -1,6 +1,8 @@
 #ifndef FORCE_ZONE_HPP
 #define FORCE_ZONE_HPP
 
+#include "../🧩Commun/debug_gizmos.hpp"
+
 #include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/area3d.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
@@ -86,6 +88,9 @@ class ForceZone2D : public Area2D
     Vector2 direction = Vector2(1, 0);
     double elapsed = 0.0;
     static LocalVector<ObjectID> zones;
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 
 /// 🧲 Zone de force 3D (Area3D) : mêmes modes qu'en 2D ; le tourbillon tourne autour de l'axe Y local.
@@ -131,6 +136,9 @@ class ForceZone3D : public Area3D
     Vector3 direction = Vector3(1, 0, 0);
     double elapsed = 0.0;
     static LocalVector<ObjectID> zones;
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 } // namespace godot
 

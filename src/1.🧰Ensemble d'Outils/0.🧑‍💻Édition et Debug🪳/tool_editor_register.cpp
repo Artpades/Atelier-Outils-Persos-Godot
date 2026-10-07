@@ -80,7 +80,6 @@ static void initialize(ModuleInitializationLevel p_level)
     {
         return; // appelé aussi au niveau EDITOR : la classe ne doit être enregistrée qu'une fois
     }
-    GDREGISTER_INTERNAL_CLASS(GizmoResources);
     GDREGISTER_CLASS(L);
 
     GDREGISTER_CLASS(ManagerBuilder);

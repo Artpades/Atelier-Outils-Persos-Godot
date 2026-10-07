@@ -55,6 +55,8 @@ class WallMovement2D : public MovementComponent
   protected:
     static void _bind_methods();
     void _physics_step(double p_delta) override;
+    String _debug_text() const override;
+    void _draw_debug(DebugGizmos &p_debug) override;
 
   private:
     WallSettings wall;
@@ -80,6 +82,8 @@ class WallMovement3D : public MovementComponent
   protected:
     static void _bind_methods();
     void _physics_step(double p_delta) override;
+    String _debug_text() const override;
+    void _draw_debug(DebugGizmos &p_debug) override;
 
   private:
     WallSettings wall;

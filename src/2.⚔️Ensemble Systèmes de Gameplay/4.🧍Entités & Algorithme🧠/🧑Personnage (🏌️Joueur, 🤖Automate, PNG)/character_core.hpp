@@ -65,6 +65,11 @@ struct CharacterCore
 
     Vector2 move_input;
     bool running = false;
+    // Dernière intention transmise : forward_movement ne renvoie que les changements, pour ne pas écraser
+    // une intention donnée directement au MovementDirector / aux composants (PlayerInput, script...).
+    Vector2 forwarded_input;
+    bool forwarded_running = false;
+    bool forwarded_once = false;
     bool jump_held = false;
     Vector2 facing = Vector2(1, 0);
 

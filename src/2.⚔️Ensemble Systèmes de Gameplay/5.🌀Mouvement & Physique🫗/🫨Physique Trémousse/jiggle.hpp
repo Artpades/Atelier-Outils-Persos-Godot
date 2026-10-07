@@ -1,6 +1,8 @@
 #ifndef JIGGLE_HPP
 #define JIGGLE_HPP
 
+#include "../🧩Commun/debug_gizmos.hpp"
+
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 
@@ -66,6 +68,9 @@ class Jiggle2D : public Node2D
     bool initialized = false;
 
     void _step(double p_delta);
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 
 /// 🫨 Trémoussement 3D : même principe ; l'inclinaison tourne autour de l'axe perpendiculaire au décalage.
@@ -97,6 +102,9 @@ class Jiggle3D : public Node3D
     bool initialized = false;
 
     void _step(double p_delta);
+
+    DEBUG_MODE_DECLARATIONS()
+    void _draw_debug();
 };
 } // namespace godot
 

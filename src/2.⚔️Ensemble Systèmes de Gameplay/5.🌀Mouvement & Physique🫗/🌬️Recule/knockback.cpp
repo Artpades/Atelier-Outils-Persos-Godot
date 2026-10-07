@@ -144,6 +144,15 @@ void Knockback2D::_notification(int p_what)
         set_physics_process_priority(10);
         return;
     }
+    if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        debug.release();
+        return;
+    }
+    if (p_what == NOTIFICATION_PHYSICS_PROCESS && debug_mode)
+    {
+        _draw_debug();
+    }
     if (p_what != NOTIFICATION_PHYSICS_PROCESS || lock_remaining <= 0.0)
     {
         return;
@@ -175,7 +184,30 @@ void Knockback2D::_notification(int p_what)
     }
 }
 
-void Knockback2D::_bind_methods() { bind_knockback_common<Knockback2D>(Variant::VECTOR2); }
+void Knockback2D::_draw_debug()
+{
+    debug.begin(this, false);
+    Node2D *body = Object::cast_to<Node2D>(get_parent());
+    if (body && is_knocked())
+    {
+        Vector2 position = body->get_global_position();
+        Vector2 velocity = Object::cast_to<CharacterBody2D>(body) ? Object::cast_to<CharacterBody2D>(body)->get_velocity() : Vector2();
+        if (RigidBody2D *rigid = Object::cast_to<RigidBody2D>(body))
+        {
+            velocity = rigid->get_linear_velocity();
+        }
+        debug.arrow(position, position + velocity * 0.25f, debug_colors::NORMAL, 10.0f, 3.0f);
+        debug.circle(position, 18.0f + 30.0f * float(lock_remaining / MAX(duration, 0.01)), debug_colors::NORMAL, false, 2.0f);
+        debug.text(position + Vector2(-40, 30), String(U"🌬️ recul ") + String::num(lock_remaining, 2) + " s", debug_colors::TEXT, 11);
+    }
+    debug.end();
+}
+
+void Knockback2D::_bind_methods()
+{
+    bind_knockback_common<Knockback2D>(Variant::VECTOR2);
+    bind_debug_mode<Knockback2D>();
+}
 
 // 🌬️ 3D
 
@@ -252,6 +284,15 @@ void Knockback3D::_notification(int p_what)
         set_physics_process_priority(10);
         return;
     }
+    if (p_what == NOTIFICATION_EXIT_TREE)
+    {
+        debug.release();
+        return;
+    }
+    if (p_what == NOTIFICATION_PHYSICS_PROCESS && debug_mode)
+    {
+        _draw_debug();
+    }
     if (p_what != NOTIFICATION_PHYSICS_PROCESS || lock_remaining <= 0.0)
     {
         return;
@@ -285,4 +326,27 @@ void Knockback3D::_notification(int p_what)
     }
 }
 
-void Knockback3D::_bind_methods() { bind_knockback_common<Knockback3D>(Variant::VECTOR3); }
+void Knockback3D::_draw_debug()
+{
+    debug.begin(this, true);
+    Node3D *body = Object::cast_to<Node3D>(get_parent());
+    if (body && is_knocked())
+    {
+        Vector3 position = body->get_global_position();
+        Vector3 velocity = Object::cast_to<CharacterBody3D>(body) ? Object::cast_to<CharacterBody3D>(body)->get_velocity() : Vector3();
+        if (RigidBody3D *rigid = Object::cast_to<RigidBody3D>(body))
+        {
+            velocity = rigid->get_linear_velocity();
+        }
+        debug.arrow3(position, position + velocity * 0.25f, debug_colors::NORMAL, 0.2f, 3.0f);
+        debug.sphere3(position, 0.6f + float(lock_remaining / MAX(duration, 0.01)), debug_colors::NORMAL);
+        debug.text3(position + Vector3(0, -1.2f, 0), String(U"🌬️ recul ") + String::num(lock_remaining, 2) + " s");
+    }
+    debug.end();
+}
+
+void Knockback3D::_bind_methods()
+{
+    bind_knockback_common<Knockback3D>(Variant::VECTOR3);
+    bind_debug_mode<Knockback3D>();
+}

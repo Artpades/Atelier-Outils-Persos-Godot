@@ -1,6 +1,8 @@
 #ifndef MOVEMENT_COMPONENT_HPP
 #define MOVEMENT_COMPONENT_HPP
 
+#include "debug_gizmos.hpp"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/core/gdvirtual.gen.inc>
 #include <godot_cpp/variant/vector2.hpp>
@@ -16,6 +18,7 @@ namespace godot
 /// à tous les composants du corps et n'active (active) que ceux du contexte courant ; sans directeur, un
 /// composant est actif par défaut. Un composant inactif ne fait rien.
 /// Par script : redéfinir _movement_step(delta) (appelé à chaque image physique quand le composant est actif).
+/// debug_mode : affiche, en jeu, des gizmos (méthodes inline de Gizmos) : vitesse, intention, état du composant.
 class MovementComponent : public Node
 {
     GDCLASS(MovementComponent, Node)
@@ -44,6 +47,11 @@ class MovementComponent : public Node
     static Vector2 external_acceleration_2d(Node *p_body);
     static Vector3 external_acceleration_3d(Node *p_body);
 
+    // 🐞 Débogage
+    void set_debug_mode(bool p_debug);
+    bool get_debug_mode() const { return debug_mode; }
+    bool is_body_3d() const { return Object::cast_to<Node3D>(get_body()) != nullptr; }
+
   protected:
     static void _bind_methods();
     void _notification(int p_what);
@@ -52,6 +60,13 @@ class MovementComponent : public Node
     virtual void _physics_step(double /*p_delta*/) {}
     virtual void _on_activated() {}
     virtual void _on_deactivated() {}
+    /// Gizmos de débogage (debug_mode, composant actif) : la base dessine vitesse, intention et nom ;
+    /// les composants ajoutent leur état puis appellent la base.
+    virtual void _draw_debug(DebugGizmos &p_debug);
+    /// Texte d'état affiché au-dessus du corps (debug_mode).
+    virtual String _debug_text() const { return String(); }
+
+    DebugGizmos debug;
 
     GDVIRTUAL1(_movement_step, double)
 
@@ -64,6 +79,7 @@ class MovementComponent : public Node
 
   private:
     bool active = true;
+    bool debug_mode = false;
 };
 } // namespace godot
 

@@ -460,10 +460,15 @@ void Rope2D::_notification(int p_what)
         {
             ropes.remove_at(index);
         }
+        debug.release();
         break;
     }
     case NOTIFICATION_PHYSICS_PROCESS:
         _simulate(get_physics_process_delta_time());
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
         break;
     case NOTIFICATION_DRAW:
     {
@@ -495,6 +500,24 @@ void Rope2D::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_width"), &Rope2D::get_width);
     ClassDB::bind_static_method("Rope2D", D_METHOD("find_nearest_info", "point", "max_distance"), &Rope2D::find_nearest_info);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "width", PROPERTY_HINT_RANGE, "0,50,0.01,or_greater"), "set_width", "get_width");
+    bind_debug_mode<Rope2D>();
+}
+
+void Rope2D::_draw_debug()
+{
+    debug.begin(this, false);
+    PackedVector2Array path;
+    for (const Vector2 &point : points)
+    {
+        path.push_back(point);
+    }
+    debug.path(path, Color(1.0f, 0.8f, 0.3f, 0.8f), true, 1.0f);
+    debug.circle(get_global_position(), 6.0f, debug_colors::NORMAL, true);
+    if (!points.is_empty())
+    {
+        debug.text(points[points.size() - 1] + Vector2(8, 0), String(U"🪢 ") + String::num(rope_length, 0) + U" px · " + String::num_int64(points.size()) + U" points", debug_colors::TEXT, 11);
+    }
+    debug.end();
 }
 
 // =====================================================================================================
@@ -797,10 +820,15 @@ void Rope3D::_notification(int p_what)
         {
             ropes.remove_at(index);
         }
+        debug.release();
         break;
     }
     case NOTIFICATION_PHYSICS_PROCESS:
         _simulate(get_physics_process_delta_time());
+        if (debug_mode)
+        {
+            _draw_debug();
+        }
         break;
     case NOTIFICATION_TRANSFORM_CHANGED:
         if (Engine::get_singleton()->is_editor_hint())
@@ -813,7 +841,28 @@ void Rope3D::_notification(int p_what)
     }
 }
 
-void Rope3D::_bind_methods() { bind_rope_common<Rope3D>(Variant::VECTOR3, PROPERTY_HINT_LAYERS_3D_PHYSICS); }
+void Rope3D::_bind_methods()
+{
+    bind_rope_common<Rope3D>(Variant::VECTOR3, PROPERTY_HINT_LAYERS_3D_PHYSICS);
+    bind_debug_mode<Rope3D>();
+}
+
+void Rope3D::_draw_debug()
+{
+    debug.begin(this, true);
+    PackedVector3Array path;
+    for (const Vector3 &point : points)
+    {
+        path.push_back(point);
+    }
+    debug.path3(path, Color(1.0f, 0.8f, 0.3f), true);
+    debug.sphere3(get_global_position(), 0.15f, debug_colors::NORMAL, true);
+    if (!points.is_empty())
+    {
+        debug.text3(points[points.size() - 1] + Vector3(0.3f, 0, 0), String(U"🪢 ") + String::num(rope_length, 1) + U" m · " + String::num_int64(points.size()) + U" points");
+    }
+    debug.end();
+}
 
 // =====================================================================================================
 // 🧗‍♂️ RopeMovement2D / 3D
@@ -947,3 +996,45 @@ void RopeMovement3D::_physics_step(double p_delta)
 }
 
 void RopeMovement3D::_bind_methods() { bind_rope_movement_common<RopeMovement3D>(); }
+
+// 🐞 Débogage
+
+String RopeMovement2D::_debug_text() const
+{
+    Rope2D *rope = get_rope();
+    return rope ? String(U"accroché · point ") + String::num(rope->get_attached_position(get_body()), 1) : String(U"libre");
+}
+
+void RopeMovement2D::_draw_debug(DebugGizmos &p_debug)
+{
+    Node2D *body = Object::cast_to<Node2D>(get_body());
+    if (body && !is_attached())
+    {
+        p_debug.circle(body->get_global_position(), grab_distance, Color(1.0f, 0.8f, 0.3f, 0.4f), false, 1.0f); // portée d'accroche
+    }
+    else if (Rope2D *rope = get_rope())
+    {
+        p_debug.line(body->get_global_position(), rope->get_global_position(), Color(1.0f, 0.8f, 0.3f, 0.6f), 1.0f);
+    }
+    MovementComponent::_draw_debug(p_debug);
+}
+
+String RopeMovement3D::_debug_text() const
+{
+    Rope3D *rope = get_rope();
+    return rope ? String(U"accroché · point ") + String::num(rope->get_attached_position(get_body()), 1) : String(U"libre");
+}
+
+void RopeMovement3D::_draw_debug(DebugGizmos &p_debug)
+{
+    Node3D *body = Object::cast_to<Node3D>(get_body());
+    if (body && !is_attached())
+    {
+        p_debug.sphere3(body->get_global_position(), grab_distance, Color(1.0f, 0.8f, 0.3f, 0.4f));
+    }
+    else if (Rope3D *rope = get_rope())
+    {
+        p_debug.line3(body->get_global_position(), rope->get_global_position(), Color(1.0f, 0.8f, 0.3f, 0.6f));
+    }
+    MovementComponent::_draw_debug(p_debug);
+}

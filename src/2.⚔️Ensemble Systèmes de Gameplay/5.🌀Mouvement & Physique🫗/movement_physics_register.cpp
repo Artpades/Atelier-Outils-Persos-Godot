@@ -1,3 +1,4 @@
+#include "🧩Commun/debug_gizmos.hpp"
 #include "🧩Commun/movement_component.hpp"
 #include "🦶Déplacement au sol d'objet/ground_movement.hpp"
 #include "🌬️Recule/knockback.hpp"
@@ -75,6 +76,7 @@ static void uninitialize_movement_physics(ModuleInitializationLevel p_level)
     {
         return;
     }
+    GizmoResources::destroy(); // ressources des gizmos de débogage (debug_mode) propres à cette bibliothèque
     godot::print_line_rich(U"[color=dark_red]🌀Module Mouvement & Physique déchargé avec succès ![/color]");
 }
 
