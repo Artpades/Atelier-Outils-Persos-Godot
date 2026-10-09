@@ -4,33 +4,45 @@
 		💾 Point d'entrée du système de sauvegarde : sauvegarder, charger et supprimer un [SaveData], avec un message dans la console.
 	</brief_description>
 	<description>
-		Classe statique (non instanciable) : appeler directement [code]SaveManager.save(...)[/code]. Chaque opération utilise le [method SaveData.get_system_id] comme nom de fichier et la [SaveConfig] passée en argument pour le dossier et l'extension ; en général, celle du [SaveData] lui-même.
+		Classe statique (non instanciable) : appeler directement [code]SaveManager.save(...)[/code]. Chaque opération utilise le [member SaveData.system_id] comme nom de fichier et la [SaveConfig] passée en argument pour le dossier et l'extension ; en général, celle du [SaveData] lui-même.
 		Le résultat est écrit dans la console (succès en vert, échec en rouge, sauvegarde absente en jaune) avec l'icône du module.
 		[codeblock]
 		var options := SaveData.new()
-		options.set_system_id("options")
-		options.set_is_encrypted(false)
+		options.system_id = "options"
+		options.is_encrypted = false
 
-		func enregistrer(volume: float) -&gt; void:
-			options.get_data()["volume"] = volume
-			SaveManager.save(options, options.get_file_config())
+		func enregistrer(volume: float) -> void:
+			options.data["volume"] = volume
+			SaveManager.save(options, options.file_config)
 
-		func charger() -&gt; float:
-			var relu := SaveManager.load(options, options.get_file_config())
-			return relu.get_data().get("volume", 1.0) if relu else 1.0
+		func charger() -> float:
+			var relu := SaveManager.load(options, options.file_config)
+			return relu.data.get("volume", 1.0) if relu else 1.0
 		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="load" qualifiers="static">
+		<method name="delete" qualifiers="static">
 			<return type="void" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
 			<description>
-				Lit le fichier correspondant à [param save_data] (identifiant, chiffrement et clé de [param save_data], emplacement de [param config]) et renvoie un [b]nouveau[/b] [SaveData], ou [code]null[/code] s'il n'y a pas de sauvegarde lisible (message « Aucune sauvegarde trouvée », y compris quand la clé est mauvaise). [param save_data] lui-même n'est pas modifié : recopier [method SaveData.get_data] si besoin.
+				Supprime le fichier de [param save_data] (identifiant et chiffrement de [param save_data], emplacement de [param config]). Seul le fichier correspondant au réglage [member SaveData.is_encrypted] actuel est visé : une ancienne sauvegarde écrite avec l'autre réglage reste sur le disque. Ne fait rien si le fichier n'existe pas, et n'affiche aucun message ni code d'erreur.
+			</description>
+		</method>
+		<method name="load" qualifiers="static">
+			<return type="SaveData" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
+			<description>
+				Lit le fichier correspondant à [param save_data] (identifiant, chiffrement et clé de [param save_data], emplacement de [param config]) et renvoie un [b]nouveau[/b] [SaveData], ou [code]null[/code] s'il n'y a pas de sauvegarde lisible (message « Aucune sauvegarde trouvée », y compris quand la clé est mauvaise). [param save_data] lui-même n'est pas modifié : recopier [member SaveData.data] si besoin.
 			</description>
 		</method>
 		<method name="save" qualifiers="static">
 			<return type="void" />
+			<param index="0" name="save_data" type="SaveData" />
+			<param index="1" name="config" type="SaveConfig" />
 			<description>
 				Écrit [param save_data] sur disque selon [param config], puis affiche le résultat dans la console. N'émet rien et ne renvoie rien : en cas d'échec (dossier non accessible...), seul le message rouge le signale ; utiliser [method SaveFileAccess.write] pour obtenir le code d'erreur.
 			</description>

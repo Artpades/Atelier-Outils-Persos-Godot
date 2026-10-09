@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agrandissement - Rétrécissement · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🦣 Agrandissement - Rétrécissement (FXChangeSize) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/agrandissement-retrecissement.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🦣</div>
+    <div>
+      <h1>🦣_ScaleSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Agrandissement - Rétrécissement</strong> : faire grossir ou rapetisser un objet en douceur, puis le ramener à sa taille.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : FXChangeSize</span>
+        <span class="badge">2D, 3D &amp; interface</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Un bouton qui grossit au survol, un objet ramassable qui « pulse », un ennemi qui enfle avant d'exploser, une pièce qui rapetisse en disparaissant : ces animations d'échelle demandent un <code>Tween</code>, un pivot centré pour les éléments d'interface, et un retour propre si l'animation est interrompue. <strong>Ce module en fait un effet</strong> réglable dans l'inspecteur : une taille à atteindre, une taille de repos, une courbe.</p>
+  <p><strong>Pour qui ?</strong> Les intégrateurs d'interface et les game designers qui veulent des retours de survol ou d'interaction sans écrire de <code>Tween</code>.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une déformation</strong> : l'échelle reste uniforme. Pour étirer ou écraser selon le mouvement, voir <a href="squash-and-stretch.html">🪗 Squash and Stretch</a>.</li>
+      <li><strong>Pas une boucle</strong> : un aller au jeu, un retour à l'arrêt. Pour une pulsation, enchaîner jeu et arrêt (voir <a href="#ex-pulse">exemple</a>).</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : trois boutons de menu ; le survol fait grossir le bouton visé avec un léger dépassement (courbe <em>Back</em>), la sortie le ramène à sa taille.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>FXChangeSize</code> et le socle <code>Effect</code> / <code>PlayerFX</code>.</td></tr>
+        <tr><td><a href="socle-effets.html">✨ Socle des effets</a> (<code>PlayerFX</code>)</td><td>Recommandée</td><td>Pour jouer l'effet depuis l'inspecteur ou d'un <code>play()</code>. L'effet n'a pas besoin de mise à jour par frame : <code>play_fx(cible)</code> / <code>stop_fx(cible)</code> suffisent aussi.</td></tr>
+        <tr><td>Icône <code>Tween Player icon.png</code></td><td>Optionnelle</td><td>Icône de la ressource dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : un bouton qui grossit au survol.</p>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>PlayerFX</code> sous le <code>Button</code></strong>, avec un <code>FXChangeSize</code> dans <code>special_effects</code>.
+      <div class="why">le bouton (parent) est la cible ; son pivot sera automatiquement placé au centre.</div>
+    </li>
+    <li>
+      <strong>Régler</strong> <code>final_scale</code> = 1,15 et <code>duration</code> = 0,15.
+      <div class="why">un grossissement léger et rapide se lit comme un retour d'interface ; la courbe <em>Back</em> par défaut ajoute un petit rebond.</div>
+    </li>
+    <li>
+      <strong>Relier les signaux du bouton</strong> (onglet <em>Nœud</em>, ou par code) :
+      <pre><code class="gdscript">func _ready() -> void:
+	$Bouton.mouse_entered.connect($Bouton/PlayerFX.play)
+	$Bouton.mouse_exited.connect($Bouton/PlayerFX.stop)</code></pre>
+      <div class="why">le jeu anime vers <code>final_scale</code>, l'arrêt vers <code>original_value</code> (1) ; une sortie rapide interrompt proprement l'agrandissement.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/FXChangeSize.xml</code>. Éléments internes, non exposés : le <code>Tween</code> en cours (interrompu par le suivant) et <code>_tween_scale_to</code>. Les méthodes héritées sont documentées dans <a href="socle-effets.html#api">✨ Socle des effets</a>.</p>
+  <div data-api="FXChangeSize"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-disparition">Comment je fais rapetisser un objet ramassé avant de le supprimer ?</h3>
+  <pre><code class="gdscript">func ramasser() -> void:
+	var disparition := FXChangeSize.new()
+	disparition.final_scale = 0.0
+	disparition.duration = 0.25
+	disparition.transition = Tween.TRANS_BACK
+	disparition.ease_type = Tween.EASE_IN     # léger gonflement, puis rétrécissement
+	$PlayerFX.special_effects = [disparition]
+	$PlayerFX.play()
+	await get_tree().create_timer(disparition.duration).timeout
+	queue_free()</code></pre>
+
+  <h3 id="ex-pulse">Comment je fais « pulser » un objet ?</h3>
+  <p>Un aller-retour : jeu, puis arrêt au bout de la durée. Le même code en boucle donne un battement.</p>
+  <pre><code class="gdscript">func pulser() -> void:
+	$PlayerFX.play()
+	await get_tree().create_timer(0.15).timeout
+	$PlayerFX.stop()</code></pre>
+
+  <h3 id="ex-echelle">Comment je l'utilise sur un objet qui n'est pas à l'échelle 1 ?</h3>
+  <p><code>original_value</code> n'est pas lu sur l'objet : le régler à son échelle de repos.</p>
+  <pre><code class="gdscript">var grossir := FXChangeSize.new()
+grossir.original_value = $Arbre.scale.x   # ex. 3.0
+grossir.final_scale = $Arbre.scale.x * 1.1</code></pre>
+
+  <h3 id="ex-combo">Comment je combine agrandissement et son ?</h3>
+  <pre><code class="gdscript">var grossir := FXChangeSize.new()
+var clic := FXAudio.new()
+clic.stream = preload("res://sons/survol.wav")
+grossir.effects_on_play_fx = [clic]
+$Bouton/PlayerFX.special_effects = [grossir]</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>L'échelle d'origine n'est pas mémorisée</strong> : l'arrêt anime vers <code>original_value</code> sur tous les axes. Une échelle non uniforme ou un sprite retourné (<code>scale.x = -2</code>) est perdu (vérifié : <code>(-2, 1)</code> devient <code>(1, 1)</code> après jeu et arrêt). Retourner un enfant plutôt que la cible.</li>
+    <li><strong>Pivot modifié sur un <code>Control</code></strong> : <code>pivot_offset</code> est placé au centre et le reste après l'effet. Si la taille du <code>Control</code> change ensuite, le pivot n'est recalculé qu'au jeu suivant.</li>
+    <li><strong>Rien ne se passe hors de l'arbre</strong> : si la cible n'est pas dans l'arbre de scène, ni animation ni changement immédiat.</li>
+    <li><strong>Le <code>Tween</code> appartient à la cible</strong> : il se fige en pause (sauf <code>process_mode = ALWAYS</code> sur la cible) et suit <code>Engine.time_scale</code>.</li>
+    <li><strong>Dans un conteneur</strong>, l'échelle d'un <code>Control</code> n'est pas prise en compte par la mise en page : l'élément agrandi chevauche ses voisins (c'est souvent l'effet voulu).</li>
+    <li><strong>Aucun signal de fin</strong> : attendre <code>duration</code>. <code>fx_played</code> est émis au début.</li>
+    <li><strong>Conflit</strong> avec tout ce qui modifie aussi l'échelle (<a href="squash-and-stretch.html">FXStretchAndSquash</a>, animation) ; et une même instance jouée sur deux cibles interrompt l'animation de la première.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>FXChangeSize</code></strong> surcharge <code>_play</code> et <code>_stop</code> d'<code>Effect</code>, qui appellent tous deux <code>_tween_scale_to</code> : arrêt du <code>Tween</code> précédent, création d'un <code>Tween</code> <em>sur la cible</em> qui anime <code>scale</code> (<code>Vector2</code> ou <code>Vector3</code> selon le type).</li>
+    <li>Aucune mise à jour par frame : l'effet fonctionne aussi dans <code>effects_on_stop_fx</code>.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Hérite d'<code>Effect</code> ; aucune autre dépendance.</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td><code>Tween</code> créé sur la cible</td><td>Arrêté automatiquement si la cible est libérée : pas d'animation vers un nœud supprimé.</td></tr>
+        <tr><td>Tween précédent tué avant le suivant</td><td>Un arrêt pendant l'agrandissement lancerait sinon deux animations concurrentes sur <code>scale</code>.</td></tr>
+        <tr><td>Taille de repos réglée (<code>original_value</code>), non capturée</td><td>Un survol rapide répété capturerait une échelle intermédiaire et l'objet dériverait ; une valeur fixe garantit le retour exact.</td></tr>
+        <tr><td>Pivot centré sur les <code>Control</code></td><td>Le pivot par défaut est le coin haut-gauche : un bouton grossirait vers le bas à droite.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>FXChangeSize</code>, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>FXChangeSize</code> : animation d'échelle au jeu et à l'arrêt, pour <code>Control</code>, <code>Node2D</code> et <code>Node3D</code>.</li></ul>
+  </div>
+
+  <footer>Module 🦣 Agrandissement - Rétrécissement · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🦣🫘Agrandissement/Rétrécissement/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "FXChangeSize.final_scale": "1,1-1,2 pour un survol de bouton, 1,5+ pour un ennemi qui enfle, 0 pour une disparition.",
+  "FXChangeSize.original_value": "L'échelle de repos d'un objet qui n'est pas à 1 (décor agrandi, modèle 3D importé petit).",
+  "FXChangeSize.duration": "0,1-0,2 s pour une interface réactive, 0,5 s et plus pour une transformation visible.",
+  "FXChangeSize.transition": "<em>Back</em> ou <em>Elastic</em> pour un rebond cartoon, <em>Sine</em> pour un changement doux.",
+  "FXChangeSize.ease_type": "<em>Out</em> pour un grossissement qui démarre vite, <em>In</em> pour une disparition qui s'accélère."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Déplacement aquatique · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🌊 Déplacement aquatique (SwimMovement2D/3D, WaterArea2D/3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/deplacement-aquatique.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🌊</div>
+    <div>
+      <h1>🌊_MovementSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Déplacement aquatique</strong> : de l'eau qui fait flotter, freine et emporte les objets, et des personnages qui y nagent (trois styles de nage).</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">4 classes : WaterArea2D/3D · SwimMovement2D/3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Mettre de l'eau dans un niveau, c'est deux problèmes : les objets doivent flotter (caisses, bouées, débris) et le personnage doit changer complètement de façon de bouger. <strong>Ce module règle les deux</strong> : une zone d'eau qui applique poussée, freinage et courant aux corps rigides, et un composant de nage pour les personnages, avec saut hors de l'eau et coups de nage.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>💧 <code>WaterArea2D</code> / <code>WaterArea3D</code> — l'eau</h4>
+      <p>Une <code>Area</code> dont le haut de la forme est la surface. Les <code>RigidBody</code> y flottent selon leur immersion, y sont freinés et emportés par le courant.</p>
+    </div>
+    <div class="card">
+      <h4>🏊 <code>SwimMovement2D</code> / <code>SwimMovement3D</code> — la nage</h4>
+      <p>Composant de mouvement pour <code>CharacterBody</code> : style <em>Directionnel</em> (à la Mario Galaxy), <em>Poisson</em> (nage permanente, ondulation) ou <em>Flottaison</em> (déplacement direct).</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les level designers qui posent de l'eau dans un niveau, et les développeurs qui ajoutent la nage à un personnage (en général via l'<a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a>, contexte « eau »).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un rendu d'eau</strong> : aucune surface animée, réfraction ni éclaboussure ; le visuel reste à faire (shader, sprite).</li>
+      <li><strong>Pas une simulation de fluide</strong> : pas de vagues ni de déplacement d'eau ; la poussée dépend de la profondeur de l'origine du corps.</li>
+      <li><strong>Pas un simple vent</strong> : pour un courant sans flottaison, une <a href="zone-de-force.html">🧲 Zone de force</a> suffit.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF côte à côte : des caisses (RigidBody2D) qui tombent dans une WaterArea2D, s'enfoncent puis remontent et dérivent ; un personnage qui plonge, nage en style Directionnel (corps incliné), puis saute hors de l'eau. debug_mode de la WaterArea2D activé (ligne de surface, flèche de courant).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td>Une <code>CollisionShape2D</code> à <code>RectangleShape2D</code> (ou <code>CollisionShape3D</code> à <code>BoxShape3D</code>) sous la zone</td><td><strong>Recommandée</strong></td><td>Donne à la fois le volume d'eau et la hauteur de la surface. Avec une autre forme, la surface vaut la position de la zone + <code>surface_offset</code>.</td></tr>
+        <tr><td><a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a></td><td>Optionnelle (fortement conseillée)</td><td>Active la nage dans l'eau et la marche hors de l'eau. Sans lui, le composant de nage est actif en permanence et se borne à appliquer la gravité hors de l'eau.</td></tr>
+        <tr><td><a href="zone-de-force.html">🧲 Zone de force</a></td><td>Optionnelle</td><td>Les zones de force s'ajoutent au courant pour les nageurs.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).
+      <div class="why">l'eau et la nage font partie de la bibliothèque du mouvement.</div>
+    </li>
+    <li>
+      <strong>Vérifier les couches physiques</strong> : le <code>collision_mask</code> de la <code>WaterArea</code> doit inclure la couche des corps à faire flotter et des personnages, et <code>monitoring</code> doit rester actif.
+      <div class="why">la zone ne « voit » un corps que par le chevauchement du moteur physique ; sinon il ne flotte pas et le personnage n'est jamais considéré dans l'eau.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-eau">A. Un bassin où les caisses flottent</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter une <code>WaterArea2D</code></strong> avec une <code>CollisionShape2D</code> enfant à <code>RectangleShape2D</code> (ex. 800 × 300).
+      <div class="why">le bord haut du rectangle devient la surface de l'eau.</div>
+    </li>
+    <li>
+      <strong>Lâcher des <code>RigidBody2D</code></strong> au-dessus.
+      <div class="why">avec <code>buoyancy</code> = 2, un objet totalement immergé remonte avec une accélération égale à la gravité ; il se stabilise à mi-immersion.</div>
+    </li>
+    <li>
+      <strong>Régler un courant</strong> : <code>current</code> = <code>(80, 0)</code>, et cocher <code>debug_mode</code>.
+      <div class="why">les objets dérivent vers la droite ; le débogage montre la surface et la flèche du courant.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-nage">B. Un personnage qui nage</h3>
+  <ol class="steps">
+    <li>
+      <strong>Sous le <code>CharacterBody2D</code></strong> : ajouter <code>MovementDirector</code>, <code>GroundMovement2D</code> et <code>SwimMovement2D</code>.
+      <div class="why">le directeur crée automatiquement les contextes « eau » (nage, priorité 50) et « sol » (marche).</div>
+    </li>
+    <li>
+      <strong>Régler <code>visual_path</code> du <code>SwimMovement2D</code></strong> sur <code>../Sprite2D</code>.
+      <div class="why">sinon c'est le corps lui-même qui est incliné, forme de collision comprise.</div>
+    </li>
+    <li>
+      <strong>Envoyer l'intention au directeur</strong> :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	$MovementDirector.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
+	if Input.is_action_just_pressed("ui_accept"):
+		$MovementDirector.jump()   # sous l'eau : coup de nage ; près de la surface : sortie</code></pre>
+      <div class="why">en 2D, <code>move.y</code> sert à plonger (bas) et remonter (haut) ; arrivé sous la surface, seul le saut fait sortir.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/WaterArea2D.xml</code>, <code>WaterArea3D.xml</code>, <code>SwimMovement2D.xml</code> et <code>SwimMovement3D.xml</code>. Différences 2D / 3D : en 2D, la profondeur est mesurée vers le bas (Y écran) et la verticale de nage vient de <code>move.y</code> ; en 3D, elle vient de <code>set_vertical_input</code> (et du saut maintenu en Flottaison), et <code>camera_relative</code> n'existe qu'en 3D. Éléments internes, non exposés :</p>
+  <ul>
+    <li>Les registres statiques des zones d'eau (lus par <code>find_containing</code>), la structure C++ <code>SwimSettings</code> (réglages + état : vitesse, minuterie des coups de nage, saut hors de l'eau en cours), la dérive accumulée (<code>drift</code>), <code>_step_surface</code> et <code>_orient</code>.</li>
+    <li>Les membres hérités de <code>MovementComponent</code> : voir <a href="socle-mouvement.html">🧩 Socle</a>.</li>
+  </ul>
+  <div data-api="WaterArea2D WaterArea3D SwimMovement2D SwimMovement3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-styles">Comment je choisis le style de nage ?</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Style</th><th>Ressenti</th><th>Réglages clés</th></tr></thead>
+      <tbody>
+        <tr><td><code>STYLE_DIRECTIONAL</code> (défaut)</td><td>Le corps file vers la direction poussée, garde son élan, s'incline ; le saut donne un coup de nage.</td><td><code>turn_speed</code>, <code>acceleration</code>, <code>stroke_velocity</code></td></tr>
+        <tr><td><code>STYLE_FISH</code></td><td>Nage toujours vers l'avant ; on oriente seulement. Ondulation du corps.</td><td><code>cruise_ratio</code>, <code>undulation_*</code></td></tr>
+        <tr><td><code>STYLE_SURFACE</code></td><td>Déplacement direct dans la direction poussée, remontée automatique : plateformer classique.</td><td><code>buoyancy</code>, <code>float_depth</code>, <code>drag</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="ex-oxygene">Comment je gère une jauge d'oxygène ?</h3>
+  <p>À combiner avec le module <em>📊 Jauge</em> : on vide la jauge tant que le contexte est « eau ».</p>
+  <pre><code class="gdscript">var oxygene := Gauge.new()
+
+func _physics_process(delta: float) -> void:
+	if $MovementDirector.get_current_context() == &amp;"eau":
+		oxygene.add(-10.0 * delta)
+	else:
+		oxygene.fill()</code></pre>
+
+  <h3 id="ex-plouf">Comment je joue une éclaboussure en sortant de l'eau ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$SwimMovement2D.jumped_out.connect(func(): $Eclaboussure.restart())
+	$SwimMovement2D.stroked.connect(func(): $SonNage.play())</code></pre>
+
+  <h3 id="ex-3d">Comment je fais nager un personnage 3D vers là où regarde la caméra ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$SwimMovement3D.camera_relative = true   # avant caméra baissée = plonger
+	$SwimMovement3D.visual_path = NodePath("../Modele")
+
+func _physics_process(_delta: float) -> void:
+	$MovementDirector.move(Input.get_vector("gauche", "droite", "avant", "arriere"))
+	$MovementDirector.set_vertical_input(Input.get_axis("descendre", "monter"))</code></pre>
+
+  <h3 id="ex-riviere">Comment je fais une rivière qui emporte tout ?</h3>
+  <pre><code class="gdscript">$Riviere.current = Vector2(250, 0)   # caisses et nageurs dérivent
+$Riviere.linear_drag = 1.0           # moins de freinage : les objets prennent de la vitesse
+$Joueur/SwimMovement2D.drag = 0.5    # la dérive du nageur s'amortit lentement</code></pre>
+
+  <h3 id="ex-niveau">Comment je fais monter le niveau de l'eau ?</h3>
+  <p>La surface suit la forme : agrandir le rectangle et le recentrer.</p>
+  <pre><code class="gdscript">func monter_eau(hauteur: float) -> void:
+	var forme := $Eau/CollisionShape2D.shape as RectangleShape2D
+	var bas := $Eau/CollisionShape2D.position.y + forme.size.y / 2.0
+	forme.size.y += hauteur
+	$Eau/CollisionShape2D.position.y = bas - forme.size.y / 2.0</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <h3 id="limites-eau">WaterArea</h3>
+  <ul>
+    <li><strong>Seuls les corps rigides sont poussés</strong> ; un <code>CharacterBody</code> sans <code>SwimMovement</code> actif traverse l'eau comme de l'air.</li>
+    <li><strong>Surface plane et horizontale</strong>, calculée sur la première forme rectangulaire trouvée ; <code>surface_offset</code> est <strong>ignoré</strong> dès qu'une telle forme existe (vérifié). Plusieurs formes : seule la première compte pour la surface.</li>
+    <li><strong>Immersion calculée sur l'origine du corps</strong>, pas sur son volume : un objet très long ou dont l'origine est décentrée flotte de façon peu réaliste.</li>
+    <li><strong>3D : le freinage angulaire est multiplié par la masse</strong> au lieu de l'inertie (2D : inertie). Un objet 3D lourd et petit peut tourner trop peu, ou osciller si <code>angular_drag</code> est fort.</li>
+    <li><strong>Zones qui se chevauchent</strong> : chaque zone pousse indépendamment (poussée doublée dans le recouvrement), et <code>find_containing</code> ne renvoie que la première.</li>
+  </ul>
+  <h3 id="limites-nage">SwimMovement</h3>
+  <ul>
+    <li><strong>CharacterBody uniquement</strong> ; sur un autre corps, le composant ne fait rien.</li>
+    <li><strong>Sans <code>visual_path</code>, c'est le corps qui tourne</strong> (inclinaison 2D, orientation complète 3D) avec sa forme de collision : une capsule couchée peut se coincer. Utiliser un nœud visuel. Par ailleurs, la rotation du visuel est réécrite à chaque image : une animation de rotation sur ce nœud est écrasée.</li>
+    <li><strong>Hors de l'eau mais encore actif</strong> (sans orchestrateur), le composant applique seulement la gravité : aucun contrôle.</li>
+    <li><strong>Ignore le recul</strong> (<code>Knockback</code>) : les commandes ne sont pas verrouillées sous l'eau.</li>
+    <li><strong>Réglages propres à un style</strong> : <code>buoyancy</code> n'agit qu'en Flottaison ; <code>turn_speed</code>, <code>run_multiplier</code>, <code>stroke_cooldown</code> qu'en Directionnel / Poisson. En 3D Flottaison, le saut en profondeur ne fait rien (maintenir le saut fait monter).</li>
+    <li><strong>On ne peut pas nager au-dessus de <code>float_depth</code></strong> en Directionnel / Poisson : le corps est repoussé sous la surface ; seule la sortie par saut (à moins de <code>surface_tolerance</code>) permet d'émerger. Garder <code>surface_tolerance &gt; float_depth</code>.</li>
+    <li><strong>2D : pas de retournement gauche / droite</strong> : seul l'angle d'inclinaison est géré ; retourner le sprite reste à faire (par exemple selon <code>get_heading().x</code>).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 240" role="img" aria-label="Schéma d'architecture du module aquatique">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box main" x="320" y="20" width="200" height="54" rx="8"/>
+    <text x="420" y="44" text-anchor="middle">WaterArea2D/3D</text>
+    <text x="420" y="62" text-anchor="middle" class="small">Area · surface · courant</text>
+    <rect class="box" x="620" y="20" width="220" height="54" rx="8"/>
+    <text x="730" y="44" text-anchor="middle">RigidBody</text>
+    <text x="730" y="62" text-anchor="middle" class="small">poussée · freinage · courant</text>
+    <rect class="box main" x="320" y="150" width="200" height="54" rx="8"/>
+    <text x="420" y="174" text-anchor="middle">SwimMovement2D/3D</text>
+    <text x="420" y="192" text-anchor="middle" class="small">MovementComponent</text>
+    <rect class="box" x="620" y="150" width="220" height="54" rx="8"/>
+    <text x="730" y="174" text-anchor="middle">CharacterBody</text>
+    <text x="730" y="192" text-anchor="middle" class="small">velocity · move_and_slide</text>
+    <rect class="box" x="20" y="150" width="200" height="54" rx="8"/>
+    <text x="120" y="174" text-anchor="middle">MovementDirector</text>
+    <text x="120" y="192" text-anchor="middle" class="small">contexte « eau »</text>
+    <path class="arrow" d="M520 47 H618" marker-end="url(#arr)"/>
+    <text x="570" y="40" text-anchor="middle" class="small">forces</text>
+    <path class="arrow" d="M520 177 H618" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M420 150 V76" marker-end="url(#arr)"/>
+    <text x="430" y="118" class="small">find_containing · surface · courant</text>
+    <path class="arrow dashed" d="M220 177 H318" marker-end="url(#arr)"/>
+    <text x="270" y="170" text-anchor="middle" class="small">active</text>
+    <path class="arrow dashed" d="M120 150 Q150 60 318 50" marker-end="url(#arr)"/>
+    <text x="150" y="80" class="small">is_in_water</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>WaterArea</code></strong> s'inscrit dans un registre statique à l'entrée dans l'arbre (en jeu). À chaque image physique, elle parcourt <code>get_overlapping_bodies()</code> et applique aux <code>RigidBody</code> des forces centrales (poussée, freinage, courant) et un couple de freinage.</li>
+    <li><strong><code>SwimMovement</code></strong> interroge la zone par la fonction statique <code>find_containing</code> (appel direct), lit sa surface et son courant, et calcule la vitesse du personnage. Le directeur utilise la même fonction pour sa condition « dans l'eau ».</li>
+    <li>Aucun signal entre l'eau et la nage ; les signaux <code>jumped_out</code> / <code>stroked</code> sont destinés au jeu (sons, effets).</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>SwimMovement</code> dépend de <code>WaterArea</code> (même fichier) et du <a href="socle-mouvement.html">🧩 Socle</a> ; <code>WaterArea</code> ne dépend de rien d'autre que du moteur.</li>
+    <li>L'<a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a> dépend de <code>WaterArea</code> (condition) et de <code>SwimMovement</code> (contexte automatique), pas l'inverse.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Poussée en multiples de la gravité du corps</td><td>Le même réglage fonctionne en 2D (pixels) et en 3D (mètres), et suit les zones de gravité modifiée.</td></tr>
+        <tr><td>Forces multipliées par la masse</td><td>Un objet léger et un lourd réagissent pareil à l'eau ; on règle le comportement, pas les masses.</td></tr>
+        <tr><td>Style Directionnel par défaut, Flottaison conservée</td><td>La nage « qui file » est plus agréable au clavier comme à la manette ; l'ancien comportement reste disponible pour les jeux qui en dépendent.</td></tr>
+        <tr><td>Courant et zones de force sous forme de dérive amortie, séparée de la vitesse de nage</td><td>Le joueur garde le contrôle de sa direction ; le courant l'emporte sans « tourner » le personnage.</td></tr>
+        <tr><td>Sortie de l'eau seulement par saut</td><td>Évite de sortir par accident en remontant ; le saut hors de l'eau devient une action lisible.</td></tr>
+        <tr><td>Élan d'entrée tiré de la vitesse d'arrivée</td><td>Un plongeon continue dans sa direction au lieu de s'arrêter net à la surface.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des quatre classes (structure resynchronisée avec la bibliothèque : styles de nage, nouvelles propriétés, <code>debug_mode</code>), commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Styles de nage <em>Directionnel</em> et <em>Poisson</em>, coups de nage (<code>stroke_velocity</code>, <code>stroke_cooldown</code>, signal <code>stroked</code>), orientation du visuel, <code>get_heading()</code>, <code>get_speed()</code>, <code>debug_mode</code> sur l'eau.</li>
+      <li><span class="tag breaking">Rupture</span>Le style par défaut devient <em>Directionnel</em> : l'ancien comportement s'obtient avec <code>style = STYLE_SURFACE</code>. Valeurs par défaut de <code>swim_speed</code>, <code>acceleration</code> et <code>drag</code> modifiées.</li>
+    </ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>WaterArea2D/3D</code> (flottaison, freinage, courant) et <code>SwimMovement2D/3D</code> (nage, sortie de l'eau).</li>
+    </ul>
+  </div>
+
+  <footer>Module 🌊 Déplacement aquatique · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🌊Déplacement Aquatique/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {};
+(function () {
+  const eau = {
+    "angular_drag": "Calmer les objets qui tournoient en tombant dans l'eau.",
+    "buoyancy": "1,2 pour un bois qui flotte à peine, 3 pour une bouée qui jaillit, 0,5 pour une pierre qui coule lentement.",
+    "current": "Rivière, cascade, siphon : emporter caisses et nageurs.",
+    "debug_mode": "Vérifier la hauteur de surface calculée et le sens du courant.",
+    "float_depth": "Adapter l'immersion à la taille des objets (plus grand = enfoncement plus progressif).",
+    "linear_drag": "Eau claire (faible) ou marécage, boue liquide (fort).",
+    "surface_offset": "Zone d'eau à forme non rectangulaire (polygone, cercle) : placer la surface à la main.",
+    "find_containing": "Savoir dans quelle eau se trouve un objet (son étouffé, couleur de l'écran).",
+    "get_depth": "Profondeur d'un plongeur pour une pression, une jauge, un effet de couleur.",
+    "get_surface_y": "Placer des éclaboussures ou un objet flottant exactement à la surface."
+  };
+  const nage = {
+    "acceleration": "Nage réactive (haute) ou lourde, en armure (basse).",
+    "align_to_heading": "Désactiver pour un personnage qui reste droit (animation de nage dessinée de face).",
+    "buoyancy": "Flottaison : remontée rapide (bouée) ou lente (plongeur lesté).",
+    "cruise_ratio": "Poisson : allure minimale ; 0 pour un poisson qui peut s'arrêter.",
+    "drag": "Courant qui emporte longtemps (faible) ou eau épaisse (fort).",
+    "float_depth": "Hauteur de la tête hors de l'eau à la surface.",
+    "jump_out_velocity": "Saut de dauphin hors de l'eau pour atteindre une plateforme.",
+    "run_multiplier": "Sprint sous l'eau (palmes, bonus).",
+    "stroke_cooldown": "Empêcher le spam du bouton de nage.",
+    "stroke_velocity": "Puissance du coup de nage (brasse).",
+    "style": "Choisir le ressenti : plateformer classique, nage libre, contrôle de poisson.",
+    "surface_tolerance": "Agrandir pour sortir de l'eau facilement, réduire pour exiger d'être à la surface.",
+    "swim_speed": "Vitesse de nage ; à réduire si le joueur porte un objet lourd.",
+    "turn_speed": "Virages serrés (haut) ou larges, sous-marin (bas).",
+    "undulation_amplitude": "Ondulation visible d'un poisson, d'un serpent de mer.",
+    "undulation_frequency": "Battement rapide (petit poisson) ou lent (baleine).",
+    "visual_path": "Incliner seulement le sprite / modèle, pas la forme de collision.",
+    "get_heading": "Orienter des bulles, une attaque, une torche sous-marine.",
+    "get_speed": "Choisir l'animation (nage lente / rapide), traînée de bulles.",
+    "get_water": "Lire le courant ou la surface de l'eau où nage le personnage.",
+    "jumped_out": "Éclaboussure, son de sortie de l'eau.",
+    "stroked": "Son de brasse, bulles, animation de coup de nage.",
+    "STYLE_SURFACE": "Plateformer classique (nage « à la Mario Bros »).",
+    "STYLE_DIRECTIONAL": "Nage libre avec élan, à la Mario Galaxy.",
+    "STYLE_FISH": "Incarner un poisson, un dauphin, un serpent de mer."
+  };
+  [["WaterArea2D", eau], ["WaterArea3D", eau], ["SwimMovement2D", nage], ["SwimMovement3D", nage]].forEach(function (p) {
+    Object.keys(p[1]).forEach(function (k) { window.GTK_USAGES[p[0] + "." + k] = p[1][k]; });
+  });
+  window.GTK_USAGES["SwimMovement3D.camera_relative"] = "Joueur : nager vers où regarde la caméra, plonger en la baissant.";
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

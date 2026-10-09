@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Infobulle Personnalisable · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🗨️ Infobulle Personnalisable (CustomTooltip, TooltipContent) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/infobulle-personnalisable.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🗨️</div>
+    <div>
+      <h1>🗨️_TooltipSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Infobulle Personnalisable</strong> : infobulles riches (titre, icône, vidéo, texte mis en forme) sur l'interface comme sur les objets du monde.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">2 classes : CustomTooltip · TooltipContent</span>
+        <span class="badge">Interface, 2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>L'infobulle native de Godot (<code>tooltip_text</code>) n'affiche qu'un texte brut, uniquement sur les éléments d'interface. Un jeu veut souvent davantage : le nom d'un objet en titre, son icône, ses statistiques en couleur, une courte vidéo qui montre une capacité — et parfois au survol d'un coffre ou d'un ennemi dans le monde. <strong>Ce module affiche ces infobulles riches</strong>, décrites par une ressource réutilisable, au survol de n'importe quel élément d'interface ou objet cliquable.</p>
+  <div class="grid">
+    <div class="card">
+      <h4>📄 <code>TooltipContent</code> — quoi afficher</h4>
+      <p>Une <strong>ressource</strong> : titre, icône, vidéo, texte BBCode, scène personnalisée. Enregistrable en <code>.tres</code> et partageable.</p>
+    </div>
+    <div class="card">
+      <h4>🗨️ <code>CustomTooltip</code> — quand et où</h4>
+      <p>Un <strong>nœud</strong> placé sous la cible : délai d'apparition, suivi de la souris, fondu, maintien dans l'écran, style du panneau.</p>
+    </div>
+  </div>
+  <p><strong>Pour qui ?</strong> Les intégrateurs d'interface (inventaires, arbres de compétences, boutiques) et les game designers qui rédigent les descriptions dans l'inspecteur.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un panneau interactif</strong> : l'infobulle ne capte jamais la souris, ses boutons éventuels ne sont pas cliquables.</li>
+      <li><strong>Pas un remplacement automatique de <code>tooltip_text</code></strong> : les deux coexistent ; laisser <code>tooltip_text</code> vide pour éviter une double infobulle.</li>
+      <li><strong>Pas d'accessibilité manette</strong> : l'affichage suit le survol de la souris (voir <a href="#limitations">Limitations</a>).</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture : une case d'inventaire survolée, avec l'infobulle « Épée de feu » (titre, icône 64 × 64, texte « +12 dégâts de feu » en orange), puis la même infobulle basculée à gauche de la souris près du bord droit de l'écran.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>CustomTooltip</code> et <code>TooltipContent</code>. Aucune dépendance au socle des effets.</td></tr>
+        <tr><td>Thème (<code>Theme</code>) avec la variation <code>HeaderSmall</code></td><td>Optionnelle</td><td>Mise en forme du titre ; le thème par défaut de Godot la fournit déjà.</td></tr>
+        <tr><td>Vidéos <code>.ogv</code></td><td>Optionnelle</td><td>Seul format vidéo lu nativement par Godot.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+  </ol>
+  <div class="callout warn">
+    <div class="callout-title">Classe « runtime »</div>
+    <p><code>CustomTooltip</code> n'agit pas dans l'éditeur : l'infobulle ne s'affiche qu'en lançant le jeu.</p>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>CustomTooltip</code> comme enfant du <code>Button</code></strong> (ou de tout <code>Control</code>).
+      <div class="why">sans <code>target</code>, c'est le parent qui est surveillé : il doit émettre <code>mouse_entered</code> / <code>mouse_exited</code>, ce que fait tout <code>Control</code> dont le <code>mouse_filter</code> n'est pas <em>Ignore</em>.</div>
+    </li>
+    <li>
+      <strong>Dans <code>content</code>, créer un <code>TooltipContent</code></strong> : <code>title</code>, <code>icon</code>, <code>text</code> (BBCode, ex. <code>[color=orange]+12[/color] dégâts</code>).
+      <div class="why">les éléments vides sont simplement omis ; un texte plus large que <code>max_width</code> revient à la ligne.</div>
+    </li>
+    <li>
+      <strong>Ajuster <code>delay</code></strong> (0,5 s par défaut) et, si besoin, <code>panel_style</code>.
+      <div class="why">un délai évite que des infobulles clignotent quand la souris traverse l'interface.</div>
+    </li>
+    <li>
+      <strong>Lancer le jeu et survoler le bouton</strong>.
+      <div class="why">l'infobulle apparaît en fondu près de la souris, la suit, et change de côté près des bords de l'écran.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/CustomTooltip.xml</code> et <code>doc_classes/TooltipContent.xml</code>. Éléments internes, non exposés : le <code>CanvasLayer</code> interne <code>TooltipLayer</code>, le <code>VBoxContainer</code> du contenu et le <code>VideoStreamPlayer</code> (le <code>PanelContainer</code> est accessible par <code>get_panel()</code>), l'état de survol et le minuteur, et les méthodes <code>_build_ui</code>, <code>_rebuild_content</code>, <code>_place_at_mouse</code>, <code>_finish_hide</code>, <code>_ignore_mouse</code>.</p>
+  <div data-api="CustomTooltip TooltipContent"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-monde">Comment je mets une infobulle sur un objet du monde ?</h3>
+  <p>La cible peut être un <code>CollisionObject2D</code> / <code>3D</code> avec la détection de la souris activée.</p>
+  <pre><code class="gdscript"># Coffre (Area2D, input_pickable = true, avec CollisionShape2D)
+# └─ CustomTooltip
+func _ready() -> void:
+	var infos := TooltipContent.new()
+	infos.title = "Coffre ancien"
+	infos.text = "Verrouillé. Il faut une [b]clé de bronze[/b]."
+	$Coffre/CustomTooltip.content = infos</code></pre>
+
+  <h3 id="ex-inventaire">Comment je mets à jour l'infobulle d'une case d'inventaire ?</h3>
+  <p>Le contenu est relu à chaque modification : il suffit de changer la ressource, même pendant l'affichage.</p>
+  <pre><code class="gdscript">func afficher_objet(objet: Dictionary) -> void:
+	var infos := TooltipContent.new()
+	infos.title = objet.nom
+	infos.icon = objet.icone
+	infos.text = "%s\n[color=gray]Valeur : %d or[/color]" % [objet.description, objet.prix]
+	$CustomTooltip.content = infos
+
+func vider_case() -> void:
+	$CustomTooltip.content = null   # plus d'infobulle (masquée si affichée)</code></pre>
+
+  <h3 id="ex-video">Comment je montre une capacité en vidéo ?</h3>
+  <pre><code class="gdscript">var aide := TooltipContent.new()
+aide.title = "Double saut"
+aide.video = preload("res://videos/double_saut.ogv")
+aide.video_size = Vector2(240, 135)
+aide.text = "Appuyez de nouveau sur [b]Saut[/b] en l'air."
+$ArbreCompetences/DoubleSaut/CustomTooltip.content = aide</code></pre>
+
+  <h3 id="ex-style">Comment je donne un style à toutes mes infobulles ?</h3>
+  <pre><code class="gdscript">var fond := StyleBoxFlat.new()
+fond.bg_color = Color(0.08, 0.06, 0.12, 0.95)
+fond.border_color = Color(0.8, 0.65, 0.3)
+fond.set_border_width_all(2)
+fond.set_corner_radius_all(6)
+fond.set_content_margin_all(10)
+for infobulle in get_tree().get_nodes_in_group("infobulles"):
+	infobulle.panel_style = fond</code></pre>
+
+  <h3 id="ex-tuto">Comment j'affiche une infobulle sans survol (tutoriel) ?</h3>
+  <pre><code class="gdscript">func montrer_astuce() -> void:
+	$Inventaire/CustomTooltip.follow_mouse = false
+	$Inventaire/CustomTooltip.show_tooltip()     # à la position actuelle de la souris
+	await get_tree().create_timer(4.0).timeout
+	$Inventaire/CustomTooltip.hide_tooltip()</code></pre>
+
+  <h3 id="ex-pause">Comment j'utilise des infobulles dans un menu de pause ?</h3>
+  <p>Le délai et le suivi tournent dans <code>_process</code> : passer le <code>CustomTooltip</code> en mode <em>Always</em>, sinon il ne s'affiche jamais pendant la pause.</p>
+  <pre><code class="gdscript">$MenuPause/Options/CustomTooltip.process_mode = Node.PROCESS_MODE_ALWAYS</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Souris uniquement</strong> : aucun affichage au focus clavier / manette ni au toucher. Pour la manette, appeler <code>show_tooltip()</code> sur <code>focus_entered</code> et <code>hide_tooltip()</code> sur <code>focus_exited</code> (l'infobulle se place alors à la position de la souris : régler <code>follow_mouse</code> et repositionner <code>get_panel()</code> soi-même).</li>
+    <li><strong>Déplacer le <code>CustomTooltip</code> casse le survol</strong> : la connexion à la cible est faite au <code>_ready</code> et retirée à la sortie de l'arbre, mais pas refaite à la réentrée (vérifié : 0 connexion après <code>remove_child</code> / <code>add_child</code>). Après un déplacement, réassigner <code>target</code> (même valeur) pour reconnecter.</li>
+    <li><strong>En pause</strong> (mode <em>Inherit</em>), le délai ne s'écoule plus et l'infobulle n'apparaît jamais ; le délai suit aussi <code>Engine.time_scale</code> (un gel à 0 bloque l'apparition).</li>
+    <li><strong>Contenu non interactif</strong> : toute l'infobulle est en <code>MOUSE_FILTER_IGNORE</code>, scène personnalisée comprise.</li>
+    <li><strong>Reconstruction complète</strong> à chaque modification du contenu : la scène personnalisée est réinstanciée et la vidéo repart du début.</li>
+    <li><strong>Couche fixe</strong> : un <code>CanvasLayer</code> par <code>CustomTooltip</code>, couche 128 par défaut (maximum de l'inspecteur). Une interface sur une couche plus haute passerait au-dessus.</li>
+    <li><strong>Positionnement</strong> : basé sur le rectangle visible du viewport ; dans un <code>SubViewport</code> ou avec une interface mise à l'échelle, vérifier le résultat. L'infobulle plus grande que l'écran est collée au coin haut-gauche.</li>
+    <li><strong>Survol des objets 3D</strong> : nécessite <code>input_ray_pickable</code>, une forme de collision et une <code>Camera3D</code> active ; un <code>Control</code> au-dessus de la vue (même transparent) bloque le survol s'il capte la souris.</li>
+    <li><strong>Double infobulle</strong> si la cible a aussi un <code>tooltip_text</code>.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <svg class="diagram" viewBox="0 0 860 230" role="img" aria-label="Schéma d'architecture de l'infobulle">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="160" height="54" rx="8"/>
+    <text x="100" y="54" text-anchor="middle">Cible</text>
+    <text x="100" y="72" text-anchor="middle" class="small">Control / CollisionObject</text>
+    <rect class="box main" x="240" y="30" width="170" height="54" rx="8"/>
+    <text x="325" y="54" text-anchor="middle">CustomTooltip</text>
+    <text x="325" y="72" text-anchor="middle" class="small">délai · position · fondu</text>
+    <rect class="box" x="470" y="30" width="170" height="54" rx="8"/>
+    <text x="555" y="54" text-anchor="middle">TooltipLayer</text>
+    <text x="555" y="72" text-anchor="middle" class="small">CanvasLayer interne</text>
+    <rect class="box" x="690" y="30" width="150" height="54" rx="8"/>
+    <text x="765" y="54" text-anchor="middle">PanelContainer</text>
+    <text x="765" y="72" text-anchor="middle" class="small">titre, icône, vidéo…</text>
+    <rect class="box main" x="240" y="150" width="170" height="54" rx="8"/>
+    <text x="325" y="174" text-anchor="middle">TooltipContent</text>
+    <text x="325" y="192" text-anchor="middle" class="small">Resource · changed</text>
+    <path class="arrow dashed" d="M180 57 H238" marker-end="url(#arr)"/>
+    <text x="209" y="48" text-anchor="middle" class="small">mouse_*</text>
+    <path class="arrow" d="M410 57 H468" marker-end="url(#arr)"/>
+    <path class="arrow" d="M640 57 H688" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M325 148 V86" marker-end="url(#arr)"/>
+    <text x="335" y="122" class="small">signal changed → reconstruction</text>
+  </svg>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>CustomTooltip</code></strong> se connecte aux signaux <code>mouse_entered</code> / <code>mouse_exited</code> de la cible. Pendant le survol, <code>_process</code> compte le délai, affiche le panneau, le reconstruit si le contenu a changé et le replace près de la souris.</li>
+    <li>L'interface (<code>CanvasLayer</code> → <code>PanelContainer</code> → <code>VBoxContainer</code>) est créée en enfants <strong>internes</strong> au premier affichage, puis réutilisée.</li>
+    <li><strong><code>TooltipContent</code></strong> émet <code>changed</code> à chaque modification d'une propriété ; le <code>CustomTooltip</code> marque alors son contenu à reconstruire.</li>
+    <li>Le nœud émet <code>tooltip_shown</code> / <code>tooltip_hidden</code> vers le reste du jeu.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Aucune dépendance au reste du toolkit ; la cible n'a pas besoin de connaître l'infobulle (simple contrat de signaux).</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Contenu dans une ressource séparée</td><td>Les descriptions s'écrivent et se partagent en <code>.tres</code> (un objet présent dans l'inventaire et la boutique) sans dupliquer de nœuds.</td></tr>
+        <tr><td>Panneau dans son propre <code>CanvasLayer</code></td><td>L'infobulle passe au-dessus de tout, y compris quand la cible est un objet du monde déplacé par la caméra.</td></tr>
+        <tr><td>Interface en enfants internes, créée au premier affichage</td><td>Rien à voir ni à enregistrer dans la scène ; aucun coût pour les infobulles jamais affichées.</td></tr>
+        <tr><td>Tout le panneau ignore la souris</td><td>Sinon, passer sur l'infobulle ferait « sortir » la souris de la cible et l'infobulle clignoterait.</td></tr>
+        <tr><td>Fondus proportionnels à l'opacité actuelle</td><td>Un survol interrompu en plein fondu repart de l'opacité courante, sans saut.</td></tr>
+        <tr><td>Classe « runtime »</td><td>Dans l'éditeur, le survol des nœuds de la scène éditée afficherait des infobulles par-dessus l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>CustomTooltip</code> et <code>TooltipContent</code>, commentaires du header, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>TooltipContent</code> : titre, icône, vidéo, texte BBCode, scène personnalisée.</li>
+      <li><span class="tag add">Ajouté</span><code>CustomTooltip</code> : infobulle au survol d'un <code>Control</code> ou d'un objet du monde, délai, suivi de la souris, fondus, maintien dans l'écran.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🗨️ Infobulle Personnalisable · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🗨️Infobulle Personnalisable/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "CustomTooltip.content": "La description de l'objet survolé ; la remplacer quand la case d'inventaire change d'objet.",
+  "CustomTooltip.target": "Surveiller un autre nœud que le parent (zone de survol dédiée, objet du monde).",
+  "CustomTooltip.delay": "0,3-0,6 s pour une interface ; 0 pour une aide immédiate sur un élément important.",
+  "CustomTooltip.follow_mouse": "Désactiver pour une infobulle stable, facile à lire sur un long texte.",
+  "CustomTooltip.offset": "Éloigner l'infobulle d'un curseur personnalisé large.",
+  "CustomTooltip.fade_duration": "0 pour un affichage sec, 0,1-0,2 s pour une interface douce.",
+  "CustomTooltip.panel_style": "Habiller l'infobulle aux couleurs du jeu (parchemin, cadre doré).",
+  "CustomTooltip.tooltip_theme": "Police et couleurs du texte et du titre propres aux infobulles.",
+  "CustomTooltip.layer": "Placer l'infobulle sous une interface prioritaire (écran de chargement).",
+  "CustomTooltip.show_tooltip": "Tutoriel, aide contextuelle, affichage au focus manette.",
+  "CustomTooltip.hide_tooltip": "Masquer l'infobulle quand l'objet est utilisé, déplacé ou vendu.",
+  "CustomTooltip.is_tooltip_visible": "Ne pas afficher une autre aide tant que l'infobulle est ouverte.",
+  "CustomTooltip.get_panel": "Retoucher le panneau par script (taille minimale, position imposée).",
+  "CustomTooltip.tooltip_shown": "Jouer un petit son, mettre en surbrillance l'objet décrit.",
+  "CustomTooltip.tooltip_hidden": "Retirer la surbrillance, arrêter un aperçu lié.",
+  "TooltipContent.title": "Nom de l'objet, de la compétence, de l'ennemi.",
+  "TooltipContent.text": "Description, statistiques en couleur (<code>[color]</code>), mots-clés en gras.",
+  "TooltipContent.max_width": "Élargir pour des descriptions longues, réduire pour des infobulles compactes.",
+  "TooltipContent.icon": "Icône de l'objet ou de la compétence.",
+  "TooltipContent.icon_max_size": "Uniformiser des icônes de tailles différentes.",
+  "TooltipContent.video": "Démonstration d'une capacité, d'un coup spécial, d'un contrôle.",
+  "TooltipContent.video_size": "Adapter la vidéo à la taille de l'infobulle.",
+  "TooltipContent.video_loop": "Désactiver pour une démonstration jouée une seule fois.",
+  "TooltipContent.video_muted": "Activer le son pour un aperçu musical ou vocal.",
+  "TooltipContent.custom_scene": "Contenu sur mesure : comparaison de statistiques, barres, aperçu 3D."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

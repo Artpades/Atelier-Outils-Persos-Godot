@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Système de dessin · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module ✏️ Système de dessin (DrawingStudio, DrawingCanvas, DrawingDocument, DrawingLayer, DrawingBrush) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/systeme-de-dessin.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">✏️</div>
+    <div>
+      <h1>✏️_DrawingSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>Système de dessin</strong> : un logiciel de dessin matriciel à calques (pinceaux à la pression, pot, sélections, historique) utilisable en jeu, dans l'éditeur ou par script.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/drawing</code></span>
+        <span class="badge">5 classes + plugin d'éditeur</span>
+        <span class="badge">Souris, stylet &amp; tactile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Laisser le joueur dessiner son blason, signer un contrat, peindre un tableau dans un jeu de création, annoter une carte ; ou retoucher une texture du projet sans quitter Godot. Un <code>Control</code> avec <code>draw_line</code> donne vite un trait crénelé, sans pression du stylet, sans calques ni annulation. <strong>Ce module est un vrai moteur de dessin</strong>, inspiré de Clip Studio Paint : pinceaux à tampons avec dynamique de pression et de vitesse, calques avec modes de fusion, pot de peinture qui ne fuit pas par les trous, sélections, historique d'annulation à profondeur réglable.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🎛️ <code>DrawingStudio</code> — l'atelier</h4>
+      <p>Une <strong>interface complète</strong> prête à l'emploi : outils, réglages, couleurs, calques, fichiers. C'est aussi l'écran principal « Dessin » de l'éditeur.</p>
+    </div>
+    <div class="card">
+      <h4>🖼️ <code>DrawingCanvas</code> — la toile</h4>
+      <p>Le <strong>Control</strong> où l'on dessine : outils, navigation (zoom, rotation, miroir), raccourcis, stylet et gestes tactiles. Utilisable seul dans votre propre interface.</p>
+    </div>
+    <div class="card">
+      <h4>📄 <code>DrawingDocument</code> + 🗂️ <code>DrawingLayer</code></h4>
+      <p>Le <strong>moteur</strong>, sans interface : calques, traits, remplissage, sélection, historique, export PNG. Sauvegardable en <code>.tres</code>.</p>
+    </div>
+    <div class="card">
+      <h4>🖌️ <code>DrawingBrush</code> — les pinceaux</h4>
+      <p>Une <strong>ressource</strong> par pinceau : taille, opacité, dureté, forme, grain, dynamique, stabilisation, et même un shader.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de jeux créatifs (dessin, coloriage, personnalisation), les outils internes (annotation, croquis de level design), et les artistes qui veulent retoucher une image du projet directement dans l'éditeur.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un éditeur vectoriel</strong> : tout est en pixels ; pas de courbes éditables ni de formes.</li>
+      <li><strong>Pas un éditeur de tilemap ni d'animation</strong> : une image à la fois, pas de frames.</li>
+      <li><strong>Pas un outil de peinture 3D</strong> : on peint une image 2D, pas directement un modèle.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'écran principal « Dessin » de l'éditeur : outils à gauche (pinceau sélectionné, réglages de dynamique), couleurs et pile de calques à droite, un personnage encré et colorié au centre sur deux calques.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/drawing/</code></td><td><strong>Obligatoire</strong></td><td>Contient les cinq classes et le plugin d'éditeur (écran « Dessin », menu contextuel du dock FileSystem), enregistré automatiquement : rien à activer dans <em>Projet › Extensions</em>.</td></tr>
+        <tr><td>Un rendu GPU</td><td>Optionnelle</td><td>Seulement pour les pinceaux à shader (<code>DrawingBrush.material</code>) : sans rendu (headless), le trait est appliqué sans le shader. Tout le reste fonctionne sur le processeur.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧭🌍/</code></td><td>Optionnelle</td><td>Icônes des classes dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler</strong> (si besoin) :
+      <pre><code class="language-shell">scons drawing</code></pre>
+      <div class="why">compile la bibliothèque du registre <code>drawing_register.cpp</code>, qui enregistre aussi le plugin d'éditeur au niveau <em>EDITOR</em>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/drawing/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/drawing/…</code> absolus ; le plugin et l'onglet « Dessin » n'apparaissent qu'au démarrage.</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : un onglet <kbd>Dessin</kbd> apparaît à côté de 2D / 3D / Script, et un clic droit sur une image du FileSystem propose « Ouvrir dans l'atelier de dessin ».
+      <div class="why">ce sont les deux points d'entrée du plugin ; une image enregistrée depuis l'atelier est réimportée automatiquement.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-jeu">A. Ajouter un atelier de dessin au jeu</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>DrawingStudio</code></strong> dans une scène d'interface, ancré en plein écran (<em>Full Rect</em>).
+      <div class="why">l'atelier construit lui-même ses panneaux et sa toile ; il lui faut seulement de la place.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène</strong>.
+      <div class="why">sans document assigné, la toile crée un dessin de 1280 × 720 au lancement (<code>default_document_size</code>, vérifié).</div>
+    </li>
+    <li>
+      <strong>Dessiner</strong> : <kbd>B</kbd> pinceau, <kbd>E</kbd> gomme, <kbd>G</kbd> pot, molette pour zoomer, <kbd>Espace</kbd> + glisser pour déplacer, <kbd>Ctrl</kbd>+<kbd>Z</kbd> pour annuler.
+      <div class="why">les raccourcis reprennent ceux de Clip Studio Paint ; le stylet transmet sa pression.</div>
+    </li>
+    <li>
+      <strong>Récupérer le dessin</strong> par code :
+      <pre><code class="gdscript">func _on_valider_pressed() -> void:
+	var image: Image = $DrawingStudio.document.get_composite_image()
+	$Blason.texture = ImageTexture.create_from_image(image)</code></pre>
+      <div class="why"><code>get_composite_image()</code> fusionne les calques (avec la couleur de fond) en une seule image.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-editeur">B. Retoucher une image du projet dans l'éditeur</h3>
+  <ol class="steps">
+    <li>
+      <strong>Clic droit sur un <code>.png</code> du dock FileSystem › Ouvrir dans l'atelier de dessin.</strong>
+      <div class="why">l'onglet « Dessin » s'affiche avec l'image comme unique calque.</div>
+    </li>
+    <li>
+      <strong>Modifier, puis <kbd>Ctrl</kbd>+<kbd>S</kbd>.</strong>
+      <div class="why">l'image est réécrite (calques fusionnés) et réimportée : les scènes qui l'utilisent sont à jour. Pour garder les calques, <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd> en <code>.tres</code>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/DrawingStudio.xml</code>, <code>DrawingCanvas.xml</code>, <code>DrawingDocument.xml</code>, <code>DrawingLayer.xml</code> et <code>DrawingBrush.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li>Le plugin d'éditeur <code>DrawingEditorPlugin</code> et le menu contextuel <code>DrawingContextMenuPlugin</code> (classes internes, sans XML).</li>
+    <li><code>DrawingDocument</code> : l'image composée (accès C++ <code>get_composite_ptr</code>), le masque de couverture du trait en cours, les piles d'historique (opérations pixels / sélection / calques / réglages), et les algorithmes de région (<code>_region_by_color</code>, fermeture des trous).</li>
+    <li><code>DrawingCanvas</code> : les tuiles d'affichage de 256 px, les éléments <code>RenderingServer</code> (tuiles, trait, sélection, curseur), le <code>SubViewport</code> temporaire de rendu des pinceaux à shader, la stabilisation et les gestes tactiles.</li>
+    <li><code>drawing_pixels.hpp</code> : fonctions de composition (modes de fusion, mélange RGBA8) partagées par le document et les calques.</li>
+    <li><code>DrawingStudio</code> : tous les panneaux construits par code (outils, couleurs, calques, boîtes de dialogue).</li>
+  </ul>
+  <div data-api="DrawingStudio DrawingCanvas DrawingDocument DrawingLayer DrawingBrush"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-script">Comment je dessine par script, sans interface ?</h3>
+  <p><code>DrawingDocument</code> fonctionne seul (outils de génération, tests, tampons procéduraux).</p>
+  <pre><code class="gdscript">var doc := DrawingDocument.create(Vector2i(512, 512))
+var plume := DrawingBrush.create_preset(DrawingBrush.PRESET_PEN)
+doc.draw_line(Vector2(20, 20), Vector2(200, 120), plume, Color.BLACK)
+doc.add_layer("Couleurs", 0)        # sous le trait, devient le calque courant
+doc.fill(Vector2i(60, 30), Color.ORANGE, 0.1, DrawingDocument.FILL_REFERENCE_ALL_LAYERS, 4)
+doc.export_png("user://dessin.png")</code></pre>
+
+  <h3 id="ex-toile">Comment je mets juste une toile dans mon interface (coloriage) ?</h3>
+  <p>Sans l'atelier : une <code>DrawingCanvas</code> et vos propres boutons.</p>
+  <pre><code class="gdscript">@onready var toile: DrawingCanvas = $DrawingCanvas
+
+func _ready() -> void:
+	var image := preload("res://coloriages/chat.png").get_image()
+	toile.document = DrawingDocument.create_from_image(image)
+	toile.document.layers[0].locked = true         # le contour ne bouge pas
+	toile.document.add_layer("Couleurs", 0)         # on colorie dessous
+	toile.tool = DrawingCanvas.TOOL_FILL
+	toile.fill_reference = DrawingDocument.FILL_REFERENCE_ALL_LAYERS
+	toile.fill_gap_closing = 3                      # contours mal fermés
+	toile.fit_to_view()
+
+func _on_couleur_choisie(couleur: Color) -> void:
+	toile.primary_color = couleur</code></pre>
+
+  <h3 id="ex-pinceau">Comment je crée un pinceau sur mesure ?</h3>
+  <pre><code class="gdscript">var craie := DrawingBrush.new()
+craie.resource_name = "Craie"
+craie.size = 18.0
+craie.hardness = 0.4
+craie.texture = DrawingBrush.create_grain_texture(128, 3, 2.0)   # grain de papier
+craie.opacity_dynamics = DrawingBrush.DYNAMIC_PRESSURE
+craie.opacity_min = 0.3
+craie.stabilization = 20
+$DrawingStudio.brushes = [craie, DrawingBrush.create_preset(DrawingBrush.PRESET_PEN)]</code></pre>
+
+  <h3 id="ex-sauvegarde">Comment je sauvegarde et rouvre un dessin avec ses calques ?</h3>
+  <pre><code class="gdscript">func sauvegarder() -> void:
+	ResourceSaver.save($DrawingStudio.document, "user://oeuvre.res")   # calques en PNG compressés
+
+func ouvrir() -> void:
+	$DrawingStudio.open_file("user://oeuvre.res")</code></pre>
+
+  <h3 id="ex-undo">Comment j'affiche l'historique dans mes boutons Annuler / Rétablir ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	var doc: DrawingDocument = $DrawingCanvas.document
+	doc.history_changed.connect(func():
+		$Annuler.disabled = not doc.can_undo()
+		$Annuler.tooltip_text = "Annuler : " + doc.get_undo_name()
+		$Retablir.disabled = not doc.can_redo())</code></pre>
+
+  <h3 id="ex-texture">Comment j'affiche le dessin en direct sur un objet 3D (tableau dans le décor) ?</h3>
+  <p><code>region_changed</code> indique la zone modifiée ; ici on met simplement à jour toute la texture, limité à une fois par trait.</p>
+  <pre><code class="gdscript">var texture := ImageTexture.new()
+
+func _ready() -> void:
+	var doc: DrawingDocument = $Studio.document
+	texture.set_image(doc.get_composite_image())
+	$Tableau.material_override.albedo_texture = texture
+	$Studio.get_canvas().stroke_finished.connect(func():
+		texture.update(doc.get_composite_image()))</code></pre>
+  <p>Combiné au module <em>🖥️ HUD interactif dans le monde 3D</em>, la toile elle-même peut être placée dans le décor (<code>content_scene</code> = une scène contenant une <code>DrawingCanvas</code>).</p>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Calcul sur le processeur</strong> : traits, composition des calques, pot de peinture et sélections sont calculés en C++ sur le fil principal. Sur de très grands dessins (4K et plus) avec beaucoup de calques, un remplissage ou une fusion peut prendre un temps perceptible.</li>
+    <li><strong>Mémoire de l'historique</strong> : chaque étape garde l'avant / après de la zone modifiée (4 octets par pixel, deux fois). Un remplissage de tout un calque 4096 × 4096 coûte environ 128 Mo par étape ; réduire <code>history_limit</code> (64 par défaut) pour les grands formats (vérifié : l'historique est bien borné).</li>
+    <li><strong>Changer <code>size</code> vide l'historique et la sélection</strong> (vérifié) ; les calques sont recadrés ou agrandis depuis le coin supérieur gauche, sans rééchantillonnage.</li>
+    <li><strong>Pinceaux à shader</strong> : le rendu GPU du trait est lu une image plus tard (lecture de texture synchrone) ; sans rendu (headless, serveur), le shader est ignoré.</li>
+    <li><strong>Historique et sélection non sauvegardés</strong> avec le document ; un document <code>.tres</code> reste lisible mais volumineux (préférer <code>.res</code>).</li>
+    <li><strong>Pas de transformation</strong> : ni déplacement, rotation ou mise à l'échelle d'une sélection ou d'un calque, ni copier-coller, ni texte, ni formes (ligne, rectangle).</li>
+    <li><strong>Calque masqué ou verrouillé</strong> : le trait est refusé (<code>begin_stroke</code> renvoie <code>false</code>, vérifié ; la toile émet <code>stroke_rejected</code>).</li>
+    <li><strong>Pression</strong> : uniquement si la plateforme la transmet (Windows Ink / WinTab selon le réglage de Godot) ; à la souris, la pression vaut 1.</li>
+    <li><strong>Raccourcis clavier fixes</strong> (non remappables par l'Input Map) ; <code>shortcuts_enabled</code> les coupe tous.</li>
+    <li><strong>Atelier en français uniquement</strong>, sans traduction ni thème personnalisable au-delà du thème Godot.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 250" role="img" aria-label="Schéma du système de dessin">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="160" height="54" rx="8"/>
+    <text x="100" y="54" text-anchor="middle">DrawingEditorPlugin</text>
+    <text x="100" y="72" text-anchor="middle" class="small">éditeur · onglet Dessin</text>
+    <rect class="box main" x="240" y="30" width="170" height="54" rx="8"/>
+    <text x="325" y="54" text-anchor="middle">DrawingStudio</text>
+    <text x="325" y="72" text-anchor="middle" class="small">panneaux · fichiers</text>
+    <rect class="box main" x="470" y="30" width="170" height="54" rx="8"/>
+    <text x="555" y="54" text-anchor="middle">DrawingCanvas</text>
+    <text x="555" y="72" text-anchor="middle" class="small">entrées · vue · tuiles</text>
+    <rect class="box" x="700" y="30" width="140" height="54" rx="8"/>
+    <text x="770" y="54" text-anchor="middle">DrawingBrush</text>
+    <text x="770" y="72" text-anchor="middle" class="small">réglages · shader</text>
+    <rect class="box main" x="470" y="160" width="170" height="54" rx="8"/>
+    <text x="555" y="184" text-anchor="middle">DrawingDocument</text>
+    <text x="555" y="202" text-anchor="middle" class="small">moteur · historique</text>
+    <rect class="box" x="700" y="160" width="140" height="54" rx="8"/>
+    <text x="770" y="184" text-anchor="middle">DrawingLayer ×n</text>
+    <text x="770" y="202" text-anchor="middle" class="small">pixels RGBA8</text>
+    <path class="arrow" d="M180 57 H238" marker-end="url(#arr)"/>
+    <path class="arrow" d="M410 57 H468" marker-end="url(#arr)"/>
+    <path class="arrow" d="M640 57 H698" marker-end="url(#arr)"/>
+    <path class="arrow" d="M540 84 V158" marker-end="url(#arr)"/>
+    <text x="440" y="125" class="small">begin_stroke / fill…</text>
+    <path class="arrow dashed" d="M580 158 V86" marker-end="url(#arr)"/>
+    <text x="590" y="125" class="small">region_changed…</text>
+    <path class="arrow" d="M640 187 H698" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M700 177 Q670 150 640 177" marker-end="url(#arr)"/>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>DrawingDocument</code></strong> est le cœur : il possède les calques, la sélection, l'historique et l'image composée. Il ne connaît aucune interface ; il signale ses changements (<code>region_changed</code>, <code>layers_changed</code>, <code>history_changed</code>, <code>selection_changed</code>…). Les calques émettent <code>changed</code> quand un réglage change, et le document recompose.</li>
+    <li><strong><code>DrawingCanvas</code></strong> traduit les entrées (souris, stylet, tactile, clavier) en appels directs au document, et met à jour son affichage en tuiles de 256 px là où <code>region_changed</code> l'indique. Les pinceaux à shader sont affichés à travers leur matériau pendant le trait, puis rendus dans un <code>SubViewport</code> temporaire et appliqués par <code>commit_stroke_image</code>.</li>
+    <li><strong><code>DrawingStudio</code></strong> construit les panneaux autour d'une toile et se synchronise par les signaux de la toile et du document. Le <strong>plugin d'éditeur</strong> place un <code>DrawingStudio</code> dans l'écran principal, ouvre les fichiers du FileSystem et réimporte les images enregistrées.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Couplage descendant uniquement : Studio → Canvas → Document → Layer ; Brush est lu par le document et la toile. Le document peut être utilisé seul, la toile sans l'atelier.</li>
+    <li>Aucune dépendance vers d'autres modules du toolkit. Bibliothèque propre : <code>drawing_register.cpp</code> → <code>bin/drawing/</code> (classes du jeu au niveau <em>SCENE</em>, plugin au niveau <em>EDITOR</em>).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Moteur séparé de l'interface (<code>DrawingDocument</code> sans nœud)</td><td>Testable en headless, utilisable par script, et plusieurs toiles peuvent afficher le même document.</td></tr>
+        <tr><td>Traits par tampons plafonnés à l'opacité du trait</td><td>Comme dans les logiciels de dessin : repasser sur un trait à 50 % ne le rend pas opaque ; <code>flow</code> règle l'accumulation.</td></tr>
+        <tr><td>Historique par zones (avant / après d'un rectangle)</td><td>Annuler un petit trait ne copie pas tout le calque ; les réglages successifs d'un curseur (moins d'une seconde) sont fusionnés en une étape.</td></tr>
+        <tr><td>Affichage en tuiles mises à jour à la demande</td><td>Réenvoyer toute l'image au GPU à chaque tampon serait trop lent sur un grand dessin.</td></tr>
+        <tr><td>Calques sauvegardés en PNG (<code>png_data</code>), réencodés seulement si modifiés</td><td>Fichiers <code>.res</code> compacts, et sauvegarde rapide d'un document dont un seul calque a changé.</td></tr>
+        <tr><td>Shader appliqué une seule fois en fin de trait</td><td>Le trait en cours reste fluide (aperçu par le matériau), et le résultat appliqué au calque est exactement ce qui était affiché.</td></tr>
+        <tr><td>Raccourcis et gestes de Clip Studio Paint</td><td>Public cible : des dessinateurs qui ont déjà ces réflexes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : page de module (référence XML et commentaires des headers déjà rédigés). Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Ajout système de dessin : document à calques, pinceaux à dynamique, toile interactive, atelier et écran « Dessin » de l'éditeur.</li>
+    </ul>
+  </div>
+
+  <footer>Module ✏️ Système de dessin · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/✏️Système de dessin/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  // 🎛️ DrawingStudio
+  "DrawingStudio.brushes": "Proposer les pinceaux de votre jeu (craie, crayon de couleur) au lieu des préréglages.",
+  "DrawingStudio.document": "Ouvrir l'atelier sur un dessin existant (blason du joueur, sauvegarde).",
+  "DrawingStudio.erasers": "Proposer une gomme adaptée (douce, texturée).",
+  "DrawingStudio.file_access": "<em>User Data</em> pour un jeu publié, <em>Filesystem</em> pour un outil interne.",
+  "DrawingStudio.show_file_buttons": "Masquer les fichiers quand le jeu gère lui-même la sauvegarde du dessin.",
+  "DrawingStudio.edit_document": "Éditer un document chargé par votre code, avec un chemin d'enregistrement.",
+  "DrawingStudio.get_canvas": "Régler la toile de l'atelier (outil, couleur, zoom) ou écouter ses signaux.",
+  "DrawingStudio.get_current_path": "Afficher le nom du fichier dans un titre de fenêtre.",
+  "DrawingStudio.new_document": "Bouton « Nouveau dessin » au format voulu (carte postale, avatar carré).",
+  "DrawingStudio.open_file": "Rouvrir la dernière œuvre du joueur.",
+  "DrawingStudio.save": "Bouton « Enregistrer » de votre propre interface.",
+  "DrawingStudio.save_as": "Exporter l'œuvre en PNG pour la partager.",
+  "DrawingStudio.show_message": "Indiquer « Œuvre envoyée ! » dans la barre d'état.",
+  "DrawingStudio.document_opened": "Mettre à jour la liste des fichiers récents.",
+  "DrawingStudio.document_saved": "Rafraîchir une galerie, déclencher une récompense.",
+  // 🖼️ DrawingCanvas
+  "DrawingCanvas.brush": "Imposer le pinceau du jeu (craie de coloriage).",
+  "DrawingCanvas.checkerboard": "Masquer le damier pour une interface plus sobre.",
+  "DrawingCanvas.default_document_size": "Taille de la feuille quand le jeu n'en fournit pas.",
+  "DrawingCanvas.document": "Afficher et modifier un document précis (coloriage, carte annotée).",
+  "DrawingCanvas.eraser": "Gomme douce ou de grande taille pour un jeune public.",
+  "DrawingCanvas.eyedropper_all_layers": "Prélever seulement sur le calque courant pour retoucher sans contaminer.",
+  "DrawingCanvas.fill_contiguous": "Désactiver pour recolorer toutes les zones d'une même couleur.",
+  "DrawingCanvas.fill_expand": "Glisser la couleur sous les traits anticrénelés (pas de liseré blanc).",
+  "DrawingCanvas.fill_gap_closing": "Coloriage d'enfant : les contours mal fermés ne font pas déborder le pot.",
+  "DrawingCanvas.fill_reference": "Colorier sur un calque séparé en respectant les traits d'un autre calque.",
+  "DrawingCanvas.fill_tolerance": "Remplir malgré un dégradé ou une texture.",
+  "DrawingCanvas.flip_h": "Retourner la vue pour vérifier les proportions d'un visage.",
+  "DrawingCanvas.max_zoom": "Limiter le zoom pour un jeu (pas besoin du pixel près).",
+  "DrawingCanvas.min_zoom": "Empêcher de perdre le dessin en dézoomant trop.",
+  "DrawingCanvas.pen_eraser": "Désactiver si le bout gomme du stylet est mal détecté.",
+  "DrawingCanvas.primary_color": "Brancher votre palette de couleurs.",
+  "DrawingCanvas.secondary_color": "Deuxième couleur rapide (échange avec X).",
+  "DrawingCanvas.selection_mode": "Mode par défaut des outils de sélection sur tablette (pas de touche Maj).",
+  "DrawingCanvas.shortcuts_enabled": "Couper les raccourcis quand la toile est dans un jeu au clavier.",
+  "DrawingCanvas.show_brush_cursor": "Masquer le contour du pinceau pour un curseur personnalisé.",
+  "DrawingCanvas.tool": "Choisir l'outil depuis vos boutons (pot pour un coloriage).",
+  "DrawingCanvas.touch_gestures": "Désactiver si votre interface gère elle-même le tactile.",
+  "DrawingCanvas.touch_rotation": "Empêcher la rotation accidentelle de la feuille sur tablette.",
+  "DrawingCanvas.view_background": "Accorder le fond autour de la feuille au thème du jeu.",
+  "DrawingCanvas.view_offset": "Sauvegarder / restaurer le cadrage.",
+  "DrawingCanvas.view_rotation": "Tourner la feuille comme sur une table à dessin.",
+  "DrawingCanvas.wand_tolerance": "Sélectionner une zone de couleur malgré un léger dégradé.",
+  "DrawingCanvas.zoom": "Boutons de zoom de votre interface.",
+  "DrawingCanvas.actual_size": "Voir le dessin à sa taille réelle (pixel art).",
+  "DrawingCanvas.canvas_to_screen": "Placer une infobulle ou une étiquette sur un point du dessin.",
+  "DrawingCanvas.fit_to_view": "Cadrer la feuille entière à l'ouverture.",
+  "DrawingCanvas.get_active_brush": "Afficher les réglages de l'outil courant dans votre interface.",
+  "DrawingCanvas.get_pointer_position": "Afficher les coordonnées du pointeur dans une barre d'état.",
+  "DrawingCanvas.get_view_transform": "Dessiner vos propres repères (grille, guides) alignés sur la feuille.",
+  "DrawingCanvas.is_dragging": "Ne pas changer d'outil au milieu d'une action.",
+  "DrawingCanvas.is_stroking": "Différer une sauvegarde automatique pendant un trait.",
+  "DrawingCanvas.reset_rotation": "Bouton « Remettre droit ».",
+  "DrawingCanvas.rotate_at": "Boutons de rotation de la vue autour d'un point.",
+  "DrawingCanvas.screen_to_canvas": "Savoir quel pixel du dessin est sous un clic de votre interface.",
+  "DrawingCanvas.swap_colors": "Bouton d'échange des couleurs.",
+  "DrawingCanvas.zoom_at": "Zoom par vos propres gestes ou boutons, centré sur un point.",
+  "DrawingCanvas.color_picked": "Mettre à jour votre palette après la pipette.",
+  "DrawingCanvas.document_changed": "Reconnecter vos signaux au nouveau document.",
+  "DrawingCanvas.primary_color_changed": "Synchroniser un sélecteur de couleur.",
+  "DrawingCanvas.secondary_color_changed": "Synchroniser le second échantillon de couleur.",
+  "DrawingCanvas.stroke_finished": "Sauvegarde automatique, mise à jour d'une miniature ou d'une texture.",
+  "DrawingCanvas.stroke_rejected": "Avertir « Calque verrouillé ou masqué ».",
+  "DrawingCanvas.stroke_started": "Masquer les panneaux pendant le trait, son de crayon.",
+  "DrawingCanvas.tool_changed": "Mettre en surbrillance le bouton de l'outil.",
+  "DrawingCanvas.view_changed": "Afficher le pourcentage de zoom, mettre à jour une mini-carte du dessin.",
+  "DrawingCanvas.TOOL_BRUSH": "Dessiner.",
+  "DrawingCanvas.TOOL_ERASER": "Effacer.",
+  "DrawingCanvas.TOOL_FILL": "Colorier une zone.",
+  "DrawingCanvas.TOOL_EYEDROPPER": "Prélever une couleur.",
+  "DrawingCanvas.TOOL_SELECT_RECT": "Limiter les outils à un rectangle.",
+  "DrawingCanvas.TOOL_SELECT_ELLIPSE": "Limiter les outils à une ellipse.",
+  "DrawingCanvas.TOOL_SELECT_LASSO": "Limiter les outils à une forme libre.",
+  "DrawingCanvas.TOOL_SELECT_WAND": "Sélectionner une zone de couleur.",
+  "DrawingCanvas.TOOL_PAN": "Déplacer la vue au doigt ou à la souris.",
+  "DrawingCanvas.TOOL_MAX": "Parcourir tous les outils dans une boucle (construction d'une barre d'outils).",
+  // 📄 DrawingDocument
+  "DrawingDocument.background_color": "Couleur du papier, ou transparent pour un autocollant / un sprite.",
+  "DrawingDocument.current_layer": "Choisir le calque modifié par les outils.",
+  "DrawingDocument.history_limit": "Réduire la mémoire de l'historique sur les grands formats ou sur mobile.",
+  "DrawingDocument.layers": "Parcourir les calques pour construire votre panneau de calques.",
+  "DrawingDocument.size": "Redimensionner la feuille (recadrage depuis le coin haut gauche).",
+  "DrawingDocument.add_layer": "Nouveau calque de couleurs sous l'encrage.",
+  "DrawingDocument.begin_stroke": "Rejouer un trait enregistré, ou dessiner depuis une autre source (IA, réseau).",
+  "DrawingDocument.can_redo": "Activer le bouton Rétablir.",
+  "DrawingDocument.can_undo": "Activer le bouton Annuler.",
+  "DrawingDocument.cancel_stroke": "Annuler un trait commencé par erreur (deuxième doigt posé).",
+  "DrawingDocument.clear_history": "Libérer la mémoire après un enregistrement.",
+  "DrawingDocument.clear_layer": "Bouton « Effacer le calque ».",
+  "DrawingDocument.clear_selection_content": "Touche Suppr : effacer la zone sélectionnée.",
+  "DrawingDocument.commit_stroke_image": "Appliquer un trait rendu par votre propre shader ou outil.",
+  "DrawingDocument.create": "Nouvelle feuille blanche ou transparente par code.",
+  "DrawingDocument.create_from_image": "Ouvrir une image (coloriage, photo) pour la retoucher.",
+  "DrawingDocument.deselect": "Bouton « Désélectionner ».",
+  "DrawingDocument.draw_line": "Tracer un segment par code (grille, cadre, signature générée).",
+  "DrawingDocument.duplicate_layer": "Garder une copie avant une retouche risquée.",
+  "DrawingDocument.end_stroke": "Terminer un trait commencé par code.",
+  "DrawingDocument.export_png": "Exporter l'œuvre à partager ou à utiliser comme texture.",
+  "DrawingDocument.fill": "Coloriage automatique, remplissage par code.",
+  "DrawingDocument.fill_selection": "Remplir une zone sélectionnée d'une couleur unie.",
+  "DrawingDocument.find_layer": "Retrouver la position d'un calque gardé en référence.",
+  "DrawingDocument.get_composite_image": "Récupérer le dessin final (texture de blason, miniature).",
+  "DrawingDocument.get_current": "Lire les réglages du calque actif.",
+  "DrawingDocument.get_layer": "Accéder à un calque par sa position.",
+  "DrawingDocument.get_layer_count": "Construire la liste des calques.",
+  "DrawingDocument.get_redo_count": "Afficher le nombre d'étapes à rétablir.",
+  "DrawingDocument.get_redo_name": "Infobulle « Rétablir : Remplissage ».",
+  "DrawingDocument.get_selection_bounds": "Recadrer l'export sur la zone sélectionnée.",
+  "DrawingDocument.get_selection_image": "Utiliser la sélection comme masque ailleurs.",
+  "DrawingDocument.get_selection_value": "Tester si un pixel est sélectionné.",
+  "DrawingDocument.get_stroke_brush": "Afficher le pinceau du trait en cours.",
+  "DrawingDocument.get_stroke_preview": "Afficher vous-même l'aperçu d'un trait différé.",
+  "DrawingDocument.get_stroke_rect": "Limiter une mise à jour à la zone du trait.",
+  "DrawingDocument.get_undo_count": "Afficher le nombre d'étapes annulables.",
+  "DrawingDocument.get_undo_name": "Infobulle « Annuler : Plume G ».",
+  "DrawingDocument.has_selection": "Activer les commandes qui demandent une sélection.",
+  "DrawingDocument.insert_layer": "Importer un calque d'un autre document (tampon, décalque).",
+  "DrawingDocument.invert_selection": "Peindre partout sauf dans la zone choisie.",
+  "DrawingDocument.is_stroke_deferred": "Savoir si le calque reflète déjà le trait en cours.",
+  "DrawingDocument.is_stroking": "Différer une opération pendant un trait.",
+  "DrawingDocument.merge_down": "Fusionner l'encrage et les couleurs avant export.",
+  "DrawingDocument.move_layer": "Glisser-déposer dans votre liste de calques.",
+  "DrawingDocument.pick_color": "Pipette par code, ou lire la couleur d'une zone (jeu de reconnaissance).",
+  "DrawingDocument.redo": "Bouton Rétablir.",
+  "DrawingDocument.refresh_composite": "Après avoir modifié les pixels d'un calque directement.",
+  "DrawingDocument.remove_layer": "Bouton « Supprimer le calque ».",
+  "DrawingDocument.select_all": "Ctrl+A de votre interface.",
+  "DrawingDocument.select_by_color": "Baguette magique par code.",
+  "DrawingDocument.select_ellipse": "Limiter la peinture à un médaillon rond.",
+  "DrawingDocument.select_polygon": "Limiter la peinture à une forme (zone d'un coloriage).",
+  "DrawingDocument.select_rect": "Limiter la peinture à un cadre.",
+  "DrawingDocument.set_layer_property": "Changer visibilité, opacité ou mode de fusion de façon annulable.",
+  "DrawingDocument.stroke_to": "Prolonger un trait par code (pression et vitesse comprises).",
+  "DrawingDocument.undo": "Bouton Annuler.",
+  "DrawingDocument.current_layer_changed": "Mettre en surbrillance le calque actif.",
+  "DrawingDocument.history_changed": "Mettre à jour les boutons Annuler / Rétablir.",
+  "DrawingDocument.layers_changed": "Reconstruire le panneau des calques.",
+  "DrawingDocument.region_changed": "Mettre à jour une texture ou une miniature seulement sur la zone modifiée.",
+  "DrawingDocument.selection_changed": "Activer les commandes de sélection.",
+  "DrawingDocument.stroke_changed": "Rafraîchir votre aperçu d'un trait différé.",
+  "DrawingDocument.stroke_finished": "Sauvegarde automatique après chaque trait.",
+  "DrawingDocument.SELECTION_REPLACE": "Nouvelle sélection.",
+  "DrawingDocument.SELECTION_ADD": "Agrandir la sélection.",
+  "DrawingDocument.SELECTION_SUBTRACT": "Retirer une zone de la sélection.",
+  "DrawingDocument.SELECTION_INTERSECT": "Garder la partie commune.",
+  "DrawingDocument.FILL_REFERENCE_LAYER": "Remplir selon les couleurs du calque courant seulement.",
+  "DrawingDocument.FILL_REFERENCE_ALL_LAYERS": "Colorier sur un calque vide en respectant les traits des autres.",
+  // 🗂️ DrawingLayer
+  "DrawingLayer.alpha_locked": "Recolorer un encrage sans déborder.",
+  "DrawingLayer.blend_mode": "Calque d'ombres en Produit, de lumières en Ajout.",
+  "DrawingLayer.clipped": "Ombres qui ne débordent pas des aplats du calque inférieur.",
+  "DrawingLayer.layer_name": "Nom affiché dans le panneau des calques.",
+  "DrawingLayer.locked": "Protéger un contour de coloriage ou un calque terminé.",
+  "DrawingLayer.opacity": "Calque d'esquisse à demi visible.",
+  "DrawingLayer.png_data": "Exporter / importer un calque seul en PNG.",
+  "DrawingLayer.visible": "Masquer l'esquisse avant l'export.",
+  "DrawingLayer.create": "Préparer un calque par code avant <code>insert_layer</code>.",
+  "DrawingLayer.get_image": "Exporter un calque seul (ex. le calque « signature »).",
+  "DrawingLayer.get_pixel": "Tester la couleur d'un pixel d'un calque.",
+  "DrawingLayer.get_size": "Vérifier la taille d'un calque importé.",
+  "DrawingLayer.is_empty": "Ignorer les calques vides à l'export, ou valider qu'un dessin a été fait.",
+  "DrawingLayer.set_image": "Charger une image dans un calque (décalque, modèle).",
+  "DrawingLayer.LAYER_BLEND_NORMAL": "Calque ordinaire.",
+  "DrawingLayer.LAYER_BLEND_MULTIPLY": "Ombres.",
+  "DrawingLayer.LAYER_BLEND_SCREEN": "Lumières douces.",
+  "DrawingLayer.LAYER_BLEND_OVERLAY": "Ambiance colorée qui garde les contrastes.",
+  "DrawingLayer.LAYER_BLEND_DARKEN": "Ne garder que les traits les plus sombres.",
+  "DrawingLayer.LAYER_BLEND_LIGHTEN": "Ne garder que les parties les plus claires.",
+  "DrawingLayer.LAYER_BLEND_COLOR_DODGE": "Reflets et éclats lumineux.",
+  "DrawingLayer.LAYER_BLEND_COLOR_BURN": "Ombres saturées.",
+  "DrawingLayer.LAYER_BLEND_ADD": "Lueurs, effets de lumière.",
+  "DrawingLayer.LAYER_BLEND_SUBTRACT": "Effets de couleur particuliers.",
+  "DrawingLayer.LAYER_BLEND_DIFFERENCE": "Comparer deux versions d'un dessin.",
+  "DrawingLayer.LAYER_BLEND_SOFT_LIGHT": "Modelé léger.",
+  "DrawingLayer.LAYER_BLEND_HARD_LIGHT": "Modelé contrasté.",
+  "DrawingLayer.LAYER_BLEND_MAX": "Nombre de modes, pour construire une liste déroulante.",
+  // 🖌️ DrawingBrush
+  "DrawingBrush.angle": "Plume calligraphique inclinée.",
+  "DrawingBrush.blend_mode": "Peindre derrière l'encrage, ou faire une gomme texturée.",
+  "DrawingBrush.flow": "Aérographe qui charge progressivement.",
+  "DrawingBrush.follow_direction": "Pinceau plat ou ruban qui suit le geste.",
+  "DrawingBrush.hardness": "Bord net pour l'encrage, doux pour l'estompe.",
+  "DrawingBrush.material": "Pinceau à effet (néon, arc-en-ciel, motif) rendu par un shader.",
+  "DrawingBrush.opacity": "Pinceau transparent pour des lavis superposés.",
+  "DrawingBrush.opacity_dynamics": "Opacité au stylet (crayon qui s'appuie).",
+  "DrawingBrush.opacity_min": "Opacité minimale à faible pression.",
+  "DrawingBrush.pressure_curve": "Adapter la réponse au stylet d'un dessinateur qui appuie fort ou peu.",
+  "DrawingBrush.roundness": "Plume aplatie pour la calligraphie.",
+  "DrawingBrush.size": "Taille du pinceau (boutons [ et ]).",
+  "DrawingBrush.size_dynamics": "Trait qui s'affine en levant le stylet ou en allant vite.",
+  "DrawingBrush.size_min": "Finesse minimale du trait.",
+  "DrawingBrush.spacing": "Tampons espacés pour un pinceau à motif (pointillés, étoiles).",
+  "DrawingBrush.stabilization": "Lisser les tremblements (souris, jeune public).",
+  "DrawingBrush.texture": "Grain de papier ou de toile.",
+  "DrawingBrush.texture_scale": "Grain plus fin ou plus gros.",
+  "DrawingBrush.texture_strength": "Grain discret ou marqué.",
+  "DrawingBrush.tip_texture": "Forme de pinceau (feuille, étoile, éponge).",
+  "DrawingBrush.velocity_curve": "Régler l'effet de la vitesse (encre qui s'affine).",
+  "DrawingBrush.velocity_max": "Vitesse à laquelle l'effet est complet (selon la résolution de l'écran).",
+  "DrawingBrush.create_grain_texture": "Générer un grain de papier sans fichier image.",
+  "DrawingBrush.create_preset": "Partir d'un pinceau prêt à l'emploi.",
+  "DrawingBrush.get_dab_opacity": "Prévisualiser l'opacité selon la pression (aperçu de réglage).",
+  "DrawingBrush.get_dab_size": "Dessiner le contour du pinceau à la bonne taille.",
+  "DrawingBrush.get_opacity_factor": "Tracer la courbe de dynamique d'opacité dans un panneau.",
+  "DrawingBrush.get_size_factor": "Tracer la courbe de dynamique de taille dans un panneau.",
+  "DrawingBrush.BRUSH_BLEND_NORMAL": "Peindre par-dessus.",
+  "DrawingBrush.BRUSH_BLEND_BEHIND": "Colorier sous l'encrage sur le même calque.",
+  "DrawingBrush.BRUSH_BLEND_ERASE": "Gomme avec forme ou grain.",
+  "DrawingBrush.DYNAMIC_PRESSURE": "Réagir à la pression du stylet.",
+  "DrawingBrush.DYNAMIC_VELOCITY": "Réagir à la vitesse (utile à la souris, sans pression).",
+  "DrawingBrush.PRESET_PEN": "Encrage net.",
+  "DrawingBrush.PRESET_PENCIL": "Esquisse au crayon.",
+  "DrawingBrush.PRESET_MARKER": "Aplats au feutre.",
+  "DrawingBrush.PRESET_AIRBRUSH": "Dégradés doux.",
+  "DrawingBrush.PRESET_WATERCOLOR": "Lavis transparents.",
+  "DrawingBrush.PRESET_INK_VELOCITY": "Encrage expressif à la souris.",
+  "DrawingBrush.PRESET_HARD_ERASER": "Gomme nette.",
+  "DrawingBrush.PRESET_SOFT_ERASER": "Estomper les bords."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

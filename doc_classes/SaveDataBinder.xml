@@ -13,7 +13,7 @@
 
 		func _ready() -&gt; void:
 			lien.save_data = SaveData.new()
-			lien.save_data.set_system_id("joueur")
+			lien.save_data.system_id = "joueur"
 			lien.node_target = $Joueur
 			lien.tracked_properties = PackedStringArray(["pv", "or", "niveau"])
 			lien.load() # sans fichier : rien n'est changé

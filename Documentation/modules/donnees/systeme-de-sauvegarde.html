@@ -150,14 +150,6 @@ func _notification(what: int) -> void:
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
   <p>Référence générée depuis <code>doc_classes/SaveManager.xml</code>, <code>SaveData.xml</code>, <code>SaveDataBinder.xml</code>, <code>SaveConfig.xml</code>, <code>SaveFileAccess.xml</code> et <code>SaveSerializer.xml</code>.</p>
-  <div class="callout danger">
-    <div class="callout-title">Référence XML en retard sur le code</div>
-    <p>Les XML de <code>SaveManager</code>, <code>SaveData</code> et <code>SaveConfig</code> ont été générés avant leurs derniers changements et doivent être régénérés (<code>scons gen_doc</code>) ; les descriptions rédigées seront conservées. En attendant :</p>
-    <ul>
-      <li><code>SaveManager.load(save_data, config)</code> renvoie un <code>SaveData</code> (le tableau affiche <code>void</code> et aucun paramètre) ; <code>save(save_data, config)</code> prend aussi ces deux paramètres ; <code>SaveManager.delete(save_data, config)</code> existe mais n'apparaît pas.</li>
-      <li><code>SaveData</code> expose aussi ses valeurs comme propriétés (<code>system_id</code>, <code>data</code>, <code>is_encrypted</code>, <code>encryption_key</code>, <code>file_config</code>), et <code>SaveConfig</code> les siennes (<code>save_directory</code>, <code>extension</code>, <code>encrypted_extension</code>) : seuls leurs accesseurs figurent dans les tableaux.</li>
-    </ul>
-  </div>
   <p>Internes, non exposés : le chiffrement (<code>pad_key</code>, <code>generate_iv</code>, <code>encrypt</code>, <code>decrypt</code>) et le calcul du chemin (<code>get_path</code>, <code>ensure_directory_exists</code>) de <code>SaveFileAccess</code> ; la résolution de la cible du binder (<code>get_target</code>, identifiant d'instance du nœud cible).</p>
   <div data-api="SaveManager SaveData SaveDataBinder SaveConfig SaveFileAccess SaveSerializer"></div>
 
@@ -377,23 +369,16 @@ func lire_secret(mot_de_passe: String) -> SaveData:
 // 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
 window.GTK_USAGES = {
   "SaveManager.load": "Au démarrage du jeu ou à la sélection d'un emplacement : relire options, progression, inventaire.",
+  "SaveManager.delete": "Bouton « Supprimer la sauvegarde », nouvelle partie qui écrase un emplacement, remise à zéro des options.",
   "SaveManager.save": "Point de sauvegarde, fermeture du jeu, changement d'option : écrire un système en une ligne.",
-  "SaveData.get_data": "Lire ou compléter les valeurs sauvegardées (<code>get_data()[\"or\"] = 120</code>).",
-  "SaveData.get_encryption_key": "Vérifier qu'une clé personnalisée a bien été posée avant une version publique.",
-  "SaveData.get_file_config": "Changer le dossier de ce système (emplacements de sauvegarde, profils).",
-  "SaveData.get_is_encrypted": "Savoir quelle extension chercher (<code>.sav</code> ou <code>.json</code>) dans un menu de gestion des fichiers.",
-  "SaveData.get_system_id": "Afficher ou journaliser le nom du système sauvegardé.",
-  "SaveData.set_data": "Remplacer tout le contenu, par exemple après <code>SaveManager.load</code>.",
-  "SaveData.set_encryption_key": "Poser la clé propre au jeu (32 caractères) au lieu de la clé par défaut.",
-  "SaveData.set_file_config": "Partager une même <code>SaveConfig</code> entre tous les systèmes d'un emplacement.",
-  "SaveData.set_is_encrypted": "Désactiver pour des options lisibles ou pendant le développement ; activer pour la progression.",
-  "SaveData.set_system_id": "Nommer le fichier : « joueur », « options », « monde_1 ».",
-  "SaveConfig.get_encrypted_extension": "Lister les sauvegardes chiffrées d'un dossier.",
-  "SaveConfig.get_extension": "Lister les sauvegardes en clair d'un dossier.",
-  "SaveConfig.get_save_directory": "Afficher l'emplacement des sauvegardes, vérifier si un emplacement existe.",
-  "SaveConfig.set_encrypted_extension": "Donner une extension propre au jeu (<code>.monjeu</code>).",
-  "SaveConfig.set_extension": "Utiliser <code>.txt</code> pour que le joueur ouvre ses options d'un double-clic.",
-  "SaveConfig.set_save_directory": "Emplacements multiples (<code>user://saves/emplacement_2/</code>), profils de joueurs.",
+  "SaveData.data": "Lire ou compléter les valeurs sauvegardées (<code>data[\"or\"] = 120</code>), ou tout remplacer après <code>SaveManager.load</code>.",
+  "SaveData.encryption_key": "Poser la clé propre au jeu (32 caractères) au lieu de la clé par défaut.",
+  "SaveData.file_config": "Partager une même <code>SaveConfig</code> entre tous les systèmes d'un emplacement.",
+  "SaveData.is_encrypted": "Désactiver pour des options lisibles ou pendant le développement ; activer pour la progression.",
+  "SaveData.system_id": "Nommer le fichier : « joueur », « options », « monde_1 ».",
+  "SaveConfig.encrypted_extension": "Donner une extension propre au jeu (<code>.monjeu</code>).",
+  "SaveConfig.extension": "Utiliser <code>.txt</code> pour que le joueur ouvre ses options d'un double-clic.",
+  "SaveConfig.save_directory": "Emplacements multiples (<code>user://saves/emplacement_2/</code>), profils de joueurs.",
   "SaveDataBinder.delete": "Bouton « Nouvelle partie » ou « Effacer la sauvegarde ».",
   "SaveDataBinder.load": "Restaurer l'état d'un joueur, d'un coffre ou d'une porte au chargement du niveau.",
   "SaveDataBinder.pull_to_save_data": "Préparer les données sans écrire le fichier (sauvegarde groupée, envoi réseau, aperçu).",

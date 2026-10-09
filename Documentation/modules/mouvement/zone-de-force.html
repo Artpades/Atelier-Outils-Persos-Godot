@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zone de force · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🧲 Zone de force (ForceZone2D, ForceZone3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/zone-de-force.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🧲</div>
+    <div>
+      <h1>🧲_PhysicsSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Zone de force</strong> : vent, aimant, tourbillon ou ralentisseur appliqués à tout ce qui traverse une zone.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : ForceZone2D · ForceZone3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Un ventilateur qui soulève le joueur, un aimant qui attire les pièces, une tornade qui fait tourner les débris, une flaque de boue qui ralentit : chaque fois, il faut une zone qui détecte les corps et leur applique une force, en distinguant objets physiques et personnages. <strong>Ce module fournit cette zone</strong>, avec quatre types de force, une atténuation selon la distance et une turbulence pour un vent vivant.</p>
+
+  <div class="grid">
+    <div class="card"><h4>📦 Objets physiques</h4><p>Les <code>RigidBody</code> présents reçoivent directement la force (masse × accélération), à chaque image physique.</p></div>
+    <div class="card"><h4>🧍 Personnages</h4><p>Les <code>CharacterBody</code> la subissent par leurs composants de mouvement, qui ajoutent l'accélération à leur vitesse (multipliée par <code>wind_influence</code> pour un planeur).</p></div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les level designers (pièges, puzzles, ambiance) et les développeurs d'effets (souffle d'explosion, aspiration).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une modification de la gravité</strong> : pour une planète ou une gravité inversée, utiliser les réglages de gravité intégrés des <code>Area2D/3D</code> de Godot.</li>
+      <li><strong>Pas un recul ponctuel</strong> : pour un coup unique, voir <a href="recul.html">🌬️ Recul</a>.</li>
+      <li><strong>Pas de l'eau</strong> : pour flotter, voir <a href="deplacement-aquatique.html">🌊 Aquatique</a>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Quatre captures debug_mode côte à côte (grille de flèches bleues) : mode directionnel (vent), attraction, tourbillon, freinage ; puis GIF de caisses aspirées dans une tornade 3D.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td>Une <code>CollisionShape2D/3D</code> enfant</td><td><strong>Obligatoire</strong></td><td>Comme toute <code>Area</code>, la zone n'a pas de volume sans forme.</td></tr>
+        <tr><td>Composants de mouvement sur les personnages</td><td>Optionnelle</td><td>Sans composant (sol, nage, mur, aérodynamique), un <code>CharacterBody</code> n'est pas affecté.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">la zone fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Régler le <code>collision_mask</code></strong> de la zone pour inclure les couches des corps à affecter, et laisser <code>monitoring</code> actif.<div class="why">la zone agit sur les corps que le moteur physique détecte en chevauchement ; un corps sur une autre couche est ignoré.</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter une <code>ForceZone2D</code></strong> avec une <code>CollisionShape2D</code> rectangulaire au-dessus d'un ventilateur.
+      <div class="why">la forme définit où souffle le vent.</div>
+    </li>
+    <li>
+      <strong>Régler</strong> <code>mode</code> = <em>Directional</em>, <code>direction</code> = <code>(0, -1)</code>, <code>strength</code> = 1800.
+      <div class="why">une accélération vers le haut supérieure à la gravité (980) soulève le personnage ; plus faible, elle ralentit seulement sa chute.</div>
+    </li>
+    <li>
+      <strong>Cocher <code>debug_mode</code></strong> et lancer le jeu.
+      <div class="why">une grille de flèches montre l'intensité et la direction de la force dans la zone ; le texte rappelle le mode et l'intensité.</div>
+    </li>
+    <li>
+      <strong>Faire passer un personnage équipé de <code>GroundMovement2D</code></strong> et des <code>RigidBody2D</code> dans la zone.
+      <div class="why">les corps rigides sont poussés directement, le personnage via son composant.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/ForceZone2D.xml</code> et <code>ForceZone3D.xml</code>. Mêmes membres en 2D et 3D (valeurs par défaut en pixels / mètres) ; en 3D, le tourbillon tourne autour de l'axe Y local et <code>direction</code> est exprimée dans le repère de la zone. <code>mode</code> et <code>falloff</code> sont des entiers : utiliser les constantes <code>MODE_*</code> et <code>FALLOFF_*</code>. Éléments internes : la structure C++ <code>ForceZoneSettings</code> (atténuation, turbulence), le temps écoulé de la turbulence et le registre statique des zones lu par <code>get_acceleration_on</code>.</p>
+  <div data-api="ForceZone2D ForceZone3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-aimant">Comment j'attire les pièces vers le joueur (aimant) ?</h3>
+  <p>Une zone enfant du joueur, qui n'affecte que les corps rigides (les pièces) et pas le joueur lui-même :</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var aimant := ForceZone2D.new()
+	var forme := CollisionShape2D.new()
+	var cercle := CircleShape2D.new()
+	cercle.radius = 150.0
+	forme.shape = cercle
+	aimant.add_child(forme)
+	aimant.mode = ForceZone2D.MODE_ATTRACT
+	aimant.strength = 2500.0
+	aimant.affect_characters = false
+	aimant.collision_mask = 4          # couche des pièces
+	add_child(aimant)</code></pre>
+
+  <h3 id="ex-rafales">Comment je fais un vent par rafales ?</h3>
+  <pre><code class="gdscript">$Vent.turbulence = 0.8          # l'intensité varie de 0,2 à 1,8 fois
+$Vent.turbulence_speed = 2.0    # rafales plus rapprochées
+# ou des rafales franches, par code :
+func _on_timer_timeout() -> void:
+	$Vent.enabled = not $Vent.enabled</code></pre>
+
+  <h3 id="ex-planeur">Comment je fais un courant ascendant pour un planeur ?</h3>
+  <p>Avec <a href="physique-aerodynamique.html">🪂 Aérodynamique</a> en plané, la force est multipliée par <code>wind_influence</code> (2 par défaut) : un courant modeste soulève fortement un planeur et peu un marcheur.</p>
+  <pre><code class="gdscript">$Courant.direction = Vector2.UP
+$Courant.strength = 400.0
+$Joueur/AerodynamicMovement2D.wind_influence = 3.0</code></pre>
+
+  <h3 id="ex-boue">Comment je fais une flaque de boue qui ralentit ?</h3>
+  <p>Le mode <em>Drag</em> s'oppose à la vitesse (<code>strength</code> = freinage par seconde). Il est efficace sur les corps rigides et sur les personnages en l'air ; au sol, réduire plutôt la vitesse du composant (voir limitations).</p>
+  <pre><code class="gdscript">$Boue.mode = ForceZone2D.MODE_DRAG
+$Boue.strength = 4.0</code></pre>
+
+  <h3 id="ex-mesure">Comment je lis la force subie pour un effet visuel ?</h3>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	var vent := ForceZone2D.get_acceleration_on($Joueur)
+	$Echarpe.rotation = vent.angle() if vent.length() > 10.0 else 0.0</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Vent horizontal quasi sans effet sur un personnage au sol.</strong> <code>GroundMovement</code> ramène sa vitesse vers la commande avec <code>acceleration</code> / <code>deceleration</code> avant d'ajouter la force : tant que ces valeurs dépassent <code>strength</code>, la force n'agit que sur une image. Mesuré : zone de 600 px/s² (valeur par défaut) → personnage immobile poussé à 10 px/s ; 5000 px/s² → 1550 px en 1 s. Contournement : force supérieure à la décélération, ou réduire <code>deceleration</code> du personnage dans la zone. Les forces verticales et les nageurs / planeurs ne sont pas concernés.</li>
+    <li><strong>Personnages sans composant actif non affectés</strong>, et un composant GDScript doit ajouter lui-même <code>external_acceleration_2d</code>.</li>
+    <li><strong>Le centre est la position de la zone</strong>, pas celui de sa forme : une forme décalée donne une attraction / un tourbillon décentré.</li>
+    <li><strong>Mode <em>Drag</em> via <code>get_acceleration_on</code> : vitesse nulle pour un corps rigide</strong> (seule la vitesse d'un <code>CharacterBody</code> est lue). Sans conséquence pour le cas normal (les corps rigides sont freinés directement par la zone), mais <code>get_acceleration_on</code> renvoie zéro pour eux.</li>
+    <li><strong>Attraction sans arrêt</strong> : la force ne diminue pas au centre (sauf atténuation) ; les objets oscillent autour du centre. Ajouter de l'amortissement (<code>linear_damp</code> des corps, ou une seconde zone en <em>Drag</em>).</li>
+    <li><strong>Le tourbillon ne fait que tourner</strong> (force tangentielle) : sans attraction, la force centrifuge éloigne les objets. Combiner avec une zone <em>Attract</em>.</li>
+    <li><strong>Détection d'une image de retard</strong> et dépendance au <code>collision_mask</code> : un corps rapide peut traverser une zone fine sans être poussé.</li>
+    <li><strong>Turbulence identique pour tous les corps d'une zone</strong> (une seule variation par zone, pas par position).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>ForceZone2D/3D</code></strong> est une <code>Area</code> qui s'inscrit dans un registre statique à l'entrée dans l'arbre (en jeu). À chaque image physique, elle avance son temps de turbulence puis, si <code>affect_rigid_bodies</code>, pousse chaque <code>RigidBody</code> chevauchant par <code>apply_central_force</code>.</li>
+    <li><strong>Personnages</strong> : c'est le composant qui interroge les zones (appel de la fonction statique <code>get_acceleration_on</code>, via <code>MovementComponent.external_acceleration_*</code>) et additionne les accélérations de toutes les zones qui le contiennent.</li>
+    <li><code>compute_acceleration</code> centralise le calcul : intensité × atténuation × turbulence, puis direction selon le mode.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>La zone ne dépend d'aucune autre classe du toolkit ; c'est le <a href="socle-mouvement.html">🧩 Socle</a> qui dépend d'elle (inclusion de <code>force_zone.hpp</code>). Elle peut donc servir seule, pour des corps rigides uniquement.</li>
+  </ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td><code>strength</code> = accélération, pas force</td><td>Tous les objets réagissent pareil quelle que soit leur masse : on règle l'effet voulu, pas des masses.</td></tr>
+        <tr><td>Personnages poussés par leurs composants plutôt que par la zone</td><td>Un <code>CharacterBody</code> n'a pas de forces : seul le script qui calcule sa vitesse peut intégrer le vent sans la remettre à zéro. Chaque composant décide aussi de sa sensibilité (<code>wind_influence</code>).</td></tr>
+        <tr><td>Registre statique interrogé à la demande</td><td>Pas de signaux <code>body_entered</code> à connecter, pas d'état à maintenir sur les personnages.</td></tr>
+        <tr><td>Turbulence par sinus combinés, graine par instance</td><td>Variation douce, déterministe et sans coût ; deux ventilateurs voisins ne soufflent pas en même temps.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML (structure resynchronisée, ajout de <code>debug_mode</code>), commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>debug_mode</code> : contour et grille de flèches du champ de force.</li></ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>ForceZone2D/3D</code> : modes directionnel, attraction, tourbillon, freinage ; atténuation ; turbulence.</li></ul>
+  </div>
+
+  <footer>Module 🧲 Zone de force · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🧲Zone de force/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » (communs 2D / 3D)
+window.GTK_USAGES = {};
+(function () {
+  const u = {
+    "affect_characters": "Désactiver pour un aimant à objets qui ne doit pas attirer le joueur.",
+    "affect_rigid_bodies": "Désactiver pour un courant d'air qui ne porte que les personnages.",
+    "debug_mode": "Visualiser le champ de force pendant la construction du niveau.",
+    "direction": "Sens du vent, du tapis roulant, du courant.",
+    "enabled": "Ventilateur commandé par un interrupteur, rafales par minuterie.",
+    "falloff": "Force plus forte près de la source (ventilateur, trou noir).",
+    "falloff_radius": "Portée utile de la source.",
+    "local_direction": "Ventilateur orientable : tourner la zone suffit.",
+    "mode": "Choisir le type de force sans code.",
+    "strength": "Intensité ; négative pour repousser ou inverser.",
+    "turbulence": "Vent naturel, irrégulier.",
+    "turbulence_speed": "Rafales lentes (brise) ou rapides (tempête).",
+    "compute_acceleration": "Prévoir la force à un endroit (IA qui évite le vent, aperçu de trajectoire).",
+    "get_acceleration_on": "Animer une écharpe, des cheveux, un son de vent selon la force subie.",
+    "MODE_DIRECTIONAL": "Vent, tapis roulant, courant ascendant.",
+    "MODE_ATTRACT": "Aimant, trou noir ; négatif : bouclier répulsif.",
+    "MODE_VORTEX": "Tornade, siphon, manège.",
+    "MODE_DRAG": "Boue, toile d'araignée, zone de ralenti.",
+    "FALLOFF_NONE": "Force uniforme (couloir de vent).",
+    "FALLOFF_LINEAR": "Force qui s'éteint au bord de la portée.",
+    "FALLOFF_INVERSE_SQUARE": "Décroissance douce et lointaine (gravité, aimant)."
+  };
+  ["ForceZone2D", "ForceZone3D"].forEach(function (c) {
+    Object.keys(u).forEach(function (k) { window.GTK_USAGES[c + "." + k] = u[k]; });
+  });
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

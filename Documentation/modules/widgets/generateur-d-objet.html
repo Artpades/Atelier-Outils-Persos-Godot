@@ -185,10 +185,12 @@ $Spawner.spawn()</code></pre>
 
   <h3 id="ex-zone">Comment je déclenche l'apparition quand le joueur entre dans une zone ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
-	$ZoneEmbuscade.body_entered.connect(func(corps):
-		if corps.is_in_group("joueur"):
-			$Spawner.spawn()
-			$ZoneEmbuscade.set_deferred("monitoring", false), CONNECT_ONE_SHOT)</code></pre>
+	$ZoneEmbuscade.body_entered.connect(_on_zone_embuscade)
+
+func _on_zone_embuscade(corps: Node2D) -> void:
+	if corps.is_in_group("joueur"):
+		$Spawner.spawn()
+		$ZoneEmbuscade.set_deferred("monitoring", false)   # une seule embuscade</code></pre>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>

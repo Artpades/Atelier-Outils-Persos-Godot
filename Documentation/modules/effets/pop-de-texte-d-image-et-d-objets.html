@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pop de texte, d'image et d'objets · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 💥 Pop de texte, d'image et d'objets (FXPop, PopSpawner, PopStyle) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/pop-de-texte-d-image-et-d-objets.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">💥</div>
+    <div>
+      <h1>💥_PopSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Pop de texte, d'image et d'objets</strong> : chiffres de dégâts, « +1 », pièces et icônes qui jaillissent d'un objet puis disparaissent.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">3 classes : PopSpawner · FXPop · PopStyle</span>
+        <span class="badge">2D, 3D &amp; interface</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Afficher « -12 » au-dessus d'un ennemi touché, faire jaillir des pièces d'un coffre, signaler « +1 ❤ » quand on ramasse un cœur : ces petits éléments éphémères (les « pops ») doivent apparaître au bon endroit, bouger avec de l'élan, disparaître en fondu, survivre à l'objet qui les a créés et ne pas s'accumuler. <strong>Ce module les crée en une ligne</strong>, en 2D, en 3D ou par-dessus l'écran, avec un style partagé réglé dans l'inspecteur.</p>
+  <div class="grid">
+    <div class="card">
+      <h4>🎯 <code>PopSpawner</code> — par code</h4>
+      <p>Un <strong>nœud</strong> placé sous l'objet : <code>pop_number(-12)</code>, <code>pop_text("Paf !")</code>, <code>pop_texture(icone)</code>… Limite de pops vivants, signal <code>popped</code>.</p>
+    </div>
+    <div class="card">
+      <h4>✨ <code>FXPop</code> — en effet</h4>
+      <p>Un <strong>effet</strong> de <a href="socle-effets.html">PlayerFX</a> : le pop jaillit en même temps qu'une secousse ou un son, sans code.</p>
+    </div>
+    <div class="card">
+      <h4>🎨 <code>PopStyle</code> — l'allure</h4>
+      <p>Une <strong>ressource</strong> partagée : élan, gravité, rebonds au sol, rotation, grossissement d'apparition, fondu, police et couleurs.</p>
+    </div>
+  </div>
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay (dégâts, gains, statuts) et les game designers qui règlent l'allure des pops sans toucher au code.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de particules</strong> : chaque pop est un petit groupe de nœuds (pratique pour du texte et des scènes, mais pas pour des centaines d'éléments par seconde : utiliser <code>GPUParticles2D</code>).</li>
+      <li><strong>Pas des objets ramassables</strong> : une pièce « poppée » n'a pas de collision ; pour de vrais objets, instancier une scène physique soi-même.</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF côte à côte : des chiffres de dégâts rouges qui jaillissent d'un ennemi 2D et retombent ; un coffre 3D d'où jaillissent cinq pièces qui rebondissent au sol (<code>use_floor</code>) avant de disparaître en fondu.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient les trois classes et les nœuds internes <code>PopInstance2D</code> / <code>PopInstance3D</code>.</td></tr>
+        <tr><td><a href="socle-effets.html">✨ Socle des effets</a> (<code>PlayerFX</code>)</td><td>Optionnelle</td><td>Seulement pour <code>FXPop</code>. <code>PopSpawner</code> fonctionne seul.</td></tr>
+        <tr><td>Police (<code>Font</code>)</td><td>Optionnelle</td><td>Sans police dans le style, la police par défaut du projet est utilisée.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+    <li>
+      <strong>Recommandé : créer un style partagé</strong> <code>res://pops/degats.tres</code> (<em>Nouvelle ressource › PopStyle</em>).
+      <div class="why">tous les ennemis utilisent alors la même allure ; une retouche du <code>.tres</code> s'applique partout.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>PopSpawner</code> comme enfant de l'ennemi</strong>, régler <code>offset</code> à <code>(0, -40, 0)</code>.
+      <div class="why">les pops partent du parent ; l'<code>offset</code> (en pixels, y vers le bas) les fait partir au-dessus de la tête.</div>
+    </li>
+    <li>
+      <strong>Assigner le <code>style</code></strong> créé plus haut (ou laisser vide pour le style par défaut).
+      <div class="why">le style décide de l'élan, de la gravité, des couleurs des nombres positifs et négatifs.</div>
+    </li>
+    <li>
+      <strong>Appeler le spawner</strong> à chaque coup :
+      <pre><code class="gdscript">func subir_degats(montant: int) -> void:
+	vie -= montant
+	$PopSpawner.pop_number(-montant)    # « -12 » en negative_color</code></pre>
+      <div class="why">le pop est ajouté à la scène courante, pas sous l'ennemi : il reste visible même si l'ennemi meurt aussitôt, puis se libère seul.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/PopSpawner.xml</code>, <code>FXPop.xml</code> et <code>PopStyle.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li><code>PopInstance2D</code> et <code>PopInstance3D</code> : les nœuds des pops (classes internes, sans XML), avec <code>get_age()</code>, <code>get_velocity()</code>, <code>get_style()</code> accessibles par script sur les nœuds renvoyés par <code>pop()</code> ou <code>popped</code>. Leur contenu : enfants <code>Text</code> (<code>Label</code> / <code>Label3D</code>), <code>Icon</code> (<code>Sprite2D</code> / <code>Sprite3D</code>) et l'instance de scène.</li>
+    <li>La structure C++ <code>PopRequest</code>, le mouvement <code>PopMotion</code>, <code>PopSpawner::create_pop</code> (partagé avec <code>FXPop</code>) et la liste des pops vivants.</li>
+    <li>Le <code>CanvasLayer</code> <code>PopScreenLayer</code> (couche 100) créé pour les pops à l'écran d'une cible 3D.</li>
+  </ul>
+  <div data-api="PopSpawner FXPop PopStyle"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-pieces">Comment je fais jaillir des pièces qui rebondissent ?</h3>
+  <pre><code class="gdscript">func ouvrir_coffre() -> void:
+	var style := PopStyle.new()
+	style.spread_degrees = 100.0
+	style.speed_min = 250.0
+	style.speed_max = 400.0
+	style.use_floor = true
+	style.floor_offset = 20.0
+	style.bounce = 0.4
+	style.lifetime = 1.6
+	style.icon_size = Vector2(24, 24)
+	$PopSpawner.style = style
+	for i in 6:
+		$PopSpawner.pop_texture(preload("res://icones/piece.png"))</code></pre>
+
+  <h3 id="ex-fx">Comment j'ajoute un « +1 » à la collecte sans code ?</h3>
+  <p>Dans le <code>PlayerFX</code> de l'objet, un <code>FXChangeSize</code> (disparition) avec un <code>FXPop</code> en <code>effects_on_play_fx</code> (<code>text</code> = « +1 », <code>texture</code> = icône). Par code :</p>
+  <pre><code class="gdscript">var plus_un := FXPop.new()
+plus_un.text = "+1"
+plus_un.texture = preload("res://icones/coeur.png")
+var disparition := FXChangeSize.new()
+disparition.final_scale = 0.0
+disparition.effects_on_play_fx = [plus_un]
+$PlayerFX.special_effects = [disparition]
+$PlayerFX.play()</code></pre>
+
+  <h3 id="ex-3d-ecran">Comment j'affiche des dégâts à taille constante sur un ennemi 3D ?</h3>
+  <p>Un pop 3D rapetisse avec la distance. <code>screen_space_3d</code> le dessine en 2D par-dessus l'écran, à la position projetée de l'ennemi :</p>
+  <pre><code class="gdscript"># Ennemi3D
+# └─ PopSpawner (screen_space_3d = true, offset = (0, 2, 0) en mètres)
+func toucher(degats: int) -> void:
+	$PopSpawner.pop_number(-degats)   # null si l'ennemi est derrière la caméra</code></pre>
+
+  <h3 id="ex-position">Comment je fais jaillir un pop à l'endroit de l'impact ?</h3>
+  <p>Le paramètre <code>at</code> de <code>pop()</code> impose une position globale (<code>Vector2</code> en 2D, <code>Vector3</code> en 3D) :</p>
+  <pre><code class="gdscript">func _on_impact(point: Vector2, critique: bool) -> void:
+	var texte := "CRITIQUE !" if critique else "Paf"
+	$PopSpawner.pop(texte, null, null, Color.ORANGE if critique else Color(0, 0, 0, 0), point)</code></pre>
+
+  <h3 id="ex-interface">Comment je fais un pop dans l'interface ?</h3>
+  <p>Avec un <code>Control</code> pour cible, le pop part du centre du contrôle et est ajouté à son <code>CanvasLayer</code> : il s'affiche au-dessus du jeu.</p>
+  <pre><code class="gdscript"># HUD (CanvasLayer) / CompteurOr (Label) / PopSpawner
+func gagner_or(montant: int) -> void:
+	or_total += montant
+	$HUD/CompteurOr/PopSpawner.pop_number(montant)</code></pre>
+
+  <h3 id="ex-popped">Comment j'ajoute un son ou une animation à chaque pop ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$PopSpawner.popped.connect(func(pop: Node):
+		$SonPop.play()
+		if pop is Node2D:
+			pop.modulate = Color(1.0, 0.9, 0.6)   # teinte ; l'alpha reste piloté par le fondu
+		var texte := pop.get_node_or_null("Text")
+		if texte is Label:
+			texte.label_settings.outline_size = 12)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Le pop ne suit pas sa cible</strong> : le point d'apparition est fixé à la création. Un pop sur un ennemi rapide reste derrière lui ; en <code>screen_space_3d</code>, il reste au même endroit de l'écran même si la caméra bouge.</li>
+    <li><strong>Cible sans position</strong> : si le parent n'est ni <code>Node2D</code>, ni <code>Control</code>, ni <code>Node3D</code>, les pops partent de l'origine du monde (vérifié : position (0, 0)).</li>
+    <li><strong><code>PopSpawner</code> hors de l'arbre</strong> : erreur et <code>null</code> (vérifié). Pop sans texte, image ni scène : avertissement et <code>null</code>.</li>
+    <li><strong>Image étirée en 2D</strong> : l'icône est mise exactement à <code>icon_size</code>, proportions non conservées (vérifié : une texture 64 × 32 avec <code>icon_size</code> 32 × 32 reçoit l'échelle (0,5, 1)). En 3D, seule la hauteur est imposée.</li>
+    <li><strong>Scènes non mises à l'échelle</strong> : une scène dans un pop garde sa taille propre (ni <code>icon_size</code>, ni <code>unit_scale_3d</code>). En 3D, son opacité est réglée par <code>transparency</code> des <code>GeometryInstance3D</code>, ce qui peut changer leur mode de rendu.</li>
+    <li><strong><code>pop_number</code></strong> : avec <code>decimals = 0</code>, la valeur est arrondie (-2,4 → « -2 ») ; 0 s'affiche « 0 » en <code>positive_color</code> ; avec des décimales, les zéros finaux sont retirés (3.5 avec 2 décimales → « +3.5 »). Pas de séparateur de milliers.</li>
+    <li><strong><code>FXPop</code> n'a pas de limite</strong> de pops vivants ni de signal ; seul <code>PopSpawner</code> applique <code>max_pops</code> (et seulement à ses propres pops). Au-delà de <code>max_pops</code>, les plus anciens disparaissent d'un coup, sans fondu.</li>
+    <li><strong>Coût</strong> : chaque pop crée 1 à 4 nœuds et un <code>LabelSettings</code> neuf ; adapté à quelques dizaines de pops simultanés, pas à des centaines.</li>
+    <li><strong>Unités</strong> : <code>offset</code> est en pixels pour une cible 2D mais en <em>mètres</em> pour une cible 3D, alors que le style reste en pixels (converti par <code>unit_scale_3d</code>).</li>
+    <li><strong>Temps de jeu</strong> : les pops se figent en pause (selon le <code>process_mode</code> du conteneur) et suivent <code>Engine.time_scale</code>.</li>
+    <li><strong>Couleur d'alpha nul = couleur du style</strong> : impossible de demander un texte totalement transparent.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <svg class="diagram" viewBox="0 0 860 250" role="img" aria-label="Schéma d'architecture du module Pop">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box main" x="20" y="30" width="160" height="54" rx="8"/>
+    <text x="100" y="54" text-anchor="middle">PopSpawner</text>
+    <text x="100" y="72" text-anchor="middle" class="small">pop_number / pop_text…</text>
+    <rect class="box main" x="20" y="140" width="160" height="54" rx="8"/>
+    <text x="100" y="164" text-anchor="middle">FXPop</text>
+    <text x="100" y="182" text-anchor="middle" class="small">Effect · _play</text>
+    <rect class="box" x="250" y="85" width="180" height="54" rx="8"/>
+    <text x="340" y="109" text-anchor="middle">create_pop</text>
+    <text x="340" y="127" text-anchor="middle" class="small">statique · PopRequest</text>
+    <rect class="box" x="250" y="185" width="180" height="54" rx="8"/>
+    <text x="340" y="209" text-anchor="middle">PopStyle</text>
+    <text x="340" y="227" text-anchor="middle" class="small">Resource partagée</text>
+    <rect class="box" x="500" y="85" width="170" height="54" rx="8"/>
+    <text x="585" y="109" text-anchor="middle">PopInstance2D / 3D</text>
+    <text x="585" y="127" text-anchor="middle" class="small">interne · se libère seul</text>
+    <rect class="box" x="700" y="30" width="145" height="54" rx="8"/>
+    <text x="772" y="54" text-anchor="middle">Conteneur</text>
+    <text x="772" y="72" text-anchor="middle" class="small">CanvasLayer / scène</text>
+    <path class="arrow" d="M180 60 Q215 70 248 105" marker-end="url(#arr)"/>
+    <path class="arrow" d="M180 165 Q215 150 248 122" marker-end="url(#arr)"/>
+    <path class="arrow" d="M430 112 H498" marker-end="url(#arr)"/>
+    <text x="464" y="104" text-anchor="middle" class="small">crée</text>
+    <path class="arrow dashed" d="M430 212 Q560 212 585 141" marker-end="url(#arr)"/>
+    <text x="520" y="200" class="small">lu à chaque frame</text>
+    <path class="arrow" d="M670 100 Q700 90 740 86" marker-end="url(#arr)"/>
+    <text x="700" y="118" class="small">enfant de</text>
+    <path class="arrow dashed" d="M100 30 Q100 8 300 8 Q500 8 520 83" marker-end="url(#arr)"/>
+    <text x="310" y="22" text-anchor="middle" class="small">signal popped(pop) · max_pops</text>
+  </svg>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>PopSpawner</code></strong> et <strong><code>FXPop</code></strong> remplissent une <code>PopRequest</code> (contenu, couleur, position, conteneur, options 3D) et appellent la fonction statique commune <code>PopSpawner::create_pop</code> : les deux produisent exactement les mêmes pops.</li>
+    <li><code>create_pop</code> choisit le type de pop selon la cible (2D, 3D, ou 2D à l'écran pour une cible 3D), le conteneur, construit le contenu (scène derrière, rangée centrée image + texte) puis lance le mouvement (<code>PopMotion::launch</code>).</li>
+    <li><strong><code>PopInstance2D</code> / <code>3D</code></strong> avancent leur mouvement à chaque frame (gravité, freinage, sol, rotation), appliquent échelle et opacité lues dans le <code>PopStyle</code>, et se libèrent à la fin de <code>lifetime</code>. Le pop 3D se tourne vers la caméra active.</li>
+    <li><code>PopSpawner</code> garde la liste de ses pops (par <code>ObjectID</code>) pour <code>max_pops</code>, <code>clear()</code> et <code>get_active_pops()</code>.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>FXPop</code> hérite d'<code>Effect</code> et dépend de <code>PopSpawner::create_pop</code> ; <code>PopSpawner</code> ne dépend pas du socle des effets.</li>
+    <li>Les pops ne référencent ni leur créateur ni leur cible : ils vivent indépendamment.</li>
+  </ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Pops ajoutés au conteneur, pas sous la cible</td><td>Un chiffre de dégâts doit rester visible quand l'ennemi meurt ; et un pop enfant d'un objet en mouvement serait entraîné avec lui.</td></tr>
+        <tr><td>Conteneur par défaut : le <code>CanvasLayer</code> de la cible</td><td>Un pop d'interface reste dans l'espace de l'interface (au-dessus du jeu, insensible à la caméra), un pop du monde dans le monde.</td></tr>
+        <tr><td>Style en pixels, converti en 3D par <code>unit_scale_3d</code></td><td>Un même <code>.tres</code> sert aux pops 2D et 3D ; on n'ajuste qu'un facteur.</td></tr>
+        <tr><td>Mouvement commun (<code>PopMotion</code>) avec Y vers le haut</td><td>Une seule physique pour la 2D et la 3D ; la 2D inverse Y à l'affichage.</td></tr>
+        <tr><td><code>PopInstance2D</code> / <code>3D</code> en classes internes</td><td>Elles ne fonctionnent qu'initialisées par <code>create_pop</code> ; les exposer dans <em>Ajouter un nœud</em> inviterait à les créer à la main, sans style.</td></tr>
+        <tr><td>Fonction de création statique</td><td><code>FXPop</code> est une ressource sans nœud : il peut créer des pops sans <code>PopSpawner</code> dans la scène.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>PopSpawner</code>, <code>FXPop</code> et <code>PopStyle</code>, commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>PopSpawner</code> : pops de texte, d'image et de scène en 2D, 3D et à l'écran, nombres signés colorés, limite de pops.</li>
+      <li><span class="tag add">Ajouté</span><code>FXPop</code> : pops déclenchés comme effet d'un <code>PlayerFX</code>.</li>
+      <li><span class="tag add">Ajouté</span><code>PopStyle</code> : élan, gravité, sol et rebonds, rotation, animation d'apparition et de fin, apparence du texte.</li>
+    </ul>
+  </div>
+
+  <footer>Module 💥 Pop de texte, d'image et d'objets · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/💥Pop de Texte-d'image-d'objets/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "PopSpawner.style": "Un style par usage : dégâts (rapide, rouge), soins (lent, vert), pièces (gerbe, rebonds).",
+  "PopSpawner.target": "Faire partir les pops d'un autre nœud que le parent (la tête du modèle, l'arme).",
+  "PopSpawner.container": "Regrouper les pops sous un nœud dédié (pour les masquer ou les vider d'un coup), ou les forcer dans le HUD.",
+  "PopSpawner.offset": "Faire partir les pops au-dessus de la tête plutôt que des pieds.",
+  "PopSpawner.max_pops": "Éviter qu'une rafale de coups couvre l'écran de chiffres.",
+  "PopSpawner.unit_scale_3d": "Agrandir des pops 3D trop petits pour la taille de la scène.",
+  "PopSpawner.screen_space_3d": "Dégâts lisibles à taille constante sur des ennemis 3D lointains.",
+  "PopSpawner.pop": "Combiner image et texte (« 🪙 +50 »), imposer une position d'impact ou une couleur.",
+  "PopSpawner.pop_text": "Onomatopées, « Esquive ! », « Niveau supérieur ! », états (« Empoisonné »).",
+  "PopSpawner.pop_texture": "Icône de statut, pièce, cœur, étoile.",
+  "PopSpawner.pop_scene": "Un objet animé, une petite explosion, un modèle 3D de pièce qui tourne.",
+  "PopSpawner.pop_number": "Dégâts (négatif, rouge), soins et gains (positif, vert).",
+  "PopSpawner.clear": "Nettoyer les pops au changement de phase, à la mort du joueur, à la pause.",
+  "PopSpawner.get_active_count": "Adapter le contenu (regrouper les dégâts en un seul chiffre) quand trop de pops sont visibles.",
+  "PopSpawner.get_active_pops": "Modifier les pops en cours (les faire disparaître, changer leur couleur).",
+  "PopSpawner.popped": "Ajouter un son, un effet ou retoucher le contenu de chaque pop créé.",
+  "FXPop.style": "Allure partagée avec les <code>PopSpawner</code> du jeu.",
+  "FXPop.text": "« +1 », « Paf ! », « Ouvert ».",
+  "FXPop.texture": "L'icône de l'objet ramassé.",
+  "FXPop.scene": "Un petit objet animé qui jaillit (clé, gemme).",
+  "FXPop.color": "Couleur propre à cet effet (or pour les pièces) sans changer le style partagé.",
+  "FXPop.count": "Gerbe de pièces, d'étoiles ou d'étincelles en un seul effet.",
+  "FXPop.offset": "Faire partir le pop au-dessus de l'objet.",
+  "FXPop.unit_scale_3d": "Adapter la taille des pops à l'échelle d'une scène 3D.",
+  "FXPop.screen_space_3d": "Pop lisible à taille constante sur un objet 3D.",
+  "PopStyle.lifetime": "Court (0,6 s) pour des dégâts en rafale, long (1,5 s) pour un gain important.",
+  "PopStyle.speed_min": "Élan minimal : régularité de la gerbe.",
+  "PopStyle.speed_max": "Élan maximal : un écart avec <code>speed_min</code> donne une gerbe naturelle.",
+  "PopStyle.direction_degrees": "Faire partir les pops vers la droite (90) pour un coup donné vers la droite.",
+  "PopStyle.spread_degrees": "0 pour des chiffres bien alignés, 100+ pour une gerbe de pièces.",
+  "PopStyle.gravity": "Positive pour une retombée, nulle pour un texte qui monte et flotte, négative pour des bulles.",
+  "PopStyle.damping": "Ralentir un texte qui monte pour qu'il s'arrête en douceur.",
+  "PopStyle.spawn_radius": "Éviter que plusieurs pops simultanés se superposent exactement.",
+  "PopStyle.use_floor": "Pièces, gemmes, débris qui retombent et rebondissent.",
+  "PopStyle.floor_offset": "Hauteur du sol sous le point d'apparition (pieds de l'objet).",
+  "PopStyle.bounce": "0,3-0,5 pour des pièces, 0,8 pour une balle.",
+  "PopStyle.floor_friction": "Bas pour que les objets s'arrêtent vite au sol.",
+  "PopStyle.spin_min": "Rotation pour des débris ou des pièces qui tournoient.",
+  "PopStyle.spin_max": "Rotation maximale ; min négatif et max positif pour des sens mélangés.",
+  "PopStyle.pop_in_duration": "Apparition qui attire l'œil ; 0 pour un affichage immédiat.",
+  "PopStyle.start_scale": "Partir petit (0,2) pour un effet de jaillissement.",
+  "PopStyle.pop_scale": "Exagérer l'apparition (1,6) pour un coup critique.",
+  "PopStyle.end_scale": "Rétrécir en disparaissant (0,5) ou grossir (1,3) pour un effet de souffle.",
+  "PopStyle.fade_out_duration": "Disparition douce ; à combiner avec <code>end_scale</code>.",
+  "PopStyle.scale_curve": "Animation d'échelle sur mesure (pulsation, double rebond).",
+  "PopStyle.font": "Police de jeu (pixel, bande dessinée) pour les dégâts.",
+  "PopStyle.font_size": "Plus grand pour les coups critiques (style dédié).",
+  "PopStyle.text_color": "Couleur par défaut des textes (onomatopées, états).",
+  "PopStyle.positive_color": "Soins et gains, en vert ou en or.",
+  "PopStyle.negative_color": "Dégâts, en rouge.",
+  "PopStyle.outline_size": "Lisibilité sur un décor chargé.",
+  "PopStyle.outline_color": "Contour sombre sur décor clair, ou coloré pour un style cartoon.",
+  "PopStyle.icon_size": "Taille des icônes, indépendante de la résolution de l'image source.",
+  "PopStyle.spacing": "Espace entre l'icône et le nombre (« 🪙 +50 »).",
+  "PopStyle.z_index": "Passer devant ou derrière des éléments du décor 2D.",
+  "PopStyle.always_on_top_3d": "Désactiver pour que les pops 3D soient cachés par les murs.",
+  "PopStyle.get_scale_at": "Prévisualiser l'animation d'un style dans un outil.",
+  "PopStyle.get_alpha_at": "Synchroniser un effet personnalisé sur le fondu d'un pop."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

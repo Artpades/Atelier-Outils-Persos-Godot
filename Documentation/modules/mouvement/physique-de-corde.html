@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Physique de corde · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🪢 Physique de corde (Rope2D, Rope3D, RopeMovement2D, RopeMovement3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/physique-de-corde.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🪢</div>
+    <div>
+      <h1>🪢_PhysicsSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Physique de corde</strong> : cordes, lianes et câbles simulés qui pendent, se balancent et portent des objets ; un personnage peut s'y accrocher, grimper et sauter.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">4 classes : Rope2D/3D · RopeMovement2D/3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Une corde crédible avec les joints physiques de Godot demande une chaîne de corps rigides fragile et coûteuse ; et s'y accrocher avec un personnage est encore un autre chantier. <strong>Ce module simule la corde directement</strong> (points + contraintes de longueur, méthode de Verlet), la dessine, et fournit le composant de mouvement pour s'y suspendre.</p>
+
+  <div class="grid">
+    <div class="card"><h4>🪢 <code>Rope2D</code> / <code>Rope3D</code> — la corde</h4><p>Entre ce nœud (ou un ancrage) et, facultativement, un ancrage d'arrivée. Collisions facultatives avec le décor ; des corps peuvent s'y accrocher et l'alourdir.</p></div>
+    <div class="card"><h4>🧗‍♂️ <code>RopeMovement2D</code> / <code>RopeMovement3D</code> — s'y accrocher</h4><p>Composant de mouvement : <code>try_grab()</code> attrape la corde la plus proche, puis grimper / descendre, balancer, sauter pour lâcher avec élan.</p></div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de plateformers et d'aventures (lianes, cordes de puits, ponts suspendus) et les artistes qui veulent un câble ou une guirlande qui bouge.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un grappin</strong> : la corde a une longueur fixe et des ancrages posés à l'avance ; un lancer de grappin reste à écrire (on peut créer une <code>Rope2D</code> par code).</li>
+      <li><strong>Pas une corde « physique » pour le moteur</strong> : elle ne pousse ni ne retient les corps rigides du monde, elle se contente d'être arrêtée par eux si <code>collide</code> est actif.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : un personnage 2D saute, attrape une liane (try_grab), grimpe, se balance en poussant gauche / droite puis saute pour atteindre une plateforme ; debug_mode de la corde (points jaunes) activé.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td><a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a></td><td><strong>Fortement conseillée</strong> (personnage)</td><td>Le corps accroché est déplacé par la corde ; les autres composants (sol…) doivent être désactivés pendant ce temps, ce que fait le contexte « corde » (priorité 60).</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">corde et composant font partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Prévoir une action « attraper »</strong> dans la carte des entrées.<div class="why">l'accroche n'est jamais automatique : <code>try_grab()</code> doit être appelé par votre script.</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter une <code>Rope2D</code></strong> accrochée au plafond (sa position = point d'attache), <code>rope_length</code> = 200.
+      <div class="why">le premier point suit ce nœud ; sans ancrage d'arrivée, la corde pend dans le sens de sa <code>gravity</code>.</div>
+    </li>
+    <li>
+      <strong>Sous le joueur (<code>CharacterBody2D</code>)</strong> : <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>RopeMovement2D</code>.
+      <div class="why">le directeur crée le contexte « corde » : actif dès que le corps est accroché, il désactive la marche.</div>
+    </li>
+    <li>
+      <strong>Appeler <code>try_grab()</code> sur une touche</strong>, et relayer l'intention au directeur :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	$MovementDirector.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
+	if Input.is_action_just_pressed("attraper"):
+		$RopeMovement2D.try_grab()          # corde la plus proche à moins de grab_distance
+	if Input.is_action_just_pressed("ui_accept"):
+		$MovementDirector.jump()            # accroché : lâche la corde avec élan</code></pre>
+      <div class="why">accroché, <code>move.y</code> grimpe (haut) ou descend (bas), <code>move.x</code> balance la corde, le saut lâche avec la vitesse de la corde plus <code>jump_up_velocity</code>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Rope2D.xml</code>, <code>Rope3D.xml</code>, <code>RopeMovement2D.xml</code> et <code>RopeMovement3D.xml</code>. Différences : <code>width</code> et <code>find_nearest_info()</code> n'existent qu'en 2D ; la corde 3D est rendue par une ligne d'un pixel ; en 3D, on grimpe avec <code>set_vertical_input</code> (ou <code>-move.y</code>) et on balance avec <code>move</code> en coordonnées du monde. Positions le long de la corde : <strong>index fractionnaire de point</strong> (0 = point d'attache, <code>point_count - 1</code> = extrémité). Éléments internes, non exposés :</p>
+  <ul>
+    <li>Les tableaux de points (positions courantes et précédentes), la liste des accroches, le registre statique des cordes, <code>_simulate</code>, le <code>MeshInstance3D</code> interne de <code>Rope3D</code> (non visible dans l'arbre), et la fonction C++ <code>find_nearest</code> (exposée seulement en 2D sous la forme <code>find_nearest_info</code>).</li>
+    <li>Membres hérités de <code>MovementComponent</code> : voir <a href="socle-mouvement.html">🧩 Socle</a>.</li>
+  </ul>
+  <div data-api="Rope2D Rope3D RopeMovement2D RopeMovement3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-auto">Comment j'attrape automatiquement une corde en sautant dessus ?</h3>
+  <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	if not $GroundMovement2D.is_on_floor() and not $RopeMovement2D.is_attached():
+		$RopeMovement2D.try_grab()   # échoue tant que regrab_delay n'est pas écoulé après un lâcher</code></pre>
+
+  <h3 id="ex-pont">Comment je fais un pont suspendu ou un câble tendu ?</h3>
+  <pre><code class="gdscript">var cable := Rope2D.new()
+cable.rope_length = 420.0          # un peu plus long que l'écart : le câble pend
+cable.point_count = 24
+cable.end_anchor_path = NodePath("../PoteauDroit")
+cable.collide = true               # posé sur le décor plutôt que de le traverser
+$PoteauGauche.add_child(cable)</code></pre>
+
+  <h3 id="ex-lanterne">Comment j'accroche une lanterne au bout d'une corde ?</h3>
+  <p>Tout <code>Node2D</code> peut être accroché : il suit la corde et l'alourdit.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var corde: Rope2D = $Corde
+	corde.attached_weight = 3.0
+	corde.attach_body($Lanterne, corde.point_count - 1)   # au bout
+
+func _on_coup_de_vent() -> void:
+	$Corde.apply_impulse_at($Corde.point_count - 1, Vector2(300, 0))</code></pre>
+
+  <h3 id="ex-proche">Comment j'affiche une aide quand une corde est à portée ?</h3>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	var info = Rope2D.find_nearest_info($Joueur.global_position, 40.0)
+	$AideAttraper.visible = info != null and not $Joueur/RopeMovement2D.is_attached()</code></pre>
+
+  <h3 id="ex-visuel3d">Comment j'affiche une corde épaisse en 3D ?</h3>
+  <p>La ligne d'un pixel de <code>Rope3D</code> sert surtout au prototype. Pour un vrai visuel, lire les points et les donner à une <code>Path3D</code> + <code>CSGPolygon3D</code> (ou un mesh de cylindres).</p>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	var courbe := Curve3D.new()
+	for p in $Corde.get_points():
+		courbe.add_point($Chemin.to_local(p))
+	$Chemin.curve = courbe   # Path3D suivi par un CSGPolygon3D en mode « Path »</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <h3 id="limites-corde">Rope2D / Rope3D</h3>
+  <ul>
+    <li><strong>Les corps accrochés sont téléportés</strong> à leur point chaque image : ils traversent murs et sols, et ne poussent pas la corde (seul <code>attached_weight</code> la tend).</li>
+    <li><strong>Collisions par point seulement</strong> (un rayon par point, de sa position précédente à la nouvelle) : les segments entre deux points traversent les coins et les objets fins. Le premier point (attache) n'est jamais testé. Coût : un rayon par point et par image.</li>
+    <li><strong>La corde s'étire un peu</strong> avec peu d'<code>iterations</code>, beaucoup de points ou un poids élevé ; augmenter <code>iterations</code> (coût proportionnel).</li>
+    <li><strong>Gravité propre</strong> : <code>gravity</code> ne suit pas la gravité du projet ni les zones de gravité, et les zones de force n'agissent pas sur la corde.</li>
+    <li><strong>Simulation en jeu uniquement</strong> : dans l'éditeur, la corde est affichée droite. Changer <code>point_count</code> en jeu la redresse.</li>
+    <li><strong>3D : rendu minimal</strong> (ligne d'un pixel, sans épaisseur) et pas de <code>find_nearest_info</code> exposé.</li>
+    <li><strong>Un corps qui quitte l'arbre est décroché sans signal</strong> <code>body_detached</code>.</li>
+  </ul>
+  <h3 id="limites-mouvement">RopeMovement2D / RopeMovement3D</h3>
+  <ul>
+    <li><strong>Pas d'accroche automatique</strong> : <code>try_grab()</code> doit être appelé (voir <a href="#ex-auto">exemple</a>).</li>
+    <li><strong>Sans orchestrateur, conflit avec les autres composants</strong> : la corde impose position et vitesse, mais un composant de sol actif continue d'appliquer gravité et <code>move_and_slide</code>. Désactiver les autres composants soi-même si on n'utilise pas de directeur.</li>
+    <li><strong>On ne peut pas monter au-delà du deuxième point</strong> (index 1) et on reste accroché au bout de la corde en descendant : pas de lâcher automatique.</li>
+    <li><strong><code>regrab_delay</code> compte en temps réel</strong> (horloge système) : il s'écoule aussi pendant une pause ou un ralenti.</li>
+    <li><strong>3D : commandes en coordonnées du monde</strong> pour le balancement, sans conversion par la caméra.</li>
+    <li>Le recul (<code>Knockback</code>) n'a pas d'effet sur un corps accroché.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 220" role="img" aria-label="Schéma d'architecture de la corde">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="20" width="170" height="54" rx="8"/>
+    <text x="105" y="44" text-anchor="middle">Ancrages</text>
+    <text x="105" y="62" text-anchor="middle" class="small">start / end_anchor_path</text>
+    <rect class="box main" x="260" y="20" width="200" height="54" rx="8"/>
+    <text x="360" y="44" text-anchor="middle">Rope2D/3D</text>
+    <text x="360" y="62" text-anchor="middle" class="small">Verlet · contraintes · rayons</text>
+    <rect class="box" x="540" y="20" width="300" height="54" rx="8"/>
+    <text x="690" y="44" text-anchor="middle">Corps accrochés</text>
+    <text x="690" y="62" text-anchor="middle" class="small">position + vitesse imposées</text>
+    <rect class="box main" x="260" y="140" width="200" height="54" rx="8"/>
+    <text x="360" y="164" text-anchor="middle">RopeMovement2D/3D</text>
+    <text x="360" y="182" text-anchor="middle" class="small">try_grab · grimper · balancer</text>
+    <rect class="box" x="540" y="140" width="300" height="54" rx="8"/>
+    <text x="690" y="164" text-anchor="middle">MovementDirector</text>
+    <text x="690" y="182" text-anchor="middle" class="small">condition ON_ROPE (find_rope_of)</text>
+    <path class="arrow" d="M190 47 H258" marker-end="url(#arr)"/>
+    <path class="arrow" d="M460 47 H538" marker-end="url(#arr)"/>
+    <path class="arrow" d="M360 140 V76" marker-end="url(#arr)"/>
+    <text x="370" y="112" class="small">attach_body · set_attached_position · apply_impulse_at</text>
+    <path class="arrow dashed" d="M540 160 Q500 110 462 66" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M540 175 H462" marker-end="url(#arr)"/>
+    <text x="500" y="200" text-anchor="middle" class="small">active</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>Rope2D/3D</code></strong> s'inscrit dans un registre statique (en jeu). À chaque image physique : intégration de Verlet des points (gravité × (1 + poids des accroches)), fixation du premier point sur l'ancrage de départ et du dernier sur l'ancrage d'arrivée, corrections de longueur (<code>iterations</code> passes), rayons de collision, puis placement des corps accrochés. Rendu : <code>_draw</code> en 2D, <code>ImmediateMesh</code> en 3D.</li>
+    <li><strong><code>RopeMovement2D/3D</code></strong> ne déplace pas le corps lui-même : il agit sur la corde par appels directs (<code>attach_body</code>, <code>set_attached_position</code> pour grimper, <code>apply_impulse_at</code> pour balancer, <code>detach_body</code> au lâcher). C'est la corde qui positionne le corps.</li>
+    <li>L'état « accroché » n'est stocké que dans la corde : <code>is_attached()</code> et la condition de l'orchestrateur interrogent <code>find_rope_of</code>.</li>
+    <li>Signaux : <code>body_attached</code> / <code>body_detached</code> (corde), <code>grabbed</code> / <code>released</code> (composant).</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li><code>RopeMovement</code> dépend de <code>Rope</code> (même fichier) et du <a href="socle-mouvement.html">🧩 Socle</a> ; <code>Rope</code> ne dépend que du moteur et peut servir seule (câbles décoratifs, objets suspendus).</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Verlet + contraintes plutôt qu'une chaîne de <code>RigidBody</code> et de joints</td><td>Stable, peu coûteux, sans explosion des joints ; la longueur se règle d'un seul paramètre.</td></tr>
+        <tr><td>Corps accrochés téléportés</td><td>Un personnage suit exactement la corde, sans lutte entre la simulation de la corde et le moteur physique.</td></tr>
+        <tr><td>Accroche par index fractionnaire</td><td>Grimper revient à changer un nombre ; la position reste valide si la corde bouge.</td></tr>
+        <tr><td>Vitesse imposée au personnage accroché</td><td>Au lâcher, il garde naturellement l'élan du balancement.</td></tr>
+        <tr><td>Accroche explicite (<code>try_grab</code>)</td><td>Le jeu décide quand attraper (touche, saut, automatique) ; une accroche systématique au contact serait gênante en passant près d'une corde.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML des quatre classes (structure resynchronisée, ajout de <code>debug_mode</code>), commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>debug_mode</code> : points de la corde, portée d'accroche du composant.</li></ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>Rope2D/3D</code> (simulation, ancrages, collisions, accroches) et <code>RopeMovement2D/3D</code> (attraper, grimper, balancer, lâcher).</li></ul>
+  </div>
+
+  <footer>Module 🪢 Physique de corde · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🪢Physique de Corde/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser »
+window.GTK_USAGES = {};
+(function () {
+  const corde = {
+    "attached_weight": "Lanterne lourde qui tend la corde, personnage qui la fait plier.",
+    "collide": "Corde posée sur le décor, qui s'enroule autour d'un rocher.",
+    "collision_mask": "Ne collisionner qu'avec le décor, pas avec les ennemis.",
+    "color": "Corde de chanvre, liane verte, câble métallique.",
+    "damping": "Corde qui oscille longtemps (faible) ou chaîne lourde qui se calme vite (fort).",
+    "debug_mode": "Voir les points simulés pour régler longueur et nombre de points.",
+    "end_anchor_path": "Pont suspendu, guirlande, câble entre deux poteaux.",
+    "gravity": "Corde sous l'eau (gravité faible) ou portée par le vent (gravité inclinée).",
+    "iterations": "Moins d'étirement pour une corde portant un personnage.",
+    "point_count": "Plus de points pour une corde souple et longue, moins pour une corde courte.",
+    "rope_length": "Longueur de la liane, du câble.",
+    "start_anchor_path": "Accrocher la corde à un objet mobile (ballon, hélicoptère).",
+    "apply_impulse_at": "Secouer la corde : coup de vent, explosion, personnage qui se balance.",
+    "attach_body": "Suspendre un objet ou un personnage (cinématique, objet de décor).",
+    "detach_body": "Couper la corde sous une lanterne, faire tomber un objet suspendu.",
+    "find_rope_of": "Savoir si un personnage est suspendu, et à quelle corde.",
+    "get_attached_position": "Afficher la hauteur de grimpe, détecter l'arrivée en haut.",
+    "get_closest_position": "Placer un objet ou un effet au point de la corde le plus proche.",
+    "get_points": "Dessiner son propre visuel (corde épaisse, maillons de chaîne).",
+    "get_position_at": "Faire glisser un objet le long d'une tyrolienne.",
+    "get_segment_length": "Convertir une distance en index (grimper de N pixels).",
+    "get_velocity_at": "Projeter un objet avec l'élan de la corde au moment où il se détache.",
+    "has_body": "Vérifier qu'un objet est toujours suspendu.",
+    "reset_points": "Remettre la corde au repos après une téléportation de ses ancrages.",
+    "set_attached_position": "Faire monter ou descendre un objet (seau d'un puits).",
+    "body_attached": "Son d'accroche, tension visuelle.",
+    "body_detached": "Son, animation de la corde qui se détend."
+  };
+  const mvt = {
+    "climb_speed": "Escalade rapide ou laborieuse.",
+    "grab_distance": "Tolérance de l'accroche : large pour un jeu accessible.",
+    "jump_up_velocity": "Hauteur du saut en lâchant la corde.",
+    "regrab_delay": "Empêcher de se raccrocher aussitôt à la même corde.",
+    "swing_force": "Amplitude du balancement contrôlé par le joueur.",
+    "get_rope": "Lire la corde actuelle (longueur, position d'accroche).",
+    "is_attached": "Afficher l'aide, choisir l'animation de suspension.",
+    "release": "Lâcher par code (dégâts, corde coupée), avec ou sans saut.",
+    "try_grab": "Touche « attraper », ou accroche automatique en l'air.",
+    "grabbed": "Son et animation d'accroche.",
+    "released": "Son et animation de lâcher."
+  };
+  [["Rope2D", corde], ["Rope3D", corde], ["RopeMovement2D", mvt], ["RopeMovement3D", mvt]].forEach(function (p) {
+    Object.keys(p[1]).forEach(function (k) { window.GTK_USAGES[p[0] + "." + k] = p[1][k]; });
+  });
+  window.GTK_USAGES["Rope2D.width"] = "Épaisseur : fil fin, grosse corde de navire.";
+  window.GTK_USAGES["Rope2D.find_nearest_info"] = "Afficher une aide « attraper » quand une corde est à portée.";
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Déplacement mural · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🧗 Déplacement mural (WallMovement2D, WallMovement3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/deplacement-mural.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🧗</div>
+    <div>
+      <h1>🧗_MovementSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Déplacement mural</strong> : glisser le long d'un mur, rebondir dessus par un saut mural, ou y grimper.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : WallMovement2D · WallMovement3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Glissade freinée contre une paroi, saut d'un mur à l'autre pour remonter un puits, mur d'escalade : ces mécaniques de plateforme demandent de détecter le mur, sa normale, l'intention du joueur, et de remplacer la gravité habituelle. <strong>Ce composant regroupe ces trois comportements</strong>, prêts à être activés quand le personnage touche un mur.</p>
+
+  <div class="grid">
+    <div class="card"><h4>🟦 <code>WallMovement2D</code></h4><p>Vue de côté : glissade, saut mural vers le côté opposé, escalade avec <code>move.y</code>.</p></div>
+    <div class="card"><h4>🧊 <code>WallMovement3D</code></h4><p>Même chose en 3D, saut selon la normale horizontale du mur ; escalade avec <code>set_vertical_input</code> ou en poussant « en avant ».</p></div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de jeux de plateforme et d'action, en association avec l'<a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a> (contexte « mur ») et le <a href="deplacement-au-sol.html">🦶 Déplacement au sol</a>.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de rebords</strong> : pas de suspension au bord d'une plateforme ni de hissage (« ledge grab »).</li>
+      <li><strong>Pas une échelle</strong> : l'escalade se fait sur tout mur touché quand <code>can_climb</code> est actif ; pour une échelle délimitée, voir l'exemple de composant GDScript du <a href="socle-mouvement.html#tuto-script">🧩 Socle</a>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF d'un personnage 2D qui remonte un puits étroit en enchaînant des sauts muraux, puis glisse lentement le long d'une paroi (debug_mode : flèche rouge de la normale du mur, texte « glissade »).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td>Un <code>CharacterBody2D</code> / <code>CharacterBody3D</code> parent</td><td><strong>Obligatoire</strong></td><td>La détection du mur repose sur <code>is_on_wall()</code> / <code>get_wall_normal()</code> du personnage ; les corps rigides ne sont pas gérés.</td></tr>
+        <tr><td><a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a> + <a href="deplacement-au-sol.html">🦶 Sol</a></td><td>Optionnelles (fortement conseillées)</td><td>Le composant mural ne gère ni la marche au sol ni le saut normal : il doit être activé seulement contre un mur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le composant fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Vérifier le <code>motion_mode</code> du personnage</strong> : <em>Grounded</em> (par défaut).<div class="why">en mode <em>Floating</em>, Godot ne distingue plus sol et murs : <code>is_on_wall()</code> ne servirait plus de la même façon.</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Sous le <code>CharacterBody2D</code></strong>, ajouter <code>MovementDirector</code>, <code>GroundMovement2D</code> et <code>WallMovement2D</code>.
+      <div class="why">le directeur crée les contextes « mur » (priorité 40, contact avec un mur hors du sol) et « sol ».</div>
+    </li>
+    <li>
+      <strong>Aligner le contrôle aérien</strong> : <code>air_speed</code> du composant mural = <code>max_speed</code> du composant de sol (200), <code>air_acceleration</code> ≈ <code>acceleration × air_control</code> (900).
+      <div class="why">quand le personnage touche un mur sans pousser vers lui, c'est le composant mural qui gère la chute : des réglages différents changeraient brusquement le contrôle.</div>
+    </li>
+    <li>
+      <strong>Envoyer l'intention au directeur</strong>, comme pour le sol :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	$MovementDirector.move(Vector2(Input.get_axis("ui_left", "ui_right"), Input.get_axis("ui_up", "ui_down")))
+	if Input.is_action_just_pressed("ui_accept"):
+		$MovementDirector.jump()</code></pre>
+      <div class="why">sauter contre un mur exécute le saut mural : élan loin du mur (<code>jump_away_velocity</code>) et vers le haut (<code>jump_up_velocity</code>).</div>
+    </li>
+    <li>
+      <strong>Tester</strong> : sauter contre un mur en poussant vers lui → glissade lente ; appuyer sur saut → rebond vers le côté opposé.
+      <div class="why">avec <code>require_input_toward_wall</code> (par défaut), lâcher la direction fait tomber normalement le long du mur.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/WallMovement2D.xml</code> et <code>WallMovement3D.xml</code>. Les deux classes ont exactement les mêmes membres (unités : pixels en 2D, mètres en 3D). Différences de comportement : en 3D, la commande est lue en coordonnées du monde et l'escalade utilise <code>set_vertical_input</code> (ou <code>-move.y</code>). Éléments internes : la structure C++ <code>WallSettings</code>, la macro <code>WALL_ACCESSORS</code>, la dernière normale de mur (2D). Membres hérités : voir <a href="socle-mouvement.html">🧩 Socle</a>.</p>
+  <div data-api="WallMovement2D WallMovement3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-escalade">Comment je fais un mur d'escalade réservé à certaines surfaces ?</h3>
+  <p><code>can_climb</code> s'applique à tout mur touché ; on l'active seulement dans une <code>Area2D</code> qui recouvre le mur grimpable.</p>
+  <pre><code class="gdscript">func _on_zone_escalade_body_entered(corps: Node2D) -> void:
+	var mur := corps.get_node_or_null("WallMovement2D") as WallMovement2D
+	if mur:
+		mur.can_climb = true
+
+func _on_zone_escalade_body_exited(corps: Node2D) -> void:
+	var mur := corps.get_node_or_null("WallMovement2D") as WallMovement2D
+	if mur:
+		mur.can_climb = false</code></pre>
+
+  <h3 id="ex-capacite">Comment je débloque le saut mural en cours de partie ?</h3>
+  <p>Sans le contexte « mur », le composant n'est jamais activé : on retire ou ajoute le contexte.</p>
+  <pre><code class="gdscript">func debloquer_saut_mural() -> void:
+	var mur := WallMovement2D.new()
+	mur.name = "WallMovement2D"
+	$Joueur.add_child(mur)
+	$Joueur/MovementDirector.create_default_contexts()   # recrée « mur » d'après les composants</code></pre>
+
+  <h3 id="ex-anim">Comment j'affiche la bonne animation (glissade, escalade) ?</h3>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	var mur: WallMovement2D = $WallMovement2D
+	if not mur.active:
+		return
+	if mur.is_climbing():
+		$AnimationPlayer.play("escalade")
+	elif mur.is_sliding():
+		$AnimationPlayer.play("glissade")
+	$Sprite2D.flip_h = get_wall_normal().x > 0.0   # dos au mur</code></pre>
+
+  <h3 id="ex-auto">Comment je fais glisser sans pousser vers le mur ?</h3>
+  <pre><code class="gdscript">$WallMovement2D.require_input_toward_wall = false   # tout contact freine la chute
+$WallMovement2D.slide_speed = 60.0                  # glissade très lente (mur collant)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Sauts muraux illimités</strong> : aucun compteur ; avec un contrôle aérien suffisant, on peut remonter un mur unique en sautant contre lui en boucle. Limiter soi-même (désactiver le contexte « mur » un instant après <code>wall_jumped</code>).</li>
+    <li><strong>Pas de saut normal ni de double saut</strong> quand le composant est actif hors d'un mur : seuls la gravité et le déplacement horizontal sont gérés.</li>
+    <li><strong>Escalade : s'accroche à n'importe quel mur</strong>, y compris d'autres personnages ou des objets mobiles (le corps ne suit pas un mur qui bouge).</li>
+    <li><strong>3D : commande en coordonnées du monde</strong>, sans conversion par la caméra (contrairement au sol). Avec une caméra libre, « pousser vers le mur » peut ne pas correspondre à la direction affichée ; la convertir soi-même avant <code>move()</code> ou désactiver <code>require_input_toward_wall</code>.</li>
+    <li><strong>Ignore le recul et la <code>gravity_scale</code> du composant de sol</strong> : la gravité utilisée est celle du corps, sans multiplicateur.</li>
+    <li><strong>Détection du mur avec une image de retard</strong> (dernier <code>move_and_slide</code>) ; <code>stick_velocity</code> trop faible peut faire « décrocher » le contact sur un mur incliné.</li>
+    <li><strong>Pas de rebords, ni de hissage, ni de course murale.</strong></li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>WallMovement2D</code> / <code>WallMovement3D</code></strong> héritent de <code>MovementComponent</code>. À chaque image physique (si actif), dans l'ordre de priorité : saut mural (contact + demande de saut) → escalade (<code>can_climb</code>) → glissade (contact + poussée vers le mur, ou toujours) → chute libre avec contrôle horizontal. Puis ajout des zones de force et <code>move_and_slide</code>.</li>
+    <li>Les états <code>is_sliding()</code> / <code>is_climbing()</code> sont recalculés à chaque image ; le signal <code>wall_jumped</code> est le seul événement émis.</li>
+    <li>La condition « contre un mur » de l'orchestrateur (<code>is_on_wall() and not is_on_floor()</code>) est identique à <code>is_touching_wall()</code>.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépend uniquement du <a href="socle-mouvement.html">🧩 Socle</a> (et, via lui, des zones de force). Aucun lien avec le composant de sol : leur coordination passe par l'orchestrateur.</li>
+  </ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Glissade seulement en poussant vers le mur (par défaut)</td><td>Le joueur garde le choix : glisser pour se préparer à un saut mural, ou lâcher pour tomber vite.</td></tr>
+        <tr><td>Petite poussée constante vers le mur (<code>stick_velocity</code>)</td><td>Sans elle, la vitesse horizontale nulle ferait perdre le contact au <code>CharacterBody</code>, et le contexte « mur » clignoterait.</td></tr>
+        <tr><td>Saut mural qui remplace toute la vitesse</td><td>Un rebond toujours identique, quelle que soit la vitesse de glissade : enchaînements prévisibles.</td></tr>
+        <tr><td>Contrôle aérien propre (<code>air_speed</code>, <code>air_acceleration</code>)</td><td>Le composant reste autonome (il fonctionne sans composant de sol) ; on peut aussi rendre le contrôle plus faible juste après un saut mural.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML, commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul><li><span class="tag add">Ajouté</span>Gizmos de débogage : normale du mur et état (glissade, escalade, contact).</li></ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>WallMovement2D/3D</code> : glissade, saut mural, escalade, contrôle hors du mur.</li></ul>
+  </div>
+
+  <footer>Module 🧗 Déplacement mural · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🧗Déplacement Mural/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » (réglages communs 2D / 3D)
+window.GTK_USAGES = {};
+(function () {
+  const u = {
+    "air_acceleration": "Contrôle juste après un saut mural : faible pour imposer le rebond, fort pour revenir vite contre le mur.",
+    "air_speed": "À aligner sur la vitesse de marche pour un contrôle continu.",
+    "can_climb": "Murs d'escalade, lianes murales, capacité « griffes » débloquée.",
+    "climb_speed": "Escalade rapide (singe) ou lente et laborieuse (personnage blessé).",
+    "jump_away_velocity": "Écart entre deux murs d'un puits : plus fort pour des puits larges.",
+    "jump_up_velocity": "Hauteur gagnée par saut mural.",
+    "require_input_toward_wall": "Désactiver pour un mur « collant » ou une jouabilité simplifiée (mobile).",
+    "slide_speed": "Glissade lente (mur rugueux) ou rapide (mur gelé).",
+    "stick_velocity": "Augmenter si le personnage décroche sur des murs légèrement inclinés.",
+    "is_climbing": "Animation et son d'escalade.",
+    "is_sliding": "Particules de frottement, son de glissade.",
+    "is_touching_wall": "Afficher une aide « sauter » ou orienter le sprite dos au mur.",
+    "wall_jumped": "Son, poussière contre le mur, compteur pour limiter les sauts muraux."
+  };
+  ["WallMovement2D", "WallMovement3D"].forEach(function (c) {
+    Object.keys(u).forEach(function (k) { window.GTK_USAGES[c + "." + k] = u[k]; });
+  });
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

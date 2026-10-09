@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Squash and Stretch · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🪗 Squash and Stretch (FXStretchAndSquash) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/squash-and-stretch.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🪗</div>
+    <div>
+      <h1>🪗_SquashSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Squash and Stretch</strong> : un objet qui s'étire quand il file et s'écrase quand il percute, sans animation à dessiner.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : FXStretchAndSquash</span>
+        <span class="badge">2D, 3D &amp; interface</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Le « squash and stretch » est le premier principe de l'animation : un objet rapide s'allonge, un objet qui heurte le sol s'aplatit. Dessiner ces déformations pour chaque saut, chaque projectile, chaque élément d'interface qui glisse est long, et les déclencher au bon moment demande de connaître la physique de l'objet. <strong>Ce module les calcule automatiquement</strong> à partir du seul mouvement de l'objet : il suffit de lancer l'effet.</p>
+  <p><strong>Pour qui ?</strong> Les game designers et animateurs qui veulent donner de la souplesse à un personnage, une balle ou une interface sans animation dédiée.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une simulation physique de corps mou</strong> : seule l'échelle du nœud change, le maillage n'est pas déformé localement et les collisions restent identiques.</li>
+      <li><strong>Pas un agrandissement</strong> : pour grossir uniformément sur commande, voir <a href="agrandissement-retrecissement.html">🦣 Agrandissement</a>.</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : une balle 2D lancée en cloche qui s'allonge en vol, s'aplatit à l'atterrissage puis reprend sa forme ; à côté, la même balle avec <code>orient_to_velocity</code> qui s'étire dans l'axe de sa trajectoire.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>FXStretchAndSquash</code> et le socle <code>Effect</code> / <code>PlayerFX</code>.</td></tr>
+        <tr><td><a href="socle-effets.html">✨ Socle des effets</a> (<code>PlayerFX</code>)</td><td><strong>Obligatoire</strong> en pratique</td><td>La vitesse est mesurée à chaque frame : il faut la mise à jour du <code>PlayerFX</code>.</td></tr>
+        <tr><td>Icône <code>Squash And Stretch Icon.png</code></td><td>Optionnelle</td><td>Icône de la ressource dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>PlayerFX</code> sous le <code>Sprite2D</code> du personnage</strong> (pas sous le <code>CharacterBody2D</code>), avec un <code>FXStretchAndSquash</code>.
+      <div class="why">déformer le sprite laisse la forme de collision intacte ; le sprite bouge avec le corps, sa vitesse est donc celle du personnage.</div>
+    </li>
+    <li>
+      <strong>Régler <code>max_speed</code> à la vitesse maximale du personnage</strong> (en px/s) et <code>impact_threshold</code> à environ la moitié de sa vitesse de chute.
+      <div class="why"><code>max_speed</code> est la vitesse à laquelle l'étirement est maximal ; le seuil d'impact détermine quelles décélérations comptent comme un choc.</div>
+    </li>
+    <li>
+      <strong>Lancer l'effet une fois</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	$Sprite2D/PlayerFX.play()</code></pre>
+      <div class="why">l'effet n'a pas de durée : il réagit en continu aux déplacements tant qu'il est actif.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/FXStretchAndSquash.xml</code>. Éléments internes, non exposés : positions et vitesses de la frame précédente, échelle et rotation d'origine, écrasement d'impact en cours, et les méthodes <code>_process_2d</code>, <code>_apply_deformation_2d</code>, <code>_process_3d</code>, <code>_get_control_pivot_position</code>. Les méthodes héritées sont documentées dans <a href="socle-effets.html#api">✨ Socle des effets</a>.</p>
+  <div data-api="FXStretchAndSquash"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-projectile">Comment j'étire un projectile dans l'axe de sa trajectoire ?</h3>
+  <p><code>orient_to_velocity</code> tourne l'objet dans le sens du mouvement (axe +X) et l'allonge le long de cet axe.</p>
+  <pre><code class="gdscript">var etirement := FXStretchAndSquash.new()
+etirement.orient_to_velocity = true
+etirement.max_speed = 900.0
+etirement.max_stretch = 0.8
+etirement.enable_impact_squash = false
+$Fleche/PlayerFX.special_effects = [etirement]
+$Fleche/PlayerFX.play()</code></pre>
+
+  <h3 id="ex-3d">Comment je l'utilise en 3D ?</h3>
+  <p>Les vitesses sont alors en mètres par seconde : les valeurs par défaut (600, 300) sont à réduire fortement.</p>
+  <pre><code class="gdscript">var souplesse := FXStretchAndSquash.new()
+souplesse.max_speed = 12.0         # m/s
+souplesse.impact_threshold = 6.0   # perte de 6 m/s en une frame = atterrissage
+souplesse.max_stretch = 0.3
+$Joueur/Modele/PlayerFX.special_effects = [souplesse]
+$Joueur/Modele/PlayerFX.play()</code></pre>
+
+  <h3 id="ex-ui">Comment je rends une interface « élastique » ?</h3>
+  <p>Sur un <code>Control</code> déplacé par un <code>Tween</code>, la déformation suit la vitesse du glissement.</p>
+  <pre><code class="gdscript">func afficher_panneau() -> void:
+	$Panneau/PlayerFX.play()
+	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property($Panneau, "position:x", 40.0, 0.4)
+	await tween.finished
+	$Panneau/PlayerFX.stop()   # échelle et rotation d'origine restaurées</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Vitesse mesurée à chaque image affichée</strong> (<code>_process</code>) à partir de la position. Un corps déplacé en <code>_physics_process</code> sans interpolation physique ne bouge qu'aux frames physiques : sur un écran plus rapide que la physique, la vitesse mesurée alterne entre 0 et une valeur élevée, ce qui peut déclencher de faux impacts et un scintillement de l'étirement. Activer l'interpolation physique du projet, ou relever <code>impact_threshold</code>.</li>
+    <li><strong>Une téléportation est vue comme une vitesse énorme</strong> (étirement maximal, puis « impact ») : arrêter l'effet avant de téléporter, le relancer après.</li>
+    <li><strong>Échelle et rotation imposées</strong> : l'échelle est réécrite à chaque frame (conflit avec <a href="agrandissement-retrecissement.html">FXChangeSize</a> ou une animation d'échelle) ; avec <code>orient_to_velocity</code>, la rotation aussi, et elle garde la dernière direction quand l'objet s'arrête.</li>
+    <li><strong>L'arrêt restaure la rotation capturée au jeu</strong>, même sans <code>orient_to_velocity</code> : un objet qui a tourné pendant l'effet revient d'un coup à son orientation de départ (vérifié en 3D : rotation remise à 0 à l'arrêt). En 3D, c'est l'orientation <em>globale</em> qui est restaurée. Le retour est instantané, sans transition.</li>
+    <li><strong>Unités</strong> : px/s en 2D, m/s en 3D, avec les mêmes valeurs par défaut prévues pour la 2D.</li>
+    <li><strong>Impact en 3D : seul l'axe vertical est écrasé</strong> ; un choc horizontal contre un mur n'aplatit pas l'objet.</li>
+    <li><strong>Pivot</strong> : la déformation se fait autour de l'origine du nœud. Un sprite centré s'écrase autour de son centre (les pieds décollent du sol) ; décaler le sprite (<code>offset</code>) pour que l'origine soit aux pieds. Sur un <code>Control</code>, <code>pivot_offset</code> est placé au centre et le reste.</li>
+    <li><strong>Lissage dépendant du nombre d'images</strong> (<code>lerp</code> à facteur <code>smooth_speed × delta</code>) : <code>smooth_speed × delta</code> supérieur à 1 (images très lentes) fait dépasser la cible.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>FXStretchAndSquash</code></strong> est un <code>Effect</code> : <code>_play</code> mémorise échelle et rotation (sauf relancement), <code>_process</code> mesure la vitesse depuis la frame précédente (rien à la première frame) et calcule une échelle visée, <code>_stop</code> restaure.</li>
+    <li><strong>Étirement</strong> : facteur <code>1 + clamp(v / max_speed) × max_stretch</code>, réparti entre les axes selon la direction du mouvement par des puissances (<code>base^(wx − wy)</code>) qui conservent à peu près l'aire / le volume.</li>
+    <li><strong>Impact</strong> : une perte de vitesse supérieure à <code>impact_threshold</code> en une frame crée un écrasement proportionnel, qui décroît ensuite selon <code>impact_recovery_speed</code>.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Hérite d'<code>Effect</code> ; ne dépend d'aucune physique (fonctionne avec tout ce qui déplace la cible).</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Vitesse déduite de la position, pas lue sur un corps physique</td><td>Fonctionne sur un <code>Sprite2D</code>, un <code>Control</code> animé, un objet déplacé par <code>Tween</code> : pas seulement sur un <code>CharacterBody</code>.</td></tr>
+        <tr><td>Aucune mesure à la première frame</td><td>Sans position précédente, la « vitesse » serait la distance à l'origine du monde : étirement aberrant au lancement.</td></tr>
+        <tr><td>Répartition par puissances (<code>base^(wx − wy)</code>)</td><td>Produit d'échelles constant : l'objet ne paraît ni grossir ni maigrir en s'étirant.</td></tr>
+        <tr><td>Vecteur haut de secours en 3D</td><td><code>look_at</code> échoue quand la vitesse est verticale (chute) avec le haut par défaut.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>FXStretchAndSquash</code>, commentaires du header, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>FXStretchAndSquash</code> : étirement selon la vitesse, écrasement à l'impact, orientation optionnelle, pour <code>Control</code>, <code>Node2D</code> et <code>Node3D</code>.</li></ul>
+  </div>
+
+  <footer>Module 🪗 Squash and Stretch · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🪗Squash and Stretch/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "FXStretchAndSquash.max_speed": "La vitesse de course ou de chute maximale du personnage, pour que l'étirement maximal corresponde au mouvement le plus rapide.",
+  "FXStretchAndSquash.max_stretch": "0,2-0,3 pour un personnage crédible, 0,5-1 pour un style cartoon ou un projectile.",
+  "FXStretchAndSquash.smooth_speed": "Bas pour une déformation molle de gelée, haut pour une réaction immédiate.",
+  "FXStretchAndSquash.orient_to_velocity": "Projectiles, gouttes, comètes : l'objet pointe dans sa direction de vol.",
+  "FXStretchAndSquash.enable_impact_squash": "Désactiver pour un objet qui ne doit pas s'écraser (projectile, élément d'interface).",
+  "FXStretchAndSquash.impact_threshold": "Relever si de simples changements de direction déclenchent des écrasements ; baisser pour des atterrissages doux.",
+  "FXStretchAndSquash.max_impact_squash": "0,2 pour un atterrissage discret, 0,5 pour une balle en caoutchouc.",
+  "FXStretchAndSquash.impact_recovery_speed": "Bas pour un objet qui reste aplati un moment, haut pour un rebond vif."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

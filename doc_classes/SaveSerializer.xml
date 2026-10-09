@@ -8,8 +8,8 @@
 		La conversion utilise [method JSON.stringify] : les types sans équivalent JSON ([Vector2], [Color], [Object]...) deviennent leur représentation texte, et tous les nombres sont relus comme des [float].
 		[codeblock]
 		var donnees := SaveData.new()
-		donnees.set_system_id("debug")
-		donnees.set_data({"vies": 3})
+		donnees.system_id = "debug"
+		donnees.data = {"vies": 3}
 		print(SaveSerializer.serialize(donnees)) # {"data":{"vies":3},"system_id":"debug"}
 		var copie := SaveSerializer.deserialize('{"system_id":"debug","data":{"vies":3}}')
 		[/codeblock]

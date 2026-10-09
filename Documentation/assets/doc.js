@@ -69,19 +69,41 @@
     if (/^[A-Z]/.test(name)) return GODOT_DOC + "class_" + name.toLowerCase() + ".html";
     return null;
   }
-  const GODOT_ANCHOR = { member: "property", method: "method", signal: "signal", constant: "constant", enum: "enum" };
+  const GODOT_ANCHOR = { member: "property", method: "method", signal: "signal", constant: "constant" };
+  const GLOBAL = "@GlobalScope";
+  // L'élément existe-t-il dans la classe du toolkit (ou ses parents du toolkit) ?
+  function apiHas(cls, kind, name) {
+    for (let c = cls; c && API[c]; c = API[c].inherits) {
+      const k = API[c];
+      const found = kind === "enum" ? k.constants.some((x) => x.enum === name)
+        : (k[{ member: "members", method: "methods", signal: "signals", constant: "constants" }[kind]] || []).some((x) => x.name === name);
+      if (found) return c;
+    }
+    return null;
+  }
+  function godotMemberHref(cls, kind, name) {
+    const page = GODOT_DOC + "class_" + cls.toLowerCase() + ".html";
+    const id = cls.replace("@", "").toLowerCase();
+    return page + (kind === "enum" ? "#enum-" + id + "-" + name.toLowerCase()
+      : "#class-" + id + "-" + (GODOT_ANCHOR[kind] || kind) + "-" + name.toLowerCase().replace(/_/g, "-"));
+  }
   function memberHref(kind, ref, context) {
     let cls = context, name = ref;
     const dot = ref.lastIndexOf(".");
     if (dot > 0) { cls = ref.slice(0, dot); name = ref.slice(dot + 1); }
+    if (cls === GLOBAL) return godotMemberHref(GLOBAL, kind, name);
     if (!cls) return null;
     if (API[cls]) {
-      const base = classHref(cls);
+      const owner = apiHas(cls, kind, name);
+      // Inconnu dans la classe sans préfixe explicite : constante ou enum global de Godot (OK, Key...)
+      if (!owner) return dot > 0 || (kind !== "constant" && kind !== "enum") ? null : godotMemberHref(GLOBAL, kind, name);
+      const base = classHref(owner);
       if (base === null) return null;
-      return base.split("#")[0] + "#" + kind + "-" + cls + "-" + name;
+      // Les lignes des tableaux portent l'id de la classe affichée (owner si elle est sur la page)
+      return base.split("#")[0] + "#" + kind + "-" + owner + "-" + name;
     }
     const base = classHref(cls);
-    return base ? base + "#class-" + cls.toLowerCase() + "-" + (GODOT_ANCHOR[kind] || kind) + "-" + name.replace(/_/g, "-") : null;
+    return base ? godotMemberHref(cls, kind, name) : null;
   }
   function resolveRefs(root, context) {
     root.querySelectorAll("a.xref:not([href])").forEach((a) => {
@@ -159,8 +181,11 @@
   }
 
   function constantRows(cls, owner) {
+    const seen = new Set();
     return API[owner].constants.map((c) => '<tr id="constant-' + cls + "-" + c.name + '" data-class="' + owner + '">'
-      + '<td class="name"><code>' + esc(c.name) + "</code></td>"
+      // Première valeur d'une énumération : cible des liens [enum Nom]
+      + '<td class="name">' + (c.enum && !seen.has(c.enum) && seen.add(c.enum) ? '<span id="enum-' + cls + "-" + c.enum + '"></span>' : "")
+      + "<code>" + esc(c.name) + "</code></td>"
       + "<td><code>" + esc(c.enum ? owner + "." + c.enum : "int") + "</code><span class=\"default\">= " + esc(c.value) + "</span></td>"
       + "<td>" + descOrMissing(c.description) + "</td>"
       + "<td>" + usage(owner, c.name) + "</td>"

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Physique aérodynamique · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🪂 Physique aérodynamique (AerodynamicMovement2D, AerodynamicMovement3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/physique-aerodynamique.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🪂</div>
+    <div>
+      <h1>🪂_PhysicsSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Physique aérodynamique</strong> : planer, battre des ailes ou voler librement pour un personnage ; traînée et portance pour des objets légers (feuille, papier, plume).</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : AerodynamicMovement2D · AerodynamicMovement3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Ouvrir une cape pour descendre doucement, battre des ailes deux fois avant de retomber, voler librement en mode « fée », ou faire tomber une feuille morte en zigzag : ces comportements aériens remplacent la gravité ordinaire et réagissent fortement au vent. <strong>Ce composant les regroupe</strong>, pour les personnages comme pour les objets physiques.</p>
+
+  <div class="grid">
+    <div class="card"><h4>🧍 Personnage (<code>CharacterBody</code>, composant actif)</h4><p><strong>Plané</strong> : gravité réduite, chute plafonnée, battements d'ailes. <strong>Vol libre</strong> : déplacement dans toutes les directions sans gravité. Vent des zones de force amplifié.</p></div>
+    <div class="card"><h4>🍃 Objet (<code>RigidBody</code>, même inactif)</h4><p>Traînée quadratique (vitesse limite) et portance perpendiculaire à la vitesse, éventuellement oscillante (vol de feuille).</p></div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de plateformers et d'aventures (cape, parapente, oiseau, fée) et les artistes techniques qui veulent des objets qui tombent « joliment ».</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un simulateur de vol</strong> : pas d'assiette, de décrochage ni de portance pour les personnages (la portance ne concerne que les corps rigides).</li>
+      <li><strong>Pas un vent</strong> : il <em>subit</em> le vent des <a href="zone-de-force.html">🧲 Zones de force</a>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : un personnage saute, ouvre sa cape (plané) et dérive dans un courant ascendant (ForceZone2D) ; à côté, des feuilles (RigidBody2D avec flutter_frequency) qui tombent en zigzag.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td><a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a> + <a href="deplacement-au-sol.html">🦶 Sol</a></td><td>Optionnelles (personnage)</td><td>Pour planer seulement en l'air et marcher au sol ; et le compteur de battements n'est rechargé qu'à l'activation du composant.</td></tr>
+        <tr><td><a href="zone-de-force.html">🧲 Zone de force</a></td><td>Optionnelle</td><td>Source du vent amplifié par <code>wind_influence</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le composant fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Placer le composant sous le corps</strong> : <code>CharacterBody</code> pour un personnage, <code>RigidBody</code> pour un objet.<div class="why">le type du parent décide du comportement (contrôlé ou passif).</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <h3 id="tuto-plane">A. Un personnage qui plane en maintenant le saut</h3>
+  <ol class="steps">
+    <li>
+      <strong>Sous le <code>CharacterBody2D</code></strong> : <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>AerodynamicMovement2D</code> (<code>mode</code> = <em>Glide</em>).
+      <div class="why">le directeur crée un contexte « plané » actif quand le personnage est en l'air, en chute et que le saut est maintenu.</div>
+    </li>
+    <li>
+      <strong>Envoyer saut / relâchement au directeur</strong> :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	$MovementDirector.move(Vector2(Input.get_axis("ui_left", "ui_right"), 0))
+	if Input.is_action_just_pressed("ui_accept"):
+		$MovementDirector.jump()
+	elif Input.is_action_just_released("ui_accept"):
+		$MovementDirector.release_jump()</code></pre>
+      <div class="why">sauter, puis garder le bouton enfoncé : dès que le personnage redescend, il plane ; relâcher le fait retomber normalement.</div>
+    </li>
+    <li>
+      <strong>Régler</strong> <code>glide_fall_speed</code> (vitesse de descente) et <code>glide_speed</code> (vitesse horizontale).
+      <div class="why">ce sont les deux réglages qui définissent la « finesse » du planeur.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-feuille">B. Une feuille qui tombe en zigzag</h3>
+  <ol class="steps">
+    <li><strong>Créer un <code>RigidBody2D</code></strong> léger avec un sprite de feuille, et lui ajouter un <code>AerodynamicMovement2D</code>.<div class="why">sur un corps rigide, traînée et portance s'appliquent à chaque image, que le composant soit actif ou non.</div></li>
+    <li><strong>Régler</strong> <code>drag_coefficient</code> = 0,02, <code>lift_coefficient</code> = 0,01, <code>flutter_frequency</code> = 1,5.<div class="why">la traînée limite la vitesse de chute, la portance qui change de sens 1,5 fois par seconde fait osciller la trajectoire.</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/AerodynamicMovement2D.xml</code> et <code>AerodynamicMovement3D.xml</code>. Différences : en 3D, <code>camera_relative</code> existe, le vol libre monte avec <code>set_vertical_input</code> (ou le saut maintenu) et <code>fly_drag</code> n'est pas utilisé. Éléments internes : la structure C++ <code>AeroSettings</code> (réglages, battements restants, temps de l'oscillation), la macro <code>AERO_ACCESSORS</code>. Membres hérités : voir <a href="socle-mouvement.html">🧩 Socle</a>.</p>
+  <div data-api="AerodynamicMovement2D AerodynamicMovement3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-battements">Comment je permets de battre des ailes en l'air ?</h3>
+  <p>Avec le contexte « plané » automatique, les battements ne se déclenchent jamais (voir <a href="#limitations">limitations</a>). Utiliser un contexte <em>In Air</em> : le composant est actif dès que le personnage quitte le sol, reçoit donc les sauts, et ses battements sont rechargés à chaque décollage (vérifié). Affecter les contextes <strong>avant</strong> d'ajouter le directeur, ou désactiver <code>auto_configure</code>.</p>
+  <pre><code class="gdscript"># CharacterBody2D > MovementDirector (auto_configure = false), GroundMovement2D, AerodynamicMovement2D
+func _ready() -> void:
+	$AerodynamicMovement2D.max_flaps = 2
+	var sol := MovementContext.new()
+	sol.context_name = &amp;"sol"
+	sol.components = [NodePath("../GroundMovement2D")]
+	var air := MovementContext.new()
+	air.context_name = &amp;"air"
+	air.condition = MovementContext.CONDITION_IN_AIR
+	air.priority = 10
+	air.components = [NodePath("../AerodynamicMovement2D")]
+	$MovementDirector.contexts = [sol, air]
+	$AerodynamicMovement2D.flapped.connect(func(): $AnimationPlayer.play("battement"))</code></pre>
+  <p>Conséquence : tout le temps passé en l'air est en plané (gravité réduite, y compris à la montée du saut).</p>
+
+  <h3 id="ex-vol">Comment je fais voler librement un personnage (fée, jetpack) ?</h3>
+  <pre><code class="gdscript"># AerodynamicMovement2D en mode Fly : le directeur crée un contexte « vol » manuel.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("voler"):
+		$MovementDirector.set_context(&amp;"vol")
+	elif event.is_action_pressed("atterrir"):
+		$MovementDirector.clear_forced_context()</code></pre>
+
+  <h3 id="ex-parapente">Comment je fais un parapente sensible aux courants ?</h3>
+  <pre><code class="gdscript">$AerodynamicMovement2D.wind_influence = 4.0   # le vent compte 4 fois plus
+$AerodynamicMovement2D.glide_fall_speed = 40.0
+$CourantAscendant.direction = Vector2.UP       # ForceZone2D
+$CourantAscendant.strength = 300.0</code></pre>
+
+  <h3 id="ex-confettis">Comment je fais tomber des confettis ou des plumes en 3D ?</h3>
+  <pre><code class="gdscript"># confetti : un RigidBody3D léger (petite BoxShape3D + mesh plat), créé ou instancié avant l'appel
+func lancer_confetti(c: RigidBody3D, position_depart: Vector3) -> void:
+	var aero := AerodynamicMovement3D.new()
+	aero.drag_coefficient = 0.8
+	aero.lift_coefficient = 0.3
+	aero.flutter_frequency = randf_range(1.0, 3.0)
+	c.add_child(aero)
+	add_child(c)
+	c.global_position = position_depart</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Battements impossibles avec le contexte « plané » automatique</strong> : ce contexte exige le saut maintenu, donc au moment de l'appui c'est le composant de sol qui est actif et reçoit le saut (le directeur ne relaie le saut qu'aux composants actifs). <code>flapped</code> n'est jamais émis (vérifié). Voir <a href="#ex-battements">l'exemple</a>.</li>
+    <li><strong>Battements rechargés uniquement à l'activation</strong> : sans orchestrateur, le composant est actif dès le départ sans jamais être « activé », et <code>get_flaps_left()</code> vaut 0 (vérifié). Contournement : <code>active = false</code> puis <code>true</code>. Rien ne les recharge à l'atterrissage si le composant reste actif.</li>
+    <li><strong>3D : <code>fly_drag</code> ignoré</strong> en vol libre ; la vitesse rejoint directement la commande à <code>fly_acceleration</code>.</li>
+    <li><strong>Pas de gestion du sol</strong> : actif au sol, le composant continue d'appliquer sa physique aérienne (pas de saut, pas de marche normale).</li>
+    <li><strong>Ignore le recul</strong> (<code>Knockback</code>) : les commandes ne sont pas verrouillées.</li>
+    <li><strong>Corps rigides : le calcul tourne même composant inactif</strong>, et n'est pas affecté par <code>wind_influence</code> (les zones de force poussent le corps directement). Une traînée forte sur un objet très rapide peut provoquer des oscillations (intégration simple par image).</li>
+    <li><strong>Plané : <code>glide_gravity_scale</code> s'applique aussi pendant la montée</strong> : un saut fait avec le composant actif monte plus haut.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Personnage</strong> : l'étape native <code>_physics_step</code> (composant actif) calcule la vitesse du <code>CharacterBody</code> selon le mode, ajoute le vent (<code>external_acceleration × wind_influence</code>) puis appelle <code>move_and_slide</code>.</li>
+    <li><strong>Corps rigide</strong> : la classe surcharge <code>_notification</code> ; à chaque image physique, indépendamment de <code>active</code>, elle applique traînée + portance par <code>apply_central_force</code> (× masse).</li>
+    <li>Le compteur de battements est rechargé dans <code>_on_activated</code> (appelé par <code>set_active(true)</code> quand l'état change).</li>
+    <li>L'orchestrateur lit la propriété <code>mode</code> pour créer soit un contexte « vol » (manuel, priorité 70), soit « plané » (expression, priorité 20).</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Dépend du <a href="socle-mouvement.html">🧩 Socle</a> (et via lui des zones de force). Aucune dépendance au composant de sol.</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Un seul composant pour personnages et objets</td><td>Les réglages d'« air » (vent, traînée) sont du même domaine ; le type du parent suffit à choisir le comportement.</td></tr>
+        <tr><td>Portance des objets proportionnelle à la vitesse², perpendiculaire à la vitesse</td><td>Modèle aérodynamique simplifié mais crédible : un objet rapide plane, un objet lent tombe.</td></tr>
+        <tr><td>Oscillation de la portance par un sinus (<code>flutter_frequency</code>)</td><td>Donne le zigzag d'une feuille sans simuler l'orientation de l'objet.</td></tr>
+        <tr><td>Vent amplifié (<code>wind_influence</code>) plutôt qu'une surface portante</td><td>Un seul réglage de game design : « à quel point ce planeur est-il emporté par le vent ».</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML, commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul><li><span class="tag add">Ajouté</span>Gizmos de débogage : flèche du vent subi, mode et battements restants.</li></ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>AerodynamicMovement2D/3D</code> : plané, battements, vol libre, traînée et portance des corps rigides.</li></ul>
+  </div>
+
+  <footer>Module 🪂 Physique aérodynamique · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🪂Physique Aérodynamique/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » (communs 2D / 3D)
+window.GTK_USAGES = {};
+(function () {
+  const u = {
+    "drag_coefficient": "Plume, papier, parachute d'objet : vitesse de chute limitée.",
+    "flap_velocity": "Puissance d'un battement d'ailes (petit oiseau ou grand dragon).",
+    "flutter_frequency": "Feuilles mortes, confettis, cartes qui volettent.",
+    "fly_acceleration": "Vol nerveux (fée) ou inertiel (dirigeable).",
+    "fly_drag": "Arrêt rapide ou lente dérive quand on lâche les commandes (2D).",
+    "fly_speed": "Vitesse de vol libre ; bonus de vitesse temporaire.",
+    "glide_acceleration": "Maniabilité du planeur.",
+    "glide_fall_speed": "Finesse du plané : faible pour une cape, plus forte pour un saut ralenti.",
+    "glide_gravity_scale": "Transition plus ou moins douce vers la vitesse de plané.",
+    "glide_speed": "Vitesse horizontale en plané (parapente rapide, plume lente).",
+    "lift_coefficient": "Objets qui planent (avion en papier, frisbee).",
+    "max_flaps": "Battements d'ailes disponibles en l'air (oiseau, Kirby).",
+    "mode": "Plané pour une cape, vol libre pour une fée ou un jetpack.",
+    "wind_influence": "Sensibilité au vent : parapente très emporté, oiseau lourd peu emporté.",
+    "get_flaps_left": "Afficher les plumes / battements restants dans le HUD.",
+    "flapped": "Son et animation de battement d'ailes, plume qui tombe.",
+    "MODE_GLIDE": "Cape, parapente, écureuil volant.",
+    "MODE_FLY": "Fée, jetpack, mode débogage « vol libre »."
+  };
+  ["AerodynamicMovement2D", "AerodynamicMovement3D"].forEach(function (c) {
+    Object.keys(u).forEach(function (k) { window.GTK_USAGES[c + "." + k] = u[k]; });
+  });
+  window.GTK_USAGES["AerodynamicMovement3D.camera_relative"] = "Joueur : planer vers où regarde la caméra.";
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

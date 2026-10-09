@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrées de périphérique · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🕹️ Entrées de périphérique (PlayerInput, InputContext, InputAction et ses variantes, InputBinding, InputRebinder, PlayerInputUI) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/donnees/entrees-de-peripherique.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🕹️</div>
+    <div>
+      <h1>🕹️_InputSystem - Intercepteurs de données - Documentation</h1>
+      <p class="subtitle">Module <strong>Entrées de périphérique</strong> : des actions de jeu (bouton, axe, direction 2D / 3D, souris, gyroscope) lues sur clavier, souris ou manette, regroupées en contextes, reliées au gameplay sans code, et réassignables par le joueur.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/input_devices</code></span>
+        <span class="badge">12 classes</span>
+        <span class="badge">Plugin d'éditeur intégré</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>L'<code>InputMap</code> de Godot répond à « cette touche est-elle enfoncée ? », mais un jeu a besoin de plus : des contrôles différents selon la situation (à pied, en véhicule, dans un menu), un deuxième joueur sur une autre manette, un appui maintenu ou un double appui, une direction normalisée qui combine clavier et stick, et un menu où le joueur réassigne ses touches puis les retrouve au prochain lancement. <strong>Ce module fournit ces briques</strong> : on décrit les actions dans l'inspecteur (ou dans la fenêtre « Éditeur d'entrées »), on les relie à des méthodes du jeu, et on lit leur valeur d'une ligne.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🎮 <code>PlayerInput</code></h4>
+      <p>Le gestionnaire d'un joueur : un périphérique, des contextes, une mise à jour par image, l'exécution des liaisons, la sauvegarde des contrôles, la vibration.</p>
+    </div>
+    <div class="card">
+      <h4>🗂️ <code>InputContext</code></h4>
+      <p>Un groupe d'actions actives ensemble (« jeu », « menu », « véhicule »), avec priorité, exclusivité et pile.</p>
+    </div>
+    <div class="card">
+      <h4>🔘 Actions</h4>
+      <p><code>InputButtonAction</code>, <code>InputAxisAction</code>, <code>InputCircleAction</code> (Vector2), <code>InputSphereAction</code> (Vector3), <code>InputMouseAction</code>, <code>InputGyroAction</code> — ou votre propre <code>InputAction</code> en GDScript.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 <code>InputBinding</code></h4>
+      <p>« Quand <em>saut</em> émet <code>pressed</code>, appeler <code>../Joueur.sauter()</code> » : le lien entre entrée et gameplay, réglé sans code.</p>
+    </div>
+    <div class="card">
+      <h4>🔄 <code>InputRebinder</code> · ⚙️ <code>PlayerInputUI</code></h4>
+      <p>La réassignation des contrôles : un écouteur de la prochaine touche, et un menu complet prêt à l'emploi.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay (lecture d'actions, contextes, multijoueur local), les game designers (création des actions et des liaisons dans l'éditeur, test en direct par simulation) et, au bout de la chaîne, le joueur (menu de réassignation).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas les gestes tactiles</strong> d'un téléphone : voir <em>📱 Entrées tactiles</em>. (Le gyroscope d'une <em>manette</em> est, lui, géré ici par <code>InputGyroAction</code>.)</li>
+      <li><strong>Pas un remplaçant de l'interface de Godot</strong> : les <code>Control</code> (boutons, focus au clavier / manette) continuent d'utiliser les actions <code>ui_*</code> de l'<code>InputMap</code>.</li>
+      <li><strong>Pas un contrôleur de personnage</strong> : les actions donnent des valeurs et appellent des méthodes ; le déplacement reste à votre code ou au module <em>🧑 Personnage</em>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la fenêtre « 🕹️ Éditeur d'entrées » (ouverte depuis l'inspecteur d'un <code>PlayerInput</code>) : arbre des contextes « vaisseau » et « pause » à gauche, onglet 🔗 Liaisons d'une action au centre, onglet 🐞 Débogage avec les jauges en direct.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>. Les capteurs de manette d'<code>InputGyroAction</code> n'existent qu'à partir de 4.7.</td></tr>
+        <tr><td>Bibliothèque <code>bin/input_devices/</code> (<code>gameplaytoolkit_input_devices.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les douze classes, le plugin d'éditeur (bouton de l'inspecteur, fenêtre « Éditeur d'entrées ») et le relais de débogage du jeu. Aucun plugin à activer.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🎮🔌/</code></td><td>Optionnelle</td><td>Icônes des classes dans l'éditeur.</td></tr>
+        <tr><td>Actions de l'<code>InputMap</code> du projet</td><td>Optionnelle</td><td>Seulement si un <code>InputButtonAction</code> lit une action existante (<code>input_map_action</code>).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> si besoin :
+      <pre><code class="language-shell">scons input_devices</code></pre>
+      <div class="why">son registre est <code>input_devices_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/input_devices/</code></strong> dans <code>res://bin/input_devices/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/input_devices/…</code>.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les extensions qu'au démarrage ; le plugin d'éditeur du module s'enregistre à ce moment-là.</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>PlayerInput</code>, <code>InputRebinder</code> et <code>PlayerInputUI</code> ; l'inspecteur d'un <code>PlayerInput</code> commence par un bouton « 🕹️ Éditeur d'entrées ». La console affiche « 🕹️Module Entrées de périphérique chargé avec succès ! ».
+      <div class="why">sans le bouton, le plugin d'éditeur n'est pas chargé : voir le panneau <em>Sortie</em>.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet n'est requis.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : un personnage qui se déplace (clavier ou stick) et saute (Espace ou bouton A).</p>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>PlayerInput</code></strong> comme enfant du personnage.
+      <div class="why">c'est lui qui lit les périphériques à chaque image ; le chemin des liaisons est relatif à ce nœud (le personnage est donc <code>..</code>).</div>
+    </li>
+    <li>
+      <strong>Cliquer sur « 🕹️ Éditeur d'entrées »</strong> en tête de l'inspecteur, puis ajouter un contexte nommé <code>jeu</code>.
+      <div class="why">un contexte regroupe les actions actives ensemble ; plus tard, un contexte <code>menu</code> pourra les bloquer pendant une pause. (Tout se fait aussi dans l'inspecteur : <code>contexts</code> › <kbd>Nouveau InputContext</kbd>.)</div>
+    </li>
+    <li>
+      <strong>Ajouter une action <code>InputCircleAction</code> nommée <code>marche</code></strong>.
+      <div class="why">elle combine déjà WASD (ZQSD sur un clavier AZERTY, grâce aux touches physiques), le stick gauche et la croix directionnelle, avec zone morte et normalisation des diagonales.</div>
+    </li>
+    <li>
+      <strong>Ajouter une action <code>InputButtonAction</code> nommée <code>saut</code></strong> ; avec le bouton 🎯, capturer <kbd>Espace</kbd> pour <code>key</code> et le bouton A de la manette pour <code>joy_button</code>.
+      <div class="why">une action réunit plusieurs entrées : le joueur saute au clavier comme à la manette, sans code supplémentaire.</div>
+    </li>
+    <li>
+      <strong>Lire les actions dans le script du personnage</strong> :
+      <pre><code class="gdscript">extends CharacterBody2D
+
+@onready var entrees: PlayerInput = $PlayerInput
+
+func _physics_process(delta: float) -> void:
+	velocity.x = entrees.get_vector(&"marche").x * 250.0
+	velocity.y += 980.0 * delta
+	if entrees.is_just_pressed(&"saut") and is_on_floor():
+		velocity.y = -450.0
+	move_and_slide()</code></pre>
+      <div class="why">cocher <code>process_in_physics</code> sur le <code>PlayerInput</code> pour que les actions soient mises à jour au même rythme que <code>_physics_process</code> : sinon <code>is_just_pressed</code> peut être manqué ou vu deux fois.</div>
+    </li>
+    <li>
+      <strong>Tester sans manette</strong> : lancer la scène, puis dans l'onglet 🐞 Débogage de l'Éditeur d'entrées, glisser dans la jauge de <code>marche</code>.
+      <div class="why">la valeur glissée est simulée dans le jeu en cours : idéal pour régler un comportement sans le bon périphérique.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis les <code>doc_classes/*.xml</code> des douze classes. Internes, non documentés et susceptibles de changer :</p>
+  <ul>
+    <li>Les classes d'éditeur et de débogage, sans XML : <code>InputEditorPlugin</code>, <code>InputInspectorPlugin</code> (bouton de l'inspecteur), <code>InputEditorWindow</code> (fenêtre « Éditeur d'entrées »), <code>InputActionMeter</code> (jauges), <code>InputDebuggerPlugin</code> (côté éditeur) et <code>InputDebugger</code> (relais côté jeu, messages <code>input:*</code> du débogueur).</li>
+    <li>Les méthodes C++ appelées par le <code>PlayerInput</code> et non exposées : <code>InputAction.update</code>, <code>handle_event</code>, <code>release</code>, la lecture des périphériques (<code>key_down</code>, <code>joy_axis_value</code>…), les listes d'énumérations de l'inspecteur (<code>key_hint</code>…) et la conversion d'évènements (<code>event_key</code>…) ; <code>PlayerInput.dispatch_event</code> ; <code>PlayerInputUI.get_player</code>.</li>
+    <li>Les méthodes <code>get_device_properties</code>, <code>get_rebind_slots</code>, <code>apply_rebind</code> et <code>get_slot_text</code> sont redéfinies en C++ par chaque action, mais <strong>ne peuvent pas être redéfinies en GDScript</strong> : seules <code>_update_action</code> et <code>_get_value</code> le peuvent.</li>
+  </ul>
+  <p>Cocher « membres hérités » pour afficher, sous chaque action, les membres d'<code>InputAction</code>.</p>
+  <div data-api="PlayerInput InputContext InputAction InputButtonAction InputAxisAction InputCircleAction InputSphereAction InputMouseAction InputGyroAction InputBinding InputRebinder PlayerInputUI"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-liaisons">Comment je relie une action à une méthode sans écrire de code de lecture ?</h3>
+  <p>Les liaisons appellent la méthode cible à chaque évènement. Ici, tout le pilotage d'un vaisseau passe par des liaisons ; le script ne contient que les méthodes appelées.</p>
+  <pre><code class="gdscript"># Liaisons réglées dans l'Éditeur d'entrées (cible relative au PlayerInput) :
+#   marche : value_changed → ..:piloter(valeur)
+#   tir    : pressed       → ..:tirer()           (pass_value décoché)
+#   tir    : held          → ..:charger()
+#   tir    : multi_pressed → ..:rafale(valeur)
+extends Node2D
+
+var direction := Vector2.ZERO
+
+func piloter(valeur: Vector2) -> void:
+	direction = valeur
+
+func tirer() -> void: pass
+func charger() -> void: pass
+func rafale(_nombre: int) -> void: pass</code></pre>
+
+  <h3 id="ex-pause">Comment je bloque les contrôles du jeu pendant un menu de pause ?</h3>
+  <p><code>push_context</code> active le contexte du menu et le place devant tous les autres : les actions du jeu sont relâchées (<code>released</code>, valeur nulle) puis ignorées jusqu'au <code>pop_context</code>. Le <code>PlayerInput</code> doit continuer à tourner pendant la pause.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$PlayerInput.process_mode = Node.PROCESS_MODE_ALWAYS
+
+func ouvrir_pause() -> void:
+	get_tree().paused = true
+	$PlayerInput.push_context(&"pause")   # contexte contenant « fermer »…
+
+func fermer_pause() -> void:                # …relié à cette méthode
+	$PlayerInput.pop_context()
+	get_tree().paused = false</code></pre>
+
+  <h3 id="ex-local">Comment je fais jouer deux joueurs sur deux manettes ?</h3>
+  <p>Un <code>PlayerInput</code> par joueur, avec un <code>device</code> différent et le filtre « Manette ». Les deux peuvent utiliser les mêmes ressources de contexte : chacun travaille sur ses propres copies.</p>
+  <pre><code class="gdscript">const CONTROLES := preload("res://controles/jeu.tres")
+
+func creer_joueur(numero: int) -> Node:
+	var joueur := preload("res://joueur.tscn").instantiate()
+	var entrees: PlayerInput = joueur.get_node("PlayerInput")
+	entrees.contexts = [CONTROLES]
+	entrees.device = numero                          # manette 0, 1, 2…
+	entrees.device_filter = InputAction.DEVICE_GAMEPAD
+	return joueur</code></pre>
+  <p>Le clavier n'a pas d'indice : deux joueurs au clavier doivent utiliser deux contextes aux touches différentes.</p>
+
+  <h3 id="ex-icones">Comment j'affiche les bonnes icônes selon le périphérique utilisé ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$PlayerInput.device_type_changed.connect(_maj_icones)
+
+func _maj_icones(type: int) -> void:
+	var manette := type == InputAction.DEVICE_GAMEPAD
+	$Aide.text = "Appuyez sur %s" % ("A" if manette else "Espace")
+	# ou, d'après les contrôles actuels du joueur :
+	var saut: InputButtonAction = $PlayerInput.get_action(&"saut")
+	$Aide.text = "Appuyez sur %s" % saut.get_slot_text(&"joy_button" if manette else &"key")</code></pre>
+
+  <h3 id="ex-menu">Comment j'ajoute un menu de réassignation des touches ?</h3>
+  <p><code>PlayerInputUI</code> construit tout : onglets, boutons, enregistrement dans <code>user://controles.cfg</code> et rechargement automatique au démarrage.</p>
+  <pre><code class="gdscript"># Dans la scène du menu d'options : un nœud PlayerInputUI,
+# player_input = chemin vers le PlayerInput du joueur, context_filter = ["jeu"].
+func _ready() -> void:
+	$PlayerInputUI.bindings_saved.connect(func(_chemin): $Message.text = "Contrôles enregistrés")</code></pre>
+  <p>Pour charger les contrôles enregistrés même quand le menu n'est jamais ouvert, l'appeler au démarrage du jeu :</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	if FileAccess.file_exists("user://controles.cfg"):
+		$Joueur/PlayerInput.load_bindings("user://controles.cfg")</code></pre>
+
+  <h3 id="ex-rebind">Comment je fais ma propre interface de réassignation ?</h3>
+  <pre><code class="gdscript">@onready var reassign: InputRebinder = $InputRebinder
+
+func _on_bouton_saut_pressed() -> void:
+	var saut: InputAction = $PlayerInput.get_action(&"saut")
+	$BoutonSaut.text = "Appuyez sur une touche…"
+	reassign.start_rebind(saut, &"key")
+
+func _ready() -> void:
+	reassign.rebind_completed.connect(func(action, emplacement):
+		$BoutonSaut.text = action.get_slot_text(emplacement)
+		var conflits := reassign.find_conflicts($PlayerInput, action, emplacement)
+		if not conflits.is_empty():
+			$Message.text = "Déjà utilisé par « %s »" % conflits[0][0].action_name
+		$PlayerInput.save_bindings("user://controles.cfg"))
+	reassign.rebind_cancelled.connect(func(action, emplacement): $BoutonSaut.text = action.get_slot_text(emplacement))</code></pre>
+
+  <h3 id="ex-vehicule">Comment je change de contrôles en montant dans un véhicule ?</h3>
+  <pre><code class="gdscript">func monter() -> void:
+	$PlayerInput.enable_only(&"vehicule")   # désactive « a_pied »
+
+func descendre() -> void:
+	$PlayerInput.enable_only(&"a_pied")</code></pre>
+
+  <h3 id="ex-3d">Comment je déplace un personnage 3D et oriente la caméra à la souris ?</h3>
+  <pre><code class="gdscript">extends CharacterBody3D
+
+func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	var regard: InputMouseAction = $PlayerInput.get_action(&"regard")
+	regard.motion_sensitivity = 0.003
+	regard.motion.connect(func(rel: Vector2):
+		rotate_y(-rel.x)
+		$Camera3D.rotate_x(-rel.y))
+
+func _physics_process(_delta: float) -> void:
+	var dir := $PlayerInput.get_vector3(&"marche")   # Vector2 (x, y) → Vector3 (x, 0, y)
+	velocity = basis * dir * 6.0
+	move_and_slide()</code></pre>
+
+  <h3 id="ex-ia">Comment je fais piloter un personnage par une IA ou un test automatisé ?</h3>
+  <p><code>simulate</code> remplace les périphériques par une valeur : les signaux et les liaisons réagissent exactement comme avec un vrai joueur.</p>
+  <pre><code class="gdscript">func test_saut() -> void:
+	$Joueur/PlayerInput.simulate(&"saut", true)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	assert($Joueur.velocity.y &lt; 0.0)
+	$Joueur/PlayerInput.stop_all_simulations()</code></pre>
+
+  <h3 id="ex-action">Comment j'écris un type d'action personnalisé ?</h3>
+  <p>Hériter d'<code>InputAction</code> et redéfinir <code>_update_action</code> et <code>_get_value</code>. L'action apparaît ensuite dans la liste des types de ressource et ses signaux sont proposés pour les liaisons.</p>
+  <pre><code class="gdscript">@tool
+class_name ActionCombo extends InputAction
+## Émet « combo » quand Maj et Espace sont enfoncés ensemble.
+signal combo
+var _actif := false
+
+func _update_action(_delta: float) -> void:
+	var actif := Input.is_key_pressed(KEY_SHIFT) and Input.is_key_pressed(KEY_SPACE)
+	if actif and not _actif:
+		emit_event(&"combo")
+	_actif = actif
+
+func _get_value() -> Variant:
+	return _actif</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <h3 id="limites-lecture">Lecture des entrées</h3>
+  <ul>
+    <li><strong>Lecture par sondage, une fois par image.</strong> Une touche enfoncée et relâchée entre deux mises à jour n'est jamais vue (taps très rapides, faible fréquence d'image). <code>is_just_pressed</code> n'est vrai que pendant une mise à jour : la lire depuis l'autre boucle (<code>_process</code> contre <code>_physics_process</code>) peut la manquer ou la voir deux fois — d'où <code>process_in_physics</code>.</li>
+    <li><strong>Les champs de texte ne bloquent rien.</strong> Le clavier est lu directement (<code>Input.is_key_pressed</code>) : taper dans un <code>LineEdit</code> déclenche les actions du jeu. Désactiver le contexte (ou le <code>PlayerInput</code>) pendant la saisie. De même, une touche capturée par l'<code>InputRebinder</code> est consommée pour l'interface mais reste vue par les actions.</li>
+    <li><strong>Le clavier et la souris sont communs à tous les <code>PlayerInput</code></strong> ; seul l'indice de manette distingue les joueurs.</li>
+    <li><strong>Mouvement et molette de la souris passent par <code>_input</code></strong> du <code>PlayerInput</code> : en pause sans <code>PROCESS_MODE_ALWAYS</code>, ou si un nœud plus haut a marqué l'évènement comme traité, ils sont perdus.</li>
+    <li><strong>Les noms de touches sont ceux du système</strong> (en anglais : « Space », « Shift ») ; ceux des boutons de manette suivent la disposition Xbox (« A (bas) »).</li>
+    <li><strong><code>emit_event</code> transmet au plus 3 arguments</strong> au signal (les liaisons reçoivent néanmoins tous les arguments).</li>
+    <li><strong><code>input_map_action</code> échappe aux filtres</strong> : une action de l'<code>InputMap</code> est lue quel que soit <code>device_filter</code> et quelle que soit la manette, et n'est pas réassignable.</li>
+  </ul>
+  <h3 id="limites-ressources">Ressources et état</h3>
+  <ul>
+    <li><strong>En jeu, ce sont des copies.</strong> Avec <code>runtime_copies</code> (par défaut), modifier la ressource d'origine (<code>.tres</code>) après le démarrage n'a aucun effet : passer par <code>get_context</code> / <code>get_action</code>. Les contrôles d'origine pour <code>reset_bindings</code> sont ceux présents à <code>setup()</code>.</li>
+    <li><strong>Sauvegarde des contrôles par nom</strong> (<code>contexte/action</code>) : renommer un contexte ou une action fait ignorer les contrôles enregistrés correspondants. Les liaisons et réglages autres que les entrées (zone morte, délais) ne sont pas sauvegardés.</li>
+    <li><strong>Conflits signalés, pas corrigés</strong> : <code>find_conflicts</code> et <code>PlayerInputUI</code> préviennent qu'une touche est déjà utilisée, sans retirer l'ancienne affectation.</li>
+    <li><strong>Liaisons en échec silencieuses</strong> : une cible ou une méthode introuvable ne lève pas d'erreur ; un avertissement est affiché une seule fois par liaison et <code>binding_failed</code> est émis. Un nombre d'arguments incorrect provoque en revanche l'erreur d'appel habituelle de Godot.</li>
+    <li><strong>Simulation d'une action GDScript</strong> : <code>simulate</code> suspend <code>_update_action</code> sans appliquer la valeur (aucun signal n'est émis).</li>
+    <li><strong><code>InputGyroAction</code></strong> dépend des capteurs exposés par le moteur et la manette (DualShock / DualSense, Switch Pro…) ; sans eux, valeur nulle sans avertissement.</li>
+  </ul>
+  <h3 id="limites-ui">PlayerInputUI</h3>
+  <ul>
+    <li><strong>Interface minimale</strong> : textes en français codés en dur, mise en page fixe, thème hérité ; pour une interface soignée, utiliser <code>InputRebinder</code> directement (voir <a href="#ex-rebind">exemple</a>).</li>
+    <li><strong>Les contrôles ne sont chargés que si le menu existe</strong> au démarrage (<code>auto_load</code> dans son <code>_ready</code>) ; sinon, appeler <code>load_bindings</code> soi-même (voir <a href="#ex-menu">exemple</a>).</li>
+    <li><strong>Construction unique</strong> : changer <code>context_filter</code> ou les onglets affichés après le démarrage demande un appel à <code>rebuild()</code>.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 330" role="img" aria-label="Schéma d'architecture du module Entrées de périphérique">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="40" width="150" height="54" rx="8"/>
+    <text x="95" y="64" text-anchor="middle">Input (Godot)</text>
+    <text x="95" y="82" text-anchor="middle" class="small">clavier · souris · manette</text>
+    <rect class="box main" x="240" y="40" width="170" height="54" rx="8"/>
+    <text x="325" y="64" text-anchor="middle">PlayerInput</text>
+    <text x="325" y="82" text-anchor="middle" class="small">Node · poll() par image</text>
+    <rect class="box" x="480" y="40" width="160" height="54" rx="8"/>
+    <text x="560" y="64" text-anchor="middle">InputContext</text>
+    <text x="560" y="82" text-anchor="middle" class="small">copies de jeu · priorité</text>
+    <rect class="box main" x="690" y="40" width="150" height="54" rx="8"/>
+    <text x="765" y="64" text-anchor="middle">InputAction</text>
+    <text x="765" y="82" text-anchor="middle" class="small">bouton, axe, cercle…</text>
+    <rect class="box" x="690" y="150" width="150" height="54" rx="8"/>
+    <text x="765" y="174" text-anchor="middle">InputBinding</text>
+    <text x="765" y="192" text-anchor="middle" class="small">évènement → méthode</text>
+    <rect class="box" x="480" y="150" width="160" height="54" rx="8"/>
+    <text x="560" y="174" text-anchor="middle">Nœuds du jeu</text>
+    <text x="560" y="192" text-anchor="middle" class="small">cible.callv()</text>
+    <rect class="box" x="240" y="250" width="170" height="54" rx="8"/>
+    <text x="325" y="274" text-anchor="middle">InputRebinder</text>
+    <text x="325" y="292" text-anchor="middle" class="small">apply_rebind</text>
+    <rect class="box" x="20" y="250" width="150" height="54" rx="8"/>
+    <text x="95" y="274" text-anchor="middle">PlayerInputUI</text>
+    <text x="95" y="292" text-anchor="middle" class="small">menu · save_bindings</text>
+    <rect class="box" x="20" y="150" width="150" height="54" rx="8"/>
+    <text x="95" y="174" text-anchor="middle">Éditeur d'entrées</text>
+    <text x="95" y="192" text-anchor="middle" class="small">débogueur (interne)</text>
+    <path class="arrow" d="M170 67 H238" marker-end="url(#arr)"/>
+    <text x="204" y="60" text-anchor="middle" class="small">_input</text>
+    <path class="arrow" d="M410 67 H478" marker-end="url(#arr)"/>
+    <path class="arrow" d="M640 67 H688" marker-end="url(#arr)"/>
+    <text x="664" y="60" text-anchor="middle" class="small">update</text>
+    <path class="arrow dashed" d="M690 85 Q560 125 410 85" marker-end="url(#arr)"/>
+    <text x="560" y="118" text-anchor="middle" class="small">emit_event → dispatch_event</text>
+    <path class="arrow" d="M765 94 V148" marker-end="url(#arr)"/>
+    <path class="arrow" d="M690 177 H642" marker-end="url(#arr)"/>
+    <path class="arrow" d="M170 277 H238" marker-end="url(#arr)"/>
+    <path class="arrow" d="M410 270 Q700 270 760 96" marker-end="url(#arr)"/>
+    <text x="600" y="262" text-anchor="middle" class="small">touche / bouton assigné</text>
+    <path class="arrow dashed" d="M170 177 Q240 140 300 96" marker-end="url(#arr)"/>
+    <text x="196" y="138" class="small">observe · simule</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>PlayerInput</code></strong> (nœud) prépare des copies de ses contextes (<code>setup</code>), puis à chaque image (ou image physique) les trie par priorité effective (contextes empilés en tête) et appelle directement <code>update</code> sur chaque action d'un contexte actif, <code>release</code> sur les autres. Il reçoit aussi les évènements bruts (<code>_input</code>) pour détecter le type de périphérique et alimenter <code>InputMouseAction</code>.</li>
+    <li>Chaque <strong>action</strong> (ressource) lit le singleton <code>Input</code> selon le filtre transmis, calcule sa valeur et émet ses signaux via <code>emit_event</code>, qui rappelle le <code>PlayerInput</code> (<code>dispatch_event</code>) : exécution des <strong>liaisons</strong> (<code>callv</code> sur le nœud cible), journal, puis signal <code>action_triggered</code>.</li>
+    <li><strong><code>InputRebinder</code></strong> écoute dans <code>_input</code> et appelle <code>apply_rebind</code> sur l'action ; <strong><code>PlayerInputUI</code></strong> construit ses boutons à partir de <code>get_rebind_slots</code> et enregistre via <code>PlayerInput.save_bindings</code>.</li>
+    <li>Dans un jeu lancé depuis l'éditeur, chaque <code>PlayerInput</code> s'inscrit auprès d'un relais interne (<code>InputDebugger</code>) qui envoie ses instantanés à la fenêtre « Éditeur d'entrées » (10 fois par seconde pour les joueurs observés) et applique les simulations demandées.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Couplage interne fort et voulu : actions ↔ <code>PlayerInput</code> (le joueur pilote les actions, les actions le rappellent pour les liaisons). Le reste du jeu n'est couplé que par les noms d'actions et les liaisons.</li>
+    <li>Aucune dépendance vers d'autres modules. Bibliothèque propre : <code>input_devices_register.cpp</code> → <code>bin/input_devices/</code>, qui enregistre aussi le plugin d'éditeur au niveau <code>EDITOR</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Actions et contextes sous forme de ressources</td><td>Ils se règlent dans l'inspecteur, s'enregistrent en <code>.tres</code> et se partagent entre joueurs et scènes.</td></tr>
+        <tr><td>Copies de jeu par <code>PlayerInput</code> (<code>runtime_copies</code>)</td><td>Une action contient un état (enfoncée, valeur) : partagée entre deux joueurs, l'un appuierait pour l'autre. La copie protège aussi la ressource d'origine des simulations et réassignations.</td></tr>
+        <tr><td>Lecture par sondage plutôt que par évènements</td><td>Une valeur toujours cohérente avec l'état réel (pas de touche « coincée » après une perte de focus), et une lecture filtrée par manette simple. Les évènements ne servent qu'à ce qui n'a pas d'état (mouvement et molette de souris).</td></tr>
+        <tr><td>Relâchement explicite des actions d'un contexte qui devient inactif</td><td>Un personnage ne continue pas d'avancer quand un menu s'ouvre pendant qu'une touche est tenue : <code>released</code> et la valeur nulle sont émis.</td></tr>
+        <tr><td>Touches physiques par défaut</td><td>Un réglage WASD tombe sur ZQSD d'un clavier AZERTY sans configuration.</td></tr>
+        <tr><td>Zone morte radiale remise à l'échelle</td><td>Pas de saut de valeur à la sortie de la zone morte, et une direction de stick non déformée.</td></tr>
+        <tr><td>Émission seulement au-delà de <code>dirty_threshold</code>, retour au repos toujours signalé</td><td>Un stick qui tremble n'inonde pas les liaisons, mais l'arrêt est toujours transmis (sinon un personnage pourrait ne jamais s'arrêter).</td></tr>
+        <tr><td>Préréglages de direction non enregistrés</td><td>Ils sont recalculés d'après les entrées : impossible d'avoir un préréglage « WASD » qui ne correspondrait plus aux touches réellement réglées.</td></tr>
+        <tr><td>Liaison introuvable : avertissement unique, pas d'erreur</td><td>Une scène en cours de construction (cible pas encore créée) ne doit pas noyer la console à chaque image.</td></tr>
+        <tr><td>Capteurs de manette appelés par nom (<code>has_method</code>)</td><td>Compile avec des en-têtes godot-cpp antérieurs à 4.7, tout en utilisant les capteurs quand le moteur les fournit.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des douze classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Actions (bouton, axe, cercle, sphère, souris, gyroscope), contextes, <code>PlayerInput</code>, liaisons, réassignation (<code>InputRebinder</code>, <code>PlayerInputUI</code>), fenêtre « Éditeur d'entrées » et débogage en direct (commit « Ajout de modules de Gameplay »).</li>
+    </ul>
+  </div>
+
+  <footer>Module 🕹️ Entrées de périphérique · sources : <code>src/1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🕹️Entrées de périphérique/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  // PlayerInput
+  "PlayerInput.apply_bindings_state": "Appliquer des contrôles reçus d'ailleurs (profil en ligne, préréglage « gaucher »).",
+  "PlayerInput.clear_event_log": "Repartir d'un journal vide avant un test.",
+  "PlayerInput.enable_only": "Passer d'un mode de jeu à l'autre : à pied, véhicule, dialogue.",
+  "PlayerInput.get_action": "Régler une action en jeu (sensibilité, touches) ou s'abonner à ses signaux.",
+  "PlayerInput.get_active_contexts": "Débogage : savoir quels contrôles sont effectivement actifs.",
+  "PlayerInput.get_all_actions": "Construire son propre menu de contrôles.",
+  "PlayerInput.get_axis": "Accélérateur, gâchette, rotation d'une tourelle.",
+  "PlayerInput.get_bindings_state": "Envoyer ou comparer les contrôles du joueur.",
+  "PlayerInput.get_configuration_issues": "Vérifier la configuration dans un test automatisé.",
+  "PlayerInput.get_context": "Modifier un contexte en jeu (priorité, actions ajoutées).",
+  "PlayerInput.get_context_stack": "Savoir combien de menus sont empilés.",
+  "PlayerInput.get_debug_snapshot": "Afficher un panneau de débogage maison des entrées.",
+  "PlayerInput.get_event_log": "Afficher les dernières actions déclenchées (outil de test, replays simples).",
+  "PlayerInput.get_joy_guid": "Reconnaître un modèle de manette pour choisir ses icônes.",
+  "PlayerInput.get_joy_info": "Informations système de la manette (identifiants fabricant).",
+  "PlayerInput.get_joy_name": "Afficher « Manette Xbox connectée ».",
+  "PlayerInput.get_last_device_type": "Choisir les icônes d'aide à l'affichage d'un écran.",
+  "PlayerInput.get_runtime_contexts": "Parcourir les contextes réellement utilisés en jeu.",
+  "PlayerInput.get_value": "Lire n'importe quelle action sans connaître son type.",
+  "PlayerInput.get_vector": "Déplacement 2D, visée au stick.",
+  "PlayerInput.get_vector3": "Déplacement au sol en 3D à partir d'une action 2D, vol en 3D.",
+  "PlayerInput.handle_input_event": "Relayer des évènements d'un <code>SubViewport</code>, tests automatisés.",
+  "PlayerInput.is_context_active": "Savoir si les contrôles du jeu sont bloqués par un menu.",
+  "PlayerInput.is_context_enabled": "Afficher l'état d'un mode de jeu.",
+  "PlayerInput.is_device_connected": "Afficher « Reconnectez la manette » et mettre en pause.",
+  "PlayerInput.is_just_pressed": "Saut, tir, interaction : une action par appui.",
+  "PlayerInput.is_just_released": "Relâcher une flèche chargée, fin d'un saut variable.",
+  "PlayerInput.is_pressed": "Sprint maintenu, tir automatique, bouclier levé.",
+  "PlayerInput.is_setup": "Savoir si les copies de jeu existent déjà.",
+  "PlayerInput.load_bindings": "Recharger au démarrage les contrôles personnalisés du joueur.",
+  "PlayerInput.poll": "Tests unitaires hors de l'arbre, rejouer des entrées image par image.",
+  "PlayerInput.pop_context": "Fermer un menu ou un dialogue et rendre la main au jeu.",
+  "PlayerInput.push_context": "Ouvrir un menu, un inventaire, un dialogue par-dessus le jeu.",
+  "PlayerInput.reset_bindings": "Bouton « Contrôles par défaut ».",
+  "PlayerInput.save_bindings": "Enregistrer les contrôles après une réassignation.",
+  "PlayerInput.set_context_enabled": "Activer les contrôles de nage en entrant dans l'eau.",
+  "PlayerInput.setup": "Remettre à zéro les contrôles de jeu (nouvelle partie).",
+  "PlayerInput.simulate": "Tests automatisés, démonstration jouée seule, IA qui utilise le même code que le joueur.",
+  "PlayerInput.start_vibration": "Retour haptique d'un coup reçu, d'une explosion, d'un atterrissage.",
+  "PlayerInput.stop_all_simulations": "Fin d'un test ou d'une démonstration.",
+  "PlayerInput.stop_simulation": "Rendre une action au joueur après une cinématique.",
+  "PlayerInput.stop_vibration": "Couper une vibration continue (moteur, pluie).",
+  "PlayerInput.auto_switch_device": "Jeu solo jouable au clavier et à la manette sans interférence entre les deux.",
+  "PlayerInput.contexts": "Déclarer les modes de contrôle du joueur.",
+  "PlayerInput.device": "Multijoueur local : une manette par joueur.",
+  "PlayerInput.device_filter": "Réserver un joueur à la manette et un autre au clavier.",
+  "PlayerInput.dispatch_bindings": "Tester les liaisons à blanc (journal seulement).",
+  "PlayerInput.joy_threshold": "Ignorer un stick qui dérive pour la détection du périphérique utilisé.",
+  "PlayerInput.process_in_physics": "Personnage déplacé dans <code>_physics_process</code>.",
+  "PlayerInput.runtime_copies": "Laisser actif ; désactiver seulement pour modifier directement les ressources (outil d'édition).",
+  "PlayerInput.action_triggered": "Journal, tutoriel qui attend une action précise, statistiques.",
+  "PlayerInput.binding_failed": "Signaler une liaison cassée dans un test.",
+  "PlayerInput.bindings_changed": "Rafraîchir les icônes d'aide après une réassignation.",
+  "PlayerInput.context_changed": "Afficher ou masquer l'aide d'un mode de jeu.",
+  "PlayerInput.device_type_changed": "Basculer les icônes clavier / manette.",
+  // InputContext
+  "InputContext.add_action": "Ajouter une action débloquée en cours de partie (double saut).",
+  "InputContext.get_action": "Retrouver une action d'un contexte précis.",
+  "InputContext.get_action_names": "Lister les contrôles d'un mode pour un écran d'aide.",
+  "InputContext.has_action": "Vérifier qu'un mode propose une action avant d'afficher son aide.",
+  "InputContext.make_runtime_copy": "Dupliquer un contexte pour un usage indépendant.",
+  "InputContext.remove_action": "Retirer une capacité perdue.",
+  "InputContext.actions": "Les actions du mode de jeu.",
+  "InputContext.context_name": "Nom utilisé par <code>push_context</code>, <code>enable_only</code> et la sauvegarde.",
+  "InputContext.description": "Notes de conception pour l'équipe.",
+  "InputContext.enabled": "Mode de jeu actif au démarrage ou non (menu désactivé par défaut).",
+  "InputContext.exclusive": "Menu ou dialogue qui bloque les contrôles du jeu.",
+  "InputContext.priority": "Ordre entre contextes simultanés (véhicule au-dessus de à pied).",
+  // InputAction
+  "InputAction._get_value": "Valeur d'une action personnalisée (combo, geste).",
+  "InputAction._update_action": "Logique d'une action personnalisée écrite en GDScript.",
+  "InputAction.apply_rebind": "Assigner une entrée sans passer par <code>InputRebinder</code> (préréglages).",
+  "InputAction.emit_event": "Émettre un évènement depuis une action personnalisée.",
+  "InputAction.get_device": "Savoir quelle manette a été lue (débogage multijoueur).",
+  "InputAction.get_device_properties": "Lister ce qui sera sauvegardé pour cette action.",
+  "InputAction.get_device_state": "Copier les contrôles d'une action vers une autre.",
+  "InputAction.get_event_count": "Statistiques, détection d'une action jamais utilisée.",
+  "InputAction.get_events": "Proposer la liste des évènements dans un éditeur de liaisons maison.",
+  "InputAction.get_last_event": "Affichage de débogage.",
+  "InputAction.get_rebind_slots": "Construire les boutons d'un menu de réassignation.",
+  "InputAction.get_slot_text": "Afficher « Appuyez sur Space » d'après les contrôles actuels.",
+  "InputAction.get_value": "Lire la valeur d'une action reçue d'un signal.",
+  "InputAction.get_value_text": "Afficher la valeur dans un panneau de débogage.",
+  "InputAction.is_active": "Savoir si une action quelconque est en cours.",
+  "InputAction.is_gamepad_allowed": "Débogage du filtre de périphériques.",
+  "InputAction.is_keyboard_mouse_allowed": "Débogage du filtre de périphériques.",
+  "InputAction.is_simulated": "Indiquer qu'une action est pilotée par un test.",
+  "InputAction.joy_axis_text": "Afficher le nom d'un axe dans une aide.",
+  "InputAction.joy_button_text": "Afficher le nom d'un bouton dans une aide.",
+  "InputAction.key_text": "Afficher le nom d'une touche dans une aide.",
+  "InputAction.make_runtime_copy": "Dupliquer une action avec ses liaisons.",
+  "InputAction.mouse_button_text": "Afficher le nom d'un bouton de souris.",
+  "InputAction.set_device_state": "Appliquer un préréglage de touches à une action.",
+  "InputAction.simulate": "Piloter une action directement (test, démonstration).",
+  "InputAction.stop_simulation": "Rendre l'action aux périphériques.",
+  "InputAction.action_name": "Nom utilisé partout pour retrouver l'action (« saut », « marche »).",
+  "InputAction.bindings": "Relier l'action au gameplay sans code.",
+  "InputAction.dead_zone": "Ignorer un stick usé qui dérive.",
+  "InputAction.description": "Info-bulle du menu de réassignation.",
+  "InputAction.device_filter": "Réserver la visée à la souris, ou une action à la manette.",
+  "InputAction.dirty_threshold": "Limiter les signaux d'un stick qui tremble.",
+  "InputAction.enabled": "Désactiver une capacité pas encore débloquée.",
+  "InputAction.physical_keys": "Garder la même position de touches sur QWERTY et AZERTY.",
+  "InputAction.DEVICE_INHERIT": "Suivre le réglage du joueur (valeur par défaut).",
+  "InputAction.DEVICE_ALL": "Action toujours lisible partout (pause, capture d'écran).",
+  "InputAction.DEVICE_KEYBOARD_MOUSE": "Action propre au clavier-souris (visée souris).",
+  "InputAction.DEVICE_GAMEPAD": "Action propre à la manette (gyroscope, vibration).",
+  // InputButtonAction
+  "InputButtonAction.get_held_time": "Puissance d'un tir chargé, durée d'un saut variable.",
+  "InputButtonAction.is_just_pressed": "Une action par appui.",
+  "InputButtonAction.is_just_released": "Déclencher au relâchement (arc, saut chargé).",
+  "InputButtonAction.is_pressed": "Action maintenue (sprint, bouclier).",
+  "InputButtonAction.held_delay": "Délai d'un tir chargé ou d'un « maintenir pour interagir ».",
+  "InputButtonAction.input_map_action": "Réutiliser une action existante du projet (<code>ui_accept</code>).",
+  "InputButtonAction.joy_axis": "Utiliser une gâchette analogique comme bouton.",
+  "InputButtonAction.joy_axis_direction": "Stick poussé vers le haut comme bouton (menu radial).",
+  "InputButtonAction.joy_button": "Bouton de manette de l'action.",
+  "InputButtonAction.key": "Touche de l'action.",
+  "InputButtonAction.mouse_button": "Clic de l'action (tir au clic gauche).",
+  "InputButtonAction.multi_press_count": "Double ou triple appui (esquive, rafale).",
+  "InputButtonAction.multi_press_delay": "Tolérance entre deux appuis d'un double appui.",
+  "InputButtonAction.held": "Tir chargé, interaction maintenue.",
+  "InputButtonAction.multi_pressed": "Esquive par double appui, rafale.",
+  "InputButtonAction.pressed": "Saut, tir, interaction.",
+  "InputButtonAction.released": "Fin d'une charge, relâcher un objet.",
+  "InputButtonAction.toggled": "Relier directement à <code>set_course(actif)</code> ou <code>set_visee(actif)</code>.",
+  "InputButtonAction.AXIS_BOTH": "Les deux directions d'un axe déclenchent le bouton.",
+  "InputButtonAction.AXIS_POSITIVE": "Gâchette ou stick vers la droite / le bas.",
+  "InputButtonAction.AXIS_NEGATIVE": "Stick vers la gauche / le haut.",
+  // InputAxisAction
+  "InputAxisAction.get_axis": "Gaz, frein, rotation.",
+  "InputAxisAction.get_velocity": "Détecter un coup de gâchette brusque.",
+  "InputAxisAction.invert": "Option « inverser l'axe » du joueur.",
+  "InputAxisAction.joy_axis": "Gâchette ou stick sur un axe.",
+  "InputAxisAction.negative_joy_button": "Bouton de manette pour -1 (LB pour tourner à gauche).",
+  "InputAxisAction.negative_key": "Touche pour -1 (freiner, tourner à gauche).",
+  "InputAxisAction.positive_joy_button": "Bouton de manette pour +1.",
+  "InputAxisAction.positive_key": "Touche pour +1 (accélérer, tourner à droite).",
+  "InputAxisAction.value_changed": "Relier à <code>regler_gaz(valeur)</code>.",
+  "InputAxisAction.velocity_changed": "Effet à la variation brusque (coup d'accélérateur).",
+  // InputCircleAction
+  "InputCircleAction.get_orientation": "Orienter un personnage vers la dernière direction poussée.",
+  "InputCircleAction.get_vector": "Déplacement 2D ou au sol.",
+  "InputCircleAction.get_velocity": "Détecter un « flick » du stick.",
+  "InputCircleAction.down_key": "Touche bas.",
+  "InputCircleAction.dpad_down": "Bouton bas de la manette.",
+  "InputCircleAction.dpad_left": "Bouton gauche de la manette.",
+  "InputCircleAction.dpad_preset": "Croix directionnelle ou boutons ABXY comme directions.",
+  "InputCircleAction.dpad_right": "Bouton droite de la manette.",
+  "InputCircleAction.dpad_up": "Bouton haut de la manette.",
+  "InputCircleAction.invert_y": "Haut positif (visée « avion », coordonnées mathématiques).",
+  "InputCircleAction.joy_axis_x": "Axe horizontal du stick.",
+  "InputCircleAction.joy_axis_y": "Axe vertical du stick.",
+  "InputCircleAction.joy_preset": "Stick gauche pour marcher, stick droit pour viser.",
+  "InputCircleAction.key_preset": "WASD ou flèches en un clic.",
+  "InputCircleAction.left_key": "Touche gauche.",
+  "InputCircleAction.right_key": "Touche droite.",
+  "InputCircleAction.up_key": "Touche haut.",
+  "InputCircleAction.orientation_changed": "Tourner un sprite dans la direction de déplacement.",
+  "InputCircleAction.value_changed": "Relier à <code>piloter(direction)</code>.",
+  "InputCircleAction.velocity_changed": "Déclencher une esquive sur un mouvement brusque du stick.",
+  "InputCircleAction.KEYS_CUSTOM": "Touches réglées une à une.",
+  "InputCircleAction.KEYS_WASD": "Préréglage clavier standard (ZQSD sur AZERTY avec touches physiques).",
+  "InputCircleAction.KEYS_ZQSD": "Préréglage AZERTY quand les touches physiques sont désactivées.",
+  "InputCircleAction.KEYS_ARROWS": "Joueur 2 au clavier, jeux à une main.",
+  "InputCircleAction.JOY_CUSTOM": "Axes réglés un à un.",
+  "InputCircleAction.JOY_LEFT_STICK": "Déplacement.",
+  "InputCircleAction.JOY_RIGHT_STICK": "Visée, caméra.",
+  "InputCircleAction.DPAD_CUSTOM": "Boutons réglés un à un.",
+  "InputCircleAction.DPAD_CROSS": "Déplacement à la croix.",
+  "InputCircleAction.DPAD_FACE_BUTTONS": "Directions aux boutons ABXY (jeux de rythme, tir dans 4 directions).",
+  // InputSphereAction
+  "InputSphereAction.get_orientation": "Orienter un drone vers sa direction de vol.",
+  "InputSphereAction.get_vector": "Vol libre, nage, caméra de débogage.",
+  "InputSphereAction.get_velocity": "Détecter un changement de direction brusque.",
+  "InputSphereAction.backward_key": "Touche arrière.",
+  "InputSphereAction.down_key": "Touche descendre.",
+  "InputSphereAction.dpad_backward": "Bouton arrière.",
+  "InputSphereAction.dpad_down": "Bouton descendre (LB…).",
+  "InputSphereAction.dpad_forward": "Bouton avant.",
+  "InputSphereAction.dpad_left": "Bouton gauche.",
+  "InputSphereAction.dpad_right": "Bouton droite.",
+  "InputSphereAction.dpad_up": "Bouton monter (RB…).",
+  "InputSphereAction.forward_key": "Touche avant.",
+  "InputSphereAction.invert_y": "Inverser monter / descendre.",
+  "InputSphereAction.joy_axis_x": "Axe gauche / droite.",
+  "InputSphereAction.joy_axis_y": "Axe monter / descendre (stick droit, gâchettes).",
+  "InputSphereAction.joy_axis_z": "Axe avant / arrière.",
+  "InputSphereAction.left_key": "Touche gauche.",
+  "InputSphereAction.right_key": "Touche droite.",
+  "InputSphereAction.up_key": "Touche monter.",
+  "InputSphereAction.orientation_changed": "Orienter un modèle 3D vers la direction de vol.",
+  "InputSphereAction.value_changed": "Relier à <code>voler(direction)</code>.",
+  "InputSphereAction.velocity_changed": "Effet sur un changement de direction brusque.",
+  // InputMouseAction
+  "InputMouseAction.get_motion": "Rotation de caméra lue dans <code>_process</code>.",
+  "InputMouseAction.get_mouse_position": "Viseur, curseur personnalisé.",
+  "InputMouseAction.get_pressure": "Épaisseur d'un trait au stylet.",
+  "InputMouseAction.invert_y": "Option « inverser la souris ».",
+  "InputMouseAction.motion_sensitivity": "Curseur de sensibilité de la souris.",
+  "InputMouseAction.normalize_position": "Position indépendante de la résolution (parallaxe, interface).",
+  "InputMouseAction.position_threshold": "Limiter les signaux d'une souris qui bouge à peine.",
+  "InputMouseAction.motion": "Caméra à la première personne, rotation d'un objet inspecté.",
+  "InputMouseAction.position_changed": "Viseur qui suit la souris, survol.",
+  "InputMouseAction.pressure_changed": "Dessin sensible à la pression.",
+  "InputMouseAction.scrolled": "Zoom, changement d'arme à la molette.",
+  // InputGyroAction
+  "InputGyroAction.get_accelerometer": "Détecter une secousse de la manette.",
+  "InputGyroAction.get_gyroscope": "Visée gyroscopique lue à chaque image.",
+  "InputGyroAction.has_sensors": "Afficher l'option « visée gyroscopique » seulement si possible.",
+  "InputGyroAction.set_sensors_enabled": "Couper les capteurs quand l'option est désactivée.",
+  "InputGyroAction.auto_enable_sensors": "Laisser actif pour que la visée marche sans configuration.",
+  "InputGyroAction.sensitivity": "Curseur de sensibilité gyroscopique.",
+  "InputGyroAction.track_accelerometer": "Gestes de secousse, détection d'inclinaison.",
+  "InputGyroAction.accelerometer_changed": "Secouer la manette pour recharger.",
+  "InputGyroAction.gyroscope_changed": "Visée fine en complément du stick.",
+  // InputBinding
+  "InputBinding.build_call_arguments": "Prévisualiser l'appel d'une liaison dans un outil.",
+  "InputBinding.get_description": "Afficher les liaisons dans un panneau de débogage.",
+  "InputBinding.arguments": "Paramètres fixes : vitesse, identifiant d'arme, nom d'animation.",
+  "InputBinding.enabled": "Couper temporairement une liaison (tutoriel).",
+  "InputBinding.event": "Choisir le moment : appui, relâchement, maintien, changement de valeur.",
+  "InputBinding.method": "Méthode appelée : <code>sauter</code>, <code>piloter</code>…",
+  "InputBinding.pass_value": "Décocher pour appeler une méthode sans paramètre.",
+  "InputBinding.target": "Nœud qui réagit (<code>..</code> pour le parent du PlayerInput).",
+  // InputRebinder
+  "InputRebinder.cancel_rebind": "Bouton « Annuler » du menu de réassignation.",
+  "InputRebinder.find_conflicts": "Avertir « Touche déjà utilisée par Saut ».",
+  "InputRebinder.get_current_action": "Mettre en évidence la ligne en cours de réassignation.",
+  "InputRebinder.get_current_slot": "Afficher quel emplacement attend une touche.",
+  "InputRebinder.get_remaining_time": "Compte à rebours « Appuyez sur une touche (4 s) ».",
+  "InputRebinder.is_listening": "Bloquer la navigation du menu pendant l'écoute.",
+  "InputRebinder.start_rebind": "Clic sur le bouton d'une touche dans le menu.",
+  "InputRebinder.submit_event": "Tests automatisés, interface de réassignation tactile.",
+  "InputRebinder.cancel_key": "Touche d'annulation (Échap, ou Retour arrière).",
+  "InputRebinder.joy_threshold": "Éviter qu'un stick qui dérive soit pris pour un choix.",
+  "InputRebinder.listening_timeout": "Annuler si le joueur s'éloigne de la manette.",
+  "InputRebinder.rebind_cancelled": "Remettre le texte du bouton.",
+  "InputRebinder.rebind_completed": "Rafraîchir le bouton, vérifier les conflits, sauvegarder.",
+  "InputRebinder.rebind_started": "Afficher « Appuyez sur une touche… ».",
+  // PlayerInputUI
+  "PlayerInputUI.get_active_rebinder": "Se connecter aux signaux de réassignation du menu.",
+  "PlayerInputUI.rebuild": "Après un changement de contextes ou de filtre.",
+  "PlayerInputUI.refresh": "Après une modification des contrôles par code.",
+  "PlayerInputUI.reset_bindings": "Bouton « Par défaut » d'un menu personnalisé.",
+  "PlayerInputUI.save_bindings": "Enregistrer à la fermeture du menu plutôt qu'au clic.",
+  "PlayerInputUI.auto_load": "Recharger les contrôles du joueur à l'ouverture du jeu.",
+  "PlayerInputUI.context_filter": "Ne pas montrer les contrôles de débogage ou de menu.",
+  "PlayerInputUI.player_input": "Le joueur dont on règle les contrôles.",
+  "PlayerInputUI.rebinder": "Partager un InputRebinder avec une autre interface.",
+  "PlayerInputUI.save_path": "Un fichier par profil ou par joueur local.",
+  "PlayerInputUI.show_gamepad_tab": "Masquer l'onglet manette d'un jeu clavier uniquement.",
+  "PlayerInputUI.show_keyboard_tab": "Masquer l'onglet clavier sur console.",
+  "PlayerInputUI.bindings_saved": "Afficher une confirmation."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

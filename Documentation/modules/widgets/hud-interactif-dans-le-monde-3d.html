@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HUD interactif 3D · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🖥️ HUD interactif dans le monde 3D (InteractiveHUD3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/hud-interactif-dans-le-monde-3d.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🖥️</div>
+    <div>
+      <h1>🖥️_SpatialHUDSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>HUD interactif dans le monde 3D</strong> : afficher une interface Godot (boutons, curseurs, champs de texte) sur un panneau de la scène 3D, et l'utiliser au curseur, au viseur ou au laser.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/spatial_hud</code></span>
+        <span class="badge">1 classe : InteractiveHUD3D</span>
+        <span class="badge">3D · souris, viseur, VR</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un terminal d'ordinateur dans un jeu à la première personne, un distributeur dont on presse les boutons, un écran de contrôle dans un cockpit, un menu flottant en réalité virtuelle : l'interface doit faire partie du décor 3D <em>et</em> rester cliquable. Godot sait afficher un <code>SubViewport</code> sur un maillage, mais il faut ensuite projeter le pointeur sur le panneau, convertir le point touché en pixels, renvoyer les évènements souris, gérer le survol, le glisser au-delà du bord, le clavier, les panneaux superposés… <strong>Ce nœud fait tout cela</strong> : on lui donne une scène d'interface ordinaire, elle devient un panneau 3D utilisable.</p>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de jeux 3D (FPS, simulation, VR) et les intégrateurs d'interface qui veulent réutiliser leurs scènes <code>Control</code> telles quelles dans le monde.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un HUD d'écran</strong> : pour une interface collée à l'écran, un <code>CanvasLayer</code> suffit. Ici, le panneau est un objet du monde, avec une position, une taille en mètres et une perspective.</li>
+      <li><strong>Pas une étiquette flottante</strong> : pour un simple texte au-dessus d'un personnage, un <code>Label3D</code> est plus léger (pas de <code>SubViewport</code>).</li>
+      <li><strong>Pas un système d'interaction physique</strong> : il ne gère que le pointeur sur le panneau, pas la saisie d'objets (voir <em>✊ Glisser-Déposer d'objet</em>).</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF à la première personne : le joueur s'approche d'un terminal, le viseur survole un bouton (surbrillance), clic, puis il fait glisser un curseur au-delà du bord du panneau.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/spatial_hud/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>InteractiveHUD3D</code> ; aucune autre dépendance du toolkit.</td></tr>
+        <tr><td>Une <code>Camera3D</code> courante</td><td>Obligatoire (sources <em>Mouse</em> et <em>Screen Center</em>)</td><td>Le rayon du pointeur part de la caméra courante du Viewport. En mode <em>Manual</em>, le rayon est fourni par code.</td></tr>
+        <tr><td>Corps physiques sur le calque <code>occlusion_mask</code></td><td>Optionnelle</td><td>Seulement avec <code>check_occlusion</code> : un mur doit avoir une collision pour masquer le panneau.</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/🧭🌍/HUD Icon.png</code></td><td>Optionnelle</td><td>Icône de la classe dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler</strong> (si besoin) :
+      <pre><code class="language-shell">scons spatial_hud</code></pre>
+      <div class="why">compile la bibliothèque du registre <code>spatial_hud_register.cpp</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/spatial_hud/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/spatial_hud/…</code> absolus ; extensions découvertes au démarrage.</div>
+    </li>
+  </ol>
+  <p>Le nœud fonctionne aussi dans l'éditeur pour l'<strong>affichage</strong> (le contenu est visible dans la vue 3D) ; l'interaction, elle, n'est active qu'en jeu.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Créer la scène d'interface</strong> <code>terminal_ui.tscn</code> : un <code>Panel</code> racine avec un <code>Button</code> nommé <code>Valider</code> (cocher <em>Accès en tant que nom unique</em>).
+      <div class="why">c'est une scène <code>Control</code> ordinaire, testable seule ; elle sera étirée sur tout le panneau.</div>
+    </li>
+    <li>
+      <strong>Dans la scène 3D, ajouter un <code>InteractiveHUD3D</code></strong> et régler <code>content_scene</code> = <code>terminal_ui.tscn</code>.
+      <div class="why">le nœud crée lui-même le <code>SubViewport</code> et le quad, en enfants internes : rien d'autre à ajouter dans l'arbre.</div>
+    </li>
+    <li>
+      <strong>Régler la taille</strong> : <code>viewport_size</code> = résolution de l'interface (512 × 320 px par défaut), <code>pixel_size</code> = mètres par pixel (0,0025 : panneau de 1,28 × 0,8 m).
+      <div class="why">la résolution règle la netteté, <code>pixel_size</code> la taille dans le monde ; les deux sont indépendants.</div>
+    </li>
+    <li>
+      <strong>Réagir au bouton</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	$InteractiveHUD3D.get_content().get_node("%Valider").pressed.connect(_ouvrir_porte)</code></pre>
+      <div class="why"><code>get_content()</code> renvoie l'instance de la scène d'interface : ses signaux se connectent comme d'habitude.</div>
+    </li>
+    <li>
+      <strong>Lancer</strong> : avec la souris libre, survoler et cliquer le panneau. Pour un FPS à souris capturée, régler <code>pointer_source</code> = <em>Screen Center</em>.
+      <div class="why">en <em>Screen Center</em>, c'est le centre de l'écran (le viseur) qui pointe ; les clics de la souris restent utilisés.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/InteractiveHUD3D.xml</code>. Éléments internes, non exposés : les enfants internes <code>HUDViewport</code> (<code>SubViewport</code>) et <code>HUDQuad</code> (<code>MeshInstance3D</code> avec <code>QuadMesh</code> et <code>StandardMaterial3D</code>) — accessibles en lecture par <code>get_sub_viewport()</code> mais à ne pas restructurer —, le groupe interne <code>_interactive_hud_3d</code> qui sert à départager les panneaux, l'état de capture des boutons, et les méthodes <code>_intersect</code>, <code>_hit</code>, <code>_is_occluded</code>, <code>_is_behind_another_hud</code>, <code>_forward_mouse</code>…</p>
+  <div data-api="InteractiveHUD3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-vr">Comment j'utilise un laser de manette VR (ou un pointeur de manette) ?</h3>
+  <p>En mode <em>Manual</em>, on fournit le rayon et les appuis ; chaque panneau manuel a son propre rayon.</p>
+  <pre><code class="gdscript">@onready var hud: InteractiveHUD3D = $Menu   # pointer_source = Manual
+
+func _process(_delta: float) -> void:
+	var main: Node3D = $XROrigin3D/MainDroite
+	hud.set_pointer_ray(main.global_position, -main.global_basis.z)
+
+func _on_gachette_pressee() -> void:
+	hud.press_pointer()
+
+func _on_gachette_relachee() -> void:
+	hud.release_pointer()</code></pre>
+
+  <h3 id="ex-laser">Comment je dessine le laser jusqu'au point visé ?</h3>
+  <p><code>ray_to_hud</code> donne le pixel touché, <code>hud_to_world</code> le ramène dans le monde.</p>
+  <pre><code class="gdscript">func longueur_laser(origine: Vector3, direction: Vector3) -> float:
+	var pixel = $Menu.ray_to_hud(origine, direction)
+	if pixel == null:
+		return 5.0   # rien touché : laser de 5 m
+	return origine.distance_to($Menu.hud_to_world(pixel))</code></pre>
+
+  <h3 id="ex-proximite">Comment je n'autorise l'interaction qu'à proximité ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$Terminal.max_distance = 2.0           # au-delà de 2 m, le panneau ignore le pointeur
+	$Terminal.check_occlusion = true       # un mur entre le joueur et l'écran le masque
+	$Terminal.pointer_entered.connect(func(): $Indication.show())
+	$Terminal.pointer_exited.connect(func(): $Indication.hide())</code></pre>
+
+  <h3 id="ex-saisie">Comment je saisis du texte sur un panneau (code de porte) ?</h3>
+  <p>Un clic sur le panneau lui donne le focus clavier ; les touches lui sont envoyées tant qu'un de ses <code>Control</code> a le focus. Couper les déplacements du joueur pendant la saisie :</p>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	$Joueur.controles_actifs = not $Terminal.is_focused()</code></pre>
+
+  <h3 id="ex-billboard">Comment je fais une étiquette interactive qui fait toujours face au joueur ?</h3>
+  <pre><code class="gdscript">var info := InteractiveHUD3D.new()
+info.content_scene = preload("res://ui/fiche_objet.tscn")
+info.viewport_size = Vector2i(300, 120)
+info.billboard = InteractiveHUD3D.BILLBOARD_Y   # tourne seulement autour de l'axe vertical
+info.always_on_top = true                       # jamais caché par le décor
+info.position = Vector3(0, 1.5, 0)
+$Coffre.add_child(info)</code></pre>
+
+  <h3 id="ex-changer">Comment je change le contenu du panneau (pages d'un menu) ?</h3>
+  <pre><code class="gdscript">func afficher_page(scene: PackedScene) -> void:
+	$Menu.set_content(scene.instantiate())   # l'ancienne page est libérée</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Coût de rendu</strong> : chaque panneau rend son <code>SubViewport</code> à chaque image (<code>UPDATE_ALWAYS</code>), même immobile ou hors champ. Une dizaine de panneaux 1024 px se ressent sur mobile ; passer <code>get_sub_viewport().render_target_update_mode</code> en <em>When Visible</em> ou <em>Once</em> pour les panneaux statiques.</li>
+    <li><strong>Coût de l'interaction</strong> : chaque panneau recalcule son survol à chaque image et compare son rayon à tous les autres panneaux de même source (coût quadratique) : à éviter au-delà de quelques dizaines de panneaux interactifs.</li>
+    <li><strong>Priorité de l'interface d'écran</strong> : appuis et mouvements passent par <code>_unhandled_input</code> ; un <code>Control</code> plein écran en <code>MOUSE_FILTER_STOP</code> (même transparent) bloque tous les panneaux.</li>
+    <li><strong>Occlusion physique seulement</strong> : <code>check_occlusion</code> teste les collisions (calques <code>occlusion_mask</code>), pas l'image. Un décor sans collision ne cache pas le panneau pour le pointeur ; il est désactivé par défaut, donc le panneau est cliquable <em>à travers les murs</em>.</li>
+    <li><strong>Une caméra, un Viewport</strong> : les sources <em>Mouse</em> / <em>Screen Center</em> utilisent la caméra courante du Viewport du panneau ; en écran partagé, un seul joueur peut pointer (sauf en <em>Manual</em>).</li>
+    <li><strong>Clavier seulement</strong> : les évènements clavier sont renvoyés au panneau qui a le focus ; la navigation à la manette (<code>ui_accept</code>, flèches) dans le panneau n'est pas prise en charge sans pointeur.</li>
+    <li><strong>Souris capturée en mode <em>Mouse</em></strong> : la position du curseur ne change plus ; utiliser <em>Screen Center</em>.</li>
+    <li><strong>Lisibilité</strong> : texture filtrée linéairement sans mipmaps ; de loin ou en biais, le texte crénelé scintille. Augmenter <code>viewport_size</code> et réduire <code>pixel_size</code> d'autant.</li>
+    <li><strong>Transparence</strong> : <code>transparent_background</code> (actif par défaut) rend le matériau transparent, avec les problèmes de tri habituels de Godot (panneau qui passe derrière des particules, des vitres…). Le désactiver pour un écran opaque.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 230" role="img" aria-label="Schéma du HUD interactif 3D">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="160" height="54" rx="8"/>
+    <text x="100" y="54" text-anchor="middle">Pointeur</text>
+    <text x="100" y="72" text-anchor="middle" class="small">souris · centre · rayon manuel</text>
+    <rect class="box main" x="240" y="30" width="180" height="54" rx="8"/>
+    <text x="330" y="54" text-anchor="middle">InteractiveHUD3D</text>
+    <text x="330" y="72" text-anchor="middle" class="small">rayon → pixel</text>
+    <rect class="box" x="480" y="30" width="170" height="54" rx="8"/>
+    <text x="565" y="54" text-anchor="middle">HUDQuad</text>
+    <text x="565" y="72" text-anchor="middle" class="small">MeshInstance3D interne</text>
+    <rect class="box" x="480" y="140" width="170" height="54" rx="8"/>
+    <text x="565" y="164" text-anchor="middle">HUDViewport</text>
+    <text x="565" y="182" text-anchor="middle" class="small">SubViewport interne</text>
+    <rect class="box" x="700" y="140" width="140" height="54" rx="8"/>
+    <text x="770" y="164" text-anchor="middle">Contenu</text>
+    <text x="770" y="182" text-anchor="middle" class="small">scène Control</text>
+    <path class="arrow" d="M180 57 H238" marker-end="url(#arr)"/>
+    <path class="arrow" d="M420 57 H478" marker-end="url(#arr)"/>
+    <text x="449" y="50" text-anchor="middle" class="small">intersection</text>
+    <path class="arrow" d="M400 84 Q430 160 478 167" marker-end="url(#arr)"/>
+    <text x="360" y="140" class="small">push_input (évènement recopié)</text>
+    <path class="arrow dashed" d="M565 140 V86" marker-end="url(#arr)"/>
+    <text x="575" y="118" class="small">texture</text>
+    <path class="arrow" d="M650 167 H698" marker-end="url(#arr)"/>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li>À l'entrée dans l'arbre, <strong><code>InteractiveHUD3D</code></strong> crée un <code>SubViewport</code> et un quad en enfants <em>internes</em> (jamais sauvegardés), instancie <code>content_scene</code> dans le <code>SubViewport</code> et applique sa texture au quad.</li>
+    <li>À chaque image et à chaque évènement souris, le rayon du pointeur est ramené dans le repère du quad ; le point touché devient un pixel. Les évènements souris sont recopiés à cette position et envoyés au <code>SubViewport</code> par <code>push_input</code> ; le survol est signalé au <code>SubViewport</code> comme le ferait un <code>SubViewportContainer</code>.</li>
+    <li>Plusieurs panneaux se départagent par un groupe interne : seul le plus proche (ou celui qui a capturé un bouton) traite le pointeur. Le code du jeu reçoit les signaux <code>pointer_*</code> et ceux de sa propre interface.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Aucune dépendance vers les autres modules ; aucun module n'en dépend. Bibliothèque propre : <code>spatial_hud_register.cpp</code> → <code>bin/spatial_hud/</code>.</li>
+    <li>Le contenu n'a aucun lien avec le panneau : n'importe quelle scène <code>Control</code> fonctionne, sans script particulier.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td><code>SubViewport</code> et quad créés par le nœud, en enfants internes</td><td>Un seul nœud à ajouter ; rien ne peut être supprimé ou dupliqué par erreur, et rien n'est enregistré dans le <code>.tscn</code>.</td></tr>
+        <tr><td>Intersection mathématique rayon / plan, pas de <code>CollisionShape3D</code></td><td>Pas de calque physique à réserver, et le pixel touché est exact (pas de forme de collision à synchroniser avec la taille du panneau).</td></tr>
+        <tr><td>Appuis par <code>_unhandled_input</code>, relâchements par <code>_input</code></td><td>L'interface d'écran garde la priorité, mais un relâchement n'est jamais perdu (sinon un curseur resterait « collé »).</td></tr>
+        <tr><td>Capture des boutons</td><td>Glisser un curseur au-delà du bord du panneau doit continuer à le faire bouger, comme à l'écran.</td></tr>
+        <tr><td>Clavier renvoyé seulement si un <code>Control</code> du panneau a le focus</td><td>Sinon, chaque touche du joueur (déplacement) serait volée par le panneau cliqué.</td></tr>
+        <tr><td>Survol réévalué à chaque image</td><td>La caméra ou le panneau peuvent bouger sous un pointeur immobile (FPS, véhicule).</td></tr>
+        <tr><td>Mouvement « hors du viewport » envoyé à la sortie</td><td><code>NOTIFICATION_VP_MOUSE_EXIT</code> seul ne retire pas le survol des <code>Control</code> : un bouton resterait en surbrillance.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : page de module (référence XML et commentaires du header déjà rédigés). Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Ajout système de succès et HUD spatial interactif : <code>InteractiveHUD3D</code> (sources souris, centre de l'écran, rayon manuel ; capture, focus clavier, occlusion, billboard).</li>
+    </ul>
+  </div>
+
+  <footer>Module 🖥️ HUD interactif dans le monde 3D · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/🖥️HUD interactive dans Monde 3D/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "InteractiveHUD3D.always_on_top": "Étiquette ou réticule d'information qui ne doit jamais être caché par le décor.",
+  "InteractiveHUD3D.billboard": "Fiche d'objet ou menu contextuel qui fait toujours face au joueur.",
+  "InteractiveHUD3D.check_occlusion": "Empêcher de cliquer un terminal à travers un mur.",
+  "InteractiveHUD3D.content_scene": "Désigner la scène d'interface (terminal, distributeur, tableau de bord) affichée sur le panneau.",
+  "InteractiveHUD3D.double_sided": "Désactiver pour un écran mural qu'on ne doit voir et utiliser que de face.",
+  "InteractiveHUD3D.forward_keyboard": "Désactiver si le panneau n'a pas de champ de texte et que le clavier doit rester au jeu.",
+  "InteractiveHUD3D.interactive": "Écran éteint, hors service ou verrouillé tant qu'une condition n'est pas remplie.",
+  "InteractiveHUD3D.max_distance": "N'utiliser un terminal qu'à portée de main.",
+  "InteractiveHUD3D.modulate": "Assombrir un écran inactif, le faire clignoter, le rendre semi-transparent (hologramme).",
+  "InteractiveHUD3D.occlusion_mask": "Choisir les calques physiques (murs, portes) qui cachent le panneau.",
+  "InteractiveHUD3D.pixel_size": "Régler la taille réelle du panneau dans le monde (écran de téléphone ou panneau publicitaire).",
+  "InteractiveHUD3D.pointer_source": "<em>Mouse</em> pour une souris libre, <em>Screen Center</em> pour un FPS, <em>Manual</em> pour la VR ou un pointeur de manette.",
+  "InteractiveHUD3D.transparent_background": "Interface aux coins arrondis ou hologramme ; désactiver pour un écran opaque (moins de problèmes de tri).",
+  "InteractiveHUD3D.unshaded": "Désactiver pour un panneau papier ou une affiche éclairée par la scène.",
+  "InteractiveHUD3D.viewport_size": "Augmenter pour un texte net de près, réduire pour économiser le rendu.",
+  "InteractiveHUD3D.clear_pointer_ray": "La main VR quitte la zone, le pointeur de manette est rangé.",
+  "InteractiveHUD3D.get_content": "Connecter les signaux des boutons de l'interface ou lui transmettre des données.",
+  "InteractiveHUD3D.get_pointer_position": "Afficher un curseur personnalisé sur le panneau.",
+  "InteractiveHUD3D.get_quad_size": "Placer un cadre, une collision ou un décor autour du panneau.",
+  "InteractiveHUD3D.get_sub_viewport": "Changer le mode de rafraîchissement, lire la texture pour une capture.",
+  "InteractiveHUD3D.hud_to_world": "Faire apparaître une particule ou dessiner un laser jusqu'au point cliqué.",
+  "InteractiveHUD3D.is_captured": "Ne pas faire pivoter la caméra pendant qu'on fait glisser un curseur du panneau.",
+  "InteractiveHUD3D.is_focused": "Couper les déplacements du joueur pendant qu'il tape un code.",
+  "InteractiveHUD3D.is_hovered": "Afficher un viseur différent quand le panneau est visé.",
+  "InteractiveHUD3D.press_pointer": "Gâchette d'une manette VR, bouton « A » d'une manette en pointage manuel.",
+  "InteractiveHUD3D.ray_to_hud": "Savoir si un rayon (laser, regard) touche le panneau, et où.",
+  "InteractiveHUD3D.release_pointer": "Relâchement de la gâchette ou du bouton de pointage.",
+  "InteractiveHUD3D.screen_to_hud": "Convertir un clic d'écran en pixel du panneau (tutoriel, test automatisé).",
+  "InteractiveHUD3D.set_content": "Changer de page de menu, ou construire l'interface par code.",
+  "InteractiveHUD3D.set_pointer_ray": "Suivre chaque image la main VR ou un pointeur de manette.",
+  "InteractiveHUD3D.pointer_entered": "Afficher « Clic pour utiliser », allumer l'écran.",
+  "InteractiveHUD3D.pointer_exited": "Masquer l'indication, mettre l'écran en veille.",
+  "InteractiveHUD3D.pointer_pressed": "Son de clic, vibration de manette VR.",
+  "InteractiveHUD3D.pointer_released": "Fin d'un glisser sur le panneau.",
+  "InteractiveHUD3D.POINTER_SOURCE_MOUSE": "Jeu à souris libre (point and click, gestion, vue à la troisième personne).",
+  "InteractiveHUD3D.POINTER_SOURCE_SCREEN_CENTER": "FPS à souris capturée : on vise avec le centre de l'écran.",
+  "InteractiveHUD3D.POINTER_SOURCE_MANUAL": "Réalité virtuelle, pointeur au stick, regard d'un PNJ scripté.",
+  "InteractiveHUD3D.BILLBOARD_DISABLED": "Écran fixé au décor (terminal, panneau mural).",
+  "InteractiveHUD3D.BILLBOARD_ENABLED": "Étiquette qui fait toujours face à la caméra, même vue de dessus.",
+  "InteractiveHUD3D.BILLBOARD_Y": "Panneau qui reste vertical et pivote vers le joueur (fiche d'objet, PNJ)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

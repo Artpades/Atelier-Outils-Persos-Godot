@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Floating Dock · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🛟 Floating Dock (FloatingDock) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/floating-dock.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🛟</div>
+    <div>
+      <h1>🛟_DockSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Floating Dock</strong> : une barre d'icônes qui grossissent sous le pointeur, façon dock macOS.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : FloatingDock</span>
+        <span class="badge">Interface</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Une barre de raccourcis, un sélecteur d'armes ou un menu principal gagnent en vie quand l'élément visé grossit et que ses voisins s'écartent. Les conteneurs de Godot (<code>HBoxContainer</code>…) ne savent pas faire déborder un élément agrandi sans décaler toute l'interface, ni animer une loupe continue qui suit le pointeur. <strong>Ce module est un conteneur qui le fait</strong> : on y place des boutons ou des icônes, ils grossissent au survol, à la souris comme au clavier et à la manette.</p>
+  <p><strong>Pour qui ?</strong> Les intégrateurs d'interface qui veulent un menu ou une barre d'outils animés sans script.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un fenêtrage ni un dock d'éditeur</strong> : rien ne s'ancre, ne se détache ni ne se réordonne par glisser-déposer.</li>
+      <li><strong>Pas un effet de <code>PlayerFX</code></strong> : c'est un <code>Container</code> autonome. Pour faire grossir un seul bouton, voir <a href="agrandissement-retrecissement.html">🦣 Agrandissement</a>.</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>FloatingDock</code>. Aucune dépendance au socle des effets.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>FloatingDock</code></strong> dans l'interface et l'ancrer en bas au centre (préréglage d'ancrage <em>Center Bottom</em>).
+      <div class="why">le dock prend la taille de ses éléments au repos ; les éléments agrandis débordent vers le haut (<code>item_anchor</code> = <em>End</em> par défaut) sans pousser le reste de l'interface.</div>
+    </li>
+    <li>
+      <strong>Ajouter des <code>TextureButton</code></strong> (ou <code>TextureRect</code>) comme enfants, avec <code>ignore_texture_size</code> et <code>stretch_mode</code> = <em>Keep Aspect Centered</em>.
+      <div class="why">en mode <code>RESIZE_SIZE</code>, l'élément reçoit une taille plus grande : il faut que son image s'étire avec lui.</div>
+    </li>
+    <li>
+      <strong>Régler <code>item_size</code>, <code>magnification</code> et <code>influence_radius</code></strong>.
+      <div class="why"><code>magnification</code> est l'échelle sous le pointeur, <code>influence_radius</code> la distance à laquelle les voisins ne grossissent plus. L'éditeur n'affiche que l'état au repos : lancer le jeu pour voir l'effet.</div>
+    </li>
+    <li>
+      <strong>Facultatif : afficher le nom de l'élément survolé</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	$Dock.hovered_item_changed.connect(func(element: Control):
+		$NomOutil.text = element.tooltip_text if element else "")</code></pre>
+      <div class="why"><code>hovered_item_changed</code> est émis à chaque changement de l'élément le plus proche du pointeur, et avec <code>null</code> quand le pointeur quitte le dock.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/FloatingDock.xml</code>. Éléments internes, non exposés : les influences par élément, les rectangles du dernier agencement, et les méthodes <code>_get_items</code>, <code>_get_base_size</code>, <code>_get_rest_centers</code>, <code>_get_pointer</code>, <code>_layout</code>.</p>
+  <div data-api="FloatingDock"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="demo">Aperçu interactif</h3>
+  <p>Reproduction dans le navigateur de l'agencement de <code>FloatingDock</code> (même atténuation en cosinus, même espacement) : survoler la rangée.</p>
+  <div class="card demo" id="dock-demo">
+    <canvas width="560" height="170" aria-label="Aperçu du FloatingDock"></canvas>
+    <div class="controls">
+      <label>Grossissement (<code>magnification</code>) <output data-o="mag">1.80</output>
+        <input type="range" data-k="mag" min="1" max="3" step="0.05" value="1.8">
+      </label>
+      <label>Rayon d'influence (<code>influence_radius</code>) <output data-o="radius">160</output>
+        <input type="range" data-k="radius" min="40" max="400" step="1" value="160">
+      </label>
+      <label>Espacement au survol (<code>hover_spacing</code>) <output data-o="spacing">12</output>
+        <input type="range" data-k="spacing" min="0" max="40" step="1" value="12">
+      </label>
+      <output data-o="hovered">hovered_item_changed : —</output>
+    </div>
+  </div>
+
+  <h3 id="ex-vertical">Comment je fais un dock vertical sur le bord gauche ?</h3>
+  <pre><code class="gdscript">$Dock.vertical = true
+$Dock.item_anchor = FloatingDock.ANCHOR_BEGIN   # collé à gauche, grossit vers la droite
+$Dock.hover_lift = 8.0                           # l'élément survolé se décale vers la droite</code></pre>
+
+  <h3 id="ex-texte">Comment j'agrandis des boutons avec du texte ?</h3>
+  <p>En mode taille, un bouton agrandi garde une police de même taille. <code>RESIZE_SCALE</code> met tout le rendu à l'échelle, texte compris :</p>
+  <pre><code class="gdscript">$Menu.resize_mode = FloatingDock.RESIZE_SCALE
+$Menu.item_size = Vector2(160, 48)
+$Menu.magnification = 1.3</code></pre>
+
+  <h3 id="ex-manette">Comment je l'utilise à la manette ?</h3>
+  <p>Avec <code>follow_focus</code> (actif par défaut), l'élément qui a le focus est grossi quand la souris n'est pas sur le dock. Il suffit de donner le focus au premier élément :</p>
+  <pre><code class="gdscript">func ouvrir_menu() -> void:
+	$Dock.get_child(0).grab_focus()</code></pre>
+
+  <h3 id="ex-raccourcis">Comment je relie le dock à une barre de raccourcis ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	for i in $Dock.get_child_count():
+		var bouton := $Dock.get_child(i) as BaseButton
+		bouton.pressed.connect(utiliser_raccourci.bind(i))
+
+func utiliser_raccourci(index: int) -> void:
+	print("Raccourci ", index)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Pas d'aperçu dans l'éditeur</strong> : seul l'agencement au repos est affiché ; le grossissement n'existe qu'en jeu.</li>
+    <li><strong>Débordement</strong> : les éléments agrandis sortent du rectangle du dock. Un parent qui découpe son contenu (<code>clip_contents</code>, <code>ScrollContainer</code>) les coupe ; d'autres éléments d'interface peuvent être recouverts.</li>
+    <li><strong>Le survol est géométrique</strong> : la position de la souris est comparée au rectangle du dock (plus <code>hover_margin</code>) sans tenir compte de ce qui est dessiné par-dessus : un menu ou une fenêtre au-dessus du dock le fait quand même réagir.</li>
+    <li><strong>Élément « survolé » = le plus proche</strong> du pointeur le long du dock, dans <code>influence_radius</code> : ce n'est pas forcément celui sous la souris (entre deux éléments, dans la marge). Les clics restent gérés par les éléments eux-mêmes.</li>
+    <li><strong><code>get_item_influence(index)</code> compte les enfants visibles</strong>, pas l'indice d'enfant : un enfant masqué décale les indices (les enfants masqués et <code>top_level</code> sont ignorés, vérifié pour la taille minimale).</li>
+    <li><strong><code>item_size</code> plus petit que la taille minimale d'un élément</strong> en mode <code>RESIZE_SIZE</code> : l'élément garde sa taille minimale et chevauche ses voisins.</li>
+    <li><strong>Pause</strong> : en mode <em>Inherit</em>, l'animation s'arrête pendant la pause (passer le dock en <em>Always</em> pour un menu de pause) ; elle suit aussi <code>Engine.time_scale</code>.</li>
+    <li><strong>Coût</strong> : chaque frame, le dock parcourt ses enfants (sans réagencer s'il n'y a pas de changement) ; négligeable pour une dizaine d'éléments.</li>
+    <li><strong>Pas de tactile spécifique</strong> : sur écran tactile, le grossissement ne suit que la position de la souris émulée.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>FloatingDock</code></strong> (<code>Container</code>) calcule à chaque frame la position du pointeur le long du dock (souris dans la zone de survol, sinon élément qui a le focus), puis l'influence visée de chaque élément : <code>½ (1 + cos(π · distance / rayon))</code>, mesurée sur l'agencement au repos.</li>
+    <li>Les influences sont lissées (<code>1 − e^(−smoothing·Δt)</code>) ; dès qu'une change, <code>_layout</code> recalcule tailles, espacements et positions et les applique (<code>fit_child_in_rect</code> ou échelle).</li>
+    <li>Le reste du jeu est prévenu par <code>hovered_item_changed</code>.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Aucune dépendance au reste du toolkit ; fonctionne avec n'importe quels enfants <code>Control</code>.</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Taille minimale = taille au repos</td><td>Le grossissement ne doit pas redimensionner le parent : tout le reste de l'interface sauterait à chaque survol.</td></tr>
+        <tr><td>Influence calculée sur les positions au repos</td><td>Mesurée sur les positions agrandies, la loupe se déplacerait sous le pointeur et oscillerait (rétroaction).</td></tr>
+        <tr><td>Zone de survol élargie aux éléments agrandis + <code>hover_margin</code></td><td>Les éléments débordent du dock : sans cela, viser le haut d'une icône agrandie ferait retomber le dock au repos.</td></tr>
+        <tr><td>Lissage exponentiel indépendant du nombre d'images</td><td>Même rendu à 30 et 144 images/s.</td></tr>
+        <tr><td>Deux modes, taille ou échelle</td><td>La taille garde un texte net et une mise en page correcte des boutons ; l'échelle agrandit vraiment tout le contenu (texte compris).</td></tr>
+        <tr><td>Suivi du focus</td><td>Le même dock fonctionne au clavier et à la manette sans code supplémentaire.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>FloatingDock</code>, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>FloatingDock</code> : grossissement à la souris et au focus, ancrage, modes taille / échelle, signal de l'élément survolé.</li></ul>
+  </div>
+
+  <footer>Module 🛟 Floating Dock · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🛟Floating Dock/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "FloatingDock.vertical": "Dock sur un bord latéral : barre d'outils d'un éditeur de niveau, sélecteur de sorts.",
+  "FloatingDock.item_size": "Taille commune des icônes au repos ; (0, 0) pour des boutons de tailles différentes.",
+  "FloatingDock.separation": "Espacer des icônes serrées.",
+  "FloatingDock.item_anchor": "<em>End</em> pour un dock en bas de l'écran, <em>Begin</em> en haut, <em>Center</em> au milieu d'un menu.",
+  "FloatingDock.magnification": "1,8 pour un dock spectaculaire, 1,2-1,3 pour un menu sobre.",
+  "FloatingDock.influence_radius": "Petit : seul l'élément visé grossit ; grand : une vague douce sur plusieurs voisins.",
+  "FloatingDock.hover_spacing": "Écarter les voisins pour que l'élément agrandi ne les recouvre pas.",
+  "FloatingDock.hover_lift": "Faire « sauter » l'icône survolée hors de la barre.",
+  "FloatingDock.resize_mode": "<em>Size</em> pour des icônes, <em>Scale</em> pour des boutons avec du texte.",
+  "FloatingDock.smoothing": "Bas pour une loupe molle, haut pour une interface réactive.",
+  "FloatingDock.hover_margin": "Agrandir si le dock retombe quand la souris passe juste au-dessus.",
+  "FloatingDock.follow_focus": "Navigation clavier / manette dans un menu principal.",
+  "FloatingDock.get_hovered_item": "Afficher le nom de l'outil visé, jouer un son au changement.",
+  "FloatingDock.get_item_influence": "Synchroniser un effet (lueur, opacité) sur le grossissement d'un élément.",
+  "FloatingDock.hovered_item_changed": "Étiquette du nom de l'élément, son de survol, aperçu.",
+  "FloatingDock.ANCHOR_BEGIN": "Dock en haut de l'écran, ou à gauche en vertical.",
+  "FloatingDock.ANCHOR_CENTER": "Rangée au milieu d'un menu, qui grossit des deux côtés.",
+  "FloatingDock.ANCHOR_END": "Dock en bas de l'écran (cas classique), ou à droite en vertical.",
+  "FloatingDock.RESIZE_SIZE": "Icônes <code>TextureRect</code> / <code>TextureButton</code> en expand : image nette à toute taille.",
+  "FloatingDock.RESIZE_SCALE": "Boutons avec texte ou contenus complexes à agrandir d'un bloc."
+};
+
+// 🎮 Aperçu interactif : reproduit _process / _layout de floating_dock.cpp (dock horizontal, ANCHOR_END, RESIZE_SIZE)
+(function () {
+  const root = document.getElementById("dock-demo");
+  const canvas = root.querySelector("canvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const N = 7, SIZE = 48, SEP = 8, MARGIN = 16;
+  const COLORS = ["#e85d75", "#f2a541", "#f6d743", "#6cbf5a", "#4fb3d9", "#7b6cf6", "#c86cf6"];
+  const s = { mag: 1.8, radius: 160, spacing: 12 };
+  const influences = new Array(N).fill(0);
+  let mouse = null, hovered = -1, last = performance.now();
+  const dockW = N * SIZE + (N - 1) * SEP, dockX = (W - dockW) / 2, dockY = H - SIZE - 10;
+  const rest = [...Array(N)].map((_, i) => dockX + i * (SIZE + SEP) + SIZE / 2);
+  let rects = [];
+
+  function layout() {
+    const sizes = influences.map((f) => SIZE * (1 + (s.mag - 1) * f));
+    const spacings = influences.map((f) => s.spacing * f);
+    let total = SEP * (N - 1);
+    sizes.forEach((sz, i) => { total += sz + 2 * spacings[i]; });
+    let cursor = (W - total) / 2;
+    rects = sizes.map((sz, i) => {
+      cursor += spacings[i];
+      const r = { x: cursor, y: dockY + SIZE - sz, w: sz, h: sz };
+      cursor += sz + spacings[i] + SEP;
+      return r;
+    });
+  }
+
+  function frame(now) {
+    const dt = (now - last) / 1000; last = now;
+    let area = { x0: dockX, y0: dockY, x1: dockX + dockW, y1: dockY + SIZE };
+    rects.forEach((r) => { area.x0 = Math.min(area.x0, r.x); area.y0 = Math.min(area.y0, r.y); area.x1 = Math.max(area.x1, r.x + r.w); area.y1 = Math.max(area.y1, r.y + r.h); });
+    const active = mouse && mouse.x > area.x0 - MARGIN && mouse.x < area.x1 + MARGIN && mouse.y > area.y0 - MARGIN && mouse.y < area.y1 + MARGIN;
+    const weight = 1 - Math.exp(-12 * dt);
+    let closest = -1, best = s.radius;
+    for (let i = 0; i < N; i++) {
+      let target = 0;
+      if (active) {
+        const d = Math.abs(mouse.x - rest[i]);
+        target = d < s.radius ? 0.5 * (1 + Math.cos(Math.PI * d / s.radius)) : 0;
+        if (d < best) { best = d; closest = i; }
+      }
+      const next = influences[i] + (target - influences[i]) * weight;
+      influences[i] = Math.abs(next - target) < 0.001 ? target : next;
+    }
+    if (closest !== hovered) {
+      hovered = closest;
+      root.querySelector('[data-o="hovered"]').textContent = "hovered_item_changed : " + (hovered >= 0 ? "Élément " + (hovered + 1) : "null");
+    }
+    layout();
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(128,128,128,0.6)"; ctx.setLineDash([4, 4]);
+    ctx.strokeRect(dockX, dockY, dockW, SIZE); ctx.setLineDash([]);
+    rects.forEach((r, i) => { ctx.fillStyle = COLORS[i]; if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.fill(); } else ctx.fillRect(r.x, r.y, r.w, r.h); });
+    requestAnimationFrame(frame);
+  }
+
+  canvas.addEventListener("mousemove", (e) => {
+    const b = canvas.getBoundingClientRect();
+    mouse = { x: (e.clientX - b.left) * W / b.width, y: (e.clientY - b.top) * H / b.height };
+  });
+  canvas.addEventListener("mouseleave", () => { mouse = null; });
+  root.addEventListener("input", (e) => {
+    const k = e.target.dataset.k;
+    if (!k) return;
+    s[k] = +e.target.value;
+    root.querySelector('[data-o="' + k + '"]').textContent = k === "mag" ? s[k].toFixed(2) : s[k];
+  });
+  layout();
+  requestAnimationFrame(frame);
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

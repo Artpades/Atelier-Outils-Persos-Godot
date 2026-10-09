@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Music Looper · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🔁 Music Looper (MusicLooper) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/music-looper.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🔁</div>
+    <div>
+      <h1>🔁_AudioSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Music Looper</strong> : musiques avec intro jouée une fois, section qui boucle, fin, et fondus.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : MusicLooper</span>
+        <span class="badge">WAV · OGG · MP3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Une musique de jeu commence souvent par une intro, puis répète un passage indéfiniment. Godot sait boucler un fichier depuis un point de reprise, mais pas une section arbitraire d'un OGG, ni compter les boucles pour passer à la fin du morceau, ni faire de fondu d'entrée et de sortie. <strong>Ce module joue un morceau avec ses points de boucle</strong> réglés en secondes, sans découper le fichier, et donne les boutons d'écoute dans l'inspecteur pour les ajuster à l'oreille.</p>
+  <p><strong>Pour qui ?</strong> Les compositeurs et intégrateurs audio qui livrent un fichier unique avec des points de boucle, et les développeurs qui enchaînent musiques de niveau et de combat.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un gestionnaire de playlist ni de musique adaptative</strong> : un seul morceau à la fois, pas de fondu enchaîné entre deux morceaux, pas de couches synchronisées.</li>
+      <li><strong>Pas un lecteur de bruitages</strong> : voir <a href="effet-joueur-de-son.html">🔊 Effet joueur de son</a>.</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Schéma de la forme d'onde d'un morceau avec trois zones colorées (intro avant <code>loop_start</code>, section bouclée jusqu'à <code>loop_end</code>, fin), une flèche de retour de <code>loop_end</code> vers <code>loop_start</code> annotée « × loop_count » ; à côté, capture de l'inspecteur avec les boutons Écouter / Arrêter.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>MusicLooper</code>. Aucune dépendance au socle des effets.</td></tr>
+        <tr><td>Bus audio <code>Musique</code></td><td>Optionnelle</td><td>Pour un réglage de volume séparé ; sinon <code>Master</code>.</td></tr>
+        <tr><td>Icône <code>MusicManager.png</code></td><td>Optionnelle</td><td>Icône du nœud dans l'arbre de scène.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+    <li>
+      <strong>Importer la musique sans boucle</strong> (onglet <em>Import</em> : <em>Loop</em> décoché).
+      <div class="why">le <code>MusicLooper</code> configure lui-même la boucle sur une copie du flux ; une boucle d'import contradictoire est inutile.</div>
+    </li>
+    <li>
+      <strong>Recommandé : placer le <code>MusicLooper</code> dans un autoload</strong> (scène <code>musique.tscn</code>), avec <code>process_mode</code> = <em>Always</em>.
+      <div class="why">la musique survit aux changements de scène, et continue pendant la pause du jeu (sinon le lecteur interne se met en pause avec l'arbre).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>MusicLooper</code></strong> et choisir le <code>stream</code>.
+      <div class="why">le nœud crée son propre <code>AudioStreamPlayer</code> interne : rien d'autre à ajouter.</div>
+    </li>
+    <li>
+      <strong>Régler <code>loop_start</code></strong> sur la fin de l'intro (en secondes), laisser <code>loop_end</code> à 0.
+      <div class="why"><code>loop_end = 0</code> signifie « fin du fichier » : c'est le cas où la boucle est exacte à l'échantillon pour tous les formats.</div>
+    </li>
+    <li>
+      <strong>Écouter avec <kbd>Écouter</kbd></strong> dans l'inspecteur, ajuster <code>loop_start</code>, <kbd>Arrêter</kbd>.
+      <div class="why">un point de boucle se règle à l'oreille ; les nouveaux réglages sont pris en compte au prochain <kbd>Écouter</kbd>.</div>
+    </li>
+    <li>
+      <strong>Cocher <code>autoplay</code></strong>, ou lancer par code avec un fondu :
+      <pre><code class="gdscript">$MusicLooper.play(0.0, 2.0)   # depuis le début, fondu d'entrée de 2 s</code></pre>
+      <div class="why"><code>autoplay</code> démarre la musique au lancement de la scène (jamais dans l'éditeur).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/MusicLooper.xml</code>. Éléments internes, non exposés : le lecteur <code>AudioStreamPlayer</code> interne (<code>MusicPlayer</code>, invisible dans l'arbre), la copie du flux configurée pour la boucle, le facteur de fondu et son <code>Tween</code>, et les méthodes <code>_prepare_stream</code>, <code>_end_looping</code>, <code>_on_loop</code>.</p>
+  <div data-api="MusicLooper"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-combat">Comment je passe de la musique d'exploration à celle de combat ?</h3>
+  <p>Un seul morceau à la fois : fondu de sortie, changement, fondu d'entrée.</p>
+  <pre><code class="gdscript">func changer_musique(morceau: AudioStream, debut_boucle: float) -> void:
+	Musique.stop(1.0)
+	await get_tree().create_timer(1.0).timeout
+	Musique.stream = morceau
+	Musique.loop_start = debut_boucle
+	Musique.play(0.0, 1.0)</code></pre>
+
+  <h3 id="ex-fin">Comment je fais jouer la boucle deux fois, puis la fin du morceau ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$MusicLooper.loop_start = 8.0
+	$MusicLooper.loop_end = 40.0
+	$MusicLooper.loop_count = 2
+	$MusicLooper.looped.connect(func(n): print("Boucle ", n))
+	$MusicLooper.finished.connect(_generique)
+	$MusicLooper.play()</code></pre>
+  <p>Vérifié en headless avec un WAV : <code>looped(1)</code>, <code>looped(2)</code>, puis <code>finished</code>.</p>
+
+  <h3 id="ex-pause">Comment je baisse la musique dans le menu de pause ?</h3>
+  <pre><code class="gdscript">func ouvrir_pause() -> void:
+	Musique.volume_db = -12.0   # appliqué immédiatement
+
+func fermer_pause() -> void:
+	Musique.volume_db = 0.0</code></pre>
+
+  <h3 id="ex-reprise">Comment je reprends une musique là où elle s'était arrêtée ?</h3>
+  <pre><code class="gdscript">var position_sauvee := 0.0
+
+func entrer_magasin() -> void:
+	position_sauvee = Musique.get_playback_position()
+	Musique.stop(0.5)
+
+func sortir_magasin() -> void:
+	Musique.play(position_sauvee, 0.5)</code></pre>
+  <p>Le compteur de boucles repart à zéro à chaque <code>play()</code>.</p>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>OGG / MP3 avec une fin de boucle avant la fin du fichier : boucle imprécise.</strong> Le retour à <code>loop_start</code> est fait à chaque image, à quelques millisecondes près (petit « saut » audible possible), et seulement si <code>_process</code> tourne. Pour une boucle parfaite : WAV, ou fichier coupé à la fin de la boucle. <code>is_loop_sample_accurate()</code> indique le mode utilisé.</li>
+    <li><strong>Réglages lus au <code>play()</code></strong> : modifier <code>loop_start</code>, <code>loop_end</code>, <code>loop_count</code> ou <code>loop_enabled</code> pendant la lecture n'a aucun effet avant le prochain <code>play()</code>.</li>
+    <li><strong>Pas de fondu enchaîné</strong> entre deux morceaux (un seul lecteur) ; changer <code>stream</code> pendant la lecture relance le nouveau morceau d'un coup, sans fondu.</li>
+    <li><strong>Pause du jeu</strong> : en mode <em>Inherit</em>, la musique s'arrête avec l'arbre et les fondus se figent ; passer le nœud en <em>Always</em> pour une musique continue.</li>
+    <li><strong><code>looped</code> légèrement en retard</strong> pour une boucle exacte : émis à l'image qui suit le retour (détection d'un recul de position de plus de 50 ms).</li>
+    <li><strong><code>finished</code> n'est pas émis par <code>stop()</code></strong>, ni en boucle infinie.</li>
+    <li><strong>Points de boucle invalides</strong> (<code>loop_start</code> ≥ fin de boucle) : avertissement et lecture sans boucle (vérifié).</li>
+    <li><strong>Autres flux</strong> (<code>AudioStreamRandomizer</code>, générateurs…) : boucle par image ; un flux qui ne sait pas se positionner (<code>seek</code>) ne bouclera pas correctement. Un flux de durée inconnue (0) n'a pas de fin de boucle automatique.</li>
+    <li><strong>Mémoire</strong> : une copie du flux est faite à chaque <code>play()</code> en boucle (les données audio sont partagées, seule la ressource est dupliquée).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>MusicLooper</code></strong> (<code>Node</code>) crée à la demande un <code>AudioStreamPlayer</code> enfant <em>interne</em> et relaie son signal <code>finished</code>.</li>
+    <li>Au <code>play()</code>, <code>_prepare_stream</code> choisit la stratégie : <strong>boucle native</strong> sur une copie du flux (WAV : points de boucle en échantillons ; OGG / MP3 : <code>loop</code> + <code>loop_offset</code> si la boucle va jusqu'à la fin du fichier), sinon <strong>boucle par image</strong> dans <code>_process</code> (<code>seek</code> quand la position dépasse la fin de boucle).</li>
+    <li>Quand <code>loop_count</code> est atteint, la boucle native est désactivée sur la copie en cours de lecture : le flux continue jusqu'à sa fin.</li>
+    <li>Les fondus animent un facteur linéaire par un <code>Tween</code> ; le volume réel est <code>volume_db + linear_to_db(fondu)</code>.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Aucune dépendance au reste du toolkit ; utilise <code>AudioServer</code> pour corriger la position par le temps écoulé depuis le dernier mixage.</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Copie du flux, original jamais modifié</td><td>Le même fichier peut être utilisé ailleurs (autre <code>MusicLooper</code>, aperçu de l'éditeur) avec d'autres réglages de boucle.</td></tr>
+        <tr><td>Boucle native dès que possible</td><td>Seul le flux audio peut boucler à l'échantillon près ; la boucle par image dépend du nombre d'images par seconde.</td></tr>
+        <tr><td>Position = position mixée + temps depuis le dernier mixage</td><td>Sans cette correction, la position avance par paquets de la taille du tampon audio et la boucle par image arriverait trop tard.</td></tr>
+        <tr><td>Fondu en amplitude linéaire</td><td>Un fondu linéaire en décibels paraît abrupt à la fin ; en amplitude, la décroissance est perçue comme régulière.</td></tr>
+        <tr><td><code>autoplay</code> désactivé dans l'éditeur</td><td>La musique démarrerait à chaque ouverture de la scène dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>MusicLooper</code>, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>MusicLooper</code> : intro, section bouclée N fois ou sans fin, fin du morceau, fondus, boutons d'écoute dans l'inspecteur.</li></ul>
+  </div>
+
+  <footer>Module 🔁 Music Looper · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🔁Music Looper/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "MusicLooper.stream": "La musique du niveau, du combat, du menu.",
+  "MusicLooper.volume_db": "Baisser la musique pendant un dialogue ou la pause, sans interrompre le fondu en cours.",
+  "MusicLooper.bus": "Envoyer la musique sur un bus <code>Musique</code> réglable dans les options.",
+  "MusicLooper.autoplay": "Musique d'un niveau qui démarre avec la scène, sans code.",
+  "MusicLooper.listen": "Régler les points de boucle à l'oreille dans l'éditeur.",
+  "MusicLooper.stop_listening": "Arrêter l'écoute dans l'éditeur.",
+  "MusicLooper.loop_enabled": "Désactiver pour un jingle de victoire ou une musique de générique jouée une fois.",
+  "MusicLooper.loop_start": "La fin de l'intro, donnée par le compositeur.",
+  "MusicLooper.loop_end": "Laisser à 0 si la boucle va jusqu'à la fin ; sinon la fin de la section, avant une coda.",
+  "MusicLooper.loop_count": "-1 pour une musique de niveau ; 2-3 pour une musique de boss qui finit sur sa coda.",
+  "MusicLooper.play": "Démarrer une musique, avec un fondu d'entrée ou depuis une position sauvegardée.",
+  "MusicLooper.stop": "Fin de niveau, entrée en cinématique : couper la musique en fondu.",
+  "MusicLooper.set_paused": "Suspendre la musique pendant une cinématique avec sa propre bande-son, puis la reprendre au même endroit.",
+  "MusicLooper.is_paused": "Savoir s'il faut reprendre la musique en sortant d'une cinématique.",
+  "MusicLooper.is_playing": "Ne pas relancer une musique déjà en cours au retour dans une scène.",
+  "MusicLooper.get_playback_position": "Sauvegarder la position pour reprendre plus tard ; synchroniser une animation sur le rythme.",
+  "MusicLooper.get_loops_done": "Déclencher un événement après N boucles (le boss s'énerve à la troisième).",
+  "MusicLooper.is_loop_sample_accurate": "Vérifier qu'un morceau boucle sans coupure audible, et sinon passer au WAV.",
+  "MusicLooper.get_effective_loop_end": "Afficher dans un outil la section réellement bouclée.",
+  "MusicLooper.looped": "Synchroniser un événement sur la musique (changement d'éclairage à chaque boucle).",
+  "MusicLooper.finished": "Enchaîner la musique suivante ou le générique à la fin d'un morceau à boucles comptées."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Succès - Réalisation · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🏆 Succès - Réalisation (AchievementManager, Achievement, conditions) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/succes-realisation.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🏆</div>
+    <div>
+      <h1>🏆_AchievementSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>Succès - Réalisation</strong> : définir des succès dans l'inspecteur, les faire progresser par des évènements de jeu, les sauvegarder et les annoncer à l'écran.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/achievements</code></span>
+        <span class="badge">5 classes</span>
+        <span class="badge">Inspiré de Terraria / tModLoader</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>« Tuer 100 slimes », « ramasser chaque gemme », « finir le jeu sans mourir », « débloquer tous les autres succès » : écrits à la main, les succès finissent en compteurs dispersés dans tout le code, couplés à chaque système du jeu, et à sauvegarder séparément. <strong>Ce module sépare les deux mondes</strong> : le jeu se contente d'annoncer ce qui se passe (<code>notify(&amp;"enemy_killed", "slime")</code>), et chaque succès, décrit dans une ressource, décide si l'évènement le concerne. Progression, sauvegarde, notification à l'écran et son sont gérés.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🏆 <code>AchievementManager</code></h4>
+      <p>Le <strong>nœud</strong> (en autoload) qui reçoit les évènements, les transmet, sauvegarde et affiche les notifications.</p>
+    </div>
+    <div class="card">
+      <h4>🎖️ <code>Achievement</code></h4>
+      <p>Une <strong>ressource</strong> par succès : nom, description, icônes, catégorie, conditions et mode de complétion.</p>
+    </div>
+    <div class="card">
+      <h4>🚩 Conditions</h4>
+      <p><code>AchievementCondition</code> (drapeau), <code>AchievementCounterCondition</code> (compteur, record, état) et <code>AchievementCollectionCondition</code> (liste à compléter) ; extensibles par script.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les game designers qui définissent les succès dans l'inspecteur, et les développeurs qui n'ont qu'une ligne à ajouter là où les choses se passent.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une intégration Steam / consoles</strong> : il n'appelle aucune plateforme, mais son signal <code>achievement_unlocked</code> sert de point de branchement.</li>
+      <li><strong>Pas un menu des succès</strong> : seule la notification « Succès débloqué ! » est fournie ; la liste (icônes, progression, catégories) est à construire avec l'API.</li>
+      <li><strong>Pas le système de sauvegarde du jeu</strong> : il a son propre fichier, ou s'intègre au <em>💾 Système de Sauvegarde</em> par <code>get_state</code> / <code>set_state</code>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture en jeu de la notification dorée « 🏆 Succès débloqué ! » en haut à droite, et capture de l'inspecteur d'un <code>Achievement</code> avec une <code>AchievementCounterCondition</code> (event_name = enemy_killed, target = 100).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/achievements/</code></td><td><strong>Obligatoire</strong></td><td>Contient les cinq classes ; aucune autre dépendance.</td></tr>
+        <tr><td>Accès en écriture à <code>user://</code></td><td>Obligatoire pour la sauvegarde</td><td>Fichier par défaut <code>user://achievements.cfg</code>. Désactiver <code>auto_save</code> si la sauvegarde est gérée ailleurs.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧭🌍/</code></td><td>Optionnelle</td><td>Icônes des classes dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler</strong> (si besoin) :
+      <pre><code class="language-shell">scons achievements</code></pre>
+      <div class="why">compile la bibliothèque du registre <code>achievements_register.cpp</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/achievements/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/achievements/…</code> absolus ; extensions découvertes au démarrage.</div>
+    </li>
+    <li>
+      <strong>Créer une scène <code>succes.tscn</code></strong> dont la racine est un <code>AchievementManager</code>, et la <strong>déclarer en autoload</strong> sous le nom <code>Achievements</code>.
+      <div class="why">le gestionnaire n'est pas un singleton automatique : en autoload, il survit aux changements de scène et reste accessible partout ; sa sauvegarde est rechargée une seule fois.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : un succès « Tueur de slimes » débloqué au 10<sup>e</sup> slime tué.</p>
+  <ol class="steps">
+    <li>
+      <strong>Dans <code>achievements</code> du gestionnaire, ajouter un <code>Nouveau Achievement</code></strong> : <code>id</code> = <code>slime_slayer</code>, <code>display_name</code> = « Tueur de slimes », une <code>icon</code>.
+      <div class="why">l'<code>id</code> identifie le succès dans le code et dans la sauvegarde : ne plus le changer une fois le jeu publié.</div>
+    </li>
+    <li>
+      <strong>Dans ses <code>conditions</code>, ajouter une <code>Nouvelle AchievementCounterCondition</code></strong> : <code>event_name</code> = <code>enemy_killed</code>, <code>event_ids</code> = <code>["slime"]</code>, <code>target</code> = 10.
+      <div class="why">la condition n'écoute que les évènements <code>enemy_killed</code> d'identifiant <code>slime</code> et ajoute leur quantité (1 par défaut) au compteur.</div>
+    </li>
+    <li>
+      <strong>Annoncer l'évènement</strong> là où l'ennemi meurt :
+      <pre><code class="gdscript">func mourir() -> void:
+	Achievements.notify(&amp;"enemy_killed", type_id)   # type_id = "slime"
+	queue_free()</code></pre>
+      <div class="why">le code de l'ennemi ignore tout des succès : il décrit seulement ce qui s'est passé.</div>
+    </li>
+    <li>
+      <strong>Lancer et tuer 10 slimes</strong> : la notification apparaît, et la progression est sauvegardée dans <code>user://achievements.cfg</code>.
+      <div class="why"><code>auto_save</code> sauvegarde à chaque déblocage et à la sortie de l'arbre ; <code>auto_load</code> recharge au lancement suivant.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/AchievementManager.xml</code>, <code>Achievement.xml</code>, <code>AchievementCondition.xml</code>, <code>AchievementCounterCondition.xml</code> et <code>AchievementCollectionCondition.xml</code>. Éléments internes, non exposés : le calque de notifications (<code>CanvasLayer</code> interne de couche 100) et le lecteur audio interne du gestionnaire, les listes de connexions aux signaux (<code>connected_achievements</code>, <code>connected_conditions</code>), l'indicateur <code>updating</code> qui évite les réévaluations pendant <code>unlock()</code> / <code>reset()</code>, et les méthodes protégées <code>_apply_event</code>, <code>_set_completed</code>. La méthode virtuelle <code>_handle_event</code> est, elle, documentée : elle est faite pour être surchargée.</p>
+  <div data-api="AchievementManager Achievement AchievementCondition AchievementCounterCondition AchievementCollectionCondition"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-collection">Comment je fais « ramasser chaque gemme » ?</h3>
+  <p>Une <code>AchievementCollectionCondition</code> retient les identifiants reçus ; elle est remplie quand tous ceux de <code>required_ids</code> ont été vus.</p>
+  <pre><code class="gdscript">var gemmes := AchievementCollectionCondition.new()
+gemmes.event_name = &amp;"item_collected"
+gemmes.required_ids = PackedStringArray(["rubis", "saphir", "emeraude", "topaze"])
+var succes := Achievement.new()
+succes.id = &amp;"collectionneur"
+succes.display_name = "Collectionneur"
+succes.add_condition(gemmes)
+Achievements.register_achievement(succes)
+
+# Ailleurs, à chaque ramassage :
+Achievements.notify(&amp;"item_collected", "saphir")</code></pre>
+
+  <h3 id="ex-record">Comment je fais un succès de record (score, altitude) ?</h3>
+  <p><code>VALUE_MODE_MAX</code> garde la plus grande quantité reçue.</p>
+  <pre><code class="gdscript"># Condition : event_name = "altitude", target = 500, value_mode = Max
+func _physics_process(_delta: float) -> void:
+	Achievements.notify(&amp;"altitude", "", -global_position.y)</code></pre>
+
+  <h3 id="ex-meta">Comment je fais « débloquer 10 succès » ou « débloquer A, B et C » ?</h3>
+  <p>Le gestionnaire émet lui-même l'évènement <code>achievement_unlocked</code> (identifiant = id du succès) à chaque déblocage.</p>
+  <pre><code class="gdscript">var compteur := AchievementCounterCondition.new()
+compteur.event_name = &amp;"achievement_unlocked"   # n'importe quel succès
+compteur.target = 10
+var platine := Achievement.new()
+platine.id = &amp;"platine"
+platine.add_condition(compteur)
+Achievements.register_achievement(platine)</code></pre>
+
+  <h3 id="ex-script">Comment j'écris une condition personnalisée ?</h3>
+  <p>Surcharger <code>_handle_event</code> : la condition décide seule si l'évènement la concerne, et appelle <code>complete()</code>.</p>
+  <pre><code class="gdscript"># sans_degats.gd
+extends AchievementCondition
+
+var degats_recus := false
+
+func _handle_event(event: StringName, id: String, amount: float) -> bool:
+	if event == &amp;"player_hurt":
+		degats_recus = true
+		return true
+	if event == &amp;"boss_defeated" and not degats_recus:
+		complete()
+		return true
+	return false</code></pre>
+  <div class="callout warn"><p>Les variables d'un script de condition (<code>degats_recus</code> ici) ne sont <strong>pas sauvegardées</strong> : seul l'état « rempli » l'est. Surcharger aussi <code>get_state</code> / <code>set_state</code> si nécessaire.</p></div>
+
+  <h3 id="ex-steam">Comment je relaie les succès vers Steam ou une autre plateforme ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	Achievements.achievement_unlocked.connect(func(succes: Achievement):
+		Steam.setAchievement(String(succes.id))
+		Steam.storeStats())</code></pre>
+
+  <h3 id="ex-menu">Comment j'affiche la liste des succès avec leur progression ?</h3>
+  <pre><code class="gdscript">func remplir_menu() -> void:
+	for succes: Achievement in Achievements.achievements:
+		var ligne := preload("res://ui/ligne_succes.tscn").instantiate()
+		ligne.get_node("Icone").texture = succes.get_current_icon()
+		if succes.is_hidden() and not succes.is_unlocked():
+			ligne.get_node("Nom").text = "???"
+		else:
+			ligne.get_node("Nom").text = succes.display_name
+		ligne.get_node("Barre").visible = succes.has_progress()
+		ligne.get_node("Barre").value = succes.get_progress() * 100
+		ligne.get_node("Texte").text = succes.get_progress_text()
+		$Liste.add_child(ligne)</code></pre>
+
+  <h3 id="ex-sauvegarde">Comment j'intègre les succès à ma propre sauvegarde ?</h3>
+  <pre><code class="gdscript"># Dans l'inspecteur : auto_load = false, auto_save = false
+func sauvegarder(donnees: Dictionary) -> void:
+	donnees["succes"] = Achievements.get_state()
+
+func charger(donnees: Dictionary) -> void:
+	Achievements.set_state(donnees.get("succes", {}))   # aucun signal, aucune notification</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>L'état vit dans les ressources</strong> : un <code>Achievement</code> chargé depuis un <code>.tres</code> est partagé par le cache de ressources. Deux gestionnaires qui utilisent les mêmes fichiers partagent la progression ; une scène qui recharge le <code>.tres</code> voit l'état en cours, pas l'état du fichier. Un seul gestionnaire, en autoload.</li>
+    <li><strong>Identifiants en double non détectés dans l'inspecteur</strong> : seul <code>register_achievement</code> refuse un <code>id</code> déjà pris ; dans le tableau <code>achievements</code>, le premier l'emporte pour <code>get_achievement</code>, et la sauvegarde mélange les deux.</li>
+    <li><strong>Identifiants comparés comme texte</strong> : <code>notify(e, 1.0)</code> envoie <code>"1.0"</code>, qui ne correspond pas à <code>event_ids = ["1"]</code>. Envoyer des chaînes ou des <code>StringName</code>.</li>
+    <li><strong>Notification et son suivent la pause</strong> : le <code>Tween</code> de la notification et le lecteur audio appartiennent au gestionnaire ; un succès débloqué pendant la pause reste affiché jusqu'à la reprise. Régler <code>process_mode = ALWAYS</code> sur l'autoload si nécessaire.</li>
+    <li><strong>Notifications empilées sans limite</strong>, au style fixe (bordure dorée, police par défaut) ; pour un autre style, désactiver <code>show_notifications</code> et utiliser <code>achievement_unlocked</code>, ou modifier <code>get_notification_container()</code>.</li>
+    <li><strong>Sauvegarde synchrone</strong> à chaque déblocage : une écriture de fichier sur le fil principal (négligeable sauf sur des supports lents).</li>
+    <li><strong>Conditions irréversibles</strong> : une condition remplie le reste, même si un compteur <code>VALUE_MODE_SET</code> redescend ; seul <code>reset()</code> l'annule.</li>
+    <li><strong>Sauvegarde par nom de condition</strong> : une condition sans <code>condition_name</code> est sauvegardée par son rang ; réordonner les conditions après publication mélange leur progression. Toujours nommer les conditions.</li>
+    <li><strong>Rien dans l'éditeur</strong> : ni notification ni lecture / écriture de sauvegarde quand le gestionnaire est édité.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 240" role="img" aria-label="Schéma du système de succès">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="140" height="54" rx="8"/>
+    <text x="90" y="54" text-anchor="middle">Code du jeu</text>
+    <text x="90" y="72" text-anchor="middle" class="small">notify(évènement, id)</text>
+    <rect class="box main" x="220" y="30" width="180" height="54" rx="8"/>
+    <text x="310" y="54" text-anchor="middle">AchievementManager</text>
+    <text x="310" y="72" text-anchor="middle" class="small">autoload · sauvegarde · toast</text>
+    <rect class="box" x="460" y="30" width="160" height="54" rx="8"/>
+    <text x="540" y="54" text-anchor="middle">Achievement</text>
+    <text x="540" y="72" text-anchor="middle" class="small">Resource</text>
+    <rect class="box" x="680" y="30" width="160" height="54" rx="8"/>
+    <text x="760" y="54" text-anchor="middle">Conditions</text>
+    <text x="760" y="72" text-anchor="middle" class="small">drapeau · compteur · liste</text>
+    <rect class="box" x="220" y="160" width="180" height="54" rx="8"/>
+    <text x="310" y="184" text-anchor="middle">user://achievements.cfg</text>
+    <text x="310" y="202" text-anchor="middle" class="small">ConfigFile (chiffré option.)</text>
+    <path class="arrow" d="M160 57 H218" marker-end="url(#arr)"/>
+    <path class="arrow" d="M400 57 H458" marker-end="url(#arr)"/>
+    <path class="arrow" d="M620 57 H678" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M760 84 Q700 130 560 86" marker-end="url(#arr)"/>
+    <text x="680" y="128" class="small">changed</text>
+    <path class="arrow dashed" d="M520 84 Q460 130 360 86" marker-end="url(#arr)"/>
+    <text x="400" y="128" class="small">unlocked · progressed</text>
+    <path class="arrow" d="M310 86 V158" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M260 84 Q200 130 120 86" marker-end="url(#arr)"/>
+    <text x="110" y="128" class="small">achievement_unlocked</text>
+    <path class="arrow dashed" d="M400 70 Q430 0 220 40" marker-end="url(#arr)"/>
+    <text x="440" y="18" class="small">notify("achievement_unlocked")</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Descente (appels directs)</strong> : <code>AchievementManager.notify</code> → <code>Achievement.notify</code> de chaque succès verrouillé → <code>AchievementCondition.notify</code> de chaque condition non remplie, qui teste <code>matches</code> (ou délègue au script par <code>_handle_event</code>) puis applique l'évènement.</li>
+    <li><strong>Remontée (signaux)</strong> : une condition qui change émet <code>changed</code> ; le succès se réévalue et émet <code>progressed</code> ou <code>unlocked</code> ; le gestionnaire, connecté à chaque succès, émet ses propres signaux, affiche la notification, sauvegarde, puis réinjecte l'évènement <code>achievement_unlocked</code> pour les méta-succès.</li>
+    <li><strong>Sauvegarde</strong> : <code>get_state</code> / <code>set_state</code> descendent la même hiérarchie ; le gestionnaire les écrit en <code>ConfigFile</code> (une section par succès). Le chargement n'émet aucun signal.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Le jeu ne dépend que d'un nom d'évènement et d'un identifiant : <strong>aucun couplage</strong> entre le code de gameplay et les succès.</li>
+    <li>Hiérarchie interne : <code>AchievementCounterCondition</code> et <code>AchievementCollectionCondition</code> héritent d'<code>AchievementCondition</code>.</li>
+    <li>Aucune dépendance vers d'autres modules. Bibliothèque propre : <code>achievements_register.cpp</code> → <code>bin/achievements/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Évènements génériques (nom + identifiant + quantité), comme Terraria</td><td>Ajouter un succès ne demande aucune modification du code de jeu ; un même évènement nourrit plusieurs succès.</td></tr>
+        <tr><td>Déblocage réinjecté comme évènement</td><td>Les méta-succès (« débloquer N succès ») se construisent avec les conditions existantes, sans cas particulier.</td></tr>
+        <tr><td>État de jeu jamais enregistré dans la ressource (<code>value</code> en <code>PROPERTY_USAGE_EDITOR</code>, pas de propriété <code>unlocked</code>)</td><td>Sauvegarder la scène dans l'éditeur ne doit pas écrire la progression d'une partie de test dans le <code>.tres</code>. Une propriété <code>unlocked</code> masquerait en plus le signal du même nom en GDScript.</td></tr>
+        <tr><td><code>set_state</code> sans signal</td><td>Recharger une sauvegarde ne doit pas réafficher toutes les notifications ni redéclencher Steam.</td></tr>
+        <tr><td>Indicateur <code>updating</code> pendant <code>unlock()</code> / <code>reset()</code></td><td>Remplir les conditions une à une provoquerait plusieurs réévaluations et des signaux intermédiaires.</td></tr>
+        <tr><td>Notification construite en code, en enfant interne</td><td>Fonctionne sans aucune scène d'interface à fournir ; non sauvegardée avec l'autoload.</td></tr>
+        <tr><td><code>ConfigFile</code> lisible, chiffrement facultatif</td><td>Facile à déboguer en développement ; <code>save_password</code> décourage la triche en production.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : page de module (référence XML et commentaires des headers déjà rédigés). Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Ajout système de succès et HUD spatial interactif : gestionnaire, succès, conditions drapeau / compteur / collection, sauvegarde, notifications.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🏆 Succès - Réalisation · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/🏆Succès - Réalisation/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "AchievementManager.achievements": "Définir tous les succès du jeu dans l'inspecteur de l'autoload.",
+  "AchievementManager.auto_load": "Désactiver quand la progression vient du système de sauvegarde du jeu.",
+  "AchievementManager.auto_save": "Désactiver pour sauvegarder les succès avec la partie (<code>get_state</code>).",
+  "AchievementManager.notification_duration": "Allonger pour un jeu calme, raccourcir pour un jeu d'action.",
+  "AchievementManager.notification_position": "Déplacer la notification si elle masque la mini-carte ou les points de vie.",
+  "AchievementManager.save_password": "Chiffrer le fichier pour décourager la triche.",
+  "AchievementManager.save_path": "Un fichier par profil de joueur (<code>user://profil_2/succes.cfg</code>).",
+  "AchievementManager.show_notifications": "Désactiver pour afficher votre propre notification via <code>achievement_unlocked</code>.",
+  "AchievementManager.unlock_sound": "Jingle de déblocage.",
+  "AchievementManager.add_progress": "Faire avancer un compteur précis sans passer par un évènement.",
+  "AchievementManager.complete_condition": "Remplir une étape scénarisée (« parler au roi ») depuis un dialogue.",
+  "AchievementManager.get_achievement": "Retrouver un succès pour afficher sa fiche.",
+  "AchievementManager.get_achievement_count": "Afficher « 12 / 40 succès ».",
+  "AchievementManager.get_achievements_in_category": "Onglets Combat / Objets / Exploration du menu des succès.",
+  "AchievementManager.get_completion_ratio": "Pourcentage de complétion sur l'écran titre.",
+  "AchievementManager.get_notification_container": "Changer la marge, l'espacement ou la police des notifications.",
+  "AchievementManager.get_state": "Inclure les succès dans votre propre sauvegarde ou dans le cloud.",
+  "AchievementManager.get_unlocked_achievements": "Galerie des trophées obtenus.",
+  "AchievementManager.get_unlocked_count": "Compteur du menu des succès.",
+  "AchievementManager.has_achievement": "Vérifier qu'un id existe avant de l'utiliser (contenu facultatif, mods).",
+  "AchievementManager.is_unlocked": "Débloquer un costume ou un niveau bonus quand un succès est obtenu.",
+  "AchievementManager.load_achievements": "Recharger après un changement de profil (avec un nouveau <code>save_path</code>).",
+  "AchievementManager.notify": "Signaler ce qui se passe : ennemi tué, objet ramassé, zone visitée, niveau terminé.",
+  "AchievementManager.register_achievement": "Ajouter des succès par code (DLC, mods, succès générés).",
+  "AchievementManager.reset_achievement": "Bouton de débogage, ou succès « rejouable » par saison.",
+  "AchievementManager.reset_all": "Option « Réinitialiser les succès » du menu.",
+  "AchievementManager.save_achievements": "Forcer une sauvegarde (avant de quitter sur mobile).",
+  "AchievementManager.set_state": "Restaurer les succès depuis votre sauvegarde, sans notification.",
+  "AchievementManager.show_notification": "Réafficher une notification (aperçu dans les options, tutoriel).",
+  "AchievementManager.unlock": "Succès scénarisé débloqué directement par un évènement de l'histoire.",
+  "AchievementManager.unregister_achievement": "Retirer les succès d'un mod désactivé.",
+  "AchievementManager.achievement_progressed": "Petite jauge « 8 / 10 » qui apparaît quand un succès avance.",
+  "AchievementManager.achievement_unlocked": "Relayer vers Steam / consoles, débloquer une récompense en jeu.",
+  "AchievementManager.event_notified": "Déboguer les évènements envoyés, ou alimenter des statistiques.",
+  "AchievementManager.NOTIFICATION_POSITION_TOP_LEFT": "Notification en haut à gauche.",
+  "AchievementManager.NOTIFICATION_POSITION_TOP_CENTER": "Notification centrée en haut, bien visible.",
+  "AchievementManager.NOTIFICATION_POSITION_TOP_RIGHT": "Position par défaut, à la manière des plateformes.",
+  "AchievementManager.NOTIFICATION_POSITION_BOTTOM_LEFT": "Notification en bas à gauche.",
+  "AchievementManager.NOTIFICATION_POSITION_BOTTOM_CENTER": "Notification centrée en bas (au-dessus des sous-titres à éviter).",
+  "AchievementManager.NOTIFICATION_POSITION_BOTTOM_RIGHT": "Notification en bas à droite, comme les toasts Xbox.",
+  "Achievement.category": "Trier le menu des succès en onglets.",
+  "Achievement.completion_mode": "<em>Any</em> pour « vaincre le boss à l'épée OU à l'arc ».",
+  "Achievement.conditions": "Décrire ce qu'il faut faire : un compteur, une liste, un drapeau, ou plusieurs.",
+  "Achievement.description": "Texte du menu (« Vaincre 100 slimes »).",
+  "Achievement.display_name": "Nom affiché dans la notification et le menu.",
+  "Achievement.hidden": "Succès secret : afficher « ??? » tant qu'il est verrouillé.",
+  "Achievement.icon": "Icône du succès débloqué, aussi utilisée par la notification.",
+  "Achievement.id": "Identifiant stable pour le code, la sauvegarde et Steam.",
+  "Achievement.locked_icon": "Icône grisée ou cadenas tant que le succès n'est pas obtenu.",
+  "Achievement.progress_tracker": "Choisir ce qu'affiche la barre : une condition, le nombre de conditions remplies, ou rien.",
+  "Achievement.tracked_condition": "Barre qui suit le compteur principal d'un succès à plusieurs conditions.",
+  "Achievement.add_condition": "Construire un succès par code.",
+  "Achievement.evaluate": "Forcer la vérification après une modification directe d'une condition.",
+  "Achievement.get_completed_condition_count": "Afficher « 2 conditions sur 3 ».",
+  "Achievement.get_condition": "Lire la progression d'une condition précise.",
+  "Achievement.get_current_icon": "Icône à afficher dans le menu selon l'état.",
+  "Achievement.get_progress": "Valeur d'une barre de progression (0-1).",
+  "Achievement.get_progress_text": "Texte « 37/100 » à côté de la barre.",
+  "Achievement.get_state": "Sauvegarder un succès isolé.",
+  "Achievement.get_unlock_time": "Afficher la date d'obtention.",
+  "Achievement.has_progress": "Masquer la barre des succès « tout ou rien ».",
+  "Achievement.is_unlocked": "Tester l'obtention dans le menu.",
+  "Achievement.notify": "Tester un succès isolé sans gestionnaire (tests unitaires).",
+  "Achievement.reset": "Remettre un succès à zéro (débogage).",
+  "Achievement.set_state": "Restaurer un succès isolé.",
+  "Achievement.unlock": "Débloquer sans condition (cinématique, code de triche de test).",
+  "Achievement.progressed": "Mettre à jour la ligne du menu ouverte en direct.",
+  "Achievement.unlocked": "Récompense liée à ce succès précis.",
+  "Achievement.CATEGORY_NONE": "Succès sans catégorie.",
+  "Achievement.CATEGORY_SLAYER": "Succès de combat.",
+  "Achievement.CATEGORY_COLLECTOR": "Succès d'objets.",
+  "Achievement.CATEGORY_EXPLORER": "Succès d'exploration.",
+  "Achievement.CATEGORY_CHALLENGER": "Défis difficiles.",
+  "Achievement.COMPLETION_ALL": "Toutes les conditions requises (par défaut).",
+  "Achievement.COMPLETION_ANY": "Plusieurs façons d'obtenir le même succès.",
+  "Achievement.TRACKER_AUTO": "Laisser le succès choisir la barre la plus parlante.",
+  "Achievement.TRACKER_NONE": "Succès « tout ou rien », sans barre.",
+  "Achievement.TRACKER_CONDITIONS_COMPLETED": "Afficher « 2/3 étapes ».",
+  "Achievement.TRACKER_FROM_CONDITION": "Suivre un compteur précis parmi plusieurs conditions.",
+  "AchievementCondition.condition_name": "Nommer la condition pour <code>complete_condition</code> et une sauvegarde robuste.",
+  "AchievementCondition.event_ids": "Ne compter qu'un type d'ennemi ou d'objet (« slime », « boss_1 »).",
+  "AchievementCondition.event_name": "L'évènement de jeu écouté (« enemy_killed », « level_completed »).",
+  "AchievementCondition._handle_event": "Logique sur mesure : sans dégâts, en moins de 5 minutes, dans un ordre précis.",
+  "AchievementCondition.complete": "Remplir l'étape depuis un script de condition ou un dialogue.",
+  "AchievementCondition.get_progress": "Barre de progression d'une condition.",
+  "AchievementCondition.get_progress_text": "Texte « 3/10 » d'une condition.",
+  "AchievementCondition.get_state": "Surcharger pour sauvegarder les variables d'une condition scriptée.",
+  "AchievementCondition.get_target": "Afficher l'objectif d'une condition.",
+  "AchievementCondition.get_value": "Afficher la valeur actuelle d'une condition.",
+  "AchievementCondition.is_completed": "Cocher l'étape dans la fiche du succès.",
+  "AchievementCondition.matches": "Surcharger le filtre d'évènement (préfixes d'identifiants, plusieurs évènements).",
+  "AchievementCondition.notify": "Tester une condition isolée.",
+  "AchievementCondition.reset": "Remettre l'étape à zéro (succès de session, débogage).",
+  "AchievementCondition.set_state": "Surcharger pour restaurer les variables d'une condition scriptée.",
+  "AchievementCondition.completed": "Effet quand une étape d'un succès à étapes est franchie.",
+  "AchievementCounterCondition.target": "Nombre à atteindre : 100 ennemis, 1 000 pièces, 500 m d'altitude.",
+  "AchievementCounterCondition.value": "Lire ou corriger la valeur actuelle (débogage).",
+  "AchievementCounterCondition.value_mode": "<em>Add</em> pour un cumul, <em>Max</em> pour un record, <em>Set</em> pour un état.",
+  "AchievementCounterCondition.add": "Faire avancer le compteur directement par code.",
+  "AchievementCounterCondition.VALUE_MODE_ADD": "Ennemis tués, pièces ramassées, distance parcourue.",
+  "AchievementCounterCondition.VALUE_MODE_MAX": "Meilleur score, plus haut combo, altitude record.",
+  "AchievementCounterCondition.VALUE_MODE_SET": "Nombre d'objets possédés, niveau du personnage.",
+  "AchievementCollectionCondition.required_ids": "Liste à compléter : gemmes, biomes, boss, autres succès.",
+  "AchievementCollectionCondition.collect": "Cocher un élément par code.",
+  "AchievementCollectionCondition.get_collected_ids": "Afficher les éléments déjà obtenus.",
+  "AchievementCollectionCondition.get_missing_ids": "Indice « il vous manque : topaze ».",
+  "AchievementCollectionCondition.has_collected": "Cocher chaque élément dans la fiche du succès."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

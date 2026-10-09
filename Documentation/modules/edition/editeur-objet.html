@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Éditeur d'objet · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 💻️ Éditeur d'objet (ProceduralEditor, ObjectEditorWindow, LayoutDatabase…) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/edition/editeur-objet.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">💻️</div>
+    <div>
+      <h1>💻️_ObjectEditorSystem - Édition et Debug - Documentation</h1>
+      <p class="subtitle">Module <strong>Éditeur d'objet</strong> : des interfaces d'édition générées automatiquement pour n'importe quel objet, en jeu comme dans l'éditeur.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/tool_editor</code></span>
+        <span class="badge">64 classes exposées</span>
+        <span class="badge">Jeu &amp; éditeur</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Régler la vitesse du joueur pendant une partie, inspecter l'ennemi qui bugue, construire un menu d'options, donner aux game designers un panneau propre pour chaque type d'objet : à chaque fois, il faut écrire à la main des dizaines de champs, les relier aux propriétés, gérer l'annulation et les rafraîchir quand la valeur change ailleurs. <strong>Ce module génère ces interfaces tout seul</strong> à partir des propriétés, méthodes et signaux de l'objet, et laisse ensuite choisir, sans code, quoi afficher et comment.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🪄 <code>ProceduralEditor</code> — l'interface</h4>
+      <p>Un <code>Control</code> à poser n'importe où : il affiche un widget par membre de sa cible (case, curseur, couleur, liste, sous-ressource dépliable, bouton de méthode, liens de signaux…), avec annulation et suivi en direct.</p>
+    </div>
+    <div class="card">
+      <h4>🪟 <code>ObjectEditorWindow</code> — la fenêtre de debug</h4>
+      <p>Une fenêtre unique, ouverte d'une ligne en jeu, et automatiquement dans l'éditeur à la sélection d'un objet qui a une interface de type.</p>
+    </div>
+    <div class="card">
+      <h4>🗂️ <code>LayoutDatabase</code> — interfaces par type</h4>
+      <p>Une interface par classe (« tous les <code>Ennemi</code> ») : données, groupes, style, comportements conditionnels, gizmos et liens de signaux, enregistrée dans un <code>.tres</code> du projet.</p>
+    </div>
+    <div class="card">
+      <h4>🎯 <code>GizmoHost</code> — dessins automatiques</h4>
+      <p>Rayon de détection, chemin, zone : des fonctions de <code>Gizmos2D</code> / <code>Gizmos3D</code> dont les paramètres suivent les propriétés de l'objet, dans l'éditeur et en jeu.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui veulent une console de debug sans écrire d'UI, les game designers qui configurent des interfaces dans l'éditeur (fenêtres « Configurer l'interface » et « Interfaces par type »), et les autres modules du toolkit qui ont besoin d'un panneau d'édition.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un remplaçant de l'inspecteur de Godot</strong> : il ne gère ni les ressources importées, ni les propriétés d'éditeur avancées (courbes, dégradés, animations). Il affiche ce qu'il sait représenter, le reste en lecture seule.</li>
+      <li><strong>Pas les gizmos eux-mêmes</strong> : les fonctions de dessin viennent du module <em>🐛 Gizmos</em> ; ce module ne fait que les appeler automatiquement.</li>
+      <li><strong>Pas la fenêtre générique</strong> : <em>🪟 Fenêtre d'édition</em> (<code>WindowEditor</code>) est une fenêtre vide réutilisable ; <code>ObjectEditorWindow</code> est spécialisée dans l'édition d'un objet.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture en jeu de la scène <code>🧪Démos de modules/0.🧰🧑‍💻/Démo éditeur d'objet.tscn</code> : le ProceduralEditor avec ses groupes « Collections » et « Objets », un curseur, un sélecteur de couleur et une sous-ressource dépliée ; à côté, l'ObjectEditorWindow ouverte sur un ennemi avec son gizmo de rayon visible.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> ; le widget de conteneur utilise <code>FoldableContainer</code>, absent des versions anciennes.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code> (<code>gameplaytoolkit_tool_editor.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient tout le module, mais aussi <code>Gizmos2D</code>/<code>Gizmos3D</code> (gizmos automatiques), le journal <code>L</code> (messages d'avertissement) et <code>WindowEditor</code> : rien d'autre à installer.</td></tr>
+        <tr><td>Fichier de base <code>res://object_editor_layouts.tres</code></td><td>Optionnelle</td><td>Seulement pour les interfaces par type, l'ouverture automatique dans l'éditeur et les liens de signaux appliqués en jeu. Créé par le bouton « Créer » de la fenêtre « Interfaces par type ».</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧰🧑‍💻/</code></td><td>Optionnelle</td><td>Icônes de <code>ProceduralEditor</code> et <code>PropertyWidget</code> dans l'arbre de scène.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons tool_editor</code></pre>
+      <div class="why">le registre <code>tool_editor_register.cpp</code> donne l'identifiant <code>tool_editor</code> : seule cette bibliothèque est recompilée et son <code>.gdextension</code> régénéré.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/tool_editor/</code></strong> dans le projet, à l'emplacement <code>res://bin/tool_editor/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/tool_editor/…</code> absolus.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">les extensions ne sont découvertes qu'au démarrage, et le plugin d'éditeur (bouton de l'inspecteur, menu Outils, ouverture automatique, plugin d'export) est installé à ce moment-là.</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>ProceduralEditor</code> et <code>GizmoHost</code> ; le menu <em>Projet › Outils</em> contient « Éditeur d'objet : interfaces par type… ».
+      <div class="why">si ces entrées manquent, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+    </li>
+    <li>
+      <strong>(Optionnel) Réglages de projet</strong> <code>gameplay_toolkit/object_editor/layout_database</code> (chemin de la base) et <code>gameplay_toolkit/object_editor/default_style</code> (style par défaut) ; réglage d'éditeur <code>gameplay_toolkit/object_editor/auto_open</code>.
+      <div class="why">ils sont déclarés au chargement du module avec leur valeur par défaut, et ne sont écrits dans <code>project.godot</code> que si on les modifie.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload n'est requis : le <code>LayoutLinker</code> (liens par type en jeu) est créé par le module lui-même. À l'export, la base des interfaces et ses dépendances sont ajoutées automatiquement, même en export « ressources sélectionnées ».</p>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture du menu <em>Projet › Outils</em> montrant les deux entrées « Éditeur d'objet : … », et de l'inspecteur d'un ProceduralEditor avec le bouton « Configurer l'interface » en tête.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-debug">A. Une fenêtre de debug en jeu, en une ligne</h3>
+  <ol class="steps">
+    <li>
+      <strong>Appeler <code>ObjectEditorWindow.open_for()</code></strong> sur l'objet à inspecter, par exemple sur une touche :
+      <pre><code class="gdscript">func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("debug_inspecter"):
+		ObjectEditorWindow.open_for($Joueur)</code></pre>
+      <div class="why">la fenêtre est créée sous la racine du jeu, lit les variables exportées du script (interface générale) et crée un widget par variable.</div>
+    </li>
+    <li>
+      <strong>Modifier une valeur</strong> dans la fenêtre : elle est appliquée immédiatement ; <kbd>Ctrl+Z</kbd> l'annule.
+      <div class="why">chaque édition est une action d'un historique propre au jeu (<code>RuntimeUndoBackend</code>) ; un glissement de curseur ne compte que pour une action.</div>
+    </li>
+    <li>
+      <strong>Laisser le jeu tourner</strong> : les valeurs modifiées par le jeu se mettent à jour dans la fenêtre (toutes les 0,1 s), même en pause.
+      <div class="why">le <code>SyncController</code> relit les widgets visibles ; un champ en cours de saisie n'est pas écrasé.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-scene">B. Une interface choisie dans l'éditeur (menu d'options, panneau de réglages)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>ProceduralEditor</code></strong> dans un <code>Control</code> de la scène et régler <code>target_path</code> sur le nœud à éditer (ou <code>target_resource</code> sur un <code>.tres</code>).
+      <div class="why">en jeu, la cible déclarée est appliquée au <code>_ready</code> ; dans l'éditeur, le nœud reste vide pour ne pas modifier la scène par accident.</div>
+    </li>
+    <li>
+      <strong>Cliquer sur « Configurer l'interface »</strong> en tête de l'inspecteur.
+      <div class="why">la fenêtre liste les membres de la cible (onglet Données) avec un aperçu en direct ; le registre ainsi construit est enregistré avec la scène.</div>
+    </li>
+    <li>
+      <strong>Pour chaque donnée, choisir le widget</strong> (ex. <em>HSlider</em> pour un volume), décocher les données à masquer, puis ranger les données dans des <em>Groupes</em>.
+      <div class="why">seuls les widgets compatibles avec le type sont proposés ; les réglages (bornes, icône, style) se règlent sous le tableau.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène</strong> : l'interface s'affiche telle que configurée.
+      <div class="why">si le script de la cible gagne une variable, elle apparaîtra automatiquement (widget Auto) ; une variable supprimée est marquée manquante, jamais effacée.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-type">C. Une interface par type, ouverte automatiquement dans l'éditeur</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ouvrir <em>Projet › Outils › « Éditeur d'objet : interfaces par type… »</em></strong>, puis « Créer » la base si elle n'existe pas.
+      <div class="why">la base est le fichier désigné par le réglage <code>gameplay_toolkit/object_editor/layout_database</code>.</div>
+    </li>
+    <li>
+      <strong>Ajouter un type</strong> (ex. <code>Ennemi</code>, le <code>class_name</code> d'un script) et configurer ses onglets Données, Groupes, Gizmos, Style, Comportements ; « Enregistrer ».
+      <div class="why">les membres sont lus sur une instance d'exemple du type ; la base n'est écrite qu'au clic sur « Enregistrer ».</div>
+    </li>
+    <li>
+      <strong>Sélectionner un nœud <code>Ennemi</code></strong> dans la scène : la fenêtre « Éditeur d'objet » s'ouvre avec son interface, et ses gizmos apparaissent dans la vue.
+      <div class="why">le plugin écoute la sélection ; tant que la fenêtre n'est pas épinglée, elle suit les objets sélectionnés. Les modifications rejoignent l'historique de l'éditeur.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis les <code>doc_classes/*.xml</code> des 64 classes, regroupées ci-dessous par sous-système. Éléments internes, non exposés (pas de XML, susceptibles de changer sans préavis) :</p>
+  <ul>
+    <li><strong>Classes internes du runtime</strong> : <code>WidgetContext</code> / <code>ProceduralEditorContext</code> (contexte de construction des widgets imbriqués), <code>MaterialPropagator</code> (propagation des matériaux), <code>ArgumentStore</code> (arguments d'un bouton de méthode), <code>NodeSelectorDialog</code> (sélecteur de nœud en jeu), et les classes C++ pures <code>WidgetTable</code> (widgets autorisés par type), <code>TypeUtils</code>, <code>GizmoCatalog</code>, <code>BehaviorState</code>.</li>
+    <li><strong>Outils d'éditeur internes</strong> : <code>ObjectEditorPlugin</code>, <code>ProceduralEditorInspectorPlugin</code>, <code>LayoutDatabaseExportPlugin</code>, les fenêtres <code>InterfaceConfigWindow</code> et <code>GizmoConfigWindow</code>, le panneau <code>ObjectInterfacePanel</code> (ouvert par le bouton « Ouvrir fenêtre de personnalisation » de la barre d'outils, plugin <code>EditorTest</code>), et les éditeurs <code>DataMatrixEditor</code>, <code>GroupMatrixEditor</code>, <code>GizmoListEditor</code>, <code>BehaviorListEditor</code>, <code>InterfaceStyleEditor</code>, <code>IconPickerRow</code>.</li>
+    <li><strong>Membres privés notables</strong> : les surcharges C++ <code>build_editor</code> / <code>pull_value</code> des widgets (équivalents de <code>_build</code> / <code>_pull</code>), <code>setup()</code> et <code>set_context()</code> de <code>PropertyWidget</code> (appelés par le <code>ProceduralEditor</code>), <code>WidgetFactory::create</code>, <code>ProceduralEditor::build_widget</code>.</li>
+    <li><code>PropertyBoolCallback</code> et <code>WidgetPropertyModifierBuilder</code> ont encore un XML mais leur code source n'existe plus (ancienne version, absente de <code>bin/tool_editor</code>) : ils ne sont pas documentés ici.</li>
+  </ul>
+
+  <h3 id="api-construction">Construction de l'interface</h3>
+  <p>Le point d'entrée : <code>ProceduralEditor</code> (l'interface) et <code>ObjectEditorWindow</code> (la fenêtre unique). La <code>WidgetFactory</code> choisit les widgets ; le <code>SyncController</code> et la <code>RichTooltip</code> sont des nœuds internes de chaque éditeur.</p>
+  <div data-api="ProceduralEditor ObjectEditorWindow WidgetFactory SyncController RichTooltip"></div>
+
+  <h3 id="api-donnees">Données et registres</h3>
+  <p>Ce qui est affiché : un <code>DataRegistry</code> (une <code>DataEntry</code> par membre) et un <code>GroupRegistry</code>. Rangés par type dans une <code>LayoutDatabase</code> (un <code>TypeLayout</code> par classe) ; le <code>LayoutLinker</code> applique en jeu les liens de signaux de ces interfaces.</p>
+  <div data-api="DataRegistry DataEntry GroupRegistry GroupEntry LayoutDatabase TypeLayout LayoutLinker"></div>
+
+  <h3 id="api-sources">Sources de valeurs et liens de signaux</h3>
+  <p><code>ArgumentBinding</code> décrit d'où vient une valeur (constante, propriété, fonction, argument de signal) ; il sert aux liens <code>SignalLink</code>, aux gizmos, aux conditions des comportements, aux uniforms des styles et aux sources des aperçus.</p>
+  <div data-api="ArgumentBinding SignalLink"></div>
+
+  <h3 id="api-comportements">Comportements conditionnels</h3>
+  <p>Rangés dans <code>DataRegistry.behaviors</code> : montrer, cacher, verrouiller, styler, compléter l'infobulle ou changer l'icône de données et de groupes selon une condition lue sur l'objet. Un script peut créer les siens en surchargeant <code>_apply</code>.</p>
+  <div data-api="WidgetBehavior ShowIfBehavior HideIfBehavior EnableIfBehavior StyleIfBehavior TooltipIfBehavior IconIfBehavior"></div>
+
+  <h3 id="api-reglages">Réglages des widgets et styles</h3>
+  <p>Une ressource de réglages typée par widget (plus de dictionnaire à clés libres), et des <code>InterfaceStyle</code> applicables à l'interface entière, à un groupe ou à un widget.</p>
+  <div data-api="WidgetSettings RangeWidgetSettings TextureProgressWidgetSettings TextEditWidgetSettings StructWidgetSettings ContainerWidgetSettings TableWidgetSettings PreviewSettings InterfaceStyle ShaderParameterBinding"></div>
+
+  <h3 id="api-widgets">Widgets</h3>
+  <p><code>PropertyWidget</code> est la base de tous les widgets et le point d'extension des widgets personnalisés (<code>_build</code>, <code>_pull</code>). Les classes dérivées sont créées par la fabrique ; elles n'ajoutent rien à l'API exposée mais sont listées pour leur description.</p>
+  <div data-api="PropertyWidget BoolWidget NumberWidget TextWidget EnumWidget ColorWidget StructWidget ContainerWidget CollectionWidget TableWidget ObjectWidget PathWidget VariantWidget MethodWidget SignalWidget"></div>
+
+  <h3 id="api-apercus">Aperçus</h3>
+  <p>Des entrées « aperçu » qui n'éditent rien mais montrent une image, un modèle ou une scène liés à l'objet, dans des scènes isolées. Point d'extension : <code>PreviewWidget</code>.</p>
+  <div data-api="PreviewWidget TexturePreview Model3DPreview Scene2DPreview PreviewStage3D PreviewStage2D"></div>
+
+  <h3 id="api-gizmos">Gizmos automatiques</h3>
+  <div data-api="GizmoHost GizmoRegistry GizmoEntry"></div>
+
+  <h3 id="api-annulation">Annulation et accès aux valeurs</h3>
+  <p>Toute écriture d'un widget passe par un <code>ValueAccessor</code> (valeur éventuellement imbriquée) et un <code>UndoBackend</code> (une action par édition).</p>
+  <div data-api="UndoBackend RuntimeUndoBackend EditorUndoBackend ValueAccessor"></div>
+
+  <h3 id="api-editeur">Outils d'éditeur accessibles aux scripts</h3>
+  <p>Classes enregistrées au niveau éditeur (absentes d'un jeu exporté) et non instanciables, exposées pour les scripts d'éditeur et les tests.</p>
+  <div data-api="LayoutDatabaseWindow PreviewSourceEditor EditorIconPicker"></div>
+
+  <h3 id="api-demo">Démonstration</h3>
+  <div data-api="ObjectEditorDemo ObjectEditorDemoResource"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-panneau">Comment j'intègre un éditeur dans mon propre panneau de debug ?</h3>
+  <p>Le <code>ProceduralEditor</code> est un <code>VBoxContainer</code> ordinaire. <code>clear_registries()</code> avant chaque <code>set_target</code> : sinon, après une cible sans interface de type, le registre automatique est réutilisé pour les suivantes.</p>
+  <pre><code class="gdscript">@onready var editeur: ProceduralEditor = $Panneau/ProceduralEditor
+
+func inspecter(objet: Object) -> void:
+	editeur.clear_registries()   # chaque objet reprend l'interface de son type
+	editeur.set_target(objet)
+	$Panneau/Titre.text = objet.get_class()
+
+func _on_bouton_annuler_pressed() -> void:
+	editeur.undo()</code></pre>
+
+  <h3 id="ex-registre">Comment je choisis par code les données et leurs widgets ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	var registre := DataRegistry.new()
+	registre.scan_methods = true          # boutons pour les méthodes publiques
+	registre.sync($Joueur)                # une entrée par membre
+
+	var vitesse := registre.find(&amp;"vitesse")
+	vitesse.widget_choice = DataEntry.WIDGET_H_SLIDER
+	var bornes := RangeWidgetSettings.new()
+	bornes.max_value = 20.0
+	bornes.suffix = " m/s"
+	vitesse.settings = bornes
+
+	registre.find(&amp;"secret").enabled = false   # masquée, configuration conservée
+
+	$ProceduralEditor.registry = registre
+	$ProceduralEditor.set_target($Joueur)</code></pre>
+
+  <h3 id="ex-groupes">Comment je range les données en sections et en onglets ?</h3>
+  <pre><code class="gdscript">var groupes := GroupRegistry.new()
+var stats := groupes.ensure("Stats")
+stats.container_type = GroupEntry.CONTAINER_GRID
+stats.columns = 2
+for nom in ["vie", "force", "agilite", "chance"]:
+	groupes.assign(nom, stats)
+groupes.assign("arme", groupes.ensure("Équipement"))
+
+var fiche := groupes.ensure("Fiche")
+fiche.container_type = GroupEntry.CONTAINER_TABS
+fiche.child_groups = PackedStringArray(["Stats", "Équipement"])  # un onglet par groupe
+
+$ProceduralEditor.group_registry = groupes</code></pre>
+
+  <h3 id="ex-comportements">Comment je cache ou verrouille un champ selon l'état de l'objet ?</h3>
+  <p>Attention : un comportement dont la condition n'est pas réglée vaut <em>faux</em> (un « Montrer si » vide masque donc sa cible).</p>
+  <pre><code class="gdscript">var registre: DataRegistry = $ProceduralEditor.get_active_registry()
+
+var cacher := HideIfBehavior.new()
+cacher.get_condition().property_path = ^"est_mort"
+cacher.targets = PackedStringArray(["vie", "Stats"])   # une donnée et un groupe
+
+var activer := EnableIfBehavior.new()
+activer.get_condition().property_path = ^"utilise_physique"
+activer.targets = PackedStringArray(["masse"])         # lecture seule si faux
+
+var aide := TooltipIfBehavior.new()
+aide.get_condition().property_path = ^"surcharge"
+aide.tooltip = "[color=orange]Surcharge :[/color] {poids} / {poids_max} kg"
+aide.targets = PackedStringArray(["poids"])
+
+registre.behaviors = [cacher, activer, aide]
+$ProceduralEditor.rebuild()</code></pre>
+
+  <h3 id="ex-widget">Comment je crée mon propre widget ?</h3>
+  <p>Un script avec <code>class_name</code> qui hérite de <code>PropertyWidget</code> : <code>_build</code> construit le contrôle, <code>_pull</code> affiche la valeur, <code>emit_value</code> transmet la saisie. Il est choisi par <code>DataEntry.WIDGET_CUSTOM</code> + <code>custom_widget_class</code>, ou pour tout un choix via <code>WidgetFactory.set_widget_class</code>.</p>
+  <pre><code class="gdscript">class_name CurseurEtoiles
+extends PropertyWidget
+
+var _etoiles: HBoxContainer
+
+func _build(info: Dictionary, settings: WidgetSettings) -> Control:
+	_etoiles = HBoxContainer.new()
+	for i in 5:
+		var b := Button.new()
+		b.text = "☆"
+		b.pressed.connect(func(): emit_value(i + 1, true))  # true : modification validée
+		_etoiles.add_child(b)
+	return _etoiles
+
+func _pull(value: Variant) -> void:
+	for i in 5:
+		_etoiles.get_child(i).text = "★" if i &lt; int(value) else "☆"
+
+# Ailleurs :
+# var entree := registre.find(&amp;"note")
+# entree.widget_choice = DataEntry.WIDGET_CUSTOM
+# entree.custom_widget_class = &amp;"CurseurEtoiles"</code></pre>
+
+  <h3 id="ex-apercu">Comment j'ajoute l'aperçu 3D du modèle d'un objet ?</h3>
+  <pre><code class="gdscript">var apercu := DataEntry.new()
+apercu.data_name = &amp;"Modèle"
+apercu.member = DataEntry.MEMBER_PREVIEW
+apercu.kind = DataEntry.KIND_PREVIEW
+var reglages := PreviewSettings.new()
+reglages.preview_class = &amp;"Model3DPreview"
+reglages.get_source().property_path = ^"scene_visuelle"   # PackedScene exportée par l'objet
+reglages.height = 220
+apercu.settings = reglages
+registre.entries.insert(0, apercu)   # en tête de l'interface</code></pre>
+
+  <h3 id="ex-lien">Comment je relie un signal à une méthode sans code de connexion ?</h3>
+  <p>En jeu, un lien « mode ressource » passe des arguments arbitraires : argument du signal, propriété de l'émetteur ou constante. Rangé dans l'interface du type, il est appliqué automatiquement à tout nœud de ce type par le <code>LayoutLinker</code>.</p>
+  <pre><code class="gdscript">var lien := SignalLink.new()
+lien.target_path = ^"../HUD"
+lien.method = &amp;"afficher_degats"
+var degats := ArgumentBinding.new()
+degats.source = ArgumentBinding.SOURCE_SIGNAL_ARG
+degats.signal_index = 0
+var position := ArgumentBinding.new()
+position.source = ArgumentBinding.SOURCE_PROPERTY
+position.property_path = ^"global_position"   # lue sur l'émetteur
+lien.arguments = [degats, position]
+
+var base := LayoutDatabase.load_project_database()
+var interface := base.ensure_type("Ennemi")
+interface.data_registry.scan_signals = true
+var modele := Ennemi.new()               # instance d'exemple pour lire les membres
+interface.data_registry.sync(modele)
+modele.free()
+interface.data_registry.find(&amp;"touche", DataEntry.MEMBER_SIGNAL).links = [lien]
+ResourceSaver.save(base, LayoutDatabase.get_project_path())</code></pre>
+
+  <h3 id="ex-gizmo">Comment je dessine le rayon de détection d'un ennemi, dans l'éditeur et en jeu ?</h3>
+  <pre><code class="gdscript"># Enfant d'un Node2D qui exporte « rayon_detection ».
+func _ready() -> void:
+	var cercle := GizmoEntry.new()
+	cercle.function = "Gizmos2D.draw_2D_circle"     # crée les arguments par défaut
+	cercle.arguments[1].source = ArgumentBinding.SOURCE_PROPERTY
+	cercle.arguments[1].property_path = ^"rayon_detection"  # radius
+	cercle.arguments[2].constant = Color.ORANGE            # color
+	var registre := GizmoRegistry.new()
+	registre.entries = [cercle]
+	var hote := GizmoHost.new()
+	hote.registry = registre
+	add_child(hote)   # cible et viewport : ceux du parent</code></pre>
+
+  <h3 id="ex-style">Comment j'habille l'interface aux couleurs de mon jeu ?</h3>
+  <pre><code class="gdscript">var style := InterfaceStyle.new()
+style.theme = preload("res://ui/theme_jeu.tres")
+var fond := StyleBoxFlat.new()
+fond.bg_color = Color(0.05, 0.05, 0.1, 0.85)
+fond.set_corner_radius_all(8)
+style.background = fond
+$ProceduralEditor.style = style
+
+# Pour tout le projet : Projet › Paramètres › gameplay_toolkit/object_editor/default_style</code></pre>
+
+  <h3 id="ex-annulation">Comment je modifie une valeur imbriquée de façon annulable depuis mon propre outil ?</h3>
+  <pre><code class="gdscript">var annulation := RuntimeUndoBackend.new()
+
+func deplacer_point(chemin: Path3D, index: int, point: Vector3) -> void:
+	var acces := ValueAccessor.new()
+	acces.setup(chemin, &amp;"points_patrouille")            # PackedVector3Array exporté
+	var element := acces.child(index, {"type": TYPE_VECTOR3}, "[%d]" % index)
+	annulation.edit_property(element, point, true)        # une action « ancien → nouveau »
+
+func _on_annuler() -> void:
+	annulation.undo()</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-construction">Interface et synchronisation</h3>
+  <ul>
+    <li><strong>Un éditeur réutilisé garde son registre automatique.</strong> Après <code>set_target</code> sur un objet sans interface de type, le registre créé est conservé : les cibles suivantes l'utilisent (même si elles ont une interface de type), et les membres de l'ancienne cible y restent marqués manquants. Appeler <code>clear_registries()</code> avant chaque changement de type (<code>ObjectEditorWindow</code> le fait).</li>
+    <li><strong>Suivi par relecture périodique.</strong> Toutes les 0,1 s par défaut, chaque widget visible est relu (<code>get()</code> + comparaison) : coût proportionnel au nombre de widgets visibles. Les widgets masqués (section repliée, comportement « Cacher si ») ne sont plus mis à jour.</li>
+    <li><strong>Ressources partagées.</strong> Éditer une sous-ressource partagée modifie toutes ses utilisatrices ; rien ne le signale.</li>
+    <li><strong>Structures en composantes brutes.</strong> <code>Quaternion</code> en x/y/z/w, <code>Transform3D</code> en 9 coefficients + origine : pas d'angles en degrés ni d'échelle. Le mode « canaux » des couleurs est borné à 0-1 (pas de HDR).</li>
+    <li><strong>Pas d'équivalent des éditeurs spécialisés</strong> de l'inspecteur (Curve, Gradient, animation…) : ces ressources sont dépliées propriété par propriété.</li>
+    <li><strong>Les boutons de méthode appellent vraiment la méthode</strong>, hors historique d'annulation, y compris dans l'éditeur (sur un script non <code>@tool</code>, l'appel échoue).</li>
+    <li><strong><code>open_for</code> réutilise la fenêtre telle quelle</strong> : le paramètre <code>backend</code> n'est pris en compte qu'à sa création.</li>
+    <li><strong>Une interface en jeu ne se branche qu'au <code>_ready</code></strong> : changer <code>target_path</code> ensuite n'a pas d'effet sans <code>set_target</code>.</li>
+  </ul>
+
+  <h3 id="limites-annulation">Annulation</h3>
+  <ul>
+    <li><strong>Fusion des modifications rapprochées.</strong> En jeu, deux modifications de la même propriété à moins de 0,8 s d'intervalle forment une seule action (<code>MERGE_ENDS</code>) : un seul Ctrl+Z annule les deux (vérifié en test).</li>
+    <li><strong>L'annulation porte sur la propriété racine</strong> : changer un élément d'un tableau de 10 000 éléments enregistre deux copies complètes du tableau.</li>
+    <li><strong>Dans l'éditeur, annuler / rétablir simule Ctrl+Z / Ctrl+Maj+Z</strong> : si ces raccourcis ont été changés dans l'éditeur, les boutons et raccourcis de la fenêtre n'agissent plus.</li>
+  </ul>
+
+  <h3 id="limites-registres">Registres, interfaces par type et liens</h3>
+  <ul>
+    <li><strong>Les entrées manquantes ne sont jamais supprimées</strong> automatiquement : une propriété renommée laisse une entrée orpheline (à retirer dans la fenêtre de configuration).</li>
+    <li><strong>Un script sans <code>class_name</code> compte comme sa classe native</strong> : une interface <code>Node</code> sans « inclure les sous-classes » s'applique quand même à un nœud scripté anonyme.</li>
+    <li><strong>Liens en mode ressource : en jeu seulement.</strong> Ils ne sont appliqués que par le <code>LayoutLinker</code> (nœuds dont le type a une interface dans la base du projet, chargée une seule fois au démarrage) ou par un <code>ProceduralEditor</code> ouvert. Une ressource n'a aucun déclencheur automatique. Les liens d'un registre automatique (non enregistré) sont perdus.</li>
+    <li><strong>Liens natifs (éditeur)</strong> : seule la correspondance « les k premiers paramètres = les k premiers arguments du signal » est possible (contrainte de <code>bind</code> / <code>unbind</code>).</li>
+    <li><strong>Lecture des membres d'un type sur une instance d'exemple</strong> (fenêtre « Interfaces par type ») : un type abstrait, ou un script dont <code>_init</code> exige des arguments, ne peut pas être lu ; un <code>_init</code> à effets de bord s'exécute.</li>
+    <li><strong>Condition non réglée = faux</strong> : un « Montrer si » ajouté sans condition masque sa cible.</li>
+  </ul>
+
+  <h3 id="limites-apercus">Aperçus, gizmos et icônes</h3>
+  <ul>
+    <li><strong>Aperçu reconstruit seulement si la source change d'identité</strong> : une ressource modifiée en interne (même objet) n'est pas rafraîchie en mode « Au changement ».</li>
+    <li><strong>Copies de nœuds sans scripts par défaut</strong> : un personnage animé par script reste figé dans l'aperçu (sauf <code>duplicate_scripts</code>, qui exécute alors sa logique).</li>
+    <li><strong>Gizmos « Sur changement »</strong> : les arguments sont résolus et comparés à chaque image, même sans redessin.</li>
+    <li><strong>Icônes de l'éditeur copiées aux couleurs du thème courant</strong> de l'éditeur (claires sur thème sombre).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 900 380" role="img" aria-label="Schéma d'architecture du module Éditeur d'objet">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <text x="20" y="22" class="small">Données (Resources, .tres)</text>
+    <rect class="box" x="20" y="34" width="170" height="54" rx="8"/>
+    <text x="105" y="58" text-anchor="middle">LayoutDatabase</text>
+    <text x="105" y="76" text-anchor="middle" class="small">TypeLayout par type</text>
+    <rect class="box" x="20" y="120" width="170" height="54" rx="8"/>
+    <text x="105" y="144" text-anchor="middle">DataRegistry</text>
+    <text x="105" y="162" text-anchor="middle" class="small">DataEntry · comportements</text>
+    <rect class="box" x="20" y="206" width="170" height="54" rx="8"/>
+    <text x="105" y="230" text-anchor="middle">GroupRegistry</text>
+    <text x="105" y="248" text-anchor="middle" class="small">GroupEntry</text>
+    <rect class="box" x="20" y="292" width="170" height="54" rx="8"/>
+    <text x="105" y="316" text-anchor="middle">GizmoRegistry</text>
+    <text x="105" y="334" text-anchor="middle" class="small">GizmoEntry · ArgumentBinding</text>
+
+    <rect class="box main" x="300" y="120" width="190" height="60" rx="8"/>
+    <text x="395" y="146" text-anchor="middle">ProceduralEditor</text>
+    <text x="395" y="164" text-anchor="middle" class="small">VBoxContainer · cible (ObjectID)</text>
+    <rect class="box" x="300" y="34" width="190" height="54" rx="8"/>
+    <text x="395" y="58" text-anchor="middle">ObjectEditorWindow</text>
+    <text x="395" y="76" text-anchor="middle" class="small">fenêtre unique</text>
+    <rect class="box" x="300" y="220" width="190" height="54" rx="8"/>
+    <text x="395" y="244" text-anchor="middle">WidgetFactory</text>
+    <text x="395" y="262" text-anchor="middle" class="small">DataEntry → PropertyWidget</text>
+    <rect class="box" x="300" y="300" width="190" height="54" rx="8"/>
+    <text x="395" y="324" text-anchor="middle">GizmoHost</text>
+    <text x="395" y="342" text-anchor="middle" class="small">1 RID par entrée</text>
+
+    <rect class="box" x="580" y="120" width="150" height="54" rx="8"/>
+    <text x="655" y="144" text-anchor="middle">PropertyWidget</text>
+    <text x="655" y="162" text-anchor="middle" class="small">émet value_changed</text>
+    <rect class="box" x="580" y="34" width="150" height="54" rx="8"/>
+    <text x="655" y="58" text-anchor="middle">SyncController</text>
+    <text x="655" y="76" text-anchor="middle" class="small">relit toutes les 0,1 s</text>
+    <rect class="box" x="580" y="220" width="150" height="54" rx="8"/>
+    <text x="655" y="244" text-anchor="middle">UndoBackend</text>
+    <text x="655" y="262" text-anchor="middle" class="small">Runtime / Editor</text>
+    <rect class="box" x="760" y="160" width="120" height="70" rx="8"/>
+    <text x="820" y="188" text-anchor="middle">Objet cible</text>
+    <text x="820" y="206" text-anchor="middle" class="small">set() / get()</text>
+    <rect class="box" x="580" y="300" width="150" height="54" rx="8"/>
+    <text x="655" y="324" text-anchor="middle">ValueAccessor</text>
+    <text x="655" y="342" text-anchor="middle" class="small">racine + chemin</text>
+
+    <path class="arrow" d="M190 61 Q240 61 298 140" marker-end="url(#arr)"/>
+    <path class="arrow" d="M190 147 H298" marker-end="url(#arr)"/>
+    <path class="arrow" d="M190 233 Q250 233 298 165" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M190 319 H298" marker-end="url(#arr)"/>
+    <path class="arrow" d="M395 88 V118" marker-end="url(#arr)"/>
+    <path class="arrow" d="M395 180 V218" marker-end="url(#arr)"/>
+    <path class="arrow" d="M490 247 Q540 200 578 160" marker-end="url(#arr)"/>
+    <path class="arrow" d="M655 174 V218" marker-end="url(#arr)"/>
+    <text x="662" y="200" class="small">value_changed</text>
+    <path class="arrow" d="M655 274 V298" marker-end="url(#arr)"/>
+    <path class="arrow" d="M730 327 Q800 300 815 232" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M780 160 Q760 70 732 61" marker-end="url(#arr)"/>
+    <path class="arrow" d="M655 88 V118" marker-end="url(#arr)"/>
+    <text x="662" y="108" class="small">pull()</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Résolution de l'interface</strong> : <code>ProceduralEditor.set_target</code> prend ses registres propres, sinon le <code>TypeLayout</code> de la cible (<code>LayoutDatabase.find_layout</code>), sinon un registre automatique ; puis <code>DataRegistry.sync</code> fusionne les membres de la cible avec les entrées.</li>
+    <li><strong>Construction</strong> : pour chaque entrée, la <code>WidgetFactory</code> instancie un <code>PropertyWidget</code> ; l'éditeur le configure (<code>setup</code>, réglages, styles), le place dans son groupe et l'enregistre auprès du <code>SyncController</code>. Les widgets qui en contiennent d'autres (collections, objets, Variant, méthodes) passent par un <code>WidgetContext</code> qui rappelle l'éditeur : profondeur et anti-cycle centralisés.</li>
+    <li><strong>Écriture</strong> (appels directs + signal) : le widget émet <code>value_changed(valeur, committing)</code> → l'éditeur appelle <code>UndoBackend.edit_property</code> → <code>ValueAccessor.write</code> reconstruit la racine et fait un <code>set()</code> → <code>SyncController.notify_written</code> relit et corrige le widget si le setter a transformé la valeur.</li>
+    <li><strong>Lecture</strong> : le <code>SyncController</code> (nœud interne, <code>_process</code>) relit les widgets visibles et appelle <code>pull()</code> ; il émet <code>synced</code>, sur lequel l'éditeur réévalue les comportements, et <code>target_lost</code> quand la cible est libérée.</li>
+    <li><strong>Gizmos</strong> : un <code>GizmoHost</code> (nœud de scène, ou interne à l'éditeur pour le type de la cible) appelle les fonctions statiques <code>draw_*</code> de <code>Gizmos2D</code>/<code>Gizmos3D</code> via <code>ClassDB.class_call_static</code>.</li>
+    <li><strong>Éditeur Godot</strong> : <code>ObjectEditorPlugin</code> écoute <code>EditorSelection.selection_changed</code> et l'objet de l'inspecteur (différé), ouvre ou fait suivre l'<code>ObjectEditorWindow</code> ; l'inspector plugin ajoute « Configurer l'interface / les gizmos » ; l'export plugin ajoute la base. <strong>Jeu</strong> : le singleton <code>LayoutLinker</code> écoute <code>SceneTree.node_added</code>.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépend de <em>🐛 Gizmos</em> (<code>Gizmos2D</code>, <code>Gizmos3D</code>, <code>Gizmos</code>) et de <em>📰 Journal Console</em> (<code>log_it</code>), tous compilés dans la même bibliothèque <code>tool_editor</code>. Le catalogue des fonctions de dessin est lu dans ClassDB : aucune liste en dur, une nouvelle fonction <code>draw_*</code> apparaît automatiquement.</li>
+    <li>Runtime enregistré au niveau SCENE, outils d'éditeur au niveau EDITOR (fichiers séparés) ; le code runtime n'appelle une API d'éditeur que derrière <code>is_editor_hint()</code> et un test du singleton.</li>
+    <li>Les autres modules n'incluent pas ses en-têtes : ils passent par Godot (<code>ObjectEditorWindow.open_for(obj)</code>, <code>ClassDB.instantiate("ProceduralEditor")</code>).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Un seul <code>SyncController</code> par éditeur, relecture des widgets visibles seulement</td><td>Godot n'a aucun signal « valeur modifiée ». La version C# d'origine avait un nœud de polling par widget, trop coûteux ; un intervalle configurable et l'exclusion des widgets masqués bornent le coût.</td></tr>
+        <tr><td>Un widget n'écrit jamais dans l'objet</td><td>Toutes les écritures passent par l'<code>UndoBackend</code> : une seule action par édition, en jeu comme dans l'éditeur, sans dupliquer la logique dans chaque widget.</td></tr>
+        <tr><td><code>ValueAccessor</code> réécrit toujours la propriété racine (copie à chaque niveau)</td><td><code>Packed*Array</code>, vecteurs, transformations sont copiés à la lecture : modifier une copie ne change rien. Réécrire la racine garantit aussi que le setter est appelé et que l'annulation porte sur une seule propriété.</td></tr>
+        <tr><td>Relecture après écriture (<code>notify_written</code>)</td><td>Un setter peut borner ou refuser une valeur ; sans relecture, le widget afficherait une valeur fausse.</td></tr>
+        <tr><td>Entrées manquantes jamais supprimées</td><td>Un renommage temporaire, ou une cible d'un autre sous-type, ne doit pas effacer une configuration soignée.</td></tr>
+        <tr><td>Réglages typés (<code>WidgetSettings</code> et sous-classes) au lieu d'un dictionnaire</td><td>Fautes de frappe impossibles, valeurs validées par l'inspecteur (c'était le principal défaut de l'<code>ExtraData</code> du C#).</td></tr>
+        <tr><td>Valeurs des énumérations explicites, jamais renumérotées</td><td>Elles sont enregistrées comme entiers dans les <code>.tres</code> : renuméroter casserait toutes les interfaces existantes.</td></tr>
+        <tr><td>Objets désignés par <code>ObjectID</code>, jamais par pointeur</td><td>La cible peut être libérée à tout moment (ennemi détruit) : l'interface affiche « Objet libéré » au lieu de planter.</td></tr>
+        <tr><td>Deux modes de liens de signaux</td><td>Le mode natif (<code>CONNECT_PERSIST</code>) s'intègre à la scène et à l'onglet Nœud, mais <code>bind</code>/<code>unbind</code> limitent la correspondance ; le mode ressource (Callable personnalisé) permet tout, au prix d'une application à l'exécution.</td></tr>
+        <tr><td><code>LayoutLinker</code> créé hors de l'éditeur seulement</td><td>Dans l'éditeur, aucun lien ne doit déclencher de logique de jeu sur la scène éditée.</td></tr>
+        <tr><td><code>GizmoHost</code> seul propriétaire des RID, 1 RID par forme</td><td>Chaque <code>draw_*</code> efface son gizmo avant de dessiner ; un propriétaire unique qui libère tout à la sortie de l'arbre évite les fuites de ressources du RenderingServer.</td></tr>
+        <tr><td>Contenu des conteneurs construit à l'ouverture, reconstruit seulement si la structure change</td><td>Un gros tableau ou une ressource profonde ne coûte rien tant qu'il est replié, et une valeur qui change ne détruit pas les widgets (ni le focus).</td></tr>
+        <tr><td>Icônes de l'éditeur copiées dans <code>res://object_editor_icons/</code></td><td>Les icônes de l'éditeur n'existent pas dans un jeu exporté.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des 64 classes (structure des XML régénérée depuis la bibliothèque compilée, elle était antérieure aux styles, aperçus et comportements), commentaires <code>///</code> des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-05</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>« Ajout Editeur Procédural » : <code>ProceduralEditor</code>, widgets de tous les types, collections, objets, méthodes, signaux (modes natif et ressource), groupes, annulation jeu / éditeur, gizmos automatiques, interfaces par type, <code>ObjectEditorWindow</code> et ouverture automatique.</li>
+      <li><span class="tag add">Ajouté</span>« Ajout personnalisation » : <code>InterfaceStyle</code> (thème, fond, matériau, uniforms liés), styles de groupe et de widget.</li>
+      <li><span class="tag add">Ajouté</span>« Ajout Prewiew, comportment sur condition » : aperçus (<code>PreviewWidget</code> et classes fournies), comportements conditionnels, infobulles enrichies, icônes, tableau (<code>TableWidget</code>).</li>
+    </ul>
+  </div>
+
+  <footer>Module 💻️ Éditeur d'objet · sources : <code>src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/💻️Editeur d'objet/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "ProceduralEditor.clear_registries": "Un éditeur réutilisé pour des objets de types différents (panneau d'inspection de debug) : l'appeler avant chaque <code>set_target</code>.",
+  "ProceduralEditor.evaluate_behaviors": "Appliquer tout de suite un « Cacher si » après avoir modifié la cible par code, sans attendre la relecture.",
+  "ProceduralEditor.get_active_group_registry": "Ajouter un groupe à l'interface affichée par code.",
+  "ProceduralEditor.get_active_layout": "Savoir si l'objet affiché a une interface de type (afficher « interface générale » sinon).",
+  "ProceduralEditor.get_active_registry": "Modifier par code l'interface affichée (changer un widget), puis <code>rebuild()</code>.",
+  "ProceduralEditor.get_effective_layout_database": "Lire la base réellement utilisée pour la compléter.",
+  "ProceduralEditor.get_effective_style": "Reprendre le fond du style dans un cadre englobant (c'est ce que fait <code>ObjectEditorWindow</code>).",
+  "ProceduralEditor.get_factory": "Récupérer la fabrique pour y ajouter un remplacement de widget.",
+  "ProceduralEditor.get_gizmo_host": "Vérifier dans un test qu'aucun RID de gizmo ne fuit (<code>get_live_rid_count()</code>).",
+  "ProceduralEditor.get_rich_tooltip": "Régler le délai des infobulles enrichies.",
+  "ProceduralEditor.get_styled_count": "Tests : vérifier que les uniforms liés d'un style sont bien suivis.",
+  "ProceduralEditor.get_target": "Afficher le nom de l'objet édité dans un titre ; détecter qu'il a été libéré.",
+  "ProceduralEditor.get_undo_backend": "Brancher des boutons « Annuler / Rétablir » sur l'historique de l'éditeur.",
+  "ProceduralEditor.get_widget": "Donner le focus au champ « vie » ou le styler par code.",
+  "ProceduralEditor.is_scroll_enabled": "Adapter la mise en page du conteneur parent.",
+  "ProceduralEditor.reapply_links": "Après avoir modifié des liens de signaux par code en jeu.",
+  "ProceduralEditor.rebuild": "Après avoir changé un registre, un widget ou un réglage par code.",
+  "ProceduralEditor.redo": "Bouton « Rétablir » d'une fenêtre de debug.",
+  "ProceduralEditor.resolve_declared_target": "Savoir quel objet la scène déclare éditer avant le <code>_ready</code>.",
+  "ProceduralEditor.set_factory": "Remplacer tous les SpinBox par un widget maison dans cet éditeur.",
+  "ProceduralEditor.set_scroll_enabled": "Éditeur dans un panneau de hauteur fixe : activer le défilement.",
+  "ProceduralEditor.set_target": "Le cœur de l'usage : inspecter un ennemi cliqué, le joueur, une ressource de configuration.",
+  "ProceduralEditor.set_undo_backend": "Outil d'éditeur : <code>EditorUndoBackend.new()</code> pour que Ctrl+Z de l'éditeur annule les modifications.",
+  "ProceduralEditor.undo": "Bouton « Annuler » d'une fenêtre de debug.",
+  "ProceduralEditor.draw_gizmos": "Désactiver les gizmos du type dans une vue où ils gêneraient.",
+  "ProceduralEditor.group_registry": "Imposer des groupes définis dans la scène (fenêtre « Configurer l'interface »).",
+  "ProceduralEditor.layout_database": "Utiliser une base d'interfaces propre à un outil (ex. un éditeur de niveau en jeu).",
+  "ProceduralEditor.max_depth": "Réduire pour des objets très imbriqués (lenteur), augmenter pour des données profondes.",
+  "ProceduralEditor.registry": "Interface faite sur mesure pour un menu de réglages en jeu, enregistrée avec la scène.",
+  "ProceduralEditor.style": "Habiller l'interface aux couleurs du jeu (menu d'options).",
+  "ProceduralEditor.styles_enabled": "Garder l'apparence par défaut dans un outil de debug.",
+  "ProceduralEditor.sync_interval": "<code>0</code> pour suivre une valeur qui change à chaque image ; plus grand pour économiser du temps CPU.",
+  "ProceduralEditor.target_path": "Menu d'options en jeu qui édite un nœud <code>Options</code> de la scène.",
+  "ProceduralEditor.target_resource": "Éditer une ressource <code>.tres</code> de réglages (difficulté, son…) dans un menu.",
+  "ProceduralEditor.use_layouts": "Forcer l'interface générale (tout afficher) dans une console de debug.",
+  "ObjectEditorWindow.close_current": "Touche Échap de la console de debug ; changement de scène.",
+  "ObjectEditorWindow.follow": "Fenêtre qui suit l'objet cliqué en jeu tant qu'elle n'est pas épinglée.",
+  "ObjectEditorWindow.get_current": "Savoir si une fenêtre de debug est ouverte avant d'en ouvrir une.",
+  "ObjectEditorWindow.get_editor": "Régler l'éditeur de la fenêtre (intervalle, style, profondeur).",
+  "ObjectEditorWindow.is_pinned": "Ignorer un clic sur un autre objet quand l'utilisateur a épinglé.",
+  "ObjectEditorWindow.open_for": "Fenêtre de debug en une ligne : <code>ObjectEditorWindow.open_for($Joueur)</code>.",
+  "ObjectEditorWindow.set_pinned": "Épingler d'office une fenêtre ouverte sur un objet important.",
+  "WidgetFactory.get_widget_class": "Vérifier quel widget remplace un choix.",
+  "WidgetFactory.set_widget_class": "Remplacer tous les ColorPickerButton par une palette maison, toutes les cases à cocher par des interrupteurs stylés.",
+  "LayoutDatabase.ensure_type": "Script d'éditeur qui prépare les interfaces de tous les types d'ennemis.",
+  "LayoutDatabase.find_by_type": "Retrouver l'interface d'un type précis pour la modifier.",
+  "LayoutDatabase.find_layout": "Savoir quelle interface un objet recevra (débogage d'une interface qui ne s'applique pas).",
+  "LayoutDatabase.get_project_path": "Enregistrer la base au bon endroit après une modification par code.",
+  "LayoutDatabase.load_project_database": "Lire la base du projet dans un outil ou un test.",
+  "LayoutDatabase.type_chain": "Comprendre pourquoi une interface de classe parente s'applique.",
+  "LayoutDatabase.layouts": "Parcourir toutes les interfaces déclarées (outil d'audit).",
+  "TypeLayout.ensure_registries": "Après avoir créé un TypeLayout par code, avant d'y ajouter des entrées.",
+  "TypeLayout.data_registry": "Choisir les données affichées pour tous les objets <code>Ennemi</code>.",
+  "TypeLayout.gizmo_registry": "Dessiner le rayon d'attaque de tout ennemi inspecté.",
+  "TypeLayout.group_registry": "Ranger les statistiques d'un type dans des onglets.",
+  "TypeLayout.include_subclasses": "Une interface <code>Ennemi</code> qui sert aussi à <code>Boss</code> et <code>Sbire</code>.",
+  "TypeLayout.priority": "Deux interfaces pour la même classe : désigner celle qui l'emporte.",
+  "TypeLayout.style": "Couleur propre à l'interface d'un type (rouge pour les ennemis).",
+  "TypeLayout.type_name": "Le type concerné : <code>CharacterBody3D</code>, <code>Ennemi</code>…",
+  "LayoutDatabaseWindow.add_type": "Script d'éditeur qui ouvre la fenêtre directement sur un type.",
+  "LayoutDatabaseWindow.close_current": "Fermer la fenêtre depuis un script d'éditeur ou de test.",
+  "LayoutDatabaseWindow.get_database": "Tests : vérifier la base éditée.",
+  "LayoutDatabaseWindow.open": "Raccourci d'un plugin maison vers « Interfaces par type ».",
+  "LayoutLinker.get_applied_count": "Vérifier en test que les liens par type ont été appliqués.",
+  "LayoutLinker.get_singleton": "Diagnostiquer pourquoi un lien par type ne se déclenche pas en jeu.",
+  "LayoutLinker.is_started": "Attendre la première image avant de compter les nœuds reliés.",
+  "SyncController.get_styled_count": "Tests de suivi des uniforms liés.",
+  "SyncController.refresh_all": "Forcer l'affichage immédiat après une modification massive par code.",
+  "SyncController.same_value": "Comparer deux valeurs comme l'éditeur (tolérance des décimaux) dans un widget maison.",
+  "SyncController.interval": "Réglé via <code>ProceduralEditor.sync_interval</code>.",
+  "SyncController.synced": "Rafraîchir un affichage annexe (compteur, graphique) au même rythme que l'interface.",
+  "SyncController.target_lost": "Fermer automatiquement un panneau quand l'objet inspecté est détruit.",
+  "RichTooltip.build_text": "Tests : vérifier le texte d'une infobulle dynamique.",
+  "RichTooltip.get_delay": "Lire le délai actuel.",
+  "RichTooltip.get_shown_text": "Tests : vérifier ce qui est affiché.",
+  "RichTooltip.hide_tooltip": "Cacher l'infobulle lors d'un changement d'écran.",
+  "RichTooltip.is_shown": "Tests.",
+  "RichTooltip.set_delay": "Infobulles plus réactives (0,2 s) dans un outil de debug.",
+  "RichTooltip.show_for": "Montrer l'aide d'un champ depuis un bouton « ? ».",
+  "DataRegistry.apply_links": "Appliquer à la main les liens d'un registre à un objet créé par code.",
+  "DataRegistry.clear_links": "Retirer les liens avant de réutiliser un objet (pool).",
+  "DataRegistry.find": "Régler par code le widget d'une donnée : <code>registre.find(&\"vie\")</code>.",
+  "DataRegistry.get_members": "Lister les propriétés d'un objet comme l'éditeur (outil maison).",
+  "DataRegistry.get_target": "Savoir sur quel objet le registre a été synchronisé.",
+  "DataRegistry.sync": "Préparer un registre par code avant de le donner à un éditeur.",
+  "DataRegistry.behaviors": "Montrer « Bouclier » seulement si le joueur en porte un ; griser des réglages désactivés.",
+  "DataRegistry.entries": "Réordonner les données, en retirer.",
+  "DataRegistry.include_private_methods": "Outil de debug qui doit pouvoir appeler <code>_reset()</code>.",
+  "DataRegistry.scan_methods": "Ajouter des boutons « Soigner », « Tuer » dans une fenêtre de debug.",
+  "DataRegistry.scan_properties": "Désactiver pour n'afficher que des méthodes (panneau d'actions).",
+  "DataRegistry.scan_signals": "Relier des signaux à des méthodes sans code (événements de niveau).",
+  "DataRegistry.scope": "<em>Tout</em> pour inspecter aussi <code>position</code>, <code>visible</code>… d'un nœud scripté.",
+  "DataRegistry.synced": "Mettre à jour un outil qui affiche le nombre de données.",
+  "DataEntry.resolved_choice": "Savoir quel widget sera réellement créé.",
+  "DataEntry.custom_widget_class": "Afficher une note avec un widget « étoiles » maison.",
+  "DataEntry.data_name": "Identifier la donnée (nom de la propriété).",
+  "DataEntry.enabled": "Masquer définitivement une donnée sans perdre sa configuration.",
+  "DataEntry.is_missing": "Repérer les données d'une propriété renommée ou supprimée, pour les nettoyer.",
+  "DataEntry.is_vertical": "Libellé au-dessus d'un long texte ; éléments d'une collection côte à côte.",
+  "DataEntry.kind": "Lire la famille de donnée pour proposer les bons widgets.",
+  "DataEntry.links": "Liens « signal → méthode » ajoutés par code (mode ressource).",
+  "DataEntry.member": "Distinguer propriétés, boutons de méthode, signaux et aperçus.",
+  "DataEntry.settings": "Bornes d'un curseur, icône, style, hauteur d'un texte…",
+  "DataEntry.tooltip": "Aide contextuelle : « Dégâts actuels : [b]{degats}[/b] ».",
+  "DataEntry.widget_choice": "Curseur au lieu d'un SpinBox, interrupteur au lieu d'une case…",
+  "DataEntry.KIND_UNSUPPORTED": "Valeur de <code>kind</code> : Type non pris en charge.",
+  "DataEntry.KIND_BOOL": "Valeur de <code>kind</code> : Booléen.",
+  "DataEntry.KIND_NUMBER": "Valeur de <code>kind</code> : [code]int[/code] ou [code]float[/code].",
+  "DataEntry.KIND_TEXT": "Valeur de <code>kind</code> : [code]String[/code] ou [code]StringName[/code].",
+  "DataEntry.KIND_ENUM": "Valeur de <code>kind</code> : Entier ou texte avec l'indice [code]PROPERTY_HINT_ENUM[/code].",
+  "DataEntry.KIND_FLAGS": "Valeur de <code>kind</code> : Entier avec l'indice [code]PROPERTY_HINT_FLAGS[/code].",
+  "DataEntry.KIND_COLOR": "Valeur de <code>kind</code> : Couleur.",
+  "DataEntry.KIND_METHOD": "Valeur de <code>kind</code> : Méthode.",
+  "DataEntry.KIND_SIGNAL": "Valeur de <code>kind</code> : Signal.",
+  "DataEntry.KIND_OBJECT": "Valeur de <code>kind</code> : Objet.",
+  "DataEntry.KIND_NODE_PATH": "Valeur de <code>kind</code> : [code]NodePath[/code].",
+  "DataEntry.KIND_ARRAY": "Valeur de <code>kind</code> : [code]Array[/code].",
+  "DataEntry.KIND_DICTIONARY": "Valeur de <code>kind</code> : [code]Dictionary[/code].",
+  "DataEntry.KIND_STRUCT": "Valeur de <code>kind</code> : Structure (Vector2/3/4 et variantes entières, Rect2, AABB, Plane, Quaternion, Basis, Transform2D/3D, Projection).",
+  "DataEntry.KIND_VARIANT": "Valeur de <code>kind</code> : Valeur sans type déclaré.",
+  "DataEntry.KIND_RID": "Valeur de <code>kind</code> : [code]RID[/code].",
+  "DataEntry.KIND_PACKED_ARRAY": "Valeur de <code>kind</code> : [code]Packed*Array[/code].",
+  "DataEntry.KIND_PREVIEW": "Valeur de <code>kind</code> : Aperçu personnalisé ([PreviewWidget]).",
+  "DataEntry.WIDGET_AUTO": "Laisser l'éditeur choisir (valeur par défaut, suit un changement de type).",
+  "DataEntry.WIDGET_CHECK_BOX": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_CHECK_BUTTON": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_LABEL": "Afficher une valeur sans la rendre modifiable (score, identifiant).",
+  "DataEntry.WIDGET_SPIN_BOX": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_H_SLIDER": "Volume, sensibilité de souris, vitesse de jeu : réglage au curseur.",
+  "DataEntry.WIDGET_V_SLIDER": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_PROGRESS_BAR": "Afficher une jauge (vie, chargement) sans permettre de la modifier.",
+  "DataEntry.WIDGET_TEXTURE_PROGRESS_BAR": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_LINE_EDIT": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_TEXT_EDIT": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_OPTION_BUTTON": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_CHECK_BUTTON_LIST": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_COLOR_PICKER_BUTTON": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_COLOR_RECT_CHANNELS": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_BUTTON": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_BOX_CONTAINER": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_GRID_CONTAINER": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_PATH_BUTTON": "Choisir un nœud cible (point d'apparition) dans la scène.",
+  "DataEntry.WIDGET_STRUCT_SPIN_BOXES": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_CUSTOM": "Widget maison (palette, étoiles, sélecteur de son).",
+  "DataEntry.WIDGET_VARIANT_SELECTOR": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_CHECK_BOX_LIST": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_FLOW_CONTAINER": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.WIDGET_TAB_CONTAINER": "Un onglet par élément d'une liste de niveaux.",
+  "DataEntry.WIDGET_TABLE": "Inventaire, liste d'ennemis d'une vague : une ligne par objet.",
+  "DataEntry.WIDGET_PREVIEW": "Valeur de <code>widget_choice</code>.",
+  "DataEntry.MEMBER_PROPERTY": "Entrée d'une propriété.",
+  "DataEntry.MEMBER_METHOD": "Entrée d'un bouton de méthode.",
+  "DataEntry.MEMBER_SIGNAL": "Entrée d'un éditeur de liens de signal.",
+  "DataEntry.MEMBER_PREVIEW": "Ajouter un aperçu (image, modèle) à l'interface.",
+  "DataEntry.SCOPE_AUTO": "Cas courant : les variables du script, sans les propriétés du moteur.",
+  "DataEntry.SCOPE_SCRIPT_ONLY": "Ne jamais afficher les propriétés natives, même sans membres de script.",
+  "DataEntry.SCOPE_ALL": "Inspecteur de debug complet (position, visible, modulate…).",
+  "DataEntry.SCOPE_CLASS_ONLY": "Objet natif ou GDExtension : seulement les membres de sa propre classe.",
+  "GroupEntry.child_groups": "Fiche de personnage en onglets « Stats », « Équipement », « Compétences ».",
+  "GroupEntry.columns": "Grille 2 colonnes pour des statistiques courtes.",
+  "GroupEntry.container_type": "Mettre x/y/z côte à côte, encadrer une section.",
+  "GroupEntry.data_names": "Ordonner les données d'une section.",
+  "GroupEntry.group_name": "Titre de section : « Combat », « Déplacement ».",
+  "GroupEntry.icon": "Repérer une section d'un coup d'œil (épée pour « Combat »).",
+  "GroupEntry.is_vertical": "Orientation d'un cadre (Panel).",
+  "GroupEntry.style": "Fond coloré pour la section « Danger ».",
+  "GroupEntry.CONTAINER_VBOX": "Section simple, données les unes sous les autres.",
+  "GroupEntry.CONTAINER_HBOX": "Quelques valeurs courtes sur une ligne.",
+  "GroupEntry.CONTAINER_GRID": "Tableau de statistiques.",
+  "GroupEntry.CONTAINER_PANEL": "Section encadrée qui se détache visuellement.",
+  "GroupEntry.CONTAINER_TABS": "Regrouper plusieurs sections en onglets.",
+  "GroupRegistry.assign": "Déplacer une donnée dans une section par code.",
+  "GroupRegistry.ensure": "Créer une section si elle n'existe pas encore.",
+  "GroupRegistry.find": "Modifier une section existante.",
+  "GroupRegistry.group_of": "Savoir dans quelle section une donnée est affichée.",
+  "GroupRegistry.remove_data_name": "Sortir une donnée de toute section.",
+  "GroupRegistry.tabs_of": "Savoir si une section est un onglet d'un groupe en onglets.",
+  "GroupRegistry.groups": "Parcourir et réordonner les sections.",
+  "ArgumentBinding.compatible_members": "Outil maison : proposer la liste des propriétés compatibles avec un paramètre.",
+  "ArgumentBinding.constant_error": "Valider une constante avant de l'enregistrer.",
+  "ArgumentBinding.is_method_const": "Distinguer une fonction sans effet de bord.",
+  "ArgumentBinding.resolve": "Calculer la valeur d'une source dans un système maison.",
+  "ArgumentBinding.resolve_object": "Savoir quel objet sera lu.",
+  "ArgumentBinding.constant": "Valeur fixe d'un paramètre : couleur d'un gizmo, dégâts d'un lien.",
+  "ArgumentBinding.expected_info": "Garder le type du paramètre pour l'éditer avec le bon widget.",
+  "ArgumentBinding.method": "Condition « <code>est_en_danger()</code> » d'un comportement.",
+  "ArgumentBinding.object_path": "Lire une propriété d'un autre nœud (<code>../Joueur</code>).",
+  "ArgumentBinding.object_resource": "Lire une valeur d'une ressource partagée (réglages globaux).",
+  "ArgumentBinding.property_path": "Rayon d'un gizmo = <code>rayon_detection</code>.",
+  "ArgumentBinding.signal_index": "Passer les dégâts reçus (argument 0 du signal) à la méthode appelée.",
+  "ArgumentBinding.source": "Choisir d'où vient la valeur.",
+  "ArgumentBinding.SOURCE_CONSTANT": "Valeur fixe.",
+  "ArgumentBinding.SOURCE_PROPERTY": "Valeur suivie en direct d'une propriété.",
+  "ArgumentBinding.SOURCE_SIGNAL_ARG": "Faire suivre un argument du signal.",
+  "ArgumentBinding.SOURCE_METHOD": "Valeur calculée par une fonction.",
+  "SignalLink.connect_to": "Appliquer un lien créé par code en jeu.",
+  "SignalLink.disconnect_from": "Retirer le lien d'un objet remis dans un pool.",
+  "SignalLink.is_connected_to": "Tests : vérifier qu'un lien est actif.",
+  "SignalLink.resolve_target": "Diagnostiquer une cible introuvable.",
+  "SignalLink.arguments": "Paramètres : argument du signal, propriété ou constante.",
+  "SignalLink.enabled": "Désactiver un lien sans le supprimer.",
+  "SignalLink.method": "La méthode déclenchée : <code>ouvrir_porte</code>, <code>jouer_son</code>.",
+  "SignalLink.target_path": "Interrupteur qui ouvre une porte voisine (<code>../Porte</code>).",
+  "SignalLink.target_resource": "Appeler une méthode d'une ressource (statistiques partagées).",
+  "WidgetBehavior._apply": "Comportement maison : clignoter, jouer un son, changer de texte quand une condition change.",
+  "WidgetBehavior.evaluate": "Tester une condition dans un outil.",
+  "WidgetBehavior.format_text": "Construire un texte dynamique « {vie} / {vie_max} » ailleurs que dans une infobulle.",
+  "WidgetBehavior.get_condition": "Régler la condition par code sans créer l'ArgumentBinding.",
+  "WidgetBehavior.get_display_name": "Afficher le nom d'un comportement dans un outil.",
+  "WidgetBehavior.condition": "« Si <code>est_mort</code> », « si <code>a_une_arme()</code> ».",
+  "WidgetBehavior.enabled": "Désactiver temporairement un comportement.",
+  "WidgetBehavior.invert": "« Si NON <code>est_mort</code> » sans écrire de fonction.",
+  "WidgetBehavior.targets": "Les données et sections concernées.",
+  "StyleIfBehavior.style": "Fond rouge quand la vie est basse.",
+  "TooltipIfBehavior.tooltip": "Avertir « Surcharge » seulement quand c'est le cas.",
+  "IconIfBehavior.icon": "Icône de poison à côté de la vie quand le joueur est empoisonné.",
+  "UndoBackend.can_undo_redo": "Afficher des boutons Annuler/Rétablir seulement en jeu.",
+  "UndoBackend.commit_calls": "Rendre annulable une opération maison (ajout d'un lien, d'un gizmo).",
+  "UndoBackend.discard_edit": "Widget maison : abandon d'une saisie (Échap).",
+  "UndoBackend.edit_property": "Modifier une propriété de façon annulable depuis un outil maison.",
+  "UndoBackend.redo": "Rétablir.",
+  "UndoBackend.undo": "Annuler.",
+  "RuntimeUndoBackend.clear_history": "Vider l'historique en changeant de niveau.",
+  "RuntimeUndoBackend.has_redo": "Griser le bouton « Rétablir ».",
+  "RuntimeUndoBackend.has_undo": "Griser le bouton « Annuler ».",
+  "ValueAccessor.child": "Éditer un élément d'un tableau ou d'un dictionnaire.",
+  "ValueAccessor.find_property_info": "Lire le type et l'indice d'une propriété.",
+  "ValueAccessor.get_display_name": "Libellé d'un champ maison.",
+  "ValueAccessor.get_path": "Savoir quel élément est désigné.",
+  "ValueAccessor.get_property": "Nom de la propriété racine.",
+  "ValueAccessor.get_property_info": "Construire un widget adapté au type.",
+  "ValueAccessor.get_target": "Vérifier que l'objet existe encore.",
+  "ValueAccessor.is_read_only": "Désactiver un champ maison en lecture seule.",
+  "ValueAccessor.is_root": "Distinguer propriété et élément imbriqué.",
+  "ValueAccessor.is_undoable": "Savoir si l'écriture passe dans l'historique.",
+  "ValueAccessor.is_valid": "Éviter d'écrire dans un objet libéré.",
+  "ValueAccessor.read": "Lire la valeur affichée.",
+  "ValueAccessor.read_root": "Lire la valeur complète (ex. tout le tableau).",
+  "ValueAccessor.setup": "Désigner une propriété d'un objet.",
+  "ValueAccessor.with_info": "Afficher la même valeur avec un autre type.",
+  "ValueAccessor.write": "Modifier un point d'une courbe, une composante d'un vecteur.",
+  "ShaderParameterBinding.get_binding": "Régler la source par code.",
+  "ShaderParameterBinding.binding": "Remplissage d'une jauge shader = <code>vie / vie_max</code>.",
+  "ShaderParameterBinding.parameter": "Nom de l'uniform (ex. <code>remplissage</code>).",
+  "InterfaceStyle.apply_to": "Appliquer le style de l'interface à un contrôle maison.",
+  "InterfaceStyle.clear_from": "Retirer un style posé par code.",
+  "InterfaceStyle.find_parameter": "Modifier le lien d'un uniform existant.",
+  "InterfaceStyle.get_shader_uniforms": "Lister les uniforms à lier dans un outil.",
+  "InterfaceStyle.has_parameter_bindings": "Savoir si le style dépend de l'objet affiché.",
+  "InterfaceStyle.load_project_default": "Réutiliser le style du projet dans une interface maison.",
+  "InterfaceStyle.update_parameters": "Rafraîchir un shader lié hors du SyncController.",
+  "InterfaceStyle.background": "Panneau semi-transparent derrière une fenêtre de debug.",
+  "InterfaceStyle.material": "Effet visuel (contour lumineux, scanlines) sur l'interface.",
+  "InterfaceStyle.modulate": "Atténuer ou teinter toute une section.",
+  "InterfaceStyle.propagate_material": "Appliquer un shader à toute une section, y compris aux sous-objets dépliés ensuite.",
+  "InterfaceStyle.self_modulate": "Teinter un cadre sans teinter son contenu.",
+  "InterfaceStyle.shader_parameters": "Shader qui réagit à l'objet (jauge, pulsation quand la vie baisse).",
+  "InterfaceStyle.theme": "Thème du jeu pour un menu d'options généré.",
+  "InterfaceStyle.theme_type_variation": "Variante de bouton ou de label du thème.",
+  "WidgetSettings.icon": "Icône à côté d'une donnée (cœur pour la vie).",
+  "WidgetSettings.icon_position": "Icône près de la valeur plutôt qu'en tête.",
+  "WidgetSettings.icon_size": "Icônes plus grandes sur mobile.",
+  "WidgetSettings.label_ratio": "Libellés longs : leur laisser plus de place.",
+  "WidgetSettings.show_label": "Valeur seule dans une cellule ou une ligne compacte.",
+  "WidgetSettings.style": "Mettre en valeur une donnée importante.",
+  "WidgetSettings.style_target": "Ne colorer que la valeur, pas le libellé.",
+  "WidgetSettings.STYLE_WIDGET": "Style sur toute la ligne.",
+  "WidgetSettings.STYLE_VALUE": "Style sur la valeur seule.",
+  "WidgetSettings.STYLE_LABEL": "Style sur le libellé seul.",
+  "WidgetSettings.ICON_BEFORE_LABEL": "Icône en tête.",
+  "WidgetSettings.ICON_BEFORE_VALUE": "Icône près de la valeur.",
+  "RangeWidgetSettings.allow_greater": "Bornes du curseur indicatives, saisie libre au-delà.",
+  "RangeWidgetSettings.allow_lesser": "Autoriser des valeurs négatives au clavier.",
+  "RangeWidgetSettings.max_value": "Borne haute d'un curseur de volume.",
+  "RangeWidgetSettings.min_value": "Borne basse.",
+  "RangeWidgetSettings.step": "Pas de 0,5 ou de 5.",
+  "RangeWidgetSettings.suffix": "Unité : « m/s », « % », « ° ».",
+  "TextureProgressWidgetSettings.progress_texture": "Jauge aux couleurs du jeu.",
+  "TextureProgressWidgetSettings.under_texture": "Fond de jauge.",
+  "TextEditWidgetSettings.height": "Description longue d'un objet.",
+  "StructWidgetSettings.step": "Positions au demi-mètre.",
+  "ContainerWidgetSettings.columns": "Inventaire en grille.",
+  "ContainerWidgetSettings.foldable": "Désactiver pour une liste courte toujours visible.",
+  "ContainerWidgetSettings.max_displayed": "Éviter de construire 10 000 widgets pour un gros tableau.",
+  "ContainerWidgetSettings.start_expanded": "Section importante ouverte d'emblée.",
+  "TableWidgetSettings.table_columns": "N'afficher que nom, prix et quantité.",
+  "TableWidgetSettings.transpose": "Peu d'éléments, beaucoup de propriétés.",
+  "PreviewSettings.get_source": "Régler la source par code.",
+  "PreviewSettings.duplicate_scripts": "Voir un personnage animé par son script dans l'aperçu.",
+  "PreviewSettings.height": "Aperçu plus grand pour un modèle détaillé.",
+  "PreviewSettings.preview_class": "Image, modèle 3D, scène 2D ou aperçu maison.",
+  "PreviewSettings.source": "Afficher l'icône, le modèle ou la scène d'un objet.",
+  "PreviewSettings.update_mode": "Aperçu animé (rotation, particules).",
+  "PreviewSettings.UPDATE_ON_CHANGE": "Cas courant : image ou modèle qui change rarement.",
+  "PreviewSettings.UPDATE_EVERY_FRAME": "Aperçu animé.",
+  "PropertyWidget._build": "Widget maison : construire ses contrôles.",
+  "PropertyWidget._pull": "Widget maison : afficher la valeur de l'objet.",
+  "PropertyWidget.commit_if_editing": "Widget maison : valider à la perte du focus.",
+  "PropertyWidget.differs_from_object": "Widget maison : ne pas réécrire une valeur inchangée.",
+  "PropertyWidget.display_name": "Libellé lisible dans un outil maison.",
+  "PropertyWidget.emit_value": "Widget maison : transmettre la saisie de l'utilisateur.",
+  "PropertyWidget.get_accessor": "Widget maison : lire l'objet ou le chemin édité.",
+  "PropertyWidget.get_displayed_icon": "Tests de « Icône si ».",
+  "PropertyWidget.get_info": "Widget maison : adapter l'affichage au type et à l'indice.",
+  "PropertyWidget.get_last_value": "Comparer à la dernière valeur connue.",
+  "PropertyWidget.get_property_name": "Afficher le nom de la propriété.",
+  "PropertyWidget.get_settings": "Widget maison : lire ses réglages.",
+  "PropertyWidget.get_style": "Widget maison qui gère plusieurs choix.",
+  "PropertyWidget.get_styled_item": "Lier un shader à l'élément stylé.",
+  "PropertyWidget.get_tooltip_texts": "Tests des infobulles.",
+  "PropertyWidget.has_edit_focus": "Ne pas rafraîchir pendant la saisie.",
+  "PropertyWidget.has_uncommitted_edit": "Savoir si une saisie est en cours.",
+  "PropertyWidget.is_locked": "Widget maison : refléter un verrouillage.",
+  "PropertyWidget.is_read_only": "Widget maison : désactiver ses contrôles.",
+  "PropertyWidget.pull": "Forcer l'affichage d'une valeur.",
+  "PropertyWidget.set_icon_override": "Changer l'icône par code.",
+  "PropertyWidget.set_locked": "Verrouiller un champ par code.",
+  "PropertyWidget.set_tooltip_texts": "Infobulle dynamique posée par code.",
+  "PropertyWidget.stringify": "Afficher une valeur quelconque en texte.",
+  "PropertyWidget.edit_discarded": "Widget maison : annuler un état de saisie.",
+  "PropertyWidget.value_changed": "Brancher un widget hors d'un ProceduralEditor (outil maison).",
+  "PreviewWidget._build_preview": "Aperçu maison : couleur, courbe, graphe de statistiques.",
+  "PreviewWidget._get_source_hint": "Proposer seulement les propriétés du bon type.",
+  "PreviewWidget._on_source_changed": "Mettre à jour un aperçu coûteux sans le reconstruire.",
+  "PreviewWidget._update_preview": "Animer l'aperçu (rotation d'un modèle).",
+  "PreviewWidget.get_preview_content": "Accéder au contrôle d'aperçu.",
+  "PreviewWidget.get_preview_settings": "Lire ses réglages (ou ceux d'une sous-classe).",
+  "PreviewWidget.get_source": "Lire la source affichée.",
+  "PreviewWidget.get_source_hint": "Outils d'éditeur.",
+  "PreviewWidget.instantiate_source_node": "Afficher une copie d'un nœud sans toucher l'original.",
+  "PreviewWidget.make_info": "Préparer l'accès d'un aperçu (outil maison).",
+  "PreviewWidget.make_stage_2d": "Aperçu d'une scène 2D.",
+  "PreviewWidget.make_stage_3d": "Aperçu d'un modèle 3D.",
+  "PreviewWidget.rebuild_preview": "Forcer la reconstruction.",
+  "PreviewStage2D.frame": "Recadrer après avoir modifié le contenu.",
+  "PreviewStage2D.get_camera": "Régler la caméra (projection, champ de vision).",
+  "PreviewStage2D.get_content": "Animer le contenu.",
+  "PreviewStage2D.get_viewport_node": "Régler le rendu (transparence, MSAA).",
+  "PreviewStage2D.set_content": "Afficher un modèle ou une scène.",
+  "PreviewStage3D.frame": "Recadrer après avoir modifié le contenu.",
+  "PreviewStage3D.get_camera": "Régler la caméra (projection, champ de vision).",
+  "PreviewStage3D.get_content": "Animer le contenu.",
+  "PreviewStage3D.get_viewport_node": "Régler le rendu (transparence, MSAA).",
+  "PreviewStage3D.set_content": "Afficher un modèle ou une scène.",
+  "PreviewStage3D.set_orbit": "Angle de vue initial (de face, de dessus).",
+  "PreviewSourceEditor.refresh": "Outils d'éditeur.",
+  "PreviewSourceEditor.source_hint_of": "Connaître le type attendu par un aperçu.",
+  "PreviewSourceEditor.source_changed": "Rafraîchir un aperçu dans un outil d'éditeur.",
+  "EditorIconPicker.copy_editor_icon": "Utiliser une icône de l'éditeur dans une interface du jeu.",
+  "GizmoEntry.is_shown_now": "Tests de visibilité.",
+  "GizmoEntry.make_default_arguments": "Préparer des arguments neufs pour une fonction.",
+  "GizmoEntry.restore": "Annulation d'un changement de fonction.",
+  "GizmoEntry.arguments": "Rayon = <code>rayon_detection</code>, couleur fixe.",
+  "GizmoEntry.enabled": "Masquer un dessin sans le supprimer.",
+  "GizmoEntry.function": "Cercle, flèche, cube, chemin…",
+  "GizmoEntry.redraw": "Économiser les redessins d'un dessin statique.",
+  "GizmoEntry.visibility": "Gizmos de mise au point visibles seulement dans l'éditeur.",
+  "GizmoEntry.VISIBILITY_EVERYWHERE": "Partout.",
+  "GizmoEntry.VISIBILITY_EDITOR": "Aide au level design.",
+  "GizmoEntry.VISIBILITY_GAME": "Debug en jeu.",
+  "GizmoEntry.REDRAW_ON_CHANGE": "Cas courant.",
+  "GizmoEntry.REDRAW_EVERY_FRAME": "Valeur calculée par une fonction qui change sans propriété.",
+  "GizmoEntry.REDRAW_ONCE": "Repère fixe.",
+  "GizmoRegistry.entries": "Liste des dessins d'un objet.",
+  "GizmoHost.free_all": "Forcer la recréation des gizmos.",
+  "GizmoHost.get_draw_count": "Tests de politique de redessin.",
+  "GizmoHost.get_live_rid_count": "Tests de fuite de RID.",
+  "GizmoHost.get_target_object": "Savoir quel objet est dessiné.",
+  "GizmoHost.resolve_target": "Diagnostiquer une source qui renvoie null.",
+  "GizmoHost.resolve_viewport": "Diagnostiquer un gizmo invisible.",
+  "GizmoHost.set_target_object": "Dessiner pour un objet qui n'est pas le parent de l'hôte.",
+  "GizmoHost.registry": "Les dessins à faire (souvent un .tres partagé).",
+  "GizmoHost.target_path": "Hôte placé ailleurs que sous l'objet.",
+  "GizmoHost.viewport_path": "Dessiner dans un SubViewport (minimap).",
+  "ObjectEditorDemo.combine": "Tester un bouton de méthode avec arguments.",
+  "ObjectEditorDemo.emettre": "Tester les liens de signaux.",
+  "ObjectEditorDemo.increment_counter": "Tester le suivi d'une modification externe.",
+  "ObjectEditorDemo.recevoir": "Cible de lien de test.",
+  "ObjectEditorDemo.valeur_changee": "Signal de test.",
+  "ObjectEditorDemoResource.autre": "Tester l'anti-cycle.",
+  "ObjectEditorDemoResource.transform": "Tester une structure imbriquée.",
+  "ObjectEditorDemoResource.valeur": "Tester un entier dans une sous-ressource."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

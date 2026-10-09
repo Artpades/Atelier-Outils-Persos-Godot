@@ -5,13 +5,13 @@
 	</brief_description>
 	<description>
 		Classe utilitaire statique (non instanciable) utilisée par [SaveManager]. Le contenu est d'abord converti en JSON par [SaveSerializer], puis éventuellement chiffré.
-		Chiffrement : AES-256 en mode CBC, clé = [method SaveData.get_encryption_key] tronquée ou complétée à 32 octets, bourrage par des zéros. Le vecteur d'initialisation est [b]dérivé de la clé[/b] (ses 16 premiers octets) et écrit en tête du fichier : ce format reste lisible par l'ancienne version C# du système, mais il expose en clair le début de la clé et donne le même fichier pour les mêmes données. Aucune signature ne détecte une modification. Ce chiffrement décourage la lecture du fichier à l'œil nu, il ne protège pas contre un joueur déterminé.
+		Chiffrement : AES-256 en mode CBC, clé = [member SaveData.encryption_key] tronquée ou complétée à 32 octets, bourrage par des zéros. Le vecteur d'initialisation est [b]dérivé de la clé[/b] (ses 16 premiers octets) et écrit en tête du fichier : ce format reste lisible par l'ancienne version C# du système, mais il expose en clair le début de la clé et donne le même fichier pour les mêmes données. Aucune signature ne détecte une modification. Ce chiffrement décourage la lecture du fichier à l'œil nu, il ne protège pas contre un joueur déterminé.
 		[codeblock]
 		var donnees := SaveData.new()
-		donnees.set_system_id("succes")
-		donnees.set_is_encrypted(false)
-		donnees.set_data({"premier_boss": true})
-		var erreur := SaveFileAccess.write(donnees, donnees.get_file_config())
+		donnees.system_id = "succes"
+		donnees.is_encrypted = false
+		donnees.data = {"premier_boss": true}
+		var erreur := SaveFileAccess.write(donnees, donnees.file_config)
 		if erreur != OK:
 			push_error("Écriture impossible : %s" % error_string(erreur))
 		[/codeblock]
@@ -43,7 +43,7 @@
 			<param index="0" name="save_data" type="SaveData" />
 			<param index="1" name="config" type="SaveConfig" />
 			<description>
-				Écrit [param save_data] dans le dossier de [param config] (créé si besoin), chiffré si [method SaveData.get_is_encrypted] est vrai. Remplace le fichier existant. Renvoie [constant OK], [constant ERR_INVALID_PARAMETER] si un argument est nul, ou l'erreur d'ouverture du fichier.
+				Écrit [param save_data] dans le dossier de [param config] (créé si besoin), chiffré si [member SaveData.is_encrypted] est vrai. Remplace le fichier existant. Renvoie [constant OK], [constant ERR_INVALID_PARAMETER] si un argument est nul, ou l'erreur d'ouverture du fichier.
 			</description>
 		</method>
 	</methods>

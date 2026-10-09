@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multijoueur · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🗄️ Multijoueur (NetworkSession, LanDiscovery, SecureChannel) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/donnees/multijoueur.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🗄️</div>
+    <div>
+      <h1>🗄️_MultiplayerSystem - Intercepteurs de données - Documentation</h1>
+      <p class="subtitle">Module <strong>Multijoueur</strong> : trouver les appareils proches, héberger ou rejoindre une partie avec vérification du jeu, de la version et du mot de passe, échanger des messages, chiffrer le trafic.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/multiplayer</code></span>
+        <span class="badge">3 classes : NetworkSession · LanDiscovery · SecureChannel</span>
+        <span class="badge">ENet · WebSocket · DTLS / TLS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Le <code>MultiplayerAPI</code> de Godot transporte des RPC, mais tout le reste est à écrire : trouver les parties du réseau local, refuser un client qui n'a pas la même version du jeu ou le bon mot de passe, tenir la liste des joueurs avec leur nom, prévenir proprement quand l'hôte part, et, si les messages sont sensibles, les chiffrer. <strong>Ce module fournit ces briques</strong> par-dessus le <code>SceneMultiplayer</code> standard : les RPC, <code>MultiplayerSpawner</code> et <code>MultiplayerSynchronizer</code> du jeu continuent de fonctionner normalement.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📡 <code>LanDiscovery</code></h4>
+      <p>Liste les appareils du réseau local qui exécutent un jeu fait avec ce module : nom, système, version, partie hébergée, latence, et si on peut la rejoindre.</p>
+    </div>
+    <div class="card">
+      <h4>🌐 <code>NetworkSession</code></h4>
+      <p>Héberge ou rejoint une partie (ENet ou WebSocket), vérifie jeu / version / mot de passe, tient la liste des joueurs, envoie des messages et chiffre si demandé.</p>
+    </div>
+    <div class="card">
+      <h4>🔐 <code>SecureChannel</code></h4>
+      <p>Chiffrement authentifié (AES-256 + HMAC-SHA256, anti-rejeu), utilisé par la session et utilisable seul.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui veulent un multijoueur local ou en réseau direct (salon, LAN, export Web) sans réécrire la gestion des connexions ; les testeurs, grâce aux raisons de refus explicites (« L'hôte est en version 1.2 »).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un service en ligne</strong> : pas de serveur de mise en relation, pas de traversée de NAT, pas de comptes. Par Internet, il faut une adresse joignable (redirection de port, VPN, serveur dédié).</li>
+      <li><strong>Pas une synchronisation d'état</strong> : la réplication des nœuds reste le rôle des RPC, <code>MultiplayerSpawner</code> et <code>MultiplayerSynchronizer</code>.</li>
+      <li><strong>Pas d'anti-triche</strong> : l'hôte fait autorité sur la liste des joueurs, rien de plus ; le code de jeu doit valider ce qu'il reçoit.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la scène « Démo Multijoueur » (<code>🧪Démos de modules/1.📁🔌/🗄️Multijoueur/</code>) : la liste des appareils trouvés avec leur système et le bouton « Rejoindre », le panneau sécurité (transport chiffré, bout en bout, empreintes) et la liste des joueurs.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/multiplayer/</code> (<code>gameplaytoolkit_multiplayer.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les trois classes ; aucune autre classe du toolkit n'est requise.</td></tr>
+        <tr><td>Modules ENet, WebSocket et mbedTLS du moteur</td><td><strong>Obligatoire</strong></td><td>Présents dans les modèles d'export officiels. Un moteur compilé sans eux ne peut ni héberger ni chiffrer.</td></tr>
+        <tr><td>Permissions d'export Android : <code>INTERNET</code>, <code>CHANGE_WIFI_MULTICAST_STATE</code></td><td>Obligatoire <em>sur Android</em></td><td>La première pour toute connexion, la seconde pour recevoir les annonces en broadcast de <code>LanDiscovery</code>.</td></tr>
+        <tr><td>Autorisation du pare-feu (UDP 47474–47477, port de jeu 47500)</td><td>Selon le système</td><td>Windows demande l'autorisation au premier lancement ; refusée, l'appareil reste invisible et injoignable.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🎮🔌/</code> et <code>💾🔐/</code></td><td>Optionnelle</td><td>Icônes des nœuds dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> si besoin :
+      <pre><code class="language-shell">scons multiplayer</code></pre>
+      <div class="why">son registre est <code>multiplayer_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/multiplayer/</code></strong> dans <code>res://bin/multiplayer/</code>, puis <strong>redémarrer l'éditeur</strong>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/multiplayer/…</code>, et Godot ne découvre les extensions qu'au démarrage.</div>
+    </li>
+    <li>
+      <strong>Renseigner le nom et la version du projet</strong> (<em>Paramètres du projet › Application › Config › Name / Version</em>), ou <code>game_id</code> / <code>game_version</code> sur les nœuds.
+      <div class="why">c'est ce qui est comparé entre appareils : deux jeux différents ne peuvent pas se rejoindre, deux versions différentes non plus (sauf <code>allow_version_mismatch</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>NetworkSession</code> et <code>LanDiscovery</code> ; la console affiche « 🗄️Module Multijoueur chargé avec succès ! ».
+      <div class="why">sinon, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : un salon où chaque appareil voit les parties du réseau local, en héberge une ou en rejoint une d'un clic.</p>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>LanDiscovery</code> et une <code>NetworkSession</code></strong> dans la scène du salon (ou un autoload), puis régler <code>discovery</code> de la session sur le <code>LanDiscovery</code>.
+      <div class="why">relié ainsi, le <code>LanDiscovery</code> annonce automatiquement la partie hébergée (port, nombre de joueurs, mot de passe requis…). Avec <code>autostart</code>, il répond aux recherches dès le lancement.</div>
+    </li>
+    <li>
+      <strong>Chercher les parties et afficher celles qu'on peut rejoindre</strong> :
+      <pre><code class="gdscript">@onready var decouverte: LanDiscovery = $LanDiscovery
+@onready var session: NetworkSession = $NetworkSession
+
+func _ready() -> void:
+	decouverte.device_found.connect(func(_a): _rafraichir())
+	decouverte.device_updated.connect(func(_a): _rafraichir())
+	decouverte.device_lost.connect(func(_a): _rafraichir())
+	decouverte.start_search()
+
+func _rafraichir() -> void:
+	$Liste.clear()
+	for appareil in decouverte.get_joinable_devices():
+		var i: int = $Liste.add_item("%s (%s) · %d joueurs" % [appareil.name, appareil.os, appareil.session.players])
+		$Liste.set_item_metadata(i, appareil)</code></pre>
+      <div class="why"><code>get_joinable_devices</code> ne garde que les parties du même jeu, même version, non complètes : le joueur ne voit que ce qu'il peut vraiment rejoindre.</div>
+    </li>
+    <li>
+      <strong>Héberger ou rejoindre</strong> :
+      <pre><code class="gdscript">func _on_heberger_pressed() -> void:
+	session.host()
+
+func _on_liste_item_activated(i: int) -> void:
+	session.join_device($Liste.get_item_metadata(i))</code></pre>
+      <div class="why"><code>join_device</code> reprend l'adresse, le port, le transport et le chiffrement annoncés par l'hôte.</div>
+    </li>
+    <li>
+      <strong>Réagir aux joueurs et aux refus</strong> :
+      <pre><code class="gdscript">	session.player_joined.connect(func(id, infos): print(infos.name, " a rejoint (", infos.os, ")"))
+	session.player_left.connect(func(id, infos): print(infos.name, " est parti"))
+	session.connection_failed.connect(func(_raison, message): $Erreur.text = message)
+	session.session_ended.connect(func(_raison, message): $Erreur.text = message)</code></pre>
+      <div class="why"><code>player_joined</code> est aussi émis pour le joueur local et les joueurs déjà présents : un seul code construit la liste. <code>message</code> est une phrase prête à afficher.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/NetworkSession.xml</code>, <code>LanDiscovery.xml</code> et <code>SecureChannel.xml</code>. Les valeurs par défaut affichées pour <code>player_name</code> et <code>device_name</code> (« artpade ») viennent de la machine qui a généré la documentation : la vraie valeur par défaut est vide, ce qui donne le nom d'utilisateur du système de chaque appareil.</p>
+  <p>Internes, non exposés : le protocole de poignée de main (messages <code>challenge</code> / <code>hello</code> / <code>accept</code> / <code>reject</code> via <code>send_auth</code>), les types de paquets du module (préfixe <code>0xC7</code>), les liens de bout en bout par joueur (deux <code>SecureChannel</code>, files d'attente, offres de clé signées), les expulsions différées (500 ms), le format UDP de découverte (en-tête <code>GTKD</code>) et la version de protocole (<code>PROTOCOL_VERSION = 1</code>, dans <code>multiplayer_common.hpp</code>).</p>
+  <div data-api="NetworkSession LanDiscovery SecureChannel"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-ip">Comment je rejoins directement une adresse IP (sans découverte) ?</h3>
+  <pre><code class="gdscript">func rejoindre(adresse: String) -> void:
+	session.password = $MotDePasse.text
+	var erreur := session.join(adresse)       # port : session.port (47500)
+	if erreur != OK:
+		$Erreur.text = session.get_last_message()
+	# le résultat arrive par session_joined ou connection_failed</code></pre>
+
+  <h3 id="ex-message">Comment j'envoie des messages de jeu (chat, évènements) ?</h3>
+  <p><code>send_message</code> accepte tout <code>Variant</code> sans objet. 0 = tout le monde, un identifiant = un joueur, un identifiant négatif = tout le monde sauf lui. Entre clients, les messages transitent par l'hôte.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	session.message_received.connect(_recu)
+
+func dire(texte: String) -> void:
+	session.send_message({"type": "chat", "texte": texte})
+
+func _recu(de: int, donnees, _chiffre: bool) -> void:
+	if donnees is Dictionary and donnees.get("type") == "chat":
+		$Chat.append_text("%s : %s\n" % [session.get_player_info(de).name, donnees.texte])</code></pre>
+
+  <h3 id="ex-donnees">Comment je partage la couleur et le personnage de chaque joueur ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	session.player_data = {"couleur": "#ff6040", "perso": "chevalier"} # avant host() / join()
+	session.player_updated.connect(func(id, infos): _maj_avatar(id, infos.data))
+
+func changer_couleur(couleur: Color) -> void:
+	var donnees := session.player_data.duplicate()
+	donnees.couleur = couleur.to_html()
+	session.update_player_data(donnees) # diffusé à tous, player_updated chez chacun</code></pre>
+
+  <h3 id="ex-rpc">Comment j'utilise mes RPC avec la session ?</h3>
+  <p>La session installe le pair réseau sur le <code>MultiplayerAPI</code> de sa branche : les RPC fonctionnent dès <code>session_joined</code> (client) ou <code>hosting_started</code> (hôte). Les identifiants sont les mêmes que ceux de la session.</p>
+  <pre><code class="gdscript">@rpc("any_peer", "call_local", "reliable")
+func tirer(position: Vector2) -> void:
+	var tireur := multiplayer.get_remote_sender_id()
+	print(session.get_player_info(tireur).name, " tire en ", position)
+
+func _on_bouton_tir() -> void:
+	if session.is_online():
+		tirer.rpc($Viseur.position)</code></pre>
+
+  <h3 id="ex-securite">Comment je protège une partie (mot de passe, chiffrement, empreintes) ?</h3>
+  <p>Le mot de passe ne circule jamais (preuve HMAC). <code>transport_encryption</code> chiffre tout, RPC compris ; <code>end_to_end_encryption</code> empêche l'hôte de lire les messages qu'il relaie. Les deux joueurs comparent ensuite leurs empreintes, à voix haute.</p>
+  <pre><code class="gdscript">func heberger_securise() -> void:
+	session.password = "dragon"
+	session.transport_encryption = true
+	session.end_to_end_encryption = true
+	session.host()   # génère les clés RSA si besoin (~0,4 s chacune)
+
+func _ready() -> void:
+	session.secure_link_established.connect(func(id):
+		$Empreintes.text = "Moi : %s\n%s : %s" % [session.get_local_fingerprint(),
+			session.get_player_info(id).name, session.get_peer_fingerprint(id)])
+	session.security_warning.connect(func(id, message): push_warning("Joueur %d : %s" % [id, message]))</code></pre>
+
+  <h3 id="ex-certificat">Comment j'authentifie l'hôte (certificat de confiance) ?</h3>
+  <p>Sans <code>trusted_certificate</code>, le transport est chiffré mais un faux hôte n'est pas détecté. On enregistre une fois la clé et le certificat de l'hôte, puis on distribue le certificat (public) avec le jeu client.</p>
+  <pre><code class="gdscript"># Hôte : garder la même identité d'une partie à l'autre
+func preparer_hote() -> void:
+	if FileAccess.file_exists("user://hote.crt"):
+		var cle := CryptoKey.new(); cle.load("user://hote.key")
+		var cert := X509Certificate.new(); cert.load("user://hote.crt")
+		session.transport_key = cle
+		session.transport_certificate = cert
+	session.transport_encryption = true
+	session.host()
+	session.transport_key.save("user://hote.key")          # privée : ne jamais la distribuer
+	session.transport_certificate.save("user://hote.crt")  # publique : à fournir aux clients
+
+# Client
+func preparer_client() -> void:
+	var cert := X509Certificate.new()
+	cert.load("res://certificats/hote.crt")
+	session.trusted_certificate = cert
+	session.transport_encryption = true</code></pre>
+
+  <h3 id="ex-web">Comment je laisse jouer depuis un navigateur (export Web) ?</h3>
+  <p>Un navigateur ne fait ni UDP ni découverte : l'hôte (bureau) choisit WebSocket, et le client Web rejoint par adresse.</p>
+  <pre><code class="gdscript"># Hôte (version bureau)
+session.transport = NetworkSession.TRANSPORT_WEBSOCKET
+session.host(8080)
+
+# Client (export Web) : adresse saisie par le joueur
+session.transport = NetworkSession.TRANSPORT_WEBSOCKET
+session.join("192.168.1.20", 8080)   # ou une URL complète "wss://monserveur.fr:8080"</code></pre>
+
+  <h3 id="ex-test">Comment je teste hôte et client dans une seule instance du jeu ?</h3>
+  <p>Chaque session utilise le <code>MultiplayerAPI</code> de sa branche : donner un <code>SceneMultiplayer</code> propre à deux branches les fait se comporter comme deux appareils (c'est ainsi que fonctionnent les tests du module).</p>
+  <pre><code class="gdscript">func creer_appareil(nom: String) -> NetworkSession:
+	var branche := Node.new()
+	branche.name = nom
+	add_child(branche)
+	get_tree().set_multiplayer(SceneMultiplayer.new(), branche.get_path())
+	var s := NetworkSession.new()
+	s.player_name = nom
+	branche.add_child(s)
+	return s
+
+func _ready() -> void:
+	var hote := creer_appareil("Hote")
+	var client := creer_appareil("Client")
+	hote.host(47600)
+	client.join("127.0.0.1", 47600)
+	await client.session_joined
+	print(hote.get_player_count()) # 2</code></pre>
+
+  <h3 id="ex-canal">Comment j'utilise SecureChannel seul ?</h3>
+  <p>Un canal chiffre dans un seul sens. Pour deux interlocuteurs, deux clés ; la clé doit être échangée par un moyen sûr.</p>
+  <pre><code class="gdscript">var envoi := SecureChannel.new()
+var reception := SecureChannel.new()
+reception.set_key(envoi.generate_key())
+
+var paquet := envoi.encrypt(var_to_bytes({"score": 120}))
+var octets := reception.decrypt(paquet)
+if reception.get_last_error() == OK:
+	print(bytes_to_var(octets))
+reception.decrypt(paquet)
+print(reception.get_last_error() == ERR_ALREADY_EXISTS) # true : rejeu refusé</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-session">NetworkSession</h3>
+  <ul>
+    <li><strong>Pas de migration d'hôte.</strong> Si l'hôte quitte, la partie se termine pour tous (<code>REASON_HOST_LOST</code>).</li>
+    <li><strong>Prend le contrôle du <code>SceneMultiplayer</code> de sa branche</strong> : elle installe sa fonction d'authentification (le jeu ne peut pas avoir la sienne), active le relais serveur, et remplace le pair réseau. Une seule <code>NetworkSession</code> par <code>MultiplayerAPI</code> ; un <code>MultiplayerAPI</code> qui n'est pas un <code>SceneMultiplayer</code> est refusé.</li>
+    <li><strong>Le signal <code>peer_packet</code> du jeu voit aussi les paquets du module.</strong> Si le jeu utilise <code>multiplayer.send_bytes</code>, ignorer les paquets dont le premier octet vaut <code>0xC7</code>, et ne jamais en envoyer avec ce préfixe.</li>
+    <li><strong>Le chiffrement de bout en bout ne couvre que <code>send_message</code>.</strong> RPC, <code>MultiplayerSynchronizer</code> et <code>player_data</code> ne sont protégés que par <code>transport_encryption</code>, et l'hôte, qui les relaie, les lit en clair.</li>
+    <li><strong>Sans <code>trusted_certificate</code>, l'hôte n'est pas authentifié</strong> : un intermédiaire peut se faire passer pour lui (le trafic reste chiffré jusqu'à cet intermédiaire). Les empreintes de bout en bout ne sont utiles que si les joueurs les comparent réellement.</li>
+    <li><strong>Génération de clés bloquante.</strong> Chaque clé RSA-2048 prend environ 0,4 s sur le fil principal (identité de bout en bout, certificat de transport) : le jeu se fige au premier <code>host()</code> / <code>join()</code> chiffré. Réutiliser les clés (<code>identity_key</code>, <code>transport_key</code>) évite de les régénérer.</li>
+    <li><strong>Messages avant l'échange de clés</strong> : en bout en bout, un message non fiable envoyé avant que le lien soit établi est perdu ; les messages fiables attendent (256 au plus par joueur, les suivants sont perdus).</li>
+    <li><strong>Informations personnelles transmises</strong> : par défaut, le nom du joueur est le nom d'utilisateur du système, et chaque joueur reçoit le système, sa version, la distribution et le modèle de l'appareil des autres. Régler <code>player_name</code> pour ne pas exposer le nom de session.</li>
+    <li><strong>Délai d'attente dépendant de <code>_process</code></strong> : si le nœud est en pause, <code>connection_timeout</code> n'est plus surveillé et les expulsions différées ne partent pas.</li>
+    <li><strong>Pas d'Internet « clé en main »</strong> : ni NAT, ni serveur relais, ni annuaire de parties.</li>
+  </ul>
+
+  <h3 id="limites-decouverte">LanDiscovery</h3>
+  <ul>
+    <li><strong>IPv4 et broadcast seulement.</strong> Les réseaux qui filtrent le broadcast (Wi-Fi public, réseau d'entreprise, certains routeurs avec isolation des clients) rendent les appareils invisibles ; ajouter leur adresse à <code>extra_query_addresses</code> ou rejoindre par IP.</li>
+    <li><strong>Annonces non authentifiées</strong> : n'importe quel programme du réseau peut se faire passer pour une partie. Ne pas se fier aux informations annoncées pour la sécurité ; la poignée de main de la session, elle, vérifie mot de passe et chiffrement.</li>
+    <li><strong>Pas d'export Web</strong> (pas d'UDP dans un navigateur), et permission multicast nécessaire sur Android.</li>
+    <li><strong>Plage de ports identique partout</strong> : <code>port</code> et <code>port_range</code> doivent être les mêmes sur tous les appareils ; au-delà de <code>port_range</code> instances sur une même machine, les suivantes ne sont plus visibles (elles peuvent encore chercher).</li>
+    <li><strong>Trafic régulier</strong> : pendant la recherche, une requête par port et par adresse toutes les secondes (4 ports × 2 adresses par défaut).</li>
+  </ul>
+
+  <h3 id="limites-canal">SecureChannel</h3>
+  <ul>
+    <li><strong>Un sens par canal</strong> : utiliser la même instance pour envoyer et recevoir mélange les compteurs et fait refuser des paquets légitimes.</li>
+    <li><strong>Fenêtre anti-rejeu de 64 messages</strong> : un paquet arrivé avec plus de 64 messages de retard est refusé (<code>ERR_ALREADY_EXISTS</code>), même s'il n'a jamais été reçu.</li>
+    <li><strong><code>reset_counters</code> avec la même clé réautorise le rejeu</strong> des anciens paquets ; à n'utiliser qu'avec une nouvelle clé.</li>
+    <li><strong>L'échange de clé n'est pas fourni</strong> en dehors de <code>NetworkSession</code> : la clé doit être transmise par un autre moyen sûr.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 320" role="img" aria-label="Schéma d'architecture du module Multijoueur">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="40" width="150" height="54" rx="8"/>
+    <text x="95" y="64" text-anchor="middle">Code du jeu</text>
+    <text x="95" y="82" text-anchor="middle" class="small">salon, RPC, chat</text>
+    <rect class="box main" x="240" y="40" width="180" height="54" rx="8"/>
+    <text x="330" y="64" text-anchor="middle">NetworkSession</text>
+    <text x="330" y="82" text-anchor="middle" class="small">Node · joueurs · poignée de main</text>
+    <rect class="box" x="490" y="40" width="170" height="54" rx="8"/>
+    <text x="575" y="64" text-anchor="middle">SceneMultiplayer</text>
+    <text x="575" y="82" text-anchor="middle" class="small">de la branche</text>
+    <rect class="box" x="700" y="40" width="140" height="54" rx="8"/>
+    <text x="770" y="64" text-anchor="middle">ENet / WebSocket</text>
+    <text x="770" y="82" text-anchor="middle" class="small">DTLS / TLS</text>
+    <rect class="box" x="240" y="150" width="180" height="54" rx="8"/>
+    <text x="330" y="174" text-anchor="middle">SecureChannel ×2</text>
+    <text x="330" y="192" text-anchor="middle" class="small">par joueur (envoi / réception)</text>
+    <rect class="box main" x="490" y="150" width="170" height="54" rx="8"/>
+    <text x="575" y="174" text-anchor="middle">LanDiscovery</text>
+    <text x="575" y="192" text-anchor="middle" class="small">Node · UDP broadcast</text>
+    <rect class="box" x="700" y="150" width="140" height="54" rx="8"/>
+    <text x="770" y="174" text-anchor="middle">Autres appareils</text>
+    <text x="770" y="192" text-anchor="middle" class="small">ports 47474–47477</text>
+    <rect class="box" x="20" y="150" width="150" height="54" rx="8"/>
+    <text x="95" y="174" text-anchor="middle">RSA (Crypto)</text>
+    <text x="95" y="192" text-anchor="middle" class="small">clés signées</text>
+    <path class="arrow" d="M170 67 H238" marker-end="url(#arr)"/>
+    <text x="204" y="60" text-anchor="middle" class="small">appels</text>
+    <path class="arrow dashed" d="M240 82 Q200 120 140 96" marker-end="url(#arr)"/>
+    <text x="205" y="128" text-anchor="middle" class="small">signaux</text>
+    <path class="arrow" d="M420 67 H488" marker-end="url(#arr)"/>
+    <text x="454" y="60" text-anchor="middle" class="small">send_bytes / auth</text>
+    <path class="arrow" d="M660 67 H698" marker-end="url(#arr)"/>
+    <path class="arrow" d="M330 94 V148" marker-end="url(#arr)"/>
+    <path class="arrow" d="M240 177 H172" marker-end="url(#arr)"/>
+    <path class="arrow" d="M420 110 Q500 110 560 148" marker-end="url(#arr)"/>
+    <text x="470" y="132" class="small">set_session_info</text>
+    <path class="arrow" d="M660 177 H698" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M95 204 Q95 280 500 280 Q575 280 575 206" marker-end="url(#arr)"/>
+    <text x="330" y="296" text-anchor="middle" class="small">le jeu lit get_joinable_devices() puis appelle join_device()</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>NetworkSession</code></strong> crée le pair réseau (ENet ou WebSocket, avec DTLS / TLS si demandé) et l'installe sur le <code>SceneMultiplayer</code> de sa branche, dont elle écoute les signaux (connexion, authentification, paquets). La poignée de main passe par l'authentification de <code>SceneMultiplayer</code> (<code>send_auth</code> / <code>complete_auth</code>) : un client n'est connecté pour le jeu (<code>peer_connected</code>) qu'une fois accepté.</li>
+    <li>Ses autres échanges (liste des joueurs, données, messages, offres de clé, expulsion) sont des paquets <code>send_bytes</code> préfixés par <code>0xC7</code>, relayés par l'hôte entre clients.</li>
+    <li>Pour le bout en bout, chaque joueur possède une identité RSA ; avec chaque autre joueur, il génère une clé de <code>SecureChannel</code>, la chiffre avec la clé publique du destinataire et la signe. Chaque sens a son propre canal.</li>
+    <li><strong><code>LanDiscovery</code></strong> est indépendant : un socket UDP, des requêtes en broadcast et des réponses directes. La session, si elle lui est reliée (<code>discovery</code>), lui pousse les informations de la partie hébergée par appel direct ; le jeu les lit dans les appareils trouvés et appelle <code>join_device</code>.</li>
+    <li>Vers le jeu : uniquement des <strong>signaux</strong> et des méthodes de lecture.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>NetworkSession</code> → <code>SecureChannel</code> (bout en bout, dérivation du mot de passe) et → <code>LanDiscovery</code> (optionnel, par identifiant d'instance). <code>LanDiscovery</code> → <code>SecureChannel</code> (identifiant aléatoire) seulement.</li>
+    <li>Fonctions communes (version de protocole, nom d'appareil, informations système) dans l'en-tête <code>multiplayer_common.hpp</code>.</li>
+    <li>Aucune dépendance vers d'autres modules ; bibliothèque propre : <code>multiplayer_register.cpp</code> → <code>bin/multiplayer/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Utiliser le <code>SceneMultiplayer</code> existant plutôt qu'un réseau parallèle</td><td>Les RPC, spawners et synchroniseurs du jeu restent utilisables sans changement, avec les mêmes identifiants de joueurs.</td></tr>
+        <tr><td>Poignée de main dans l'authentification de <code>SceneMultiplayer</code></td><td>Un client refusé (mot de passe, version) n'apparaît jamais comme pair connecté : il ne reçoit aucun RPC et ne peut en envoyer.</td></tr>
+        <tr><td>Mot de passe prouvé par HMAC sur un défi aléatoire, clé dérivée par PBKDF2</td><td>Le mot de passe ne circule jamais, et une réponse enregistrée ne peut pas être rejouée (défi différent à chaque connexion).</td></tr>
+        <tr><td>Pas de rétrogradation silencieuse</td><td>Un client qui exige le chiffrement refuse un hôte qui ne le propose pas : un attaquant ne peut pas « négocier » une partie en clair.</td></tr>
+        <tr><td>Offre de clé signée et liée à l'émetteur et au destinataire</td><td>L'hôte qui relaie ne peut ni lire la clé, ni la remplacer, ni la renvoyer à un autre joueur.</td></tr>
+        <tr><td>Une clé par sens de communication</td><td>Les compteurs anti-rejeu restent simples (un émetteur, un récepteur) et une clé compromise n'expose qu'un sens.</td></tr>
+        <tr><td>Messages fiables mis en attente, jamais envoyés en clair</td><td>Une partie chiffrée ne doit laisser passer aucun message lisible, même pendant l'échange de clés ; un message en clair reçu est rejeté avec <code>security_warning</code>.</td></tr>
+        <tr><td>Une place ENet de plus que nécessaire</td><td>Le client en trop reçoit la raison « partie complète » au lieu d'un refus muet du transport.</td></tr>
+        <tr><td>Expulsion différée de 500 ms</td><td>Laisse au client refusé ou expulsé le temps de recevoir la raison avant la déconnexion.</td></tr>
+        <tr><td>Fermeture du pair différée (<code>call_deferred</code>)</td><td><code>close()</code> peut être appelé pendant que <code>SceneMultiplayer</code> parcourt ses pairs : le fermer immédiatement corromprait ce parcours.</td></tr>
+        <tr><td>Découverte : plage de ports et réponse à l'adresse d'origine</td><td>Plusieurs instances sur une même machine (tests) restent visibles ; un appareil qui ne fait que chercher n'a pas besoin d'un port fixe.</td></tr>
+        <tr><td><code>bytes_to_var</code> sans objets pour tout ce qui vient du réseau</td><td>Un paquet malveillant ne peut pas instancier d'objet ni exécuter de script.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : page de module (la référence XML et les commentaires des headers étaient déjà rédigés). Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>NetworkSession</code> (ENet / WebSocket, poignée de main, mot de passe, joueurs, messages, chiffrement du transport et de bout en bout), <code>LanDiscovery</code> et <code>SecureChannel</code> (commit « Ajout système de gestion multijoueur »).</li>
+    </ul>
+  </div>
+
+  <footer>Module 🗄️ Multijoueur · sources : <code>src/1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🗄️Multijoueur/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "NetworkSession.close": "Bouton « Quitter la partie », retour au menu principal.",
+  "NetworkSession.get_last_message": "Afficher pourquoi la connexion a échoué ou la partie s'est terminée.",
+  "NetworkSession.get_last_reason": "Choisir la réaction : proposer une mise à jour (version), redemander le mot de passe…",
+  "NetworkSession.get_local_fingerprint": "Afficher son empreinte pour que l'autre joueur la compare à voix haute.",
+  "NetworkSession.get_local_peer_id": "Savoir quel personnage est le sien, filtrer ses propres évènements.",
+  "NetworkSession.get_peer_fingerprint": "Vérifier qu'aucun intermédiaire n'a substitué la clé d'un joueur.",
+  "NetworkSession.get_player_count": "« 3 / 8 joueurs » dans le salon, lancer la partie quand tout le monde est là.",
+  "NetworkSession.get_player_ids": "Distribuer les équipes, faire apparaître un personnage par joueur.",
+  "NetworkSession.get_player_info": "Nom, couleur ou système d'un joueur pour l'affichage (pseudo au-dessus du personnage).",
+  "NetworkSession.get_players": "Construire la liste complète du salon.",
+  "NetworkSession.get_security_summary": "Afficher un cadenas et le niveau de protection de la partie.",
+  "NetworkSession.get_state": "Afficher « Connexion… », « Vérification… », « Connecté ».",
+  "NetworkSession.has_player": "Vérifier qu'un joueur est encore là avant de lui envoyer quelque chose.",
+  "NetworkSession.has_secure_link": "N'envoyer une information sensible que quand le lien chiffré est prêt.",
+  "NetworkSession.host": "Bouton « Héberger » du salon.",
+  "NetworkSession.is_end_to_end_active": "Indiquer dans le chat que les messages sont chiffrés.",
+  "NetworkSession.is_host": "Réserver des actions à l'hôte : lancer la partie, expulser, choisir la carte.",
+  "NetworkSession.is_online": "Désactiver les boutons de connexion pendant une partie, ne pas envoyer de RPC hors ligne.",
+  "NetworkSession.is_transport_encrypted": "Afficher si la partie entière (RPC compris) est chiffrée.",
+  "NetworkSession.join": "Rejoindre une adresse saisie à la main ou une partie par Internet.",
+  "NetworkSession.join_device": "Bouton « Rejoindre » d'une partie trouvée par la découverte.",
+  "NetworkSession.kick": "Expulser un joueur gênant depuis la liste du salon.",
+  "NetworkSession.send_message": "Chat, ping sur la carte, évènement ponctuel hors RPC, message privé chiffré.",
+  "NetworkSession.update_player_data": "Changer de couleur, de personnage, se déclarer « prêt » dans le salon.",
+  "NetworkSession.allow_version_mismatch": "Phase de test où des versions proches restent compatibles.",
+  "NetworkSession.certificate_common_name": "Nom propre au jeu pour le certificat (doit être le même chez l'hôte et les clients).",
+  "NetworkSession.connection_timeout": "Allonger pour des réseaux lents ou mobiles, raccourcir pour un salon réactif.",
+  "NetworkSession.discovery": "Annoncer automatiquement la partie hébergée aux appareils du réseau local.",
+  "NetworkSession.end_to_end_encryption": "Messages privés que même l'hôte ne peut pas lire.",
+  "NetworkSession.game_id": "Empêcher deux jeux différents faits avec le toolkit de se connecter.",
+  "NetworkSession.game_version": "Refuser les clients d'une autre version du jeu.",
+  "NetworkSession.identity_key": "Garder la même empreinte d'une partie à l'autre (clé sauvegardée).",
+  "NetworkSession.max_players": "Limiter un salon à 4 joueurs, hôte compris.",
+  "NetworkSession.password": "Partie privée entre amis.",
+  "NetworkSession.player_data": "Couleur, personnage, équipe transmis à l'arrivée.",
+  "NetworkSession.player_name": "Pseudo choisi par le joueur (sinon le nom de session du système).",
+  "NetworkSession.port": "Changer de port si 47500 est déjà pris ou filtré.",
+  "NetworkSession.transport": "ENet pour un jeu bureau / mobile rapide, WebSocket pour accueillir un export Web.",
+  "NetworkSession.transport_certificate": "Réutiliser et distribuer le certificat de l'hôte.",
+  "NetworkSession.transport_encryption": "Chiffrer tout le trafic, RPC compris (DTLS / TLS).",
+  "NetworkSession.transport_key": "Réutiliser la clé privée du certificat de l'hôte (à garder secrète).",
+  "NetworkSession.trusted_certificate": "Client : refuser un faux hôte (certificat livré avec le jeu).",
+  "NetworkSession.connection_failed": "Afficher l'erreur de connexion et revenir au salon.",
+  "NetworkSession.hosting_started": "Afficher l'adresse et le port à communiquer aux amis.",
+  "NetworkSession.message_received": "Chat, notifications, évènements de jeu hors RPC.",
+  "NetworkSession.peer_rejected": "Journal de l'hôte : qui a tenté de se connecter et pourquoi.",
+  "NetworkSession.player_joined": "Ajouter un joueur à la liste, faire apparaître son personnage, message « X a rejoint ».",
+  "NetworkSession.player_left": "Retirer le personnage, message « X est parti ».",
+  "NetworkSession.player_updated": "Mettre à jour la couleur ou l'état « prêt » d'un joueur.",
+  "NetworkSession.secure_link_established": "Activer le chat privé avec ce joueur, afficher les empreintes.",
+  "NetworkSession.security_warning": "Avertir le joueur d'une attaque possible, journaliser.",
+  "NetworkSession.session_ended": "Retour au menu avec la raison (hôte parti, expulsé).",
+  "NetworkSession.session_joined": "Passer de l'écran de connexion au salon.",
+  "NetworkSession.state_changed": "Mettre à jour un indicateur d'état de connexion.",
+  "NetworkSession.TRANSPORT_ENET": "Valeur de <code>transport</code> pour un jeu en réseau local.",
+  "NetworkSession.TRANSPORT_WEBSOCKET": "Valeur de <code>transport</code> pour accueillir des navigateurs.",
+  "NetworkSession.STATE_OFFLINE": "Afficher le menu principal.",
+  "NetworkSession.STATE_CONNECTING": "Afficher « Connexion… ».",
+  "NetworkSession.STATE_AUTHENTICATING": "Afficher « Vérification… ».",
+  "NetworkSession.STATE_CONNECTED": "Client dans la partie : afficher le salon.",
+  "NetworkSession.STATE_HOSTING": "Hôte : afficher les commandes d'hôte.",
+  "NetworkSession.REASON_NONE": "Aucune fin de session à afficher.",
+  "NetworkSession.REASON_CLOSED": "Fermeture volontaire : pas de message d'erreur.",
+  "NetworkSession.REASON_CONNECTION_FAILED": "Proposer de vérifier l'adresse, le pare-feu ou le réglage de chiffrement.",
+  "NetworkSession.REASON_HOST_LOST": "« L'hôte a quitté la partie ».",
+  "NetworkSession.REASON_TIMEOUT": "Proposer de réessayer.",
+  "NetworkSession.REASON_WRONG_PASSWORD": "Redemander le mot de passe.",
+  "NetworkSession.REASON_GAME_MISMATCH": "« Cet appareil joue à un autre jeu ».",
+  "NetworkSession.REASON_VERSION_MISMATCH": "Inviter à mettre le jeu à jour.",
+  "NetworkSession.REASON_SESSION_FULL": "« Partie complète ».",
+  "NetworkSession.REASON_SECURITY_MISMATCH": "Expliquer que les réglages de chiffrement diffèrent.",
+  "NetworkSession.REASON_INVALID_HANDSHAKE": "Journaliser une connexion anormale.",
+  "NetworkSession.REASON_KICKED": "Afficher le message d'expulsion de l'hôte.",
+  "LanDiscovery.clear_session_info": "Ne plus annoncer de partie (gérée automatiquement par une session reliée).",
+  "LanDiscovery.get_bound_port": "Débogage : vérifier sur quel port l'instance répond.",
+  "LanDiscovery.get_device": "Relire les informations à jour d'un appareil choisi dans la liste.",
+  "LanDiscovery.get_device_count": "« 3 appareils trouvés ».",
+  "LanDiscovery.get_device_id": "Distinguer deux instances du jeu sur la même machine.",
+  "LanDiscovery.get_devices": "Afficher tous les appareils, même incompatibles (avec la raison).",
+  "LanDiscovery.get_joinable_devices": "Liste des parties à rejoindre du salon.",
+  "LanDiscovery.get_local_device_info": "Afficher « Vous êtes visible comme… ».",
+  "LanDiscovery.get_session_info": "Vérifier ce qui est annoncé de la partie hébergée.",
+  "LanDiscovery.is_running": "Indicateur « visible sur le réseau ».",
+  "LanDiscovery.is_searching": "Animation « Recherche en cours… ».",
+  "LanDiscovery.refresh": "Bouton « Actualiser » du salon.",
+  "LanDiscovery.set_session_info": "Annoncer une partie gérée sans <code>NetworkSession</code> (serveur maison).",
+  "LanDiscovery.start": "Devenir visible sans chercher (serveur dédié local).",
+  "LanDiscovery.start_search": "Ouverture du salon : lister les parties proches.",
+  "LanDiscovery.stop": "Quitter le salon, devenir invisible.",
+  "LanDiscovery.stop_search": "Arrêter le trafic de recherche une fois la partie lancée.",
+  "LanDiscovery.advertise": "Chercher sans être vu (spectateur), ou rester visible.",
+  "LanDiscovery.autostart": "Désactiver pour n'ouvrir le port qu'au moment d'entrer dans le salon.",
+  "LanDiscovery.device_name": "Nom affiché chez les autres (pseudo plutôt que le nom de session).",
+  "LanDiscovery.device_timeout": "Retirer plus vite les appareils éteints, ou tolérer un Wi-Fi instable.",
+  "LanDiscovery.extra_query_addresses": "Trouver un appareil précis sur un réseau qui filtre le broadcast.",
+  "LanDiscovery.game_id": "Ne lister que son propre jeu (avec <code>include_other_games</code>).",
+  "LanDiscovery.game_version": "Signaler les appareils à mettre à jour.",
+  "LanDiscovery.include_other_games": "Masquer les autres jeux du toolkit dans la liste.",
+  "LanDiscovery.port": "Éviter un conflit de port avec un autre logiciel.",
+  "LanDiscovery.port_range": "Tester plus de 4 instances sur une même machine.",
+  "LanDiscovery.query_interval": "Moins de trafic sur mobile, ou liste plus réactive.",
+  "LanDiscovery.device_found": "Ajouter une ligne à la liste du salon.",
+  "LanDiscovery.device_lost": "Retirer la ligne d'un appareil parti.",
+  "LanDiscovery.device_updated": "Mettre à jour le nombre de joueurs ou l'état d'une partie.",
+  "LanDiscovery.COMPATIBLE": "Activer le bouton « Rejoindre ».",
+  "LanDiscovery.VERSION_MISMATCH": "Afficher « Mise à jour nécessaire ».",
+  "LanDiscovery.OTHER_GAME": "Griser ou masquer l'appareil.",
+  "LanDiscovery.PROTOCOL_MISMATCH": "Afficher « Version du module réseau différente ».",
+  "SecureChannel.decrypt": "Déchiffrer un paquet ou un fichier, en refusant toute altération ou rejeu.",
+  "SecureChannel.derive_key": "Clé tirée d'un mot de passe (sauvegarde protégée, partie privée).",
+  "SecureChannel.encrypt": "Chiffrer un paquet réseau ou le contenu d'un fichier.",
+  "SecureChannel.fingerprint": "Afficher une empreinte courte d'une clé à comparer entre joueurs.",
+  "SecureChannel.generate_key": "Créer la clé d'un nouveau canal.",
+  "SecureChannel.get_key": "Transmettre ou sauvegarder la clé (par un moyen sûr).",
+  "SecureChannel.get_last_error": "Savoir pourquoi un paquet a été refusé (altéré, rejoué, mal formé).",
+  "SecureChannel.get_sent_count": "Renouveler la clé après un grand nombre de messages, statistiques.",
+  "SecureChannel.has_key": "Vérifier qu'un canal est prêt avant d'envoyer.",
+  "SecureChannel.random_bytes": "Sel de mot de passe, défi, identifiant aléatoire sûr.",
+  "SecureChannel.reset_counters": "Repartir de zéro après l'installation d'une nouvelle clé.",
+  "SecureChannel.set_key": "Installer la clé reçue de l'autre interlocuteur.",
+  "SecureChannel.KEY_SIZE": "Vérifier la taille d'une clé avant <code>set_key</code>."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

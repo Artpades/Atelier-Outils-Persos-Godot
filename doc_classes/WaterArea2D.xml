@@ -9,8 +9,9 @@
 		[codeblock]
 		var eau := WaterArea2D.new()
 		var forme := CollisionShape2D.new()
-		forme.shape = RectangleShape2D.new()
-		forme.shape.size = Vector2(800, 300)
+		var rectangle := RectangleShape2D.new()
+		rectangle.size = Vector2(800, 300)
+		forme.shape = rectangle
 		eau.add_child(forme)
 		eau.current = Vector2(60, 0) # léger courant vers la droite
 		add_child(eau)

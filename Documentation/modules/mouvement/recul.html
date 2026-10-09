@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recul · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🌬️ Recul (Knockback2D, Knockback3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/recul.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🌬️</div>
+    <div>
+      <h1>🌬️_PhysicsSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Recul</strong> : repousser un personnage ou un objet frappé, avec un court verrouillage des commandes et un freinage réglable.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : Knockback2D · Knockback3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Un coup qui ne repousse pas manque d'impact ; mais un recul mal fait est vite annulé par le script de déplacement, qui remet la vitesse du joueur à la commande dès l'image suivante. <strong>Ce module donne un recul lisible et cohérent</strong> : la vitesse est remplacée, les commandes sont ignorées le temps du recul, et le freinage est réglable — pour un personnage comme pour un objet physique.</p>
+
+  <div class="grid">
+    <div class="card"><h4>🧍 Personnages (<code>CharacterBody</code>)</h4><p>Vitesse de recul, commandes verrouillées pendant <code>duration</code> ; le composant de sol freine avec <code>friction</code>. Sans composant actif, le recul déplace lui-même le corps.</p></div>
+    <div class="card"><h4>📦 Objets (<code>RigidBody</code>)</h4><p>Impulsion instantanée ou force continue, avec une rotation facultative (l'objet tournoie).</p></div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de combat et d'action (dégâts, explosions, rebonds sur des pics) ; à brancher sur un module de vie ou de dégâts.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de dégâts</strong> : il ne retire pas de vie et ne rend pas invincible ; voir <em>❤️ Vie</em> et vos propres règles.</li>
+      <li><strong>Pas une secousse visuelle</strong> : pour faire trembler un sprite ou la caméra, voir <em>💥 Secousse</em> (effets spéciaux).</li>
+      <li><strong>Pas une zone permanente</strong> : pour un vent ou un repousseur continu, voir <a href="zone-de-force.html">🧲 Zone de force</a>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : un personnage 2D touché par un ennemi est projeté en arrière et vers le haut, glisse puis reprend le contrôle ; à côté, une caisse (RigidBody2D) frappée qui part en tournoyant. debug_mode : cercle qui rétrécit avec le temps de recul.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td>Un <code>CharacterBody2D/3D</code> ou <code>RigidBody2D/3D</code> parent</td><td><strong>Obligatoire</strong></td><td>Le recul agit sur son parent direct.</td></tr>
+        <tr><td><a href="deplacement-au-sol.html">🦶 Déplacement au sol</a></td><td>Optionnelle</td><td>Seul composant qui coopère avec le recul (commandes et saut verrouillés, freinage par <code>friction</code>).</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le recul fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Ajouter un <code>Knockback2D</code> (ou 3D) comme enfant direct</strong> de chaque corps qui peut être repoussé.<div class="why">les composants de mouvement et l'orchestrateur ne cherchent le recul que parmi les enfants directs du corps.</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Sous le joueur (<code>CharacterBody2D</code> + <code>GroundMovement2D</code>), ajouter un <code>Knockback2D</code></strong>.
+      <div class="why">pendant le recul, <code>GroundMovement2D</code> ignore la commande et le saut et freine la vitesse avec <code>friction</code> au lieu de son accélération.</div>
+    </li>
+    <li>
+      <strong>Déclencher le recul au contact d'un ennemi</strong> (script de la zone de dégâts de l'ennemi) :
+      <pre><code class="gdscript">func _on_hitbox_body_entered(corps: Node2D) -> void:
+	var recul := corps.get_node_or_null("Knockback2D") as Knockback2D
+	if recul and not recul.is_knocked():
+		recul.apply_knockback_from(global_position)</code></pre>
+      <div class="why"><code>apply_knockback_from</code> repousse à l'opposé de l'attaquant ; <code>upward_bias</code> ajoute un peu de hauteur pour que le recul se lise en vue de côté.</div>
+    </li>
+    <li>
+      <strong>Régler le ressenti</strong> : <code>base_force</code> (distance), <code>duration</code> (temps sans contrôle), <code>friction</code> (glissade).
+      <div class="why">un recul court et fort paraît « sec » ; long et faible, il paraît « flottant ».</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Knockback2D.xml</code> et <code>Knockback3D.xml</code>. Mêmes membres en 2D et 3D ; en 3D, <code>friction</code> ne freine que l'horizontale, <code>apply_knockback_from</code> ignore la hauteur du point, et la rotation ajoutée suit l'axe perpendiculaire au recul. Éléments internes : le temps de verrouillage et la vitesse visée du mode continu, la détection « composant de mouvement actif » (<code>has_active_movement</code>) et le dessin de débogage.</p>
+  <div data-api="Knockback2D Knockback3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-explosion">Comment je repousse tout ce qui est autour d'une explosion ?</h3>
+  <p>Le multiplicateur décroît avec la distance ; fonctionne avec personnages et objets.</p>
+  <pre><code class="gdscript">func exploser(centre: Vector2, rayon: float) -> void:
+	for corps in get_tree().get_nodes_in_group("repoussables"):
+		var recul := corps.get_node_or_null("Knockback2D") as Knockback2D
+		var d: float = corps.global_position.distance_to(centre)
+		if recul and d &lt; rayon:
+			recul.apply_knockback_from(centre, 2.0 * (1.0 - d / rayon))</code></pre>
+
+  <h3 id="ex-invincible">Comment je rends le joueur invincible pendant le recul ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$Knockback2D.knocked_back.connect(func(_v): $Hurtbox.set_deferred("monitoring", false))
+	$Knockback2D.recovered.connect(func(): $Hurtbox.set_deferred("monitoring", true))</code></pre>
+
+  <h3 id="ex-effets">Comment je combine le recul avec un flash et une secousse ?</h3>
+  <p>Avec le module <em>✨ Effets spéciaux</em> : un <code>PlayerFX</code> qui contient un <code>FXFade</code> rouge et un <code>FXShake</code>.</p>
+  <pre><code class="gdscript">func encaisser(attaquant: Vector2) -> void:
+	$Knockback2D.apply_knockback_from(attaquant)
+	$PlayerFX.play()                     # flash + secousse
+	await $Knockback2D.recovered
+	$PlayerFX.stop()</code></pre>
+
+  <h3 id="ex-topdown">Comment je l'utilise en vue de dessus ?</h3>
+  <pre><code class="gdscript">$Knockback2D.upward_bias = 0.0   # sinon le recul part toujours un peu vers le haut de l'écran
+$Knockback2D.friction = 1500.0</code></pre>
+
+  <h3 id="ex-seul">Comment je repousse un PNJ qui n'a pas de composant de mouvement ?</h3>
+  <p>Sans composant actif, le recul déplace lui-même le <code>CharacterBody</code> (freinage, gravité si <code>gravity_affect</code>). Avec un orchestrateur, ajouter un contexte « recul » sans composant (voir <a href="orchestrateur-de-mouvement.html#ex-recul">🎬 Orchestrateur</a>).</p>
+  <pre><code class="gdscript">$PNJ/Knockback2D.gravity_affect = true
+$PNJ/Knockback2D.apply_knockback(Vector2.LEFT, 1.5)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Seul le composant de sol respecte le recul.</strong> <code>SwimMovement</code>, <code>WallMovement</code>, <code>AerodynamicMovement</code> et <code>RopeMovement</code> ne le lisent pas : la vitesse de recul est appliquée, mais les commandes ne sont pas verrouillées et le composant peut l'écraser dès l'image suivante.</li>
+    <li><strong>Avec un composant de sol actif, <code>gravity_affect</code> n'a aucun effet</strong> (le composant applique toujours sa gravité). En plateforme 2D, <code>friction</code> ne freine que l'horizontale.</li>
+    <li><strong>Corps rigide en mode impulsion : pas de verrouillage</strong>. <code>is_knocked()</code> reste faux, <code>recovered</code> n'est jamais émis et la condition « en recul » de l'orchestrateur n'est pas remplie (vérifié). Utiliser <code>RIGID_CONTINUOUS</code> si l'on a besoin de ces informations.</li>
+    <li><strong><code>upward_bias</code> s'applique aussi en vue de dessus</strong> (vers le haut de l'écran en 2D) : le mettre à 0.</li>
+    <li><strong>Relancer pendant un recul remet le compteur à zéro</strong> : des coups rapprochés peuvent priver le joueur de contrôle indéfiniment. Tester <code>is_knocked()</code> avant, ou ajouter une invincibilité.</li>
+    <li><strong>Pas d'immunité par direction ni de résistance par masse</strong> pour les personnages : <code>base_force</code> est une vitesse, identique quel que soit le personnage (régler chaque <code>Knockback</code>).</li>
+    <li><strong>Plusieurs <code>Knockback</code> sous un même corps</strong> : seul le premier en recul est pris en compte par les composants.</li>
+    <li><code>knocked_back</code> est émis même si le parent n'est ni un personnage ni un corps rigide (rien ne bouge alors).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 220" role="img" aria-label="Schéma d'architecture du recul">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="170" height="54" rx="8"/>
+    <text x="105" y="54" text-anchor="middle">Attaque / explosion</text>
+    <text x="105" y="72" text-anchor="middle" class="small">apply_knockback_from</text>
+    <rect class="box main" x="260" y="30" width="190" height="54" rx="8"/>
+    <text x="355" y="54" text-anchor="middle">Knockback2D/3D</text>
+    <text x="355" y="72" text-anchor="middle" class="small">priorité physique 10</text>
+    <rect class="box" x="530" y="10" width="310" height="44" rx="8"/>
+    <text x="685" y="37" text-anchor="middle">CharacterBody : velocity remplacée</text>
+    <rect class="box" x="530" y="64" width="310" height="44" rx="8"/>
+    <text x="685" y="91" text-anchor="middle">RigidBody : impulsion / force + couple</text>
+    <rect class="box" x="260" y="150" width="190" height="54" rx="8"/>
+    <text x="355" y="174" text-anchor="middle">GroundMovement</text>
+    <text x="355" y="192" text-anchor="middle" class="small">active_on → commandes ignorées</text>
+    <rect class="box" x="530" y="150" width="310" height="54" rx="8"/>
+    <text x="685" y="174" text-anchor="middle">MovementDirector</text>
+    <text x="685" y="192" text-anchor="middle" class="small">condition KNOCKED (is_knocked)</text>
+    <path class="arrow" d="M190 57 H258" marker-end="url(#arr)"/>
+    <path class="arrow" d="M450 50 L528 34" marker-end="url(#arr)"/>
+    <path class="arrow" d="M450 64 L528 86" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M355 150 V86" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M530 170 Q470 130 440 86" marker-end="url(#arr)"/>
+    <text x="40" y="150" class="small">signaux knocked_back / recovered</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><code>apply_knockback</code> agit immédiatement (appel direct) : vitesse ou impulsion, début du verrouillage, signal <code>knocked_back</code>.</li>
+    <li>Le nœud a une <strong>priorité physique de 10</strong> : il passe <em>après</em> les composants (priorité 0). S'il n'y a aucun composant actif, il freine et déplace lui-même le personnage ; sinon il ne fait que décompter le temps. En mode continu, il pousse le corps rigide à chaque image.</li>
+    <li>Les autres classes l'interrogent par la fonction statique <code>active_on(corps)</code> (parcours des enfants directs) : <code>GroundMovement</code> pour verrouiller les commandes et lire <code>friction</code>, <code>MovementDirector</code> pour sa condition.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépend de <code>MovementComponent</code> (pour savoir si un composant actif gère déjà le corps) ; <code>GroundMovement</code> et <code>MovementDirector</code> dépendent de lui. Aucun lien avec un système de vie : c'est à votre code de relier dégâts et recul.</li>
+  </ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>La vitesse du personnage est <strong>remplacée</strong>, pas additionnée</td><td>Un recul toujours de la même longueur, que le joueur courait vers l'ennemi ou s'en éloignait.</td></tr>
+        <tr><td>Le freinage est confié au composant de sol quand il est actif</td><td>Un seul système écrit la vitesse par image : pas de lutte entre le recul et la marche.</td></tr>
+        <tr><td>Impulsion × masse pour les corps rigides</td><td>Le même réglage donne le même recul à une caisse légère et à un tonneau lourd ; régler <code>base_force</code> pour différencier.</td></tr>
+        <tr><td>Biais vers le haut par défaut</td><td>En plateforme, un recul purement horizontal frotte au sol et se lit mal ; un petit saut rend le coup évident.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML (structure resynchronisée, ajout de <code>debug_mode</code>), commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>debug_mode</code> : vitesse de recul, temps restant.</li></ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>Knockback2D/3D</code> : recul de personnages (verrouillage, friction) et de corps rigides (impulsion, force continue, rotation).</li></ul>
+  </div>
+
+  <footer>Module 🌬️ Recul · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🌬️Recule/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » (communs 2D / 3D)
+window.GTK_USAGES = {};
+(function () {
+  const u = {
+    "add_torque": "Caisses et débris qui tournoient après un coup.",
+    "base_force": "Puissance générale du recul ; multiplier par arme via <code>multiplier</code>.",
+    "debug_mode": "Visualiser la durée et la direction du recul pendant le réglage.",
+    "duration": "Temps sans contrôle : 0,15 s pour un jeu nerveux, 0,5 s pour un coup puissant.",
+    "enabled": "Boss insensible au recul, joueur en armure lourde, invincibilité.",
+    "friction": "Glissade longue (faible) ou arrêt sec (fort) après le coup.",
+    "gravity_affect": "Désactiver pour un recul « en apesanteur » d'un PNJ sans composant.",
+    "rigid_mode": "Impulsion pour un choc sec ; continu pour une poussée de souffle.",
+    "torque_factor": "Doser la rotation des objets frappés.",
+    "upward_bias": "Petit saut au recul en plateforme ; 0 en vue de dessus.",
+    "active_on": "Savoir depuis n'importe quel script si un corps est en train d'être repoussé.",
+    "apply_knockback": "Recul dans une direction choisie : vent d'une attaque, ressort, pics.",
+    "apply_knockback_from": "Coup d'ennemi, explosion, onde de choc : repousser à l'opposé de la source.",
+    "get_lock_remaining": "Barre ou effet visuel de « sonné » qui diminue.",
+    "is_knocked": "Ignorer un nouveau coup ou une action du joueur pendant le recul.",
+    "knocked_back": "Son d'impact, flash, secousse de caméra, invincibilité.",
+    "recovered": "Rendre la main, fin de l'invincibilité, reprise de l'IA.",
+    "RIGID_IMPULSE": "Choc instantané (coup de batte, balle).",
+    "RIGID_CONTINUOUS": "Souffle prolongé (explosion lointaine, rafale de vent)."
+  };
+  ["Knockback2D", "Knockback3D"].forEach(function (c) {
+    Object.keys(u).forEach(function (k) { window.GTK_USAGES[c + "." + k] = u[k]; });
+  });
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

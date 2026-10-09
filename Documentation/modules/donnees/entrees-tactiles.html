@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrées tactiles · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 📱 Entrées tactiles (MobileInput) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/donnees/entrees-tactiles.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">📱</div>
+    <div>
+      <h1>📱_TouchInputSystem - Intercepteurs de données - Documentation</h1>
+      <p class="subtitle">Module <strong>Entrées tactiles</strong> : toucher, gestes (tap, double tap, appui long, swipe, pincement) et capteurs de mouvement d'un téléphone ou d'une tablette, sous forme de signaux.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/mobile_input</code></span>
+        <span class="badge">1 classe : MobileInput</span>
+        <span class="badge">Android · iOS · Web · pavé tactile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Godot fournit des évènements tactiles bruts : un doigt posé, un doigt qui glisse, un doigt levé. Reconnaître un double tap, distinguer un tap d'un appui long, mesurer un pincement pour zoomer, ou éviter qu'un pincement se termine par un faux swipe demande à chaque projet le même code délicat. Les capteurs (inclinaison, boussole) sont eux à lire à chaque image et à filtrer. <strong>Ce module transforme tout cela en signaux prêts à brancher</strong> : <code>tap</code>, <code>swipe</code>, <code>pinch</code>, <code>gravity_changed</code>…</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>👆 Toucher et gestes</h4>
+      <p>Jusqu'à 10 doigts suivis ; tap, double tap, appui long, swipe dans 4 directions, pincement à deux doigts, gestes du pavé tactile (pan, magnify).</p>
+    </div>
+    <div class="card">
+      <h4>🧭 Capteurs</h4>
+      <p>Gyroscope, accéléromètre, gravité et magnétomètre, avec sensibilité et zone morte réglables, signalés à chaque image ou seulement quand ils changent.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs de jeux mobiles (ou Web tactiles) qui veulent réagir à des gestes sans réécrire leur détection, et les game designers qui ajustent les seuils (durée d'un tap, distance d'un swipe) dans l'inspecteur.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un joystick virtuel ni des boutons à l'écran</strong> : il ne dessine rien. Combinez-le avec vos propres contrôles (<code>TouchScreenButton</code>…).</li>
+      <li><strong>Pas le gestionnaire d'actions du joueur</strong> : clavier, souris et manette (y compris le gyroscope <em>d'une manette</em>) sont gérés par <em>🕹️ Entrées de périphérique</em>. Les deux modules sont indépendants et peuvent coexister.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la scène « Démo Entrées Mobiles » (<code>🧪Démos de modules/1.📁🔌/📱Gestion d'entrée de touché d'écran/</code>) sur téléphone : deux doigts en pincement avec le facteur affiché, et le journal des gestes.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/mobile_input/</code> (<code>gameplaytoolkit_mobile_input.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient <code>MobileInput</code>, sans dépendance vers d'autres classes du toolkit. Pour un export mobile, les binaires Android / iOS doivent avoir été compilés pour cette plateforme.</td></tr>
+        <tr><td>Capteurs activés dans les paramètres du projet</td><td>Obligatoire <em>pour les capteurs</em></td><td><em>Périphériques d'entrée › Capteurs</em> : sans cela, Godot renvoie des valeurs nulles et les signaux de capteurs restent à zéro.</td></tr>
+        <tr><td><code>input_devices/pointing/emulate_touch_from_mouse</code></td><td>Optionnelle</td><td>Pour tester les gestes à un doigt à la souris sur ordinateur.</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/🎮🔌/InputScreenSphere Icon.png</code></td><td>Optionnelle</td><td>Icône du nœud dans l'arbre de scène.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> si besoin :
+      <pre><code class="language-shell">scons mobile_input</code></pre>
+      <div class="why">son registre est <code>mobile_input_register.cpp</code> : seule cette bibliothèque est compilée et son <code>.gdextension</code> régénéré.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/mobile_input/</code></strong> dans <code>res://bin/mobile_input/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/mobile_input/…</code>.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les extensions qu'au démarrage.</div>
+    </li>
+    <li>
+      <strong>Sur ordinateur, activer <em>Emulate Touch From Mouse</em></strong> (<em>Paramètres du projet › Périphériques d'entrée › Pointage</em>).
+      <div class="why">sans écran tactile, la souris produit alors des évènements de toucher : tap, appui long et swipe se testent sans téléphone (pas le pincement, qui demande deux doigts).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>MobileInput</code>, et la console affiche « 📱Module Entrées mobiles chargé avec succès ! » au lancement.
+      <div class="why">sinon, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : tourner les pages d'un livre par swipe et zoomer par pincement.</p>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>MobileInput</code></strong> dans la scène (n'importe où).
+      <div class="why">il reçoit tous les évènements tactiles de la fenêtre, avant l'interface (<code>_input</code>), et les capteurs à chaque image.</div>
+    </li>
+    <li>
+      <strong>Désactiver les capteurs inutiles</strong> : décocher <code>use_gyroscope</code>, <code>use_accelerometer</code>, <code>use_gravity</code>, <code>use_magnetometer</code>.
+      <div class="why">chaque capteur actif émet un signal <code>_updated</code> à chaque image : inutile si on ne s'en sert pas.</div>
+    </li>
+    <li>
+      <strong>Connecter les gestes</strong> :
+      <pre><code class="gdscript">@onready var mobile: MobileInput = $MobileInput
+var zoom_initial := Vector2.ONE
+
+func _ready() -> void:
+	mobile.swipe.connect(_sur_swipe)
+	mobile.pinch_started.connect(func(_centre): zoom_initial = $Camera2D.zoom)
+	mobile.pinch.connect(func(facteur, _centre): $Camera2D.zoom = zoom_initial * facteur)
+
+func _sur_swipe(direction: int, _depart: Vector2, _vitesse: Vector2) -> void:
+	if direction == MobileInput.SWIPE_LEFT:
+		page_suivante()
+	elif direction == MobileInput.SWIPE_RIGHT:
+		page_precedente()</code></pre>
+      <div class="why">le facteur de pincement est relatif au début du geste : on mémorise le zoom à <code>pinch_started</code>. Un swipe n'est émis qu'au relâchement d'un glissement assez long (<code>swipe_min_distance</code>) et rapide (<code>swipe_min_velocity</code>).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/MobileInput.xml</code>. Internes, non exposés : l'état de chaque doigt (dont les drapeaux « appui long déjà signalé » et « a participé à un geste à plusieurs doigts »), le tap en attente, les distances de pincement, l'horloge interne (temps réel) et les constantes de tolérance (variation de capteur 0,001 par axe ; pas minimal de pincement 0,5 px). Les propriétés <code>use_*</code> et <code>*_sensitivity</code> sont des raccourcis vers <code>set_sensor_enabled</code> / <code>set_sensor_sensitivity</code>.</p>
+  <div data-api="MobileInput"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-bille">Comment je fais rouler une bille en inclinant le téléphone ?</h3>
+  <p>Le vecteur de gravité donne l'inclinaison. <code>gravity_changed</code> n'est émis que si la valeur change ; la zone morte ignore les petites variations quand l'appareil est presque à plat.</p>
+  <pre><code class="gdscript">@onready var mobile: MobileInput = $MobileInput
+
+func _ready() -> void:
+	mobile.use_gyroscope = false
+	mobile.use_magnetometer = false
+	mobile.use_accelerometer = false
+	mobile.sensor_dead_zone = 0.05
+
+func _physics_process(_delta: float) -> void:
+	var g := mobile.get_gravity()            # ~0.98 de long avec la sensibilité 0.1 par défaut
+	$Bille.apply_central_force(Vector2(g.x, -g.y) * 400.0)</code></pre>
+
+  <h3 id="ex-double">Comment je réagis immédiatement à un tap, sans attendre le double tap ?</h3>
+  <p><code>tap</code> est retardé de <code>double_tap_delay</code> (0,4 s par défaut) pour ne pas confondre tap et double tap. Si le jeu n'utilise pas le double tap, réagir à <code>touch_released</code> en reprenant les critères du tap :</p>
+  <pre><code class="gdscript">var depart := {}
+
+func _ready() -> void:
+	$MobileInput.touch_pressed.connect(func(doigt, pos): depart[doigt] = [pos, Time.get_ticks_msec()])
+	$MobileInput.touch_released.connect(_relache)
+
+func _relache(doigt: int, pos: Vector2) -> void:
+	if not depart.has(doigt):
+		return
+	var info: Array = depart[doigt]
+	depart.erase(doigt)
+	if pos.distance_to(info[0]) &lt;= $MobileInput.tap_max_distance and Time.get_ticks_msec() - info[1] &lt;= 300:
+		tirer_vers(pos)</code></pre>
+
+  <h3 id="ex-appui">Comment j'ouvre un menu contextuel par appui long ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$MobileInput.long_press_duration = 0.5
+	$MobileInput.long_press.connect(func(_doigt, position): $Menu.popup(Rect2i(position, Vector2i.ZERO)))</code></pre>
+  <p>Un appui long ne produit pas de tap au relâchement.</p>
+
+  <h3 id="ex-camera">Comment je déplace une caméra 2D à un doigt et zoome à deux ?</h3>
+  <p><code>drag</code> donne le déplacement de chaque doigt ; <code>is_pinching()</code> permet d'ignorer le glissement pendant un pincement.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$MobileInput.drag.connect(func(_doigt, _pos, relatif, _pression):
+		if $MobileInput.get_finger_count() == 1:
+			$Camera2D.position -= relatif / $Camera2D.zoom)</code></pre>
+
+  <h3 id="ex-boussole">Comment j'oriente une boussole vers le nord ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$MobileInput.magnetometer_changed.connect(func(champ: Vector3):
+		$Aiguille.rotation = -atan2(champ.x, champ.y))</code></pre>
+  <p>Valeur indicative : le magnétomètre n'est pas compensé en inclinaison, l'appareil doit être tenu à plat.</p>
+
+  <h3 id="ex-test">Comment je teste mes gestes sans téléphone (tests automatisés) ?</h3>
+  <p><code>handle_input_event</code> traite un évènement fabriqué comme s'il venait de l'écran.</p>
+  <pre><code class="gdscript">func simuler_swipe_gauche(mobile: MobileInput) -> void:
+	var appui := InputEventScreenTouch.new()
+	appui.index = 0
+	appui.position = Vector2(400, 300)
+	appui.pressed = true
+	mobile.handle_input_event(appui)
+	var glisse := InputEventScreenDrag.new()
+	glisse.index = 0
+	glisse.position = Vector2(200, 300)
+	glisse.velocity = Vector2(-2000, 0)
+	mobile.handle_input_event(glisse)
+	var leve := appui.duplicate()
+	leve.pressed = false
+	leve.position = glisse.position
+	mobile.handle_input_event(leve)   # émet swipe(SWIPE_LEFT, ...)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Le tap est retardé.</strong> Il n'est émis qu'après <code>double_tap_delay</code> sans second tap (0,4 s par défaut, 0,1 s au minimum dans l'inspecteur). Pour une réaction immédiate, voir <a href="#ex-double">exemple</a>.</li>
+    <li><strong>Les évènements ne sont pas consommés et passent avant l'interface.</strong> <code>MobileInput</code> écoute dans <code>_input</code> : un toucher sur un bouton de l'interface produit aussi un <code>tap</code>. Filtrer selon la position, ou désactiver le nœud quand un menu est ouvert.</li>
+    <li><strong>Après un geste à plusieurs doigts, le doigt restant ne fait plus de tap ni de swipe</strong> jusqu'à ce qu'il soit levé : c'est ce qui évite les faux swipes en fin de pincement, mais un second doigt posé par erreur annule aussi le geste du premier.</li>
+    <li><strong>Pincement à exactement deux doigts.</strong> Un troisième doigt termine le pincement (<code>pinch_ended</code>) ; le retrait du troisième en recommence un nouveau, avec un nouveau facteur de référence.</li>
+    <li><strong>Swipe : vitesse du dernier glissement.</strong> Si le doigt s'arrête avant d'être levé, la vitesse retombe et aucun swipe n'est émis, même après une longue distance.</li>
+    <li><strong>Tap en attente et appui long dépendent de <code>_process</code>.</strong> Si le nœud est en pause (arbre en pause et <code>process_mode</code> hérité), ils ne sont plus émis ; les évènements tactiles non plus, car <code>_input</code> est aussi suspendu. Régler <code>process_mode</code> sur <em>Always</em> pour un menu de pause tactile.</li>
+    <li><strong>Coût des capteurs.</strong> Chaque capteur activé émet <code>&lt;capteur&gt;_updated</code> à chaque image, même quand sa valeur est nulle (sur ordinateur, ou capteurs désactivés dans le projet). Désactiver ceux qui ne servent pas.</li>
+    <li><strong>Capteurs absents = zéro silencieux.</strong> Aucun signal ni erreur n'indique qu'un appareil n'a pas de gyroscope ; la valeur reste nulle.</li>
+    <li><strong>Coordonnées du viewport principal</strong> : les positions sont celles des évènements reçus par <code>_input</code>. Dans un <code>SubViewport</code> ou avec une caméra déplacée, convertir soi-même (ex. <code>get_canvas_transform().affine_inverse() * position</code>).</li>
+    <li><strong>Perte de focus</strong> : quand la fenêtre perd le focus ou que l'application passe en arrière-plan, tous les doigts sont oubliés (<code>reset_touches</code>) <em>sans</em> émettre <code>touch_released</code> ; seul <code>multi_touch_changed(0)</code> est émis.</li>
+    <li><strong>Inactif dans l'éditeur</strong> : un <code>MobileInput</code> placé dans une scène <code>@tool</code> ne traite rien dans l'éditeur.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>MobileInput</code></strong> est un nœud unique. <code>_input</code> (ou <code>handle_input_event</code>) aiguille chaque évènement : toucher, glissement, pan, magnify. Les signaux de toucher et le swipe, le double tap et le pincement sont émis <em>pendant</em> le traitement de l'évènement.</li>
+    <li><code>_process</code> s'occupe de ce qui dépend du temps : signaler un tap en attente une fois le délai de double tap écoulé, détecter l'appui long (un seul doigt posé), lire les quatre capteurs.</li>
+    <li>L'horloge utilisée est le temps réel (<code>Time.get_ticks_usec</code>) : les durées de geste ne dépendent ni de <code>Engine.time_scale</code> ni du ralenti du jeu.</li>
+    <li>Communication sortante uniquement par signaux ; lecture d'état possible à tout moment (<code>get_fingers</code>, <code>get_gravity</code>…).</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Aucune dépendance vers d'autres classes du toolkit. Bibliothèque propre : <code>mobile_input_register.cpp</code> → <code>bin/mobile_input/</code>.</li>
+    <li>Lit le singleton <code>Input</code> de Godot pour les capteurs ; ne modifie aucun réglage du projet.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Tap retardé jusqu'à l'expiration du délai de double tap</td><td>Sinon un double tap émettrait aussi un tap : le jeu ferait deux actions pour un seul geste.</td></tr>
+        <tr><td>Un doigt qui a été posé avec un autre ne produit ni tap ni swipe</td><td>Lever les doigts d'un pincement l'un après l'autre déclencherait sinon un swipe ou un tap parasite.</td></tr>
+        <tr><td>Pincement relatif au début du geste, relancé à chaque changement du nombre de doigts</td><td>Un facteur absolu (zoom initial × facteur) ne dérive pas, contrairement à une accumulation de petits rapports.</td></tr>
+        <tr><td>Deux signaux par capteur : <code>_updated</code> et <code>_changed</code></td><td><code>_updated</code> pour piloter la physique à chaque image, <code>_changed</code> pour une interface qui ne se met à jour qu'en cas de besoin.</td></tr>
+        <tr><td>Zone morte sphérique, appliquée après la sensibilité</td><td>Une zone par axe déformerait la direction ; appliquée après la sensibilité, un même réglage de zone morte vaut pour tous les capteurs malgré leurs échelles très différentes.</td></tr>
+        <tr><td>Sensibilités par défaut différentes (gyroscope 1, accéléromètre et gravité 0,1, magnétomètre 0,02)</td><td>Ramène les valeurs brutes (rad/s, ~9,8 m/s², 25–65 µT) à des ordres de grandeur proches de 1.</td></tr>
+        <tr><td><code>reset_touches</code> à la perte de focus</td><td>Les relâchements se perdent souvent quand l'application passe en arrière-plan : des doigts « fantômes » bloqueraient sinon les gestes à un doigt.</td></tr>
+        <tr><td><code>_process</code> et <code>_input</code> désactivés dans l'éditeur</td><td>Évite que la scène éditée réagisse aux clics de l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : commentaires des énumérations du header, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>MobileInput</code> : toucher multi-doigts, tap, double tap, appui long, swipe, pincement, pan et magnify, capteurs avec sensibilité et zone morte (commit « Ajout module entrées tactiles »).</li>
+    </ul>
+  </div>
+
+  <footer>Module 📱 Entrées tactiles · sources : <code>src/1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/📱Gestion d'entrée de touché d'écran/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "MobileInput.accelerometer_sensitivity": "Ramener l'accélération à une échelle proche de 1 ; l'augmenter pour détecter de petites secousses.",
+  "MobileInput.double_tap_delay": "Raccourcir pour un jeu nerveux (tap plus réactif), allonger pour un public peu habitué aux écrans tactiles.",
+  "MobileInput.gravity_sensitivity": "Régler la force d'un contrôle par inclinaison (bille, voiture, niveau à bulle).",
+  "MobileInput.gyroscope_sensitivity": "Visée au gyroscope plus vive ou plus stable.",
+  "MobileInput.long_press_duration": "Menu contextuel, ramasser un objet, déclencher un tir chargé au doigt.",
+  "MobileInput.magnetometer_sensitivity": "Boussole, détection d'objets magnétiques dans un jeu de réalité augmentée simple.",
+  "MobileInput.max_fingers": "Limiter à 2 doigts pour ignorer la paume ou les doigts d'une main qui tient la tablette.",
+  "MobileInput.sensor_dead_zone": "Ignorer le tremblement de la main, ou l'abaisser pour un contrôle fin par inclinaison.",
+  "MobileInput.swipe_min_distance": "Éviter qu'un petit glissement involontaire tourne une page.",
+  "MobileInput.swipe_min_velocity": "Distinguer un swipe rapide (changer de page) d'un glissement lent (faire défiler).",
+  "MobileInput.tap_max_distance": "Tolérance pour les gros doigts ou les écrans très denses.",
+  "MobileInput.tap_max_duration": "Distinguer un tap d'un appui maintenu (charger un saut).",
+  "MobileInput.use_accelerometer": "Détecter une secousse de l'appareil (lancer de dés, réveil d'un personnage).",
+  "MobileInput.use_gravity": "Contrôle par inclinaison : bille, labyrinthe, pilotage.",
+  "MobileInput.use_gyroscope": "Visée en tournant l'appareil, caméra à 360°.",
+  "MobileInput.use_magnetometer": "Boussole, orientation géographique.",
+  "MobileInput.get_accelerometer": "Lire l'accélération dans <code>_physics_process</code> (détection de secousse).",
+  "MobileInput.get_finger_count": "Changer de comportement selon le nombre de doigts (un doigt : déplacer, deux : zoomer).",
+  "MobileInput.get_finger_position": "Suivre un doigt précis (joystick virtuel attribué au premier doigt posé à gauche).",
+  "MobileInput.get_fingers": "Dessiner les doigts posés (débogage), calculer un geste personnalisé à trois doigts.",
+  "MobileInput.get_gravity": "Inclinaison de l'appareil pour piloter un objet.",
+  "MobileInput.get_gyroscope": "Vitesse de rotation pour une visée gyroscopique lue à chaque image.",
+  "MobileInput.get_magnetometer": "Lire le champ magnétique pour une boussole.",
+  "MobileInput.get_primary_finger_position": "Contrôle à un doigt (déplacer un personnage vers le doigt) sans gérer les indices.",
+  "MobileInput.get_sensor_sensitivity": "Afficher la sensibilité dans un menu d'options.",
+  "MobileInput.get_sensor_value": "Lire un capteur choisi par une option (gyroscope ou gravité selon le réglage du joueur).",
+  "MobileInput.handle_input_event": "Tests automatisés des gestes, relayer les évènements d'un <code>SubViewport</code>.",
+  "MobileInput.has_finger": "Savoir si le doigt qui tient le joystick virtuel est toujours posé.",
+  "MobileInput.is_pinching": "Ignorer le glissement d'une caméra pendant un zoom.",
+  "MobileInput.is_sensor_enabled": "Afficher l'état d'une option « contrôle par inclinaison ».",
+  "MobileInput.reset_touches": "Après l'ouverture d'un menu ou une cinématique, repartir d'un état propre.",
+  "MobileInput.set_sensor_enabled": "Option « contrôle par inclinaison » activable par le joueur ; économiser des signaux inutiles.",
+  "MobileInput.set_sensor_sensitivity": "Curseur de sensibilité dans le menu d'options.",
+  "MobileInput.accelerometer_changed": "Réagir à une secousse sans traiter chaque image.",
+  "MobileInput.accelerometer_updated": "Physique continue basée sur l'accélération.",
+  "MobileInput.double_tap": "Zoom rapide sur une carte, esquive, sélectionner tous les objets d'un type.",
+  "MobileInput.drag": "Déplacer une caméra, dessiner au doigt, faire glisser un objet.",
+  "MobileInput.gravity_changed": "Mettre à jour une interface d'inclinaison (niveau à bulle) seulement quand elle change.",
+  "MobileInput.gravity_updated": "Piloter une bille ou un véhicule à chaque image.",
+  "MobileInput.gyroscope_changed": "Afficher la rotation sans coût par image.",
+  "MobileInput.gyroscope_updated": "Visée gyroscopique continue.",
+  "MobileInput.long_press": "Menu contextuel, info-bulle d'un objet, sélection multiple.",
+  "MobileInput.magnetometer_changed": "Faire tourner l'aiguille d'une boussole.",
+  "MobileInput.magnetometer_updated": "Filtrer soi-même le champ magnétique à chaque image.",
+  "MobileInput.magnify": "Zoom au pavé tactile d'un ordinateur portable.",
+  "MobileInput.multi_touch_changed": "Afficher une aide « utilisez deux doigts », changer d'outil selon le nombre de doigts.",
+  "MobileInput.pan": "Défilement à deux doigts sur un pavé tactile.",
+  "MobileInput.pinch": "Zoom d'une carte ou d'une caméra, mise à l'échelle d'un objet.",
+  "MobileInput.pinch_ended": "Arrondir le zoom à un palier, sauvegarder le niveau de zoom.",
+  "MobileInput.pinch_started": "Mémoriser le zoom de départ.",
+  "MobileInput.swipe": "Tourner une page, changer d'arme, esquive directionnelle.",
+  "MobileInput.tap": "Sélectionner, tirer, faire sauter le personnage.",
+  "MobileInput.touch_pressed": "Commencer un geste personnalisé, placer un joystick virtuel sous le doigt.",
+  "MobileInput.touch_released": "Réaction immédiate au relâchement, fin d'un geste personnalisé.",
+  "MobileInput.SWIPE_NONE": "Valeur neutre (aucune direction).",
+  "MobileInput.SWIPE_LEFT": "Page suivante, esquive à gauche.",
+  "MobileInput.SWIPE_RIGHT": "Page précédente, esquive à droite.",
+  "MobileInput.SWIPE_UP": "Saut, ouvrir un panneau.",
+  "MobileInput.SWIPE_DOWN": "Glissade, fermer un panneau.",
+  "MobileInput.SENSOR_GYROSCOPE": "Argument de <code>set_sensor_enabled</code> / <code>get_sensor_value</code> pour le gyroscope.",
+  "MobileInput.SENSOR_ACCELEROMETER": "Argument pour l'accéléromètre.",
+  "MobileInput.SENSOR_GRAVITY": "Argument pour la gravité.",
+  "MobileInput.SENSOR_MAGNETOMETER": "Argument pour le magnétomètre.",
+  "MobileInput.SENSOR_MAX": "Parcourir tous les capteurs (<code>for c in MobileInput.SENSOR_MAX</code>)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -4,59 +4,28 @@
 		💾 Réglages d'emplacement des fichiers de sauvegarde : dossier, extension en clair et extension chiffrée.
 	</brief_description>
 	<description>
-		Ressource qui décide où et sous quel nom un [SaveData] est écrit. Le chemin d'un fichier est [code]&lt;dossier&gt;&lt;system_id&gt;&lt;extension&gt;[/code], l'extension dépendant de [method SaveData.get_is_encrypted] : [code]user://saves/joueur.sav[/code] chiffré, [code]user://saves/joueur.json[/code] en clair, avec les réglages par défaut.
-		Chaque [SaveData] crée sa propre [SaveConfig] à sa construction ([method SaveData.get_file_config]). Partager une même instance entre plusieurs [SaveData] permet de changer le dossier de toutes les sauvegardes d'un coup (profil de joueur, emplacement de sauvegarde n° 2...).
-		Les valeurs sont accessibles par les méthodes ci-dessous, et aussi comme propriétés [code]save_directory[/code], [code]extension[/code] et [code]encrypted_extension[/code] (dans l'inspecteur et en GDScript).
+		Ressource qui décide où et sous quel nom un [SaveData] est écrit. Le chemin d'un fichier est [code]&lt;dossier&gt;&lt;system_id&gt;&lt;extension&gt;[/code], l'extension dépendant de [member SaveData.is_encrypted] : [code]user://saves/joueur.sav[/code] chiffré, [code]user://saves/joueur.json[/code] en clair, avec les réglages par défaut.
+		Chaque [SaveData] crée sa propre [SaveConfig] à sa construction ([member SaveData.file_config]). Partager une même instance entre plusieurs [SaveData] permet de changer le dossier de toutes les sauvegardes d'un coup (profil de joueur, emplacement de sauvegarde n° 2...).
 		[codeblock]
 		var emplacement := SaveConfig.new()
-		emplacement.set_save_directory("user://saves/emplacement_2/")
+		emplacement.save_directory = "user://saves/emplacement_2/"
 		var partie := SaveData.new()
-		partie.set_system_id("monde")
-		partie.set_file_config(emplacement)
-		SaveManager.save(partie, partie.get_file_config()) # écrit user://saves/emplacement_2/monde.sav
+		partie.system_id = "monde"
+		partie.file_config = emplacement
+		SaveManager.save(partie, partie.file_config) # écrit user://saves/emplacement_2/monde.sav
 		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
-	<methods>
-		<method name="get_encrypted_extension" qualifiers="const">
-			<return type="String" />
-			<description>
-				Renvoie l'extension des fichiers chiffrés (par défaut [code].sav[/code]).
-			</description>
-		</method>
-		<method name="get_extension" qualifiers="const">
-			<return type="String" />
-			<description>
-				Renvoie l'extension des fichiers en clair (par défaut [code].json[/code]).
-			</description>
-		</method>
-		<method name="get_save_directory" qualifiers="const">
-			<return type="String" />
-			<description>
-				Renvoie le dossier des sauvegardes (par défaut [code]user://saves/[/code]).
-			</description>
-		</method>
-		<method name="set_encrypted_extension">
-			<return type="void" />
-			<param index="0" name="extension" type="String" />
-			<description>
-				Règle l'extension (point compris) des fichiers chiffrés. Un fichier écrit avec l'ancienne extension n'est plus retrouvé par [method SaveManager.load].
-			</description>
-		</method>
-		<method name="set_extension">
-			<return type="void" />
-			<param index="0" name="extension" type="String" />
-			<description>
-				Règle l'extension (point compris) des fichiers en clair, ex. [code].json[/code] ou [code].txt[/code].
-			</description>
-		</method>
-		<method name="set_save_directory">
-			<return type="void" />
-			<param index="0" name="directory" type="String" />
-			<description>
-				Règle le dossier des sauvegardes. Il est simplement concaténé au nom du fichier : terminer le chemin par [code]/[/code]. Le dossier est créé (récursivement) à la première écriture.
-			</description>
-		</method>
-	</methods>
+	<members>
+		<member name="encrypted_extension" type="String" setter="set_encrypted_extension" getter="get_encrypted_extension" default="&quot;.sav&quot;">
+			Extension (point compris) des fichiers chiffrés. Un fichier écrit avec l'ancienne extension n'est plus retrouvé par [method SaveManager.load].
+		</member>
+		<member name="extension" type="String" setter="set_extension" getter="get_extension" default="&quot;.json&quot;">
+			Extension (point compris) des fichiers en clair, ex. [code].json[/code] ou [code].txt[/code].
+		</member>
+		<member name="save_directory" type="String" setter="set_save_directory" getter="get_save_directory" default="&quot;user://saves/&quot;">
+			Dossier des sauvegardes. Il est simplement concaténé au nom du fichier : terminer le chemin par [code]/[/code]. Le dossier est créé (récursivement) à la première écriture.
+		</member>
+	</members>
 </class>

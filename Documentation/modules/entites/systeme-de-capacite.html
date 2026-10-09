@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Système de Capacité · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🌟 Système de Capacité (AbilitySystem, Ability, GameplayEffect, AttributeDefinition, AttributeModifier) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/entites/systeme-de-capacite.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🌟</div>
+    <div>
+      <h1>🌟_AbilitySystem - Entités &amp; Algorithme - Documentation</h1>
+      <p class="subtitle">Module <strong>Système de Capacité</strong> : attributs, tags, effets de jeu et capacités (coût, recharge, incantation) pour n'importe quelle entité.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/entity_algorithm</code></span>
+        <span class="badge">5 classes</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un sort qui coûte du mana et se recharge, un poison qui retire des PV chaque seconde, une potion de force qui dure 30 s, un étourdissement qui empêche de bouger, une armure qui réduit les dégâts : codés au cas par cas, ces mécaniques finissent en dizaines de minuteries et de variables qui se marchent dessus (que se passe-t-il si deux bonus expirent en même temps ? si l'on boit deux potions ?). <strong>Ce module donne un cadre unique pour toutes ces règles</strong>, configuré par des ressources dans l'inspecteur.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🌟 <code>AbilitySystem</code> — le composant</h4>
+      <p>Placé sous l'entité, il tient ses <strong>attributs</strong> (vie, mana…), ses <strong>tags</strong> (<code>etat.etourdi</code>), ses <strong>effets actifs</strong> et ses <strong>capacités</strong>, et fait avancer durées et recharges.</p>
+    </div>
+    <div class="card">
+      <h4>✨ <code>GameplayEffect</code> + ➕ <code>AttributeModifier</code></h4>
+      <p>Ce qui <strong>arrive</strong> à l'entité : dégâts, soin, bonus temporaire, poison périodique, état accordé par tag.</p>
+    </div>
+    <div class="card">
+      <h4>🌟 <code>Ability</code> — ce qu'on fait</h4>
+      <p>Une <strong>action</strong> déclenchable : conditions, coût, charges, recharge, incantation, effets sur soi et sur la cible, scriptable.</p>
+    </div>
+    <div class="card">
+      <h4>📊 <code>AttributeDefinition</code></h4>
+      <p>Le <strong>catalogue</strong> des attributs : nom, valeur de départ, bornes, plafond par un autre attribut (vie ≤ vie max).</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les game designers qui équilibrent compétences et objets dans des fichiers <code>.tres</code> sans toucher au code, et les développeurs qui veulent des RPG, jeux d'action ou tactiques sans réécrire la gestion des buffs. Le module 🧑 Personnage s'appuie dessus (vie en attribut, étourdissement, capacités du joueur et des IA).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une jauge d'interface</strong> : pour une simple valeur bornée avec seuils (barre d'endurance isolée), le module 📊 Jauge suffit.</li>
+      <li><strong>Pas un système de combat complet</strong> : il n'y a ni hitbox, ni projectile, ni animation. Une capacité applique des effets ; la mise en scène se branche sur ses signaux ou ses méthodes de script (<code>_on_commit</code>…).</li>
+      <li><strong>Pas réseau</strong> : aucune réplication ni prédiction ; en multijoueur, l'état doit être synchronisé par vos soins.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'inspecteur d'un <code>AbilitySystem</code> avec ses attributs (health, max_health, mana) et une <code>Ability</code> « boule_de_feu » dépliée (coût mana 20, cooldown 1,5 s, cast_time 0,4 s, un <code>GameplayEffect</code> dans effects_on_target), à côté d'un GIF de jeu montrant la barre de mana qui baisse et l'icône de recharge.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/entity_algorithm/</code> (<code>gameplaytoolkit_entity_algorithm.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les cinq classes du module (et, dans le même binaire, les modules Personnage, Dialogue et Comportement). Le système de capacités lui-même ne dépend d'aucun autre module.</td></tr>
+        <tr><td>Module <a href="personnage-joueur-automate-pnj.html">🧑 Personnage</a></td><td>Optionnelle</td><td>Pour la vie en attribut (<code>HealthComponent</code>), le blocage du déplacement par tags, les capacités au clavier (<code>PlayerController.ability_actions</code>) et dans les arbres de comportement (<code>BTUseAbility</code>).</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧑‍🔧🏗️/</code></td><td>Optionnelle</td><td>Seulement pour les icônes dans l'arbre de scène et l'inspecteur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons entity_algorithm</code></pre>
+      <div class="why">compile uniquement cette bibliothèque et régénère <code>bin/entity_algorithm/gameplaytoolkit_entity_algorithm.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/entity_algorithm/</code></strong> dans le projet, au même emplacement : <code>res://bin/entity_algorithm/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/entity_algorithm/…</code> absolus.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; ensuite, elles sont rechargées à chaud.</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>AbilitySystem</code>, et <kbd>Nouvelle ressource</kbd> propose <code>Ability</code>, <code>GameplayEffect</code>, <code>AttributeDefinition</code>, <code>AttributeModifier</code>.
+      <div class="why">si elles manquent, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet. Conseil : ranger les ressources dans des dossiers dédiés (<code>res://capacites/</code>, <code>res://effets/</code>) pour les partager entre entités.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : un héros avec du mana et une boule de feu qui inflige 30 dégâts à un ennemi.</p>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>AbilitySystem</code></strong> comme enfant du héros, et un autre sous l'ennemi.
+      <div class="why">chaque entité qui a des attributs, reçoit des effets ou utilise des capacités a son propre système.</div>
+    </li>
+    <li>
+      <strong>Déclarer les attributs</strong> : dans <code>attribute_definitions</code>, ajouter des <code>AttributeDefinition</code> — <code>mana</code> (base 50) pour le héros ; <code>health</code> (base 100) pour l'ennemi.
+      <div class="why">un attribut n'existe que s'il est déclaré : un coût ou un effet sur un attribut absent est refusé ou ignoré.</div>
+    </li>
+    <li>
+      <strong>Créer l'effet de dégâts</strong> : nouvelle ressource <code>GameplayEffect</code> (<code>duration_policy</code> = <em>Instant</em>), avec un <code>AttributeModifier</code> : <code>attribute</code> = <code>health</code>, <code>operation</code> = <em>Add</em>, <code>magnitude</code> = <code>-30</code>. L'enregistrer en <code>degats_feu.tres</code>.
+      <div class="why">un effet instantané modifie la valeur de base une fois : ce sont des dégâts définitifs (jusqu'à un soin).</div>
+    </li>
+    <li>
+      <strong>Créer la capacité</strong> : ressource <code>Ability</code>, <code>ability_id</code> = <code>boule_de_feu</code>, <code>costs</code> = <code>{ mana: 20 }</code>, <code>cooldown</code> = <code>1.5</code>, <code>effects_on_target</code> = <code>[degats_feu.tres]</code>. L'ajouter à <code>granted_abilities</code> du héros.
+      <div class="why">la capacité réunit conditions, prix et conséquences ; l'<code>AbilitySystem</code> conserve son état (recharge), donc la ressource est partageable.</div>
+    </li>
+    <li>
+      <strong>Déclencher</strong> depuis le jeu :
+      <pre><code class="gdscript">func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_accept"):
+		var ok: bool = $Heros/AbilitySystem.activate(&"boule_de_feu", $Ennemi)
+		print("lancée" if ok else "refusée : " + $Heros/AbilitySystem.get_activation_failure(&"boule_de_feu"))
+	print("PV ennemi : ", $Ennemi/AbilitySystem.get_value(&"health"))</code></pre>
+      <div class="why">la cible est un nœud quelconque : son <code>AbilitySystem</code> est trouvé parmi ses enfants. Au deuxième appui immédiat, la réponse est <code>cooldown</code> ; au troisième (après recharge), <code>cost</code> si le mana est épuisé.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/AbilitySystem.xml</code>, <code>Ability.xml</code>, <code>GameplayEffect.xml</code>, <code>AttributeDefinition.xml</code> et <code>AttributeModifier.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li><code>AbilitySystem</code> : les structures d'état <code>AttributeState</code>, <code>ActiveEffect</code>, <code>AbilityState</code>, le compteur de tags, et les méthodes <code>_recompute</code>, <code>_apply_to_base</code>, <code>_commit</code>, <code>_finish</code>, <code>_tag_matches</code>.</li>
+    <li><code>GameplayEffect</code> / <code>Ability</code> : les relais C++ <code>notify_*</code> et <code>script_can_activate</code> qui appellent les méthodes virtuelles de script (documentées, elles, dans les tableaux).</li>
+    <li><code>AttributeModifier</code> : le cache de l'<code>Expression</code> analysée.</li>
+  </ul>
+  <div data-api="AbilitySystem Ability GameplayEffect AttributeDefinition AttributeModifier"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-vie">Comment je borne la vie par une vie maximale qui peut changer ?</h3>
+  <p><code>max_attribute</code> plafonne un attribut par un autre. Combiné au module Personnage, un <code>HealthComponent</code> frère utilise automatiquement <code>health</code> / <code>max_health</code>.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var vie_max := AttributeDefinition.new()
+	vie_max.attribute_name = &"max_health"
+	vie_max.base_value = 100.0
+	var vie := AttributeDefinition.new()
+	vie.attribute_name = &"health"
+	vie.base_value = 100.0
+	vie.max_attribute = &"max_health"
+	$AbilitySystem.attribute_definitions = [vie_max, vie]
+	$AbilitySystem.initialize()</code></pre>
+
+  <h3 id="ex-buff">Comment je fais une potion de force de 30 secondes qui ne se cumule pas ?</h3>
+  <pre><code class="gdscript">var potion := GameplayEffect.new()
+potion.duration_policy = GameplayEffect.DURATION_TIMED
+potion.duration = 30.0
+potion.stacking = GameplayEffect.STACKING_REFRESH   # reboire relance les 30 s
+potion.effect_tags = PackedStringArray(["buff.force"])
+var bonus := AttributeModifier.new()
+bonus.attribute = &"force"
+bonus.operation = AttributeModifier.OPERATION_MULTIPLY
+bonus.magnitude = 1.5                              # +50 % sur la valeur courante
+potion.modifiers = [bonus]
+$AbilitySystem.apply_effect(potion)</code></pre>
+  <p>Avec <code>STACKING_REFRESH</code>, l'effet doit être <strong>la même ressource</strong> à chaque fois (préchargez le <code>.tres</code>) : une ressource recréée à chaque gorgée serait une autre instance, cumulée.</p>
+
+  <h3 id="ex-poison">Comment je fais un poison cumulable jusqu'à 3 fois, et son antidote ?</h3>
+  <pre><code class="gdscript">const POISON := preload("res://effets/poison.tres")   # Timed 5 s, period 1 s, health -2, Stack, max_stacks 3, effect_tags ["poison"]
+
+func empoisonner(cible: Node) -> void:
+	$AbilitySystem.apply_effect_to(POISON, cible)   # 1, 2 puis 3 cumuls : -2, -4, -6 PV / s
+
+func antidote(cible: Node) -> void:
+	var systeme := AbilitySystem.find_on(cible)
+	if systeme:
+		systeme.remove_effects_with_tag("poison")</code></pre>
+
+  <h3 id="ex-etourdi">Comment j'étourdis une cible, avec immunité ensuite ?</h3>
+  <p><code>granted_tags</code> accorde un tag pendant la durée ; <code>blocked_by_tags</code> refuse l'effet. Un second effet (sans modificateur) donne l'immunité temporaire.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$AbilitySystem.effect_removed.connect(func(effet, _h):
+		if effet == ETOURDI:
+			$AbilitySystem.apply_effect(IMMUNITE))   # Timed 3 s, granted_tags ["immunite.etourdi"]
+
+# ETOURDI : Timed 1,5 s, granted_tags ["etat.etourdi"], blocked_by_tags ["immunite.etourdi"]
+# Avec un Character2D, « etat.etourdi » coupe déjà le déplacement (movement_blocking_tags).</code></pre>
+
+  <h3 id="ex-incantation">Comment j'affiche une barre d'incantation et j'annule le sort si on est touché ?</h3>
+  <pre><code class="gdscript">@onready var stats: AbilitySystem = $AbilitySystem
+var incantation := 0.0
+
+func _ready() -> void:
+	stats.ability_activated.connect(func(id): incantation = stats.get_ability(id).cast_time; $Barre.show())
+	stats.ability_committed.connect(func(_id): $Barre.hide())
+	stats.ability_ended.connect(func(_id, annule): $Barre.hide())
+	$HealthComponent.damaged.connect(func(_degats, _source):
+		stats.cancel_abilities_with_tag("sort"))      # sorts dont ability_tags contient « sort… »</code></pre>
+  <p>L'annulation pendant l'incantation empêche les effets, mais <strong>ne rend ni le coût ni la charge</strong>.</p>
+
+  <h3 id="ex-script">Comment je programme une capacité sur mesure (dash) ?</h3>
+  <pre><code class="gdscript"># dash.gd — enregistrée dans une ressource Ability (cooldown 0,8, max_charges 2)
+extends Ability
+
+func _can_activate(system: Node, _target: Node) -> bool:
+	return system.get_parent().is_on_floor()          # pas de dash en l'air
+
+func _on_commit(system: Node, _target: Node) -> void:
+	var corps := system.get_parent() as CharacterBody2D
+	corps.velocity.x = 600.0 * signf(corps.velocity.x if corps.velocity.x != 0.0 else 1.0)</code></pre>
+
+  <h3 id="ex-degats-calcules">Comment je calcule des dégâts selon la force de l'attaquant et l'armure de la cible ?</h3>
+  <pre><code class="gdscript">var coup := AttributeModifier.new()
+coup.attribute = &"health"
+coup.magnitude_expression = 'min(0, -(source.get_value("force") * 2 - target.get_value("armure")))'
+var attaque := GameplayEffect.new()
+attaque.modifiers = [coup]
+$AbilitySystem.apply_effect_to(attaque, ennemi)   # force 10, armure 5 : -15 PV</code></pre>
+  <p>Pour un effet instantané, l'expression est évaluée une fois. Elle exige une <code>source</code> : <code>apply_effect</code> sans source renvoie 0 et affiche un avertissement.</p>
+
+  <h3 id="ex-tour">Comment je l'utilise dans un jeu au tour par tour ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	for unite in get_tree().get_nodes_in_group("unites"):
+		AbilitySystem.find_on(unite).manual_update = true   # plus d'écoulement en temps réel
+
+func fin_du_tour() -> void:
+	for unite in get_tree().get_nodes_in_group("unites"):
+		AbilitySystem.find_on(unite).update(1.0)            # 1 tour = 1 « seconde » de durée / recharge</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Rien n'existe avant le <code>_ready</code> de l'<code>AbilitySystem</code></strong> : <code>get_value</code> renvoie 0, <code>has_attribute</code> faux, <code>activate</code> échoue (<code>unknown</code>). Un parent qui interroge son système dans son propre <code>_ready</code> est servi (les enfants sont prêts avant), mais pas un script qui le lit au chargement de la scène.</li>
+    <li><strong><code>initialize()</code> efface tout sans prévenir</strong> : effets actifs et tags disparaissent sans <code>effect_removed</code> ni <code>_on_removed</code>. Modifier <code>attribute_definitions</code> en jeu impose de rappeler <code>initialize()</code> (ou d'utiliser <code>add_attribute</code>).</li>
+    <li><strong>Coût vérifié sur la valeur courante, payé sur la base.</strong> Avec un bonus temporaire de mana, on peut lancer un sort que la base ne couvre pas ; la base est alors bornée à son minimum (0) et le surplus est perdu.</li>
+    <li><strong><code>cooldown = 0</code> rend les charges inutiles</strong> : aucune charge n'est consommée, seuls le coût et les tags limitent les activations (y compris plusieurs fois dans la même image).</li>
+    <li><strong>Recharge lancée à l'activation</strong>, pas à la fin de la capacité : une capacité dont la durée dépasse la recharge peut être prête avant d'être terminée (mais reste refusée tant qu'elle est active).</li>
+    <li><strong>Annuler n'est pas rembourser</strong> : coût et charge sont perdus, même si l'incantation est annulée immédiatement.</li>
+    <li><strong>Cumul et rafraîchissement reposent sur l'identité de la ressource</strong> : deux copies (<code>duplicate()</code>, ressources « locales à la scène ») sont deux effets différents. La source et le niveau d'un effet cumulé restent ceux de la première application.</li>
+    <li><strong>Les expressions des effets à durée sont réévaluées à chaque recalcul</strong> (à chaque application / retrait d'effet sur l'entité) : la valeur suit l'évolution de la source, et devient 0 avec un avertissement si la source a été libérée.</li>
+    <li><strong><code>OPERATION_OVERRIDE</code></strong> ignore tous les ajouts et multiplications ; entre plusieurs remplacements, le dernier appliqué gagne.</li>
+    <li><strong>Un plafond qui baisse réduit la base pour de bon</strong> : la vie ramenée à 50 par un malus de vie max ne remonte pas quand le malus prend fin.</li>
+    <li><strong>Réaccorder une capacité active</strong> (<code>grant_ability</code> avec le même identifiant) remplace son état sans la terminer : ses <code>activation_owned_tags</code> restent alors accordés. Révoquer (<code>revoke_ability</code>) d'abord.</li>
+    <li><strong>Mise à jour en <code>_process</code></strong> : durées et recharges suivent la pause et <code>Engine.time_scale</code> selon le <code>process_mode</code> du nœud, avec la granularité de l'image (au plus 100 périodes rattrapées par image).</li>
+    <li><strong>Pas de réplication réseau ni de sauvegarde intégrée</strong> : <code>get_active_effects()</code> et les valeurs de base sont lisibles, mais la restauration (durées restantes, recharges) est à écrire.</li>
+    <li><strong>Coût</strong> : chaque application / retrait recalcule tous les attributs en parcourant tous les effets actifs. Négligeable pour quelques dizaines d'effets par entité.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 300" role="img" aria-label="Schéma d'architecture du Système de Capacité">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <text x="20" y="22" class="small">Ressources (configuration partageable)</text>
+    <rect class="box" x="20" y="34" width="180" height="54" rx="8"/>
+    <text x="110" y="58" text-anchor="middle">Ability</text>
+    <text x="110" y="76" text-anchor="middle" class="small">coût · recharge · tags</text>
+    <rect class="box" x="20" y="120" width="180" height="54" rx="8"/>
+    <text x="110" y="144" text-anchor="middle">GameplayEffect</text>
+    <text x="110" y="162" text-anchor="middle" class="small">durée · période · cumul</text>
+    <rect class="box" x="20" y="206" width="180" height="54" rx="8"/>
+    <text x="110" y="230" text-anchor="middle">AttributeModifier</text>
+    <text x="110" y="248" text-anchor="middle" class="small">+ · × · = · expression</text>
+    <rect class="box" x="250" y="206" width="180" height="54" rx="8"/>
+    <text x="340" y="230" text-anchor="middle">AttributeDefinition</text>
+    <text x="340" y="248" text-anchor="middle" class="small">nom · bornes · plafond</text>
+    <path class="arrow" d="M110 88 V118" marker-end="url(#arr)"/>
+    <text x="118" y="106" class="small">effects_on_*</text>
+    <path class="arrow" d="M110 174 V204" marker-end="url(#arr)"/>
+    <text x="118" y="192" class="small">modifiers</text>
+    <!-- Système -->
+    <rect class="box main" x="500" y="60" width="200" height="150" rx="8"/>
+    <text x="600" y="84" text-anchor="middle">AbilitySystem</text>
+    <text x="600" y="106" text-anchor="middle" class="small">attributs : base / courante</text>
+    <text x="600" y="124" text-anchor="middle" class="small">tags comptés</text>
+    <text x="600" y="142" text-anchor="middle" class="small">effets actifs (handles)</text>
+    <text x="600" y="160" text-anchor="middle" class="small">états des capacités</text>
+    <text x="600" y="190" text-anchor="middle" class="small">update(delta) · _process</text>
+    <path class="arrow dashed" d="M200 61 Q350 60 498 90" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M200 147 Q350 140 498 135" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M430 233 Q470 230 498 190" marker-end="url(#arr)"/>
+    <text x="340" y="52" text-anchor="middle" class="small">lues, jamais modifiées</text>
+    <!-- Cible -->
+    <rect class="box" x="760" y="60" width="90" height="54" rx="8"/>
+    <text x="805" y="84" text-anchor="middle">Cible</text>
+    <text x="805" y="102" text-anchor="middle" class="small">AbilitySystem</text>
+    <path class="arrow" d="M700 87 H758" marker-end="url(#arr)"/>
+    <text x="729" y="78" text-anchor="middle" class="small">apply</text>
+    <!-- Consommateurs -->
+    <rect class="box" x="760" y="160" width="90" height="54" rx="8"/>
+    <text x="805" y="184" text-anchor="middle">UI, jeu</text>
+    <text x="805" y="202" text-anchor="middle" class="small">signaux</text>
+    <path class="arrow dashed" d="M700 187 H758" marker-end="url(#arr)"/>
+    <rect class="box" x="500" y="240" width="200" height="50" rx="8"/>
+    <text x="600" y="262" text-anchor="middle">HealthComponent, Character…</text>
+    <text x="600" y="279" text-anchor="middle" class="small">module 🧑 Personnage</text>
+    <path class="arrow dashed" d="M600 238 V212" marker-end="url(#arr)"/>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Ressources = configuration, système = état.</strong> <code>Ability</code>, <code>GameplayEffect</code>, <code>AttributeModifier</code> et <code>AttributeDefinition</code> ne stockent rien de l'exécution (seul <code>AttributeModifier</code> met en cache son expression analysée). Tout l'état — valeurs, charges, recharges, instances d'effets, tags — vit dans l'<code>AbilitySystem</code>, indexé par nom / identifiant.</li>
+    <li><strong>Valeur de base et valeur courante</strong> : les effets instantanés et les périodes écrivent la base ; les effets à durée non périodiques n'interviennent que dans le recalcul de la valeur courante, refait à chaque application ou retrait d'effet, puis propagé aux attributs plafonnés.</li>
+    <li><strong>Appels directs</strong> entre systèmes : une capacité applique ses effets sur la cible via <code>AbilitySystem.find_on(cible)</code> puis <code>apply_effect</code>, avec le lanceur comme source.</li>
+    <li><strong>Scripts</strong> : les ressources exposent des méthodes virtuelles (<code>_can_activate</code>, <code>_on_commit</code>, <code>_on_period</code>…), appelées par le système aux moments clés.</li>
+    <li><strong>Signaux</strong> vers l'extérieur pour tout changement observable (attribut, tag, effet, capacité, recharge).</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Aucune dépendance vers un autre module : le système de capacités est autonome.</li>
+    <li>Le module 🧑 Personnage en dépend (<code>HealthComponent</code>, <code>is_movement_blocked</code>, <code>PlayerController</code>, <code>BTUseAbility</code>) ; le couplage va dans ce sens uniquement.</li>
+    <li>La cible d'un effet ou d'une capacité est n'importe quel nœud : <code>find_on</code> accepte le système lui-même, un enfant direct, ou un nœud qui expose <code>get_ability_system()</code> (c'est le cas des personnages).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Séparer valeur de base et valeur courante</td><td>Un bonus temporaire s'annule exactement à son retrait, quel que soit l'ordre d'expiration des effets ; les dégâts, eux, sont durables.</td></tr>
+        <tr><td>Recalcul complet plutôt qu'incrémental</td><td>Pas d'erreur d'arrondi accumulée ni de « bonus fantôme » quand des multiplicateurs s'empilent et expirent dans le désordre.</td></tr>
+        <tr><td>Effet périodique appliqué à la <strong>base</strong></td><td>Un poison doit laisser des dégâts après sa fin ; une régénération doit garder les PV rendus.</td></tr>
+        <tr><td>Tags <strong>comptés</strong> et <strong>hiérarchiques</strong></td><td>Deux sources d'étourdissement : la fin de l'une ne libère pas la cible. Et une règle générale (<code>etat</code>) couvre tous les états particuliers sans les énumérer.</td></tr>
+        <tr><td>État dans le système, pas dans la ressource</td><td>Une même <code>Ability</code> ou un même <code>GameplayEffect</code> (fichier <code>.tres</code>) sert à cent ennemis sans duplication ni interférence.</td></tr>
+        <tr><td>Raisons d'échec en chaînes (<code>cooldown</code>, <code>cost</code>…)</td><td>L'interface peut afficher un message précis (« Pas assez de mana ») sans dupliquer les règles d'activation.</td></tr>
+        <tr><td>Garde-fou de profondeur (8) dans le recalcul</td><td>Deux attributs qui se plafonnent mutuellement ne bloquent pas le jeu dans une récursion infinie.</td></tr>
+        <tr><td>Au plus 100 périodes rattrapées par mise à jour</td><td>Une période minuscule ou une image très longue (chargement) ne fige pas le jeu.</td></tr>
+        <tr><td>Expressions évaluées avec la cible comme instance de base</td><td>Les formules peuvent appeler directement les méthodes de la cible, en plus de <code>source</code> / <code>target</code> / <code>level</code> / <code>stacks</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des cinq classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>AbilitySystem</code> : attributs bornés et plafonnés, tags comptés hiérarchiques, effets à durée / périodiques / cumulables, capacités avec coût, charges, recharge, incantation et durée active.</li>
+      <li><span class="tag add">Ajouté</span>Ressources <code>Ability</code>, <code>GameplayEffect</code>, <code>AttributeDefinition</code>, <code>AttributeModifier</code> (magnitude par niveau ou par expression), scriptables.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🌟 Système de Capacité · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/4.🧍Entités &amp; Algorithme🧠/🌟Système de Capacité/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  // 🌟 AbilitySystem
+  "AbilitySystem.attribute_definitions": "Vie, mana, force, armure, vitesse d'un héros ou d'un monstre.",
+  "AbilitySystem.granted_abilities": "Compétences de départ d'une classe de personnage ou d'un type d'ennemi.",
+  "AbilitySystem.initial_effects": "Aura permanente, régénération naturelle, bonus de race.",
+  "AbilitySystem.initial_tags": "<code>type.mort_vivant</code>, <code>immunite.poison</code> dès l'apparition.",
+  "AbilitySystem.manual_update": "Tour par tour, ou entité figée par un sort de stase.",
+  "AbilitySystem.activate": "Bouton de compétence, attaque d'une IA.",
+  "AbilitySystem.add_attribute": "Ajouter un attribut débloqué en cours de partie (rage, foi).",
+  "AbilitySystem.add_tag": "Marquer un état géré par script (<code>etat.cache</code>, <code>quete.parle_au_roi</code>).",
+  "AbilitySystem.add_to_base": "Dégâts de chute, ramassage de mana, gain d'expérience.",
+  "AbilitySystem.apply_effect": "Potion bue, zone de lave, bénédiction d'un autel.",
+  "AbilitySystem.apply_effect_to": "Projectile ou hitbox qui applique ses effets à ce qu'il touche.",
+  "AbilitySystem.can_activate": "Griser l'icône d'une compétence indisponible.",
+  "AbilitySystem.cancel_abilities_with_tag": "Interrompre les sorts quand le lanceur est touché ou étourdi.",
+  "AbilitySystem.cancel_ability": "Relâcher le bouton d'une attaque chargée, annulation par le joueur.",
+  "AbilitySystem.end_ability": "Terminer un bouclier maintenu (<code>active_duration = -1</code>) quand on relâche la touche.",
+  "AbilitySystem.find_on": "Trouver le système de n'importe quel nœud touché.",
+  "AbilitySystem.get_ability": "Afficher le nom, l'icône, la recharge d'une compétence dans l'interface.",
+  "AbilitySystem.get_ability_ids": "Construire la barre de compétences.",
+  "AbilitySystem.get_activation_failure": "Message « Pas assez de mana » / « En recharge ».",
+  "AbilitySystem.get_active_effects": "Rangée d'icônes de buffs et debuffs avec leur temps restant.",
+  "AbilitySystem.get_attribute_names": "Fiche de personnage générique, panneau de débogage.",
+  "AbilitySystem.get_base_value": "Afficher « 12 (+6) » : base et bonus séparés.",
+  "AbilitySystem.get_charges": "Afficher « ×2 » sur l'icône d'un dash à charges.",
+  "AbilitySystem.get_cooldown_remaining": "Cadran de recharge sur l'icône.",
+  "AbilitySystem.get_effect_remaining": "Compte à rebours d'un buff.",
+  "AbilitySystem.get_effect_stacks": "Afficher le nombre de cumuls de poison.",
+  "AbilitySystem.get_tags": "Débogage : voir tous les états actifs.",
+  "AbilitySystem.get_value": "Valeur effective pour un calcul de dégâts, une barre, une vitesse.",
+  "AbilitySystem.grant_ability": "Compétence apprise en montant de niveau ou en ramassant un objet.",
+  "AbilitySystem.has_ability": "Débloquer une porte qui demande la compétence « double saut ».",
+  "AbilitySystem.has_all_tags": "Conditions combinées (« en l'air ET enragé »).",
+  "AbilitySystem.has_any_tags": "« Peut-il agir ? » : aucun de <code>etat.etourdi</code>, <code>etat.endormi</code>…",
+  "AbilitySystem.has_attribute": "Code générique qui n'agit que sur les entités qui ont du mana.",
+  "AbilitySystem.has_effect": "Ne pas reproposer une potion déjà active.",
+  "AbilitySystem.has_tag": "Bonus de dégâts contre les cibles <code>type.mort_vivant</code>.",
+  "AbilitySystem.initialize": "Réinitialiser une entité réutilisée (pool d'ennemis) ou après un changement de classe.",
+  "AbilitySystem.is_ability_active": "Jouer l'animation d'incantation tant que le sort est actif.",
+  "AbilitySystem.remove_effect": "Retirer précisément un buff dont on a gardé le handle.",
+  "AbilitySystem.remove_effects_with_tag": "Antidote, dissipation de magie, purification.",
+  "AbilitySystem.remove_tag": "Lever un état posé par script.",
+  "AbilitySystem.reset_cooldown": "Objet « rafraîchissement », mode triche, début de manche.",
+  "AbilitySystem.revoke_ability": "Perte d'une transformation, objet déséquipé.",
+  "AbilitySystem.set_base_value": "Restaurer une sauvegarde, régler une valeur de débogage.",
+  "AbilitySystem.update": "Avancer d'un tour ; ralentir une seule entité.",
+  "AbilitySystem.ability_activated": "Son et animation de lancement.",
+  "AbilitySystem.ability_committed": "Moment où le sort part : projectile, effet visuel d'impact.",
+  "AbilitySystem.ability_ended": "Rendre la main à l'IA, cacher la barre d'incantation.",
+  "AbilitySystem.ability_failed": "Son d'erreur et message d'explication.",
+  "AbilitySystem.ability_granted": "Notification « Nouvelle compétence ! ».",
+  "AbilitySystem.attribute_changed": "Mettre à jour les barres et chiffres de l'interface.",
+  "AbilitySystem.attribute_depleted": "Mort quand la vie tombe à 0, épuisement quand l'endurance est vide.",
+  "AbilitySystem.cooldown_ready": "Faire briller l'icône quand la compétence redevient disponible.",
+  "AbilitySystem.effect_applied": "Ajouter une icône de buff, texte flottant « Empoisonné ! ».",
+  "AbilitySystem.effect_blocked": "Afficher « Immunisé ».",
+  "AbilitySystem.effect_removed": "Retirer l'icône ; enchaîner une immunité après un étourdissement.",
+  "AbilitySystem.tag_changed": "Jouer l'animation « étourdi » à l'apparition du tag, la couper à sa disparition.",
+
+  // 🌟 Ability
+  "Ability._can_activate": "Pas de dash en l'air, pas d'attaque sans arme équipée.",
+  "Ability._on_activate": "Animation et son de début d'incantation.",
+  "Ability._on_commit": "Créer le projectile, la zone de dégâts, déplacer le lanceur (dash).",
+  "Ability._on_end": "Nettoyer un effet visuel maintenu (bouclier, canalisation).",
+  "Ability._on_tick": "Canalisation : dégâts ou visée mis à jour à chaque image.",
+  "Ability.get_effective_id": "Retrouver l'identifiant d'une capacité nommée par son fichier.",
+  "Ability.ability_id": "<code>boule_de_feu</code>, <code>dash</code>, <code>morsure</code>.",
+  "Ability.ability_tags": "<code>sort.feu</code>, <code>attaque.melee</code> : pour annuler ou bloquer par famille.",
+  "Ability.activation_blocked_tags": "Impossible de lancer un sort sous <code>etat.silence</code>.",
+  "Ability.activation_owned_tags": "<code>etat.incante</code> pour ralentir le lanceur pendant le sort.",
+  "Ability.activation_required_tags": "Attaque spéciale disponible seulement en <code>etat.enrage</code>.",
+  "Ability.active_duration": "Bouclier de 3 s, canalisation, ou <code>-1</code> pour une capacité maintenue.",
+  "Ability.cancel_abilities_with_tags": "Esquive qui interrompt les attaques en cours.",
+  "Ability.cast_time": "Sort lent et puissant, attaque chargée.",
+  "Ability.cooldown": "Temps entre deux utilisations (1,5 s pour un sort, 0 pour une attaque de base).",
+  "Ability.costs": "Mana, endurance, munitions, points de rage.",
+  "Ability.display_name": "Nom affiché dans l'infobulle de la barre de compétences.",
+  "Ability.effects_on_self": "Soin personnel, buff, recul du lanceur.",
+  "Ability.effects_on_target": "Dégâts, poison, étourdissement infligés à la cible.",
+  "Ability.icon": "Icône de la barre de compétences.",
+  "Ability.level": "Compétence améliorée au fil de la progression.",
+  "Ability.max_charges": "Dash à 2 charges, potions de soin rechargeables.",
+  "Ability.requires_target": "Sort ciblé qui ne peut pas être lancé dans le vide.",
+
+  // ✨ GameplayEffect
+  "GameplayEffect._on_applied": "Particules ou son au moment où l'effet frappe.",
+  "GameplayEffect._on_period": "Petit son à chaque tick de poison.",
+  "GameplayEffect._on_removed": "Retirer un effet visuel (aura, givre) à la fin de l'effet.",
+  "GameplayEffect.is_periodic": "Interface : afficher « par seconde » dans l'infobulle.",
+  "GameplayEffect.blocked_by_tags": "Immunités : <code>immunite.poison</code>, <code>boss</code>.",
+  "GameplayEffect.duration": "Durée d'un buff, d'un poison, d'un étourdissement.",
+  "GameplayEffect.duration_policy": "Dégâts (Instant), potion (Timed), aura d'équipement (Infinite).",
+  "GameplayEffect.effect_tags": "Classer les effets pour les retirer par famille (<code>poison</code>, <code>malediction</code>).",
+  "GameplayEffect.execute_period_on_apply": "Poison qui pique dès l'application.",
+  "GameplayEffect.granted_tags": "<code>etat.etourdi</code>, <code>etat.invisible</code> tant que l'effet dure.",
+  "GameplayEffect.max_stacks": "Poison cumulable jusqu'à 3 fois.",
+  "GameplayEffect.modifiers": "Ce que l'effet change : vie, force, vitesse…",
+  "GameplayEffect.period": "Poison, saignement, régénération par seconde.",
+  "GameplayEffect.remove_effects_with_tags": "Antidote, sort de purification, eau qui éteint la brûlure.",
+  "GameplayEffect.required_tags": "Bonus qui ne s'applique qu'aux <code>type.mort_vivant</code>.",
+  "GameplayEffect.stacking": "Rafraîchir une potion, cumuler un poison.",
+  "GameplayEffect.DURATION_INSTANT": "Dégâts, soin, gain de ressources.",
+  "GameplayEffect.DURATION_TIMED": "Buff ou debuff temporaire.",
+  "GameplayEffect.DURATION_INFINITE": "Bonus d'équipement retiré quand l'objet est enlevé.",
+  "GameplayEffect.STACKING_SEPARATE": "Chaque coup de dague inflige son propre saignement.",
+  "GameplayEffect.STACKING_REFRESH": "Potion qu'on reboit : la durée repart, l'effet ne double pas.",
+  "GameplayEffect.STACKING_STACK": "Poison ou malédiction qui s'aggrave à chaque application.",
+
+  // 📊 AttributeDefinition
+  "AttributeDefinition.attribute_name": "<code>health</code>, <code>mana</code>, <code>force</code>…",
+  "AttributeDefinition.base_value": "Valeur de départ du personnage.",
+  "AttributeDefinition.max_attribute": "Vie plafonnée par la vie max, mana par le mana max.",
+  "AttributeDefinition.max_value": "Plafond absolu (vitesse max, résistance 100 %).",
+  "AttributeDefinition.min_value": "Plancher (vie à 0 pour déclencher <code>attribute_depleted</code>).",
+
+  // ➕ AttributeModifier
+  "AttributeModifier.compute_magnitude": "Afficher la valeur prévue d'un effet dans une infobulle.",
+  "AttributeModifier.get_error": "Valider les formules des game designers au chargement.",
+  "AttributeModifier.attribute": "L'attribut visé : <code>health</code> pour des dégâts, <code>vitesse</code> pour un ralentissement.",
+  "AttributeModifier.magnitude": "-30 pour des dégâts, 1.5 pour +50 %.",
+  "AttributeModifier.magnitude_expression": "Dégâts selon la force de l'attaquant, soin selon la vie max de la cible.",
+  "AttributeModifier.magnitude_per_level": "Sort qui gagne 5 dégâts par niveau.",
+  "AttributeModifier.operation": "Ajouter, multiplier ou imposer la valeur.",
+  "AttributeModifier.OPERATION_ADD": "Bonus fixe, dégâts, soin.",
+  "AttributeModifier.OPERATION_MULTIPLY": "Bonus en pourcentage, ralentissement de moitié.",
+  "AttributeModifier.OPERATION_OVERRIDE": "Vitesse forcée à 0 (gel), vie imposée à 1 (« dernier souffle »)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

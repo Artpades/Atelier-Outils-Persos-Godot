@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Physique trémousse · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🫨 Physique trémousse (Jiggle2D, Jiggle3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/physique-tremousse.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🫨</div>
+    <div>
+      <h1>🫨_PhysicsSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Physique trémousse</strong> : une partie visuelle (antenne, chapeau, gelée, cheveux) qui traîne, rebondit, s'incline et s'étire quand son parent bouge.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : Jiggle2D · Jiggle3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Un personnage qui s'arrête net paraît rigide ; une antenne qui continue de balancer, un chapeau qui s'écrase à l'atterrissage ou un slime qui gigote lui donnent de la vie. Animer cela à la main pour chaque mouvement est impossible. <strong>Ce nœud ajoute ce « suivi élastique » automatiquement</strong> : il est rappelé vers sa pose de repos par un ressort amorti, avec inclinaison et étirement selon la vitesse.</p>
+
+  <div class="grid">
+    <div class="card"><h4>🟦 <code>Jiggle2D</code></h4><p><code>Node2D</code> intermédiaire : son contenu traîne derrière le parent, s'incline selon le décalage horizontal et s'étire selon la vitesse.</p></div>
+    <div class="card"><h4>🧊 <code>Jiggle3D</code></h4><p>Même principe en 3D : inclinaison autour de l'axe perpendiculaire au décalage, étirement le long de l'axe Y local.</p></div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les artistes techniques et développeurs qui veulent du « juice » sans animation ; aucune connaissance en physique n'est nécessaire.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une physique de collision</strong> : le nœud ne heurte rien, il ne fait que déformer un visuel.</li>
+      <li><strong>Pas une chaîne d'os</strong> : un seul point de masse ; pour une queue ou des cheveux longs, enchaîner plusieurs <code>Jiggle</code> ou utiliser une <a href="physique-de-corde.html">🪢 Corde</a>.</li>
+      <li><strong>Pas un effet ponctuel</strong> : pour un étirement unique à la demande, voir <em>🪗 Squash and Stretch</em> (effets spéciaux).</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : un personnage 2D qui court puis s'arrête, son antenne (Jiggle2D) continue de balancer ; un slime 3D (Jiggle3D) qui s'écrase et rebondit après un saut. debug_mode activé (cercle de max_offset, trait vers la position de repos).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Voir <a href="socle-mouvement.html#installation">installation du socle</a>.</td></tr>
+        <tr><td>Un parent <code>Node2D</code> / <code>Node3D</code></td><td><strong>Obligatoire</strong></td><td>La position de repos est exprimée dans le repère du parent ; sans parent de ce type, elle devient une position globale fixe.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le nœud fait partie de la bibliothèque du mouvement, mais ne dépend d'aucun composant de mouvement.</div></li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Insérer un <code>Jiggle2D</code></strong> entre le personnage et le sprite de l'antenne : <code>Personnage › Jiggle2D › Antenne (Sprite2D)</code>.
+      <div class="why">c'est le <code>Jiggle2D</code> qui bouge ; tout ce qui est dessous suit.</div>
+    </li>
+    <li>
+      <strong>Placer le <code>Jiggle2D</code> à l'endroit de la base de l'antenne</strong> dans l'éditeur.
+      <div class="why">cette pose (position, rotation, échelle) est capturée au lancement comme pose de repos ; l'inclinaison se fait autour de ce point.</div>
+    </li>
+    <li>
+      <strong>Lancer le jeu et déplacer le personnage.</strong> Ajuster <code>stiffness</code> (raideur) et <code>damping</code> (amortissement).
+      <div class="why">faible raideur + faible amortissement = gelée ; forte raideur + fort amortissement = ressort sec.</div>
+    </li>
+    <li>
+      <strong>Secouer à la demande</strong> :
+      <pre><code class="gdscript">func _on_ground_movement_2d_landed() -> void:
+	$Jiggle2D.impulse(Vector2(0, 400))   # l'antenne s'écrase à l'atterrissage</code></pre>
+      <div class="why">l'impulsion ajoute une vitesse à la masse simulée, qui oscille ensuite d'elle-même.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Jiggle2D.xml</code> et <code>Jiggle3D.xml</code>. Mêmes membres en 2D et 3D ; valeurs par défaut différentes (<code>max_offset</code> 24 px / 0,4 m, <code>lean_amount</code> 0,02 rad/px / 1,2 rad/m, <code>squash_amount</code> 0,0015 / 0,05). Éléments internes : la structure C++ <code>JiggleSettings</code>, la pose de repos capturée, la position et la vitesse de la masse simulée.</p>
+  <div data-api="Jiggle2D Jiggle3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-recettes">Quels réglages pour quel effet ?</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Effet</th><th><code>stiffness</code></th><th><code>damping</code></th><th>Autres</th></tr></thead>
+      <tbody>
+        <tr><td>Antenne, ressort</td><td>200</td><td>4</td><td><code>lean_amount</code> 0,03</td></tr>
+        <tr><td>Gelée, slime</td><td>60</td><td>3</td><td><code>squash_amount</code> 0,004</td></tr>
+        <tr><td>Chapeau, accessoire lourd</td><td>140</td><td>10</td><td><code>max_offset</code> 8</td></tr>
+        <tr><td>Queue qui pend</td><td>40</td><td>6</td><td><code>gravity</code> (0, 400)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="ex-chaine">Comment je fais une queue ou une tresse souple ?</h3>
+  <p>Enchaîner plusieurs <code>Jiggle2D</code>, chacun enfant du précédent : chaque segment traîne derrière le suivant.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var parent: Node2D = $Queue
+	for i in 4:
+		var segment := Jiggle2D.new()
+		segment.position = Vector2(-12, 0)       # 12 px derrière le segment précédent
+		segment.stiffness = 120.0 - i * 20.0     # de plus en plus mou vers le bout
+		var sprite := Sprite2D.new()
+		sprite.texture = preload("res://icon.svg")
+		sprite.scale = Vector2(0.1, 0.1)
+		segment.add_child(sprite)
+		parent.add_child(segment)
+		parent = segment</code></pre>
+
+  <h3 id="ex-coup">Comment je fais trembler un objet touché ?</h3>
+  <pre><code class="gdscript">func encaisser(direction: Vector3) -> void:
+	$Jiggle3D.impulse(direction.normalized() * 4.0)</code></pre>
+
+  <h3 id="ex-teleport">Comment j'évite un grand « fouet » après une téléportation ?</h3>
+  <pre><code class="gdscript">func teleporter(vers: Vector2) -> void:
+	global_position = vers
+	$Jiggle2D.reset()   # repart au repos au lieu de rattraper toute la distance</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>La pose du nœud est réécrite à chaque image</strong> : animer la position, la rotation ou l'échelle du <code>Jiggle</code> lui-même (AnimationPlayer) n'a aucun effet. Animer ses enfants, ou son parent.</li>
+    <li><strong>La pose de repos est capturée une seule fois</strong> (<code>_ready</code>) : impossible de la changer en jeu sans réinstancier le nœud ; <code>reset()</code> y revient mais ne la recapture pas.</li>
+    <li><strong>2D : désactiver (<code>enabled = false</code>) ne restaure que la position</strong> ; rotation et échelle gardent leur dernière valeur (vérifié). Appeler <code>reset()</code> avant de désactiver. En 3D, toute la transformation est restaurée.</li>
+    <li><strong>Simulé à la fréquence d'affichage (<code>_process</code>)</strong>, pas à la fréquence physique : si le parent est déplacé par la physique sans interpolation, de légers saccades peuvent apparaître ; à très bas nombre d'images par seconde, une raideur élevée peut devenir instable.</li>
+    <li><strong>L'étirement suit toujours l'axe Y local</strong>, pas la direction du mouvement.</li>
+    <li><strong>2D : l'inclinaison ne dépend que du décalage horizontal</strong> (repère du parent).</li>
+    <li><strong>Rien dans l'éditeur</strong> : l'effet n'est visible qu'en jeu.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li>Chaque image (<code>NOTIFICATION_PROCESS</code>) : position cible = transformation globale du parent × position de repos ; accélération = (cible − masse) × <code>stiffness</code> + <code>gravity</code> ; vitesse amortie par <code>exp(-damping × Δt)</code> ; décalage borné à <code>max_offset</code>. Le nœud est placé à cible + décalage, incliné et étiré.</li>
+    <li>Nœud autonome : aucun signal, aucune dépendance ; seul le parent est lu.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>Aucune dépendance aux autres classes du module (hors gizmos de débogage) ; il se combine librement avec n'importe quel objet qui bouge.</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Nœud intermédiaire plutôt qu'un script sur le sprite</td><td>Fonctionne avec n'importe quel contenu (sprite, mesh, groupe) sans le modifier.</td></tr>
+        <tr><td>Amortissement exponentiel</td><td>Indépendant de la fréquence d'images, contrairement à un facteur fixe par image.</td></tr>
+        <tr><td>Décalage borné (<code>max_offset</code>)</td><td>Un déplacement brutal du parent ne laisse pas le visuel à l'autre bout de l'écran.</td></tr>
+        <tr><td>Simulation dans <code>_process</code></td><td>L'effet est purement visuel : il suit le rendu, sans coût physique.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML (structure resynchronisée, ajout de <code>debug_mode</code>), commentaires des headers, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>debug_mode</code> : position de repos, portée maximale, décalage courant.</li></ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>Jiggle2D/3D</code> : ressort amorti, inclinaison, étirement, gravité, impulsions.</li></ul>
+  </div>
+
+  <footer>Module 🫨 Physique trémousse · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🫨Physique Trémousse/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » (communs 2D / 3D)
+window.GTK_USAGES = {};
+(function () {
+  const u = {
+    "damping": "Rebonds longs (gelée) ou retour rapide sans oscillation (accessoire lourd).",
+    "debug_mode": "Voir la position de repos et l'amplitude pendant le réglage.",
+    "enabled": "Couper l'effet pendant une cinématique ou sur une plateforme peu puissante.",
+    "gravity": "Queue, oreilles ou cheveux qui pendent.",
+    "lean_amount": "Antenne qui penche dans les virages ; négatif pour un effet inverse.",
+    "max_offset": "Limiter l'amplitude d'un accessoire qui ne doit pas trop s'écarter.",
+    "max_stretch": "Borner la déformation d'un slime.",
+    "squash_amount": "Slime, gelée, ballon qui s'étire en bougeant.",
+    "stiffness": "Ressort vif (antenne) ou mou (gelée).",
+    "get_offset": "Synchroniser un son de « boing » ou des particules avec l'amplitude.",
+    "impulse": "Atterrissage, coup reçu, explosion proche : secouer le visuel.",
+    "reset": "Après une téléportation ou un changement de scène."
+  };
+  ["Jiggle2D", "Jiggle3D"].forEach(function (c) {
+    Object.keys(u).forEach(function (k) { window.GTK_USAGES[c + "." + k] = u[k]; });
+  });
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

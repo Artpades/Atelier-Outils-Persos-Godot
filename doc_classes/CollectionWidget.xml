@@ -4,7 +4,7 @@
 		💻️ Widget d'un Array, d'un Dictionary ou d'un Packed*Array : un widget par élément, ajout, suppression, réordonnancement.
 	</brief_description>
 	<description>
-		Chaque opération (ajouter, supprimer, monter, descendre, nouvelle clé) est UNE écriture de la collection complète, donc une seule action d'annulation. Le type des éléments est lu dans l'indice ([code]Array[int][/code], [code]Dictionary[String, int][/code]...) ; sans typage, chaque élément est un Variant. Une clé de dictionnaire non typée se saisit au format de [method @GlobalScope.str_to_var] ([code]12[/code], [code]"texte"[/code], [code]Vector2(1, 2)[/code]). Une collection [code]null[/code] propose « Créer le tableau / dictionnaire ».
+		Chaque opération (ajouter, supprimer, monter, descendre, nouvelle clé) est UNE écriture de la collection complète, donc une seule action d'annulation. Le type des éléments est lu dans l'indice ([code]Array[int][/code], [code]Dictionary[String, int][/code]...) ; sans typage, chaque élément est un Variant. Une clé de dictionnaire non typée se saisit au format de [code]str_to_var()[/code] ([code]12[/code], [code]"texte"[/code], [code]Vector2(1, 2)[/code]). Une collection [code]null[/code] propose « Créer le tableau / dictionnaire ».
 		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
