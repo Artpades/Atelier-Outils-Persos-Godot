@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SpawnPoolEntry" inherits="SpawnEntry" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🏭 [SpawnEntry] d'un [PoolSpawner] : ajoute le nombre d'instances à créer à l'avance pour chaque scène.
 	</brief_description>
 	<description>
+		Utilisée par un [Spawner] simple, elle se comporte comme une [SpawnEntry] (la taille de réserve est ignorée).
+		[codeblock]
+		var balles := SpawnPoolEntry.new()
+		balles.scenes = [preload("res://balle.tscn")]
+		balles.initial_pool_size_per_scene = 50 # 50 balles créées au chargement du niveau
+		$PoolSpawner.entries = [balles] # avant que le PoolSpawner n'entre dans l'arbre
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="initial_pool_size_per_scene" type="int" setter="set_initial_pool_size_per_scene" getter="get_initial_pool_size_per_scene" default="10">
+			Nombre d'instances créées au [code]_ready[/code] du [PoolSpawner] pour chaque scène de [member SpawnEntry.scenes]. Une scène présente dans plusieurs entrées n'est pré-allouée qu'une fois (taille de la première entrée). Prévoir le nombre maximal d'instances actives en même temps : au-delà, de nouvelles instances sont créées en jeu.
 		</member>
 	</members>
 </class>

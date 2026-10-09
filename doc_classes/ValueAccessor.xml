@@ -1,47 +1,101 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ValueAccessor" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Accès en lecture et écriture à une valeur d'un objet, éventuellement imbriquée (élément de tableau, clé de dictionnaire).
 	</brief_description>
 	<description>
+		Un accesseur désigne un objet (gardé par son identifiant : un objet libéré rend l'accès sans effet), une propriété racine et un chemin de clés. [method write] reconstruit la valeur racine (copie à chaque niveau, l'original n'est jamais modifié en place) puis fait UN [code]set()[/code] sur la propriété racine : indispensable pour les types copiés à la lecture ([code]Packed*Array[/code], [code]Vector3[/code]...), et garantit que le setter est appelé. Une [Resource] modifiée émet [signal Resource.changed].
+		[codeblock]
+		var acces := ValueAccessor.new()
+		acces.setup($Chemin, &amp;"points") # PackedVector3Array
+		var second := acces.child(1, {"type": TYPE_VECTOR3}, "[1]")
+		second.write(Vector3(0, 5, 0))  # remplace le 2e point
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="child" qualifiers="const">
+			<return type="ValueAccessor" />
+			<param index="0" name="key" type="Variant" />
+			<param index="1" name="info" type="Dictionary" />
+			<param index="2" name="display_name" type="String" />
+			<description>
+				Renvoie un accesseur vers l'élément [param key] (index ou clé) de la valeur pointée, décrit par [param info], avec le libellé [param display_name]. Il est en lecture seule si celui-ci l'est.
+			</description>
+		</method>
 		<method name="find_property_info" qualifiers="static">
 			<return type="Dictionary" />
 			<param index="0" name="target" type="Object" />
 			<param index="1" name="property" type="StringName" />
 			<description>
+				Renvoie la description de [param property] dans [code]target.get_property_list()[/code], ou un dictionnaire vide.
+			</description>
+		</method>
+		<method name="get_display_name" qualifiers="const">
+			<return type="String" />
+			<description>
+				Renvoie le libellé : celui donné, sinon le nom de la propriété mis en forme ([code]max_speed[/code] → « Max Speed »).
+			</description>
+		</method>
+		<method name="get_path" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Renvoie les clés successives depuis la valeur racine (vide pour la propriété elle-même).
 			</description>
 		</method>
 		<method name="get_property" qualifiers="const">
 			<return type="StringName" />
 			<description>
+				Renvoie le nom de la propriété racine.
 			</description>
 		</method>
 		<method name="get_property_info" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie la description de la valeur pointée ([code]type[/code], [code]hint[/code], [code]hint_string[/code], [code]usage[/code], [code]class_name[/code]).
 			</description>
 		</method>
 		<method name="get_target" qualifiers="const">
 			<return type="Object" />
 			<description>
+				Renvoie l'objet, ou [code]null[/code] s'il a été libéré.
 			</description>
 		</method>
 		<method name="is_read_only" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la description porte [code]PROPERTY_USAGE_READ_ONLY[/code].
+			</description>
+		</method>
+		<method name="is_root" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si l'accesseur désigne la propriété elle-même (chemin vide).
+			</description>
+		</method>
+		<method name="is_undoable" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]false[/code] pour une valeur locale écrite hors historique (ex : arguments d'un bouton de méthode).
 			</description>
 		</method>
 		<method name="is_valid" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'objet existe encore.
 			</description>
 		</method>
 		<method name="read" qualifiers="const">
 			<return type="Variant" />
 			<description>
+				Renvoie la valeur pointée (descend le chemin depuis la propriété racine) ; [code]null[/code] si une clé n'existe plus.
+			</description>
+		</method>
+		<method name="read_root" qualifiers="const">
+			<return type="Variant" />
+			<description>
+				Renvoie la valeur de la propriété racine.
 			</description>
 		</method>
 		<method name="setup">
@@ -49,12 +103,21 @@
 			<param index="0" name="target" type="Object" />
 			<param index="1" name="property" type="StringName" />
 			<description>
+				Désigne la propriété [param property] de [param target] (chemin vide) et lit sa description.
+			</description>
+		</method>
+		<method name="with_info" qualifiers="const">
+			<return type="ValueAccessor" />
+			<param index="0" name="info" type="Dictionary" />
+			<description>
+				Renvoie un accesseur vers la même valeur, décrite par [param info] (ex : un Variant affiché avec le widget du type choisi).
 			</description>
 		</method>
 		<method name="write">
 			<return type="void" />
 			<param index="0" name="value" type="Variant" />
 			<description>
+				Écrit la valeur pointée en réécrivant la propriété racine. Sans effet si l'objet a été libéré.
 			</description>
 		</method>
 	</methods>

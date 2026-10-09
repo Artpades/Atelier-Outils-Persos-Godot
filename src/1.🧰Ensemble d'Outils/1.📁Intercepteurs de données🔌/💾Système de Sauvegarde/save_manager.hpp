@@ -8,8 +8,8 @@
 
 namespace godot
 {
-// Le service de sauvegarde
-// Point d'entrée unique pour sauvegarder, charger et supprimer des données de jeu.
+/// 💾 Le service de sauvegarde (classe statique, non instanciable) : point d'entrée unique pour sauvegarder,
+/// charger et supprimer des données de jeu. Écrit le résultat de chaque opération dans la console (log_it).
 class SaveManager : public Object
 {
     GDCLASS(SaveManager, Object);

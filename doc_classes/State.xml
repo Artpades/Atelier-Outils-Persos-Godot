@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="State" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 État d'une machine à états hiérarchique ([StateMachine]) ; ses enfants [State] sont ses sous-états.
 	</brief_description>
 	<description>
+		Un état qui a des [State] enfants est « composé » : quand il est actif, exactement un de ses sous-états l'est aussi. Les transitions ([StateTransition]) sont portées par l'état source, dans [member transitions].
+		Le comportement s'écrit par script ([code]extends State[/code]) en redéfinissant les méthodes virtuelles, toutes facultatives.
+		[codeblock]
+		extends State
+
+		func _on_enter() -&gt; void:
+			get_agent().vitesse = 170.0
+
+		func _on_update(_delta: float) -&gt; void:
+			get_blackboard().set_value("distance", get_agent().global_position.distance_to(get_agent().cible))
+
+		func _on_event(evenement: StringName, _donnees: Variant) -&gt; bool:
+			if evenement == &amp;"touche":
+				get_agent().clignoter()
+				return true # consommé : ne remonte pas aux états parents
+			return false
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,6 +28,7 @@
 		<method name="_on_enter" qualifiers="virtual">
 			<return type="void" />
 			<description>
+				À redéfinir : appelé quand l'état devient actif (après ses parents, avant ses sous-états initiaux).
 			</description>
 		</method>
 		<method name="_on_event" qualifiers="virtual">
@@ -17,73 +36,87 @@
 			<param index="0" name="event" type="StringName" />
 			<param index="1" name="data" type="Variant" />
 			<description>
+				À redéfinir : reçoit les événements de [method StateMachine.send_event] tant que l'état est actif, de la feuille vers la racine. Renvoyer [code]true[/code] pour consommer l'événement : il ne déclenche alors aucune transition et ne remonte pas aux parents.
 			</description>
 		</method>
 		<method name="_on_exit" qualifiers="virtual">
 			<return type="void" />
 			<description>
+				À redéfinir : appelé quand l'état cesse d'être actif (après ses sous-états).
 			</description>
 		</method>
 		<method name="_on_physics_update" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				À redéfinir : appelé à chaque image physique tant que l'état est actif. Appelé quel que soit [member StateMachine.process_callback] (sauf en mode manuel, où il faut appeler [method StateMachine.physics_update]).
 			</description>
 		</method>
 		<method name="_on_update" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				À redéfinir : appelé à chaque image tant que l'état est actif (de la racine vers la feuille), avec le temps écoulé.
 			</description>
 		</method>
 		<method name="get_active_substate" qualifiers="const">
 			<return type="State" />
 			<description>
+				Renvoie le sous-état actif, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_agent" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie l'agent piloté par la machine ([method StateMachine.get_agent_node]).
 			</description>
 		</method>
 		<method name="get_blackboard" qualifiers="const">
 			<return type="Blackboard" />
 			<description>
+				Renvoie le tableau noir de la machine racine.
 			</description>
 		</method>
 		<method name="get_initial_substate" qualifiers="const">
 			<return type="State" />
 			<description>
+				Renvoie le sous-état qui serait activé en entrant dans cet état : le dernier actif ([member remember_last_substate]), sinon [member initial_state], sinon le premier enfant.
 			</description>
 		</method>
 		<method name="get_parent_state" qualifiers="const">
 			<return type="State" />
 			<description>
+				Renvoie l'état parent, ou [code]null[/code] pour une machine racine.
 			</description>
 		</method>
 		<method name="get_state_machine" qualifiers="const">
 			<return type="StateMachine" />
 			<description>
+				Renvoie la [StateMachine] racine de cet état, ou [code]null[/code] si la racine de la hiérarchie n'est pas une [StateMachine].
 			</description>
 		</method>
 		<method name="get_substates" qualifiers="const">
 			<return type="State[]" />
 			<description>
+				Renvoie les [State] enfants directs.
 			</description>
 		</method>
 		<method name="get_time_in_state" qualifiers="const">
 			<return type="float" />
 			<description>
+				Temps passé dans l'état depuis sa dernière entrée, en secondes (cumulé à chaque mise à jour de la machine).
 			</description>
 		</method>
 		<method name="is_active" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'état fait partie du chemin actif.
 			</description>
 		</method>
 		<method name="is_compound" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'état a au moins un sous-état.
 			</description>
 		</method>
 		<method name="send_event">
@@ -91,35 +124,43 @@
 			<param index="0" name="event" type="StringName" />
 			<param index="1" name="data" type="Variant" default="null" />
 			<description>
+				Raccourci vers [method StateMachine.send_event] de la machine racine.
 			</description>
 		</method>
 		<method name="transition_to">
 			<return type="bool" />
 			<param index="0" name="target" type="Variant" />
 			<description>
+				Demande une transition vers [param target] : un [State], ou un chemin [b]relatif à cet état[/b] (ex. [code]"../Fuite"[/code]). Voir [method StateMachine.transition_to].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="initial_state" type="NodePath" setter="set_initial_state" getter="get_initial_state" default="NodePath(&quot;&quot;)">
+			Sous-état d'entrée (enfant direct). Vide ou invalide : le premier [State] enfant. Ignoré si [member remember_last_substate] retrouve un sous-état.
 		</member>
 		<member name="remember_last_substate" type="bool" setter="set_remember_last_substate" getter="get_remember_last_substate" default="false">
+			Si [code]true[/code], rentrer dans cet état réactive le dernier sous-état actif au lieu de [member initial_state] (état « historique »). [method StateMachine.restart] efface cette mémoire.
 		</member>
 		<member name="transitions" type="StateTransition[]" setter="set_transitions" getter="get_transitions" default="[]">
+			Transitions qui partent de cet état. Pour les transitions automatiques, l'ordre du tableau est l'ordre de priorité.
 		</member>
 	</members>
 	<signals>
 		<signal name="entered">
 			<description>
+				Émis quand l'état devient actif, juste après [method _on_enter].
 			</description>
 		</signal>
 		<signal name="exited">
 			<description>
+				Émis quand l'état cesse d'être actif, juste après [method _on_exit].
 			</description>
 		</signal>
 		<signal name="updated">
 			<param index="0" name="delta" type="float" />
 			<description>
+				Émis à chaque mise à jour de l'état actif, après [method _on_update].
 			</description>
 		</signal>
 	</signals>

@@ -35,6 +35,7 @@ class SpawnEntry : public Resource
     static void _bind_methods();
 
   private:
+    /// Chemins relatifs au Spawner des nœuds dont la transform globale est copiée (vide : enfants 2D / 3D du Spawner).
     TypedArray<NodePath> positions;
     TypedArray<PackedScene> scenes;
     SelectionMode positions_selection_mode = SELECTION_SEQUENTIAL;

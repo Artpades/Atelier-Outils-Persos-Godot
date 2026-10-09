@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="EnumWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un enum (entier ou texte) ou de flags : liste déroulante ou liste de cases.
 	</brief_description>
 	<description>
+		Lit l'indice [code]PROPERTY_HINT_ENUM[/code] ([code]"Nom:valeur,..."[/code], valeurs implicites successives ; pour un enum texte, la valeur est le libellé) ou [code]PROPERTY_HINT_FLAGS[/code] (valeur implicite [code]1 &lt;&lt; index[/code]). Pour des flags, les cases sont indépendantes et forment un masque de bits.
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

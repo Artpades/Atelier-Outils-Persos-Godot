@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="StructWidgetSettings" inherits="WidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages des structures (un SpinBox par composante) : pas des composantes décimales.
 	</brief_description>
 	<description>
+		Pour [constant DataEntry.WIDGET_STRUCT_SPIN_BOXES]. Les types entiers ([code]Vector2i[/code]...) gardent un pas de 1.
+		[codeblock]
+		var vecteur := StructWidgetSettings.new()
+		vecteur.step = 0.5
+		registre.find(&amp;"direction").settings = vecteur
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="step" type="float" setter="set_step" getter="get_step" default="0.001">
+			Pas des composantes décimales ([code]0[/code] : 0,001).
 		</member>
 	</members>
 </class>

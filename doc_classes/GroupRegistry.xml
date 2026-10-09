@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GroupRegistry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Registre des groupes de données d'une interface ; une donnée appartient à un seul groupe.
 	</brief_description>
 	<description>
+		Utilisé par le [ProceduralEditor] pour regrouper les widgets ([GroupEntry]). Peut être rempli automatiquement depuis les [code]@export_group[/code] par [method DataRegistry.sync].
+		[codeblock]
+		var groupes := GroupRegistry.new()
+		groupes.assign("vie", groupes.ensure("Santé"))
+		print(groupes.group_of("vie").group_name) # Santé
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,35 +19,48 @@
 			<param index="0" name="data_name" type="String" />
 			<param index="1" name="group" type="GroupEntry" />
 			<description>
+				Retire [param data_name] de tous les groupes puis l'ajoute à la fin de [param group] (si [param group] est nul, la donnée est seulement retirée).
 			</description>
 		</method>
 		<method name="ensure">
 			<return type="GroupEntry" />
 			<param index="0" name="group_name" type="String" />
 			<description>
+				Renvoie le groupe [param group_name], créé et ajouté s'il n'existe pas.
 			</description>
 		</method>
 		<method name="find" qualifiers="const">
 			<return type="GroupEntry" />
 			<param index="0" name="group_name" type="String" />
 			<description>
+				Renvoie le groupe nommé [param group_name], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="group_of" qualifiers="const">
 			<return type="GroupEntry" />
 			<param index="0" name="data_name" type="String" />
 			<description>
+				Renvoie le premier groupe contenant [param data_name], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="remove_data_name">
 			<return type="void" />
 			<param index="0" name="data_name" type="String" />
 			<description>
+				Retire [param data_name] de tous les groupes.
+			</description>
+		</method>
+		<method name="tabs_of" qualifiers="const">
+			<return type="GroupEntry" />
+			<param index="0" name="group_name" type="String" />
+			<description>
+				Renvoie le groupe en onglets dont [param group_name] est une page, ou [code]null[/code].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="groups" type="GroupEntry[]" setter="set_groups" getter="get_groups" default="[]">
+			Groupes déclarés.
 		</member>
 	</members>
 </class>

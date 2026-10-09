@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="AttributeDefinition" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		📊 Définition d'un attribut d'[AbilitySystem] (vie, mana, force, vitesse...) : nom, valeur de départ et bornes.
 	</brief_description>
 	<description>
+		Lue par l'[AbilitySystem] à son initialisation. Modifier la définition ensuite ne change pas la valeur de base déjà créée ; les bornes, elles, sont relues à chaque calcul.
+		[codeblock]
+		var vie_max := AttributeDefinition.new()
+		vie_max.attribute_name = &amp;"max_health"
+		vie_max.base_value = 100.0
+		var vie := AttributeDefinition.new()
+		vie.attribute_name = &amp;"health"
+		vie.base_value = 100.0
+		vie.max_attribute = &amp;"max_health"   # la vie ne dépasse jamais la vie max
+		$AbilitySystem.attribute_definitions = [vie_max, vie]
+		$AbilitySystem.initialize()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="attribute_name" type="StringName" setter="set_attribute_name" getter="get_attribute_name" default="&amp;&quot;&quot;">
+			Nom de l'attribut, utilisé partout ailleurs ([method AbilitySystem.get_value], [member AttributeModifier.attribute], [member Ability.costs]...). Obligatoire.
 		</member>
 		<member name="base_value" type="float" setter="set_base_value" getter="get_base_value" default="100.0">
+			Valeur de base de départ (bornée).
 		</member>
 		<member name="max_attribute" type="StringName" setter="set_max_attribute" getter="get_max_attribute" default="&amp;&quot;&quot;">
+			Nom d'un autre attribut qui sert de plafond (ex. [code]max_health[/code] pour [code]health[/code]). Quand le plafond baisse, la base de cet attribut est réduite d'autant ; elle ne remonte pas quand le plafond remonte.
 		</member>
 		<member name="max_value" type="float" setter="set_max_value" getter="get_max_value" default="1000000.0">
+			Borne maximale de la base et de la valeur courante.
 		</member>
 		<member name="min_value" type="float" setter="set_min_value" getter="get_min_value" default="0.0">
+			Borne minimale ; l'atteindre émet [signal AbilitySystem.attribute_depleted].
 		</member>
 	</members>
 </class>

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BoolWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un booléen : CheckBox ou CheckButton.
 	</brief_description>
 	<description>
+		Choix [constant DataEntry.WIDGET_CHECK_BOX] et [constant DataEntry.WIDGET_CHECK_BUTTON]. Chaque clic est une modification validée (une action d'annulation).
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

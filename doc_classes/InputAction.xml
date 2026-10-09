@@ -1,8 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputAction" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action d'entrée (classe de base) : lit clavier, souris ou manette et émet des signaux quand sa valeur change.
 	</brief_description>
 	<description>
+		Ressource abstraite rangée dans un [InputContext] et mise à jour à chaque image par un [PlayerInput]. Chaque sous-classe lit ses propres entrées et émet ses propres signaux :
+		- [InputButtonAction] : bouton ([code]pressed[/code], [code]released[/code], [code]held[/code]...).
+		- [InputAxisAction] : axe de -1 à 1 ; [InputCircleAction] : [Vector2] ; [InputSphereAction] : [Vector3].
+		- [InputMouseAction] : position, mouvement, molette ; [InputGyroAction] : capteurs de mouvement de la manette.
+		Les signaux sont aussi transmis aux liaisons ([member bindings]) et à [signal PlayerInput.action_triggered]. La lecture est [b]interrogée à chaque image[/b] (pas d'évènements) : un appui plus court qu'une image peut être manqué.
+		Une action peut être écrite en GDScript : hériter d'[InputAction], redéfinir [method _update_action] (lire les entrées, appeler [method emit_event]) et [method _get_value].
+		[codeblock]
+		@tool
+		class_name ActionCombo extends InputAction
+		## Émet « combo » quand Maj et Espace sont enfoncés ensemble.
+		signal combo
+		var _actif := false
+
+		func _update_action(_delta: float) -&gt; void:
+			var actif := Input.is_key_pressed(KEY_SHIFT) and Input.is_key_pressed(KEY_SPACE)
+			if actif and not _actif:
+				emit_event(&amp;"combo")
+			_actif = actif
+
+		func _get_value() -&gt; Variant:
+			return _actif
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,12 +33,14 @@
 		<method name="_get_value" qualifiers="virtual const">
 			<return type="Variant" />
 			<description>
+				À redéfinir dans une action écrite en GDScript : renvoie la valeur courante, lue par [method get_value], [method is_active], [method PlayerInput.get_value] et le débogueur.
 			</description>
 		</method>
 		<method name="_update_action" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				À redéfinir dans une action écrite en GDScript : appelée à chaque mise à jour par le [PlayerInput] (si l'action est activée et non simulée), avec la durée de l'image [param delta]. Lire les entrées et appeler [method emit_event] quand quelque chose change. Les actions natives ne l'utilisent pas.
 			</description>
 		</method>
 		<method name="apply_rebind">
@@ -24,6 +49,7 @@
 			<param index="1" name="event" type="InputEvent" />
 			<param index="2" name="joy_threshold" type="float" default="0.5" />
 			<description>
+				Assigne l'entrée de [param event] (touche, bouton de souris, bouton de manette, axe poussé au-delà de [param joy_threshold]) à l'emplacement [param slot] (voir [method get_rebind_slots]). Renvoie [code]false[/code] si l'évènement ne convient pas à cet emplacement. Utilisée par [InputRebinder] ; la classe de base renvoie toujours [code]false[/code].
 			</description>
 		</method>
 		<method name="emit_event">
@@ -31,152 +57,187 @@
 			<param index="0" name="event" type="StringName" />
 			<param index="1" name="arguments" type="Array" default="[]" />
 			<description>
+				Émet le signal [param event] avec [param arguments] (au plus 3 sont transmis au signal), met à jour [method get_last_event] et [method get_event_count], puis transmet l'évènement au [PlayerInput] qui exécute les liaisons. À appeler depuis [method _update_action].
 			</description>
 		</method>
 		<method name="get_device" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie l'indice de la manette lue lors de la dernière mise à jour (celui du [PlayerInput]).
 			</description>
 		</method>
 		<method name="get_device_properties" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les noms des propriétés qui décrivent les entrées lues (touches, boutons, axes). Elles forment l'état sauvegardé par [method get_device_state] et [method PlayerInput.save_bindings].
 			</description>
 		</method>
 		<method name="get_device_state" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie [code]{ propriété: valeur }[/code] pour chaque propriété de [method get_device_properties] : les contrôles actuels de l'action.
 			</description>
 		</method>
 		<method name="get_event_count" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie le nombre d'évènements émis depuis la création de l'action (débogage).
 			</description>
 		</method>
 		<method name="get_events" qualifiers="const">
 			<return type="Dictionary[]" />
 			<description>
+				Renvoie les signaux que l'action peut émettre, sans ceux de [Resource] : [code][{ "name": ..., "args": ["value: Vector2"] }, ...][/code]. Sert à proposer les évènements d'une liaison dans l'éditeur.
 			</description>
 		</method>
 		<method name="get_last_event" qualifiers="const">
 			<return type="StringName" />
 			<description>
+				Renvoie le nom du dernier évènement émis (débogage).
 			</description>
 		</method>
 		<method name="get_rebind_slots" qualifiers="const">
 			<return type="Dictionary[]" />
 			<description>
+				Renvoie les emplacements réassignables : [code][{ "slot", "label", "group" }][/code], [code]group[/code] valant [code]"kbm"[/code] (clavier-souris) ou [code]"gamepad"[/code]. Vide pour la classe de base, [InputMouseAction] et [InputGyroAction].
 			</description>
 		</method>
 		<method name="get_slot_text" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="slot" type="StringName" />
 			<description>
+				Renvoie le texte de l'entrée assignée à [param slot] (« Space », « A (bas) », « Stick gauche X »...), ou « — » si rien n'est assigné. Les noms de touches sont ceux du système (en anglais).
 			</description>
 		</method>
 		<method name="get_value" qualifiers="const">
 			<return type="Variant" />
 			<description>
+				Renvoie la valeur courante : [bool] pour un bouton, [float] pour un axe, [Vector2] ou [Vector3] pour les actions directionnelles, mouvement de la souris pour [InputMouseAction].
 			</description>
 		</method>
 		<method name="get_value_text" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie la valeur sous forme lisible (« ● enfoncé », « (0.50, -1.00) »...), pour un affichage de débogage.
 			</description>
 		</method>
 		<method name="is_active" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'action est « en cours » : bouton enfoncé, axe ou vecteur non nul, souris en mouvement.
 			</description>
 		</method>
 		<method name="is_gamepad_allowed" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la manette a été lue lors de la dernière mise à jour (filtre de l'action, sinon celui du [PlayerInput]).
 			</description>
 		</method>
 		<method name="is_keyboard_mouse_allowed" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le clavier et la souris ont été lus lors de la dernière mise à jour.
 			</description>
 		</method>
 		<method name="is_simulated" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si une valeur simulée remplace les périphériques (voir [method simulate]).
 			</description>
 		</method>
 		<method name="joy_axis_text" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="axis" type="int" />
 			<description>
+				Renvoie le nom d'un axe de manette (« Stick gauche X », « Gâchette RT »...), « — » pour [code]-1[/code].
 			</description>
 		</method>
 		<method name="joy_button_text" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="button" type="int" />
 			<description>
+				Renvoie le nom d'un bouton de manette (« A (bas) », « Croix haut »...), « — » pour [code]-1[/code].
 			</description>
 		</method>
 		<method name="key_text" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="key" type="int" />
 			<description>
+				Renvoie le nom d'une touche selon le système ([method OS.get_keycode_string]), « — » pour [code]0[/code].
 			</description>
 		</method>
 		<method name="make_runtime_copy" qualifiers="const">
 			<return type="InputAction" />
 			<description>
+				Renvoie une copie indépendante de l'action et de ses liaisons. Utilisée par [PlayerInput] pour que deux joueurs partageant la même ressource ne se mélangent pas.
 			</description>
 		</method>
 		<method name="mouse_button_text" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="button" type="int" />
 			<description>
+				Renvoie le nom d'un bouton de souris (« Clic gauche », « Molette haut »...), « — » pour [code]0[/code].
 			</description>
 		</method>
 		<method name="set_device_state">
 			<return type="void" />
 			<param index="0" name="state" type="Dictionary" />
 			<description>
+				Applique un état produit par [method get_device_state] (les clés inconnues sont ignorées) et émet [signal Resource.changed].
 			</description>
 		</method>
 		<method name="simulate">
 			<return type="void" />
 			<param index="0" name="value" type="Variant" />
 			<description>
+				Remplace la lecture des périphériques par [param value] jusqu'à [method stop_simulation] : [code]true[/code] pour un bouton, un [float], [Vector2] ou [Vector3] (limités à une longueur de 1) pour un axe. Les évènements sont émis comme pour une vraie entrée. Pour une action GDScript, la simulation suspend [method _update_action] sans rien appliquer.
 			</description>
 		</method>
 		<method name="stop_simulation">
 			<return type="void" />
 			<description>
+				Revient à la lecture des périphériques. La valeur simulée reste jusqu'à la mise à jour suivante.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="action_name" type="StringName" setter="set_action_name" getter="get_action_name" default="&amp;&quot;action&quot;">
+			Nom de l'action, utilisé par [method PlayerInput.get_action], [method PlayerInput.is_pressed]... et dans la sauvegarde des contrôles. Doit être unique dans son contexte.
 		</member>
 		<member name="bindings" type="InputBinding[]" setter="set_bindings" getter="get_bindings" default="[]">
+			Liaisons exécutées quand l'action émet un évènement (voir [InputBinding]).
 		</member>
 		<member name="dead_zone" type="float" setter="set_dead_zone" getter="get_dead_zone" default="0.2">
+			Zone morte des axes de manette (0 à 1). Pour les sticks, elle est radiale et la valeur est remise à l'échelle au-delà (pas de saut au bord de la zone).
 		</member>
 		<member name="description" type="String" setter="set_description" getter="get_description" default="&quot;&quot;">
+			Texte libre affiché en info-bulle dans le menu de réassignation ([PlayerInputUI]) et dans l'éditeur d'entrées.
 		</member>
 		<member name="device_filter" type="int" setter="set_device_filter" getter="get_device_filter" enum="InputAction.DeviceFilter" default="0">
+			Périphériques lus par cette action. [constant DEVICE_INHERIT] reprend [member PlayerInput.device_filter] ; les autres valeurs l'imposent (ex. une visée réservée à la souris).
 		</member>
 		<member name="dirty_threshold" type="float" setter="set_dirty_threshold" getter="get_dirty_threshold" default="0.01">
+			Variation minimale d'une valeur ou d'une vitesse avant d'émettre un nouveau signal [code]value_changed[/code] / [code]velocity_changed[/code]. Le retour exact au repos est toujours signalé.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], l'action n'est plus lue et revient au repos (en émettant [code]released[/code] ou une valeur nulle si besoin).
 		</member>
 		<member name="physical_keys" type="bool" setter="set_physical_keys" getter="get_physical_keys" default="true">
+			Si [code]true[/code], les touches sont lues par leur position physique (une touche réglée sur W correspond à Z sur un clavier AZERTY). Si [code]false[/code], par le caractère imprimé.
 		</member>
 	</members>
 	<constants>
 		<constant name="DEVICE_INHERIT" value="0" enum="DeviceFilter">
+			Reprend le filtre du [PlayerInput].
 		</constant>
 		<constant name="DEVICE_ALL" value="1" enum="DeviceFilter">
+			Clavier, souris et manette.
 		</constant>
 		<constant name="DEVICE_KEYBOARD_MOUSE" value="2" enum="DeviceFilter">
+			Clavier et souris seulement.
 		</constant>
 		<constant name="DEVICE_GAMEPAD" value="3" enum="DeviceFilter">
+			Manette seulement (celle de [member PlayerInput.device]).
 		</constant>
 	</constants>
 </class>

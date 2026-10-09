@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXTargeter" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌻 Effet qui oriente la cible vers le centre d'un ou plusieurs nœuds visés, et peut régler la distance d'une [Camera3D] pour les garder dans le champ.
 	</brief_description>
 	<description>
+		Tant que l'effet est actif, la cible tourne à chaque frame vers la moyenne des positions des nœuds [member nodes_to_target] :
+		- [b]2D[/b] ([Node2D]) : son axe +X pointe vers le centre (même convention que [method Node2D.look_at]).
+		- [b]3D[/b] ([Node3D]) : son axe -Z pointe vers le centre (convention des caméras), échelle conservée.
+		Si la cible est une [Camera3D] et que [member enable_camera_3d_depth_control] est actif, la caméra est aussi avancée ou reculée sur son axe de visée pour cadrer tous les nœuds visés, entre [member min_distance] et [member max_distance].
+		Les chemins sont relatifs au [PlayerFX] qui joue l'effet. L'arrêt de l'effet laisse la cible dans son orientation actuelle.
+		[codeblock]
+		# Tourelle (Node2D) qui vise le joueur
+		# └─ PlayerFX
+		func _ready() -> void:
+			var visee := FXTargeter.new()
+			visee.nodes_to_target = [NodePath("../../Joueur")]
+			visee.add_lerp = true
+			visee.lerp_speed = 3.0
+			$PlayerFX.special_effects = [visee]
+			$PlayerFX.play()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="add_lerp" type="bool" setter="set_add_lerp" getter="get_add_lerp" default="false">
+			Si [code]true[/code], la rotation (et la position de la [Camera3D]) rejoint sa valeur visée progressivement, selon [member lerp_speed] ; sinon, elle est appliquée immédiatement à chaque frame.
 		</member>
 		<member name="depth_margin" type="float" setter="set_depth_margin" getter="get_depth_margin" default="1.5">
+			Multiplicateur de la distance de cadrage de la [Camera3D] : à [code]1[/code], la plus grande distance entre deux nœuds visés remplit tout juste le champ ; au-dessus, on recule davantage.
 		</member>
 		<member name="enable_camera_3d_depth_control" type="bool" setter="set_enable_camera_3d_depth_control" getter="get_enable_camera_3d_depth_control" default="true">
+			Si la cible est une [Camera3D], la place sur son axe de visée à la distance qui cadre tous les nœuds visés (selon son [member Camera3D.fov]), bornée par [member min_distance] et [member max_distance]. Avec un seul nœud visé, la caméra se place à [member min_distance] de lui.
 		</member>
 		<member name="lerp_speed" type="float" setter="set_lerp_speed" getter="get_lerp_speed" default="5.0">
+			Rapidité de l'interpolation quand [member add_lerp] est actif : fraction [code]lerp_speed × delta[/code] de l'écart rattrapée à chaque frame.
 		</member>
 		<member name="max_distance" type="float" setter="set_max_distance" getter="get_max_distance" default="50.0">
+			Distance maximale (en mètres) entre la [Camera3D] et le centre des nœuds visés.
 		</member>
 		<member name="min_distance" type="float" setter="set_min_distance" getter="get_min_distance" default="5.0">
+			Distance minimale (en mètres) entre la [Camera3D] et le centre des nœuds visés.
 		</member>
 		<member name="nodes_to_target" type="NodePath[]" setter="set_nodes_to_target" getter="get_nodes_to_target" default="[]">
+			Chemins des nœuds visés, relatifs au [PlayerFX]. La cible s'oriente vers la moyenne de leurs positions globales ; les chemins introuvables ou d'une autre dimension sont ignorés.
 		</member>
 	</members>
 </class>

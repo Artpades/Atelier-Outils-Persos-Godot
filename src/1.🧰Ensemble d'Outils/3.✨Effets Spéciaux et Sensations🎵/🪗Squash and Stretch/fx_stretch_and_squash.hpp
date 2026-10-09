@@ -65,13 +65,15 @@ class FXStretchAndSquash : public Effect
     Vector3 initial_scale_3d;
     Basis initial_basis_3d;
 
+    // Écrasement d'impact en cours (0 : aucun), résorbé à chaque frame, et direction du mouvement avant l'impact
     float current_impact_squash_2d = 0.0f;
     float current_impact_squash_3d = 0.0f;
     Vector2 last_impact_dir_2d;
     Vector3 last_impact_dir_3d;
 
-    bool is_first_frame = true;
+    bool is_first_frame = true; // aucune position précédente : pas de vitesse mesurable
 
+    /// Position globale du pivot d'un Control (sert à mesurer sa vitesse).
     static Vector2 _get_control_pivot_position(Control *p_control);
     /// Vitesse depuis la frame précédente (rien à la première frame), puis déformation.
     void _process_2d(Node *p_target, const Vector2 &p_current_pos, float p_delta);

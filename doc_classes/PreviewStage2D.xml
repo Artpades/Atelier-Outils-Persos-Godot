@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PreviewStage2D" inherits="SubViewportContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Scène 2D isolée pour un aperçu : SubViewport avec son propre monde 2D et une caméra déplaçable.
 	</brief_description>
 	<description>
+		Glisser (clic gauche) déplace la caméra, la molette zoome. Le contenu est libéré avec la scène.
+		[codeblock]
+		func _build_preview(source: Variant) -&gt; Control:
+			var scene := make_stage_2d()
+			scene.set_content(instantiate_source_node(source) as Node2D)
+			return scene
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,27 +18,32 @@
 		<method name="frame">
 			<return type="void" />
 			<description>
+				Centre la caméra sur les éléments du contenu qui ont un [code]get_rect()[/code] et ajuste le zoom (taille supposée 160×160 tant que la scène n'a pas de taille).
 			</description>
 		</method>
 		<method name="get_camera" qualifiers="const">
 			<return type="Camera2D" />
 			<description>
+				Renvoie la [Camera2D].
 			</description>
 		</method>
 		<method name="get_content" qualifiers="const">
 			<return type="Node2D" />
 			<description>
+				Renvoie le nœud affiché, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_viewport_node" qualifiers="const">
 			<return type="SubViewport" />
 			<description>
+				Renvoie le [SubViewport] interne.
 			</description>
 		</method>
 		<method name="set_content">
 			<return type="void" />
 			<param index="0" name="node" type="Node2D" />
 			<description>
+				Remplace le contenu par [param node] (l'ancien est libéré) puis recadre.
 			</description>
 		</method>
 	</methods>

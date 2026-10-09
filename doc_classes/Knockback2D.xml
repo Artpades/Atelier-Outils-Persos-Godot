@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Knockback2D" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌬️ Recul d'un corps 2D ([CharacterBody2D] ou [RigidBody2D]) frappé ou soufflé : vitesse, verrouillage des commandes et freinage.
 	</brief_description>
 	<description>
+		Nœud à placer comme enfant direct du corps à repousser. [method apply_knockback] ou [method apply_knockback_from] déclenchent le recul :
+		- [CharacterBody2D] : la vitesse est remplacée par le recul et les commandes sont verrouillées pendant [member duration]. [GroundMovement2D] ignore alors la commande et le saut et freine avec [member friction]. Si aucun composant de mouvement n'est actif, le recul déplace lui-même le corps (freinage, gravité si [member gravity_affect]).
+		- [RigidBody2D] : impulsion (ou force continue) et rotation facultative.
+		[codeblock]
+		# Sur l'ennemi : repousser le joueur touché.
+		func _on_hitbox_body_entered(corps: Node2D) -&gt; void:
+			var recul := corps.get_node_or_null("Knockback2D") as Knockback2D
+			if recul:
+				recul.apply_knockback_from(global_position, 1.5)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,6 +22,7 @@
 			<return type="Knockback2D" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie le premier [Knockback2D] enfant direct de [param body] en cours de recul, ou [code]null[/code]. Utilisé par les composants de mouvement et le [MovementDirector].
 			</description>
 		</method>
 		<method name="apply_knockback">
@@ -18,6 +30,7 @@
 			<param index="0" name="direction" type="Vector2" />
 			<param index="1" name="multiplier" type="float" default="1.0" />
 			<description>
+				Repousse le corps parent dans la direction [param direction] (normalisée, plus [member upward_bias]), à [member base_force] × [param multiplier]. [CharacterBody2D] : la vitesse est remplacée et les commandes sont verrouillées pendant [member duration]. [RigidBody2D] : impulsion ou force continue selon [member rigid_mode], plus une rotation si [member add_torque]. Relancer pendant un recul repart de zéro. Émet [signal knocked_back]. Sans effet si [member enabled] est faux ou la direction nulle.
 			</description>
 		</method>
 		<method name="apply_knockback_from">
@@ -25,54 +38,73 @@
 			<param index="0" name="point" type="Vector2" />
 			<param index="1" name="multiplier" type="float" default="1.0" />
 			<description>
+				Repousse le corps à l'opposé de [param point] (position globale de l'attaquant, d'une explosion...). Si le point est confondu avec le corps, le recul part vers la droite.
 			</description>
 		</method>
 		<method name="get_lock_remaining" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie le temps de verrouillage restant, en secondes (0 hors recul).
 			</description>
 		</method>
 		<method name="is_knocked" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant le verrouillage d'un recul. Toujours [code]false[/code] après un recul [constant RIGID_IMPULSE] sur un corps rigide (il n'y a pas de verrouillage).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="add_torque" type="bool" setter="set_add_torque" getter="get_add_torque" default="true">
+			Corps rigide uniquement : si [code]true[/code], le recul fait aussi tourner le corps (impulsion de rotation proportionnelle à [member torque_factor]).
 		</member>
 		<member name="base_force" type="float" setter="set_base_force" getter="get_base_force" default="450.0">
+			Vitesse de recul, en px/s, multipliée par le [code]multiplier[/code] de [method apply_knockback]. Pour un corps rigide, l'impulsion vaut cette vitesse × la masse (le résultat est donc indépendant de la masse).
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu pendant le recul une flèche de vitesse, un cercle qui rétrécit avec le temps restant et le temps restant en texte.
 		</member>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.3">
+			Durée, en secondes, du verrouillage des commandes (personnage) ou de la force continue ([constant RIGID_CONTINUOUS]).
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], [method apply_knockback] et [method apply_knockback_from] sont ignorés (invincibilité, poids lourd...).
 		</member>
 		<member name="friction" type="float" setter="set_friction" getter="get_friction" default="900.0">
+			Freinage du recul, en px/s², pendant [member duration] : utilisé par le composant de sol actif (à la place de son accélération), ou par le recul lui-même s'il n'y a aucun composant actif (il freine alors la vitesse sur les deux axes).
 		</member>
 		<member name="gravity_affect" type="bool" setter="set_gravity_affect" getter="get_gravity_affect" default="true">
+			Si [code]true[/code], la gravité s'applique pendant le recul quand c'est le recul lui-même qui déplace le personnage (aucun composant de mouvement actif). Sans effet sinon : le composant actif gère sa propre gravité.
 		</member>
 		<member name="rigid_mode" type="int" setter="set_rigid_mode" getter="get_rigid_mode" enum="Knockback2D.RigidMode" default="0">
+			Corps rigide uniquement : impulsion instantanée ([constant RIGID_IMPULSE]) ou force continue pendant [member duration] ([constant RIGID_CONTINUOUS]).
 		</member>
 		<member name="torque_factor" type="float" setter="set_torque_factor" getter="get_torque_factor" default="0.02">
+			Intensité de la rotation ajoutée avec [member add_torque].
 		</member>
 		<member name="upward_bias" type="float" setter="set_upward_bias" getter="get_upward_bias" default="0.35">
+			Part de « vers le haut » ajoutée à la direction avant normalisation (0 = recul purement dans la direction donnée). Rend le recul lisible en plateforme ; à mettre à 0 en vue de dessus.
 		</member>
 	</members>
 	<signals>
 		<signal name="knocked_back">
 			<param index="0" name="velocity" type="Vector2" />
 			<description>
+				Émis à chaque recul appliqué, avec la vitesse de recul [param velocity] (direction × force, avant multiplication par la masse).
 			</description>
 		</signal>
 		<signal name="recovered">
 			<description>
+				Émis à la fin du verrouillage (personnage, ou corps rigide en [constant RIGID_CONTINUOUS]). Jamais émis en [constant RIGID_IMPULSE].
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="RIGID_IMPULSE" value="0" enum="RigidMode">
+			Le corps rigide reçoit une impulsion instantanée.
 		</constant>
 		<constant name="RIGID_CONTINUOUS" value="1" enum="RigidMode">
+			Le corps rigide est poussé par une force pendant [member duration] (recul plus doux et plus long).
 		</constant>
 	</constants>
 </class>

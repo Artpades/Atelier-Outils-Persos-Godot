@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GameplayEffect" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		✨ Effet de jeu appliqué à un [AbilitySystem] : dégâts, soin, bonus temporaire, poison, étourdissement...
 	</brief_description>
 	<description>
+		Selon [member duration_policy] :
+		- [constant DURATION_INSTANT] : modifie une fois la valeur de [b]base[/b] des attributs (dégâts, soin, gain d'expérience).
+		- [constant DURATION_TIMED] / [constant DURATION_INFINITE] : tant que l'effet est actif, ses [member modifiers] s'appliquent à la valeur [b]courante[/b] et ses [member granted_tags] sont accordés ; tout disparaît à son retrait.
+		- Avec [member period] &gt; 0, un effet à durée devient [b]périodique[/b] : ses modificateurs s'appliquent à la base à chaque période (poison, régénération) au lieu de modifier la valeur courante.
+		Comme [Ability], c'est une ressource de configuration partageable : l'état de chaque application est conservé par l'[AbilitySystem].
+		[codeblock]
+		# Poison : -5 PV par seconde pendant 4 s ; sans effet sur les entités immunisées.
+		var poison := GameplayEffect.new()
+		poison.duration_policy = GameplayEffect.DURATION_TIMED
+		poison.duration = 4.0
+		poison.period = 1.0
+		poison.effect_tags = PackedStringArray(["poison"])
+		poison.blocked_by_tags = PackedStringArray(["immunite.poison"])
+		var degats := AttributeModifier.new()
+		degats.attribute = &amp;"health"
+		degats.magnitude = -5.0
+		poison.modifiers = [degats]
+		$AbilitySystem.apply_effect(poison)   # 4 périodes : -20 PV au total
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,64 +32,86 @@
 			<param index="0" name="system" type="Node" />
 			<param index="1" name="source" type="Object" />
 			<description>
+				À surcharger : appelée après une application (effet instantané ou nouvelle instance ; pas lors d'un cumul ou d'un rafraîchissement). [param source] est la source passée à [method AbilitySystem.apply_effect].
 			</description>
 		</method>
 		<method name="_on_period" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="system" type="Node" />
 			<description>
+				À surcharger : appelée à chaque période d'un effet périodique, après l'application des modificateurs.
 			</description>
 		</method>
 		<method name="_on_removed" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="system" type="Node" />
 			<description>
+				À surcharger : appelée quand une instance à durée prend fin ou est retirée (pas lors d'un [method AbilitySystem.initialize]).
 			</description>
 		</method>
 		<method name="is_periodic" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pour un effet à durée dont [member period] est positive.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="blocked_by_tags" type="PackedStringArray" setter="set_blocked_by_tags" getter="get_blocked_by_tags" default="PackedStringArray()">
+			L'effet est refusé ([signal AbilitySystem.effect_blocked]) si la cible porte l'un de ces tags (immunité).
 		</member>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="1.0">
+			Durée, en secondes, d'un effet [constant DURATION_TIMED]. Relancée par un cumul ou un rafraîchissement.
 		</member>
 		<member name="duration_policy" type="int" setter="set_duration_policy" getter="get_duration_policy" enum="GameplayEffect.DurationPolicy" default="0">
+			Instantané, à durée limitée ou sans fin (voir les constantes).
 		</member>
 		<member name="effect_tags" type="PackedStringArray" setter="set_effect_tags" getter="get_effect_tags" default="PackedStringArray()">
+			Tags qui décrivent l'effet (ex. [code]poison[/code], [code]buff.vitesse[/code]) sans les accorder à la cible : ils servent à le retirer ([member remove_effects_with_tags], [method AbilitySystem.remove_effects_with_tag]).
 		</member>
 		<member name="execute_period_on_apply" type="bool" setter="set_execute_period_on_apply" getter="get_execute_period_on_apply" default="false">
+			Effet périodique : si [code]true[/code], une première période s'applique dès l'application.
 		</member>
 		<member name="granted_tags" type="PackedStringArray" setter="set_granted_tags" getter="get_granted_tags" default="PackedStringArray()">
+			Tags accordés à la cible tant que l'effet est actif (ex. [code]etat.etourdi[/code], qui bloque le déplacement d'un [Character2D]). Sans objet pour un effet instantané.
 		</member>
 		<member name="max_stacks" type="int" setter="set_max_stacks" getter="get_max_stacks" default="1">
+			Nombre maximal de cumuls avec [constant STACKING_STACK].
 		</member>
 		<member name="modifiers" type="AttributeModifier[]" setter="set_modifiers" getter="get_modifiers" default="[]">
+			Modifications d'attributs ([AttributeModifier]) de l'effet.
 		</member>
 		<member name="period" type="float" setter="set_period" getter="get_period" default="0.0">
+			Intervalle, en secondes, d'un effet périodique ; [code]0[/code] : non périodique. Ignoré pour un effet instantané. Au plus 100 périodes sont rattrapées par mise à jour.
 		</member>
 		<member name="remove_effects_with_tags" type="PackedStringArray" setter="set_remove_effects_with_tags" getter="get_remove_effects_with_tags" default="PackedStringArray()">
+			À l'application (si elle n'est pas bloquée), retire de la cible les effets actifs correspondant à ces tags (ex. un antidote qui retire [code]poison[/code]).
 		</member>
 		<member name="required_tags" type="PackedStringArray" setter="set_required_tags" getter="get_required_tags" default="PackedStringArray()">
+			L'effet n'est appliqué que si la cible porte tous ces tags.
 		</member>
 		<member name="stacking" type="int" setter="set_stacking" getter="get_stacking" enum="GameplayEffect.StackingPolicy" default="0">
+			Comportement quand [b]la même ressource[/b] est réappliquée alors qu'elle est active : instances séparées, durée relancée, ou cumul.
 		</member>
 	</members>
 	<constants>
 		<constant name="DURATION_INSTANT" value="0" enum="DurationPolicy">
+			Appliqué une fois, à la valeur de base des attributs.
 		</constant>
 		<constant name="DURATION_TIMED" value="1" enum="DurationPolicy">
+			Actif pendant [member duration] secondes.
 		</constant>
 		<constant name="DURATION_INFINITE" value="2" enum="DurationPolicy">
+			Actif jusqu'à son retrait ([method AbilitySystem.remove_effect], [method AbilitySystem.remove_effects_with_tag]).
 		</constant>
 		<constant name="STACKING_SEPARATE" value="0" enum="StackingPolicy">
+			Chaque application crée une instance indépendante, avec sa propre durée et sa source.
 		</constant>
 		<constant name="STACKING_REFRESH" value="1" enum="StackingPolicy">
+			Une seule instance : réappliquer relance sa durée.
 		</constant>
 		<constant name="STACKING_STACK" value="2" enum="StackingPolicy">
+			Une seule instance : réappliquer ajoute un cumul (jusqu'à [member max_stacks]) et relance la durée. Les ajouts sont multipliés par le nombre de cumuls, les multiplicateurs élevés à sa puissance. La source et le niveau restent ceux de la première application.
 		</constant>
 	</constants>
 </class>

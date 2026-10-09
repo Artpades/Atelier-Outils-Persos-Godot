@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GizmoEntry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Un dessin automatique : fonction draw_* de Gizmos2D / Gizmos3D et une source par paramètre.
 	</brief_description>
 	<description>
+		Élément d'un [GizmoRegistry]. [member function] est choisie parmi les méthodes statiques [code]draw_*[/code] de [code]Gizmos2D[/code] / [code]Gizmos3D[/code] (lues dans ClassDB) ; le premier paramètre (RID du gizmo) est toujours fourni par le [GizmoHost]. Chaque autre paramètre a un [ArgumentBinding] : constante ou propriété / fonction de l'objet.
+		[codeblock]
+		var cercle := GizmoEntry.new()
+		cercle.function = "Gizmos2D.draw_2D_circle" # crée les arguments par défaut
+		cercle.arguments[1].source = ArgumentBinding.SOURCE_PROPERTY
+		cercle.arguments[1].property_path = ^"rayon_detection" # radius
+		var registre := GizmoRegistry.new()
+		registre.entries = [cercle]
+		$GizmoHost.registry = registre
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,12 +21,14 @@
 		<method name="is_shown_now" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'entrée est activée, a une fonction et doit être visible dans le contexte courant (éditeur ou jeu).
 			</description>
 		</method>
 		<method name="make_default_arguments" qualifiers="static">
 			<return type="ArgumentBinding[]" />
 			<param index="0" name="function" type="String" />
 			<description>
+				Renvoie des arguments neufs pour [param function] : une constante par paramètre utilisateur, typée comme le paramètre, valant sa valeur par défaut.
 			</description>
 		</method>
 		<method name="restore">
@@ -23,33 +36,45 @@
 			<param index="0" name="function" type="String" />
 			<param index="1" name="arguments" type="ArgumentBinding[]" />
 			<description>
+				Remet [param function] ET [param arguments] en une fois, sans régénérer les arguments (annulation d'un changement de fonction).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="arguments" type="ArgumentBinding[]" setter="set_arguments" getter="get_arguments" default="[]">
+			Une source par paramètre utilisateur (après le RID). Une valeur [code]null[/code] est remplacée par la valeur par défaut du paramètre ; un autre type est converti, avec un avertissement unique.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+			Si [code]false[/code], rien n'est dessiné (le gizmo est libéré).
 		</member>
 		<member name="function" type="String" setter="set_function" getter="get_function" default="&quot;&quot;">
+			Fonction de dessin, [code]"Classe.méthode"[/code]. La changer recrée les arguments par défaut.
 		</member>
 		<member name="redraw" type="int" setter="set_redraw" getter="get_redraw" enum="GizmoEntry.Redraw" default="0">
+			Quand redessiner.
 		</member>
 		<member name="visibility" type="int" setter="set_visibility" getter="get_visibility" enum="GizmoEntry.Visibility" default="0">
+			Contexte où le dessin apparaît.
 		</member>
 	</members>
 	<constants>
 		<constant name="VISIBILITY_EVERYWHERE" value="0" enum="Visibility">
+			Dans l'éditeur et en jeu.
 		</constant>
 		<constant name="VISIBILITY_EDITOR" value="1" enum="Visibility">
+			Dans l'éditeur seulement.
 		</constant>
 		<constant name="VISIBILITY_GAME" value="2" enum="Visibility">
+			En jeu seulement.
 		</constant>
 		<constant name="REDRAW_ON_CHANGE" value="0" enum="Redraw">
+			Redessine quand une valeur résolue des arguments change (comparée à chaque image).
 		</constant>
 		<constant name="REDRAW_EVERY_FRAME" value="1" enum="Redraw">
+			Redessine à chaque image.
 		</constant>
 		<constant name="REDRAW_ONCE" value="2" enum="Redraw">
+			Dessine une seule fois, à la création du gizmo.
 		</constant>
 	</constants>
 </class>

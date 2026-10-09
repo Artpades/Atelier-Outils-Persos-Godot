@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="CustomTooltip" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🗨️ Infobulle riche (titre, icône, vidéo, texte BBCode, scène personnalisée) affichée au survol d'un [Control] ou d'un objet du monde.
 	</brief_description>
 	<description>
+		Nœud qui affiche le [member content] dans un panneau qui suit la souris quand celle-ci survole [member target] (ou à défaut le parent) pendant [member delay] secondes. La cible peut être un [Control], ou un [CollisionObject2D] / [CollisionObject3D] avec la détection de la souris activée ([member CollisionObject2D.input_pickable], [member CollisionObject3D.input_ray_pickable]) : un objet du monde peut donc avoir une infobulle.
+		Le panneau est créé au premier affichage dans un [CanvasLayer] interne (couche [member layer]), apparaît et disparaît en fondu, passe de l'autre côté de la souris s'il sortait de l'écran et ne capte jamais la souris. Modifier le contenu pendant l'affichage le reconstruit à la frame suivante.
+		Classe « runtime » : elle n'agit pas dans l'éditeur.
+		[codeblock]
+		# Bouton
+		# └─ CustomTooltip
+		func _ready() -> void:
+			var infos := TooltipContent.new()
+			infos.title = "Épée de feu"
+			infos.icon = preload("res://icones/epee_feu.png")
+			infos.text = "[color=orange]+12[/color] dégâts de feu\nBrûle la cible pendant [b]3 s[/b]."
+			$Bouton/CustomTooltip.content = infos
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,51 +24,66 @@
 		<method name="get_panel" qualifiers="const">
 			<return type="PanelContainer" />
 			<description>
+				Renvoie le [PanelContainer] de l'infobulle pour le personnaliser par script, ou [code]null[/code] avant le premier affichage.
 			</description>
 		</method>
 		<method name="hide_tooltip">
 			<return type="void" />
 			<description>
+				Masque l'infobulle (avec un fondu de [member fade_duration]) et émet [signal tooltip_hidden]. Sans effet si elle n'est pas affichée. Le survol en cours n'est pas annulé : elle ne réapparaîtra qu'au prochain survol.
 			</description>
 		</method>
 		<method name="is_tooltip_visible" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'infobulle est affichée ou en train d'apparaître ([code]false[/code] dès le début du fondu de disparition).
 			</description>
 		</method>
 		<method name="show_tooltip">
 			<return type="void" />
 			<description>
+				Affiche l'infobulle immédiatement à la position de la souris, sans attendre [member delay] ni le survol (aide contextuelle, tutoriel). Sans [member content], ou hors de l'arbre, ne fait rien. Émet [signal tooltip_shown] si elle n'était pas déjà affichée.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="content" type="TooltipContent" setter="set_content" getter="get_content">
+			Contenu affiché. Le modifier (ou modifier la ressource) pendant l'affichage reconstruit l'infobulle ; le vider la masque.
 		</member>
 		<member name="delay" type="float" setter="set_delay" getter="get_delay" default="0.5">
+			Temps de survol en secondes avant l'apparition. Compté en temps de jeu : il suit [member Engine.time_scale] et s'arrête pendant la pause.
 		</member>
 		<member name="fade_duration" type="float" setter="set_fade_duration" getter="get_fade_duration" default="0.15">
+			Durée du fondu d'apparition et de disparition, en secondes. 0 : apparition et disparition immédiates.
 		</member>
 		<member name="follow_mouse" type="bool" setter="set_follow_mouse" getter="get_follow_mouse" default="true">
+			Si [code]true[/code], l'infobulle suit la souris à chaque frame ; sinon, elle reste là où elle est apparue.
 		</member>
 		<member name="layer" type="int" setter="set_layer" getter="get_layer" default="128">
+			Couche du [CanvasLayer] interne : l'infobulle passe au-dessus de toutes les couches inférieures (128 par défaut, la plus haute).
 		</member>
 		<member name="offset" type="Vector2" setter="set_offset" getter="get_offset" default="Vector2(16, 16)">
+			Décalage en pixels entre la pointe de la souris et le coin de l'infobulle. Inversé automatiquement près des bords de l'écran.
 		</member>
 		<member name="panel_style" type="StyleBox" setter="set_panel_style" getter="get_panel_style">
+			Fond et bordure de l'infobulle (remplace le style [code]panel[/code] du [PanelContainer]). Vide : celui du thème.
 		</member>
 		<member name="target" type="Node" setter="set_target" getter="get_target">
+			Nœud dont le survol affiche l'infobulle. Vide : le parent. Doit émettre [code]mouse_entered[/code] / [code]mouse_exited[/code], sinon un avertissement est affiché.
 		</member>
 		<member name="tooltip_theme" type="Theme" setter="set_tooltip_theme" getter="get_tooltip_theme">
+			Thème appliqué au panneau et à son contenu (police, couleurs, variation [code]HeaderSmall[/code] du titre).
 		</member>
 	</members>
 	<signals>
 		<signal name="tooltip_hidden">
 			<description>
+				Émis au début de la disparition de l'infobulle.
 			</description>
 		</signal>
 		<signal name="tooltip_shown">
 			<description>
+				Émis quand l'infobulle apparaît.
 			</description>
 		</signal>
 	</signals>

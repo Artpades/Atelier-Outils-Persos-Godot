@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Système de Sauvegarde · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 💾 Système de Sauvegarde (SaveManager, SaveData, SaveDataBinder, SaveConfig, SaveFileAccess, SaveSerializer) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/donnees/systeme-de-sauvegarde.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">💾</div>
+    <div>
+      <h1>💾_SaveSystem - Intercepteurs de données - Documentation</h1>
+      <p class="subtitle">Module <strong>Système de Sauvegarde</strong> : écrire et relire les données d'un système de jeu dans un fichier JSON, chiffré ou non, et relier ces données aux propriétés d'un nœud.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/save_system</code></span>
+        <span class="badge">6 classes</span>
+        <span class="badge">JSON · AES-256</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Sauvegarder l'or du joueur, ses options ou les coffres déjà ouverts demande toujours les mêmes étapes : choisir un dossier, nommer le fichier, convertir les valeurs en texte, éventuellement brouiller le fichier pour décourager la triche, puis faire l'inverse au chargement — et recommencer pour chaque système du jeu. <strong>Ce module regroupe ces étapes</strong> : une ressource <code>SaveData</code> par système (« joueur », « options », « monde »), une ligne pour l'écrire ou la relire, et un nœud qui recopie automatiquement des propriétés choisies.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🗃️ <code>SaveData</code> + <code>SaveConfig</code></h4>
+      <p>Ce qu'on sauvegarde (un dictionnaire, un identifiant qui donne le nom du fichier) et où (dossier, extensions), avec ou sans chiffrement.</p>
+    </div>
+    <div class="card">
+      <h4>💾 <code>SaveManager</code></h4>
+      <p>Le point d'entrée : <code>save</code>, <code>load</code>, <code>delete</code>, avec un message dans la console à chaque opération.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 <code>SaveDataBinder</code></h4>
+      <p>Un nœud qui sauvegarde et restaure des propriétés d'un nœud ou d'une ressource (« pv », « or », « niveau ») sans écrire de code de conversion.</p>
+    </div>
+    <div class="card">
+      <h4>⚙️ <code>SaveFileAccess</code> · <code>SaveSerializer</code></h4>
+      <p>Les étages bas niveau (fichier + chiffrement, JSON), utilisables seuls pour un besoin particulier.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui veulent une sauvegarde simple par système de jeu, et les game designers qui choisissent, dans l'inspecteur d'un <code>SaveDataBinder</code>, quelles propriétés d'un objet doivent survivre à la fermeture du jeu.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un sérialiseur de scène</strong> : il ne sauvegarde ni nœuds, ni ressources, ni objets ; seulement des valeurs simples (nombres, textes, booléens, tableaux et dictionnaires de ces types). Un <code>Vector2</code> ou une <code>Color</code> doivent être décomposés (voir <a href="#limitations">limitations</a>).</li>
+      <li><strong>Pas une protection sérieuse contre la triche</strong> : le chiffrement décourage l'édition du fichier à la main, il ne résiste pas à quelqu'un de motivé.</li>
+      <li><strong>Pas un gestionnaire d'emplacements</strong> : plusieurs parties s'obtiennent en changeant le dossier de la <code>SaveConfig</code> ; aucune liste, date ou miniature n'est gérée.</li>
+      <li>Les contrôles du joueur se sauvegardent avec <code>PlayerInput.save_bindings</code> (module <em>🕹️ Entrées de périphérique</em>), indépendant de ce module.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'inspecteur d'un <code>SaveDataBinder</code> (save_data déplié avec system_id « joueur », node_target sur le joueur, tracked_properties « pv », « or »), à côté de la console affichant « ✅ Sauvegarde de joueur effectuée ! ».</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/save_system/</code> (<code>gameplaytoolkit_save_system.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les six classes du module. La journalisation (<code>log_it</code> du <em>📰 Journal Console</em>) est intégrée à la compilation : la bibliothèque du Journal n'a pas besoin d'être installée.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/💾🔐/</code></td><td>Optionnelle</td><td>Icônes des classes dans l'éditeur, et icône affichée dans les messages de la console. Sans elles, icônes par défaut et image manquante dans le message.</td></tr>
+        <tr><td>Module <em>📰 Journal Console</em> (bibliothèque <code>bin/edition_debug/</code>)</td><td>Optionnelle</td><td>Seulement si vous voulez aussi journaliser depuis GDScript avec <code>L.log_it</code> dans le même style.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons save_system</code></pre>
+      <div class="why">son registre est <code>save_system_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/save_system/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/save_system/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/save_system/…</code>.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les extensions qu'au démarrage ; ensuite, elles sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Changer la clé de chiffrement par défaut</strong> de vos <code>SaveData</code> (32 caractères, propriété <code>encryption_key</code>).
+      <div class="why">la clé par défaut, <code>REMPLACER_PAR_UNE_CLE_SECRETE_32</code>, est la même pour tous les projets qui utilisent ce module : un fichier chiffré avec elle est lisible par n'importe qui.</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>SaveDataBinder</code>, <kbd>Nouvelle ressource…</kbd> propose <code>SaveData</code> et <code>SaveConfig</code>. Au lancement, la console affiche « 💾Module de sauvegarde et de debug chargé avec succès ! » (les émojis de ce message peuvent s'afficher mal, sans conséquence).
+      <div class="why">si les classes manquent, la bibliothèque n'est pas chargée : voir l'erreur dans le panneau <em>Sortie</em>.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload n'est requis : <code>SaveManager</code>, <code>SaveFileAccess</code> et <code>SaveSerializer</code> sont des classes statiques, appelées directement par leur nom.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : conserver l'or et les PV du joueur d'une session à l'autre, sans code de conversion.</p>
+  <ol class="steps">
+    <li>
+      <strong>Dans le script du joueur, déclarer des propriétés simples</strong> :
+      <pre><code class="gdscript">extends CharacterBody2D
+var pv := 100
+var piece_or := 0</code></pre>
+      <div class="why">le binder lit et écrit des <em>propriétés</em> par leur nom ; nombres, textes et booléens survivent tels quels au passage par JSON.</div>
+    </li>
+    <li>
+      <strong>Ajouter un nœud <code>SaveDataBinder</code></strong> dans la scène, et régler <code>node_target</code> sur le joueur.
+      <div class="why">c'est la cible dont les propriétés seront lues à la sauvegarde et réécrites au chargement.</div>
+    </li>
+    <li>
+      <strong>Créer son <code>save_data</code></strong> (<kbd>Nouveau SaveData</kbd>) et régler <code>system_id</code> = <code>joueur</code> et une <code>encryption_key</code> de 32 caractères.
+      <div class="why"><code>system_id</code> donne le nom du fichier : <code>user://saves/joueur.sav</code> (chiffré par défaut). Le dossier vient de la <code>file_config</code>, créée automatiquement.</div>
+    </li>
+    <li>
+      <strong>Lister les propriétés suivies</strong> : <code>tracked_properties</code> = <code>pv</code>, <code>piece_or</code>.
+      <div class="why">seules ces propriétés sont écrites et restaurées.</div>
+    </li>
+    <li>
+      <strong>Charger au démarrage, sauvegarder à la fermeture</strong> :
+      <pre><code class="gdscript"># Script de la scène principale
+func _ready() -> void:
+	$SaveDataBinder.load() # sans fichier : rien ne change
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		$SaveDataBinder.save()</code></pre>
+      <div class="why"><code>load</code> relit le fichier et réapplique les valeurs ; <code>save</code> relit les propriétés puis écrit le fichier. La console confirme chaque sauvegarde.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/SaveManager.xml</code>, <code>SaveData.xml</code>, <code>SaveDataBinder.xml</code>, <code>SaveConfig.xml</code>, <code>SaveFileAccess.xml</code> et <code>SaveSerializer.xml</code>.</p>
+  <div class="callout danger">
+    <div class="callout-title">Référence XML en retard sur le code</div>
+    <p>Les XML de <code>SaveManager</code>, <code>SaveData</code> et <code>SaveConfig</code> ont été générés avant leurs derniers changements et doivent être régénérés (<code>scons gen_doc</code>) ; les descriptions rédigées seront conservées. En attendant :</p>
+    <ul>
+      <li><code>SaveManager.load(save_data, config)</code> renvoie un <code>SaveData</code> (le tableau affiche <code>void</code> et aucun paramètre) ; <code>save(save_data, config)</code> prend aussi ces deux paramètres ; <code>SaveManager.delete(save_data, config)</code> existe mais n'apparaît pas.</li>
+      <li><code>SaveData</code> expose aussi ses valeurs comme propriétés (<code>system_id</code>, <code>data</code>, <code>is_encrypted</code>, <code>encryption_key</code>, <code>file_config</code>), et <code>SaveConfig</code> les siennes (<code>save_directory</code>, <code>extension</code>, <code>encrypted_extension</code>) : seuls leurs accesseurs figurent dans les tableaux.</li>
+    </ul>
+  </div>
+  <p>Internes, non exposés : le chiffrement (<code>pad_key</code>, <code>generate_iv</code>, <code>encrypt</code>, <code>decrypt</code>) et le calcul du chemin (<code>get_path</code>, <code>ensure_directory_exists</code>) de <code>SaveFileAccess</code> ; la résolution de la cible du binder (<code>get_target</code>, identifiant d'instance du nœud cible).</p>
+  <div data-api="SaveManager SaveData SaveDataBinder SaveConfig SaveFileAccess SaveSerializer"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-options">Comment je sauvegarde les options du jeu en clair, sans nœud ?</h3>
+  <p>Un fichier JSON lisible est pratique pour des réglages que le joueur peut modifier à la main.</p>
+  <pre><code class="gdscript"># Autoload « Options »
+extends Node
+
+var donnees := SaveData.new()
+
+func _ready() -> void:
+	donnees.system_id = "options"
+	donnees.is_encrypted = false        # user://saves/options.json
+	var relu := SaveManager.load(donnees, donnees.file_config)
+	if relu:
+		donnees.data = relu.data
+	AudioServer.set_bus_volume_db(0, donnees.data.get("volume_db", 0.0))
+
+func regler_volume(db: float) -> void:
+	donnees.data["volume_db"] = db
+	SaveManager.save(donnees, donnees.file_config)</code></pre>
+
+  <h3 id="ex-vecteur">Comment je sauvegarde une position (Vector2) ?</h3>
+  <p>JSON ne connaît pas <code>Vector2</code> : il serait relu sous forme de texte <code>"(3.0, 4.0)"</code> et ne serait pas réappliqué. Exposer des propriétés numériques qui décomposent le vecteur, et les suivre avec le binder :</p>
+  <pre><code class="gdscript">var pos_x: float:
+	get: return position.x
+	set(v): position.x = v
+var pos_y: float:
+	get: return position.y
+	set(v): position.y = v
+
+# tracked_properties = ["pos_x", "pos_y"]</code></pre>
+
+  <h3 id="ex-ressource">Comment je sauvegarde une ressource (statistiques, jauge) ?</h3>
+  <p><code>resource_target</code> vise une <code>Resource</code> quand <code>node_target</code> est vide. Ici une <code>Gauge</code> du module <em>🌡️ Stack And Flow</em> : bornes d'abord, pour que la valeur ne soit pas rognée au rechargement.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var lien := SaveDataBinder.new()
+	add_child(lien)
+	lien.save_data = SaveData.new()
+	lien.save_data.system_id = "vie_joueur"
+	lien.resource_target = $Joueur.vie        # une Gauge
+	lien.tracked_properties = PackedStringArray(["min_value", "max_value", "current_value"])
+	lien.load()</code></pre>
+
+  <h3 id="ex-emplacements">Comment je gère trois emplacements de sauvegarde ?</h3>
+  <p>Changer le dossier de la <code>SaveConfig</code> de chaque <code>SaveData</code> avant de charger ou sauvegarder.</p>
+  <pre><code class="gdscript">func choisir_emplacement(numero: int, systemes: Array[SaveData]) -> void:
+	var config := SaveConfig.new()
+	config.save_directory = "user://saves/emplacement_%d/" % numero
+	for systeme in systemes:
+		systeme.file_config = config
+
+func emplacement_utilise(numero: int) -> bool:
+	return DirAccess.dir_exists_absolute("user://saves/emplacement_%d/" % numero)</code></pre>
+
+  <h3 id="ex-erreur">Comment je sais si l'écriture a échoué ?</h3>
+  <p><code>SaveManager.save</code> ne renvoie rien. Pour réagir (afficher un message, réessayer), passer par <code>SaveFileAccess.write</code>, qui renvoie un code d'erreur.</p>
+  <pre><code class="gdscript">func sauvegarder(donnees: SaveData) -> bool:
+	var erreur := SaveFileAccess.write(donnees, donnees.file_config)
+	if erreur != OK:
+		$Message.text = "Sauvegarde impossible : %s" % error_string(erreur)
+	return erreur == OK</code></pre>
+
+  <h3 id="ex-chiffre">Comment je chiffre vraiment un fichier (clé dérivée d'un mot de passe) ?</h3>
+  <p>Pour des données sensibles, le <code>SecureChannel</code> du module <em>🗄️ Multijoueur</em> offre un chiffrement authentifié (AES-256 + HMAC, IV aléatoire). On l'utilise ici sur le JSON produit par <code>SaveSerializer</code>.</p>
+  <pre><code class="gdscript">func ecrire_secret(donnees: SaveData, mot_de_passe: String) -> void:
+	var sel := SecureChannel.random_bytes(16)
+	var canal := SecureChannel.new()
+	canal.set_key(SecureChannel.derive_key(mot_de_passe, sel))
+	var paquet := canal.encrypt(SaveSerializer.serialize(donnees).to_utf8_buffer())
+	var f := FileAccess.open("user://secret.bin", FileAccess.WRITE)
+	f.store_buffer(sel + paquet)        # le sel n'est pas secret
+
+func lire_secret(mot_de_passe: String) -> SaveData:
+	var octets := FileAccess.get_file_as_bytes("user://secret.bin")
+	var canal := SecureChannel.new()
+	canal.set_key(SecureChannel.derive_key(mot_de_passe, octets.slice(0, 16)))
+	var clair := canal.decrypt(octets.slice(16))
+	return SaveSerializer.deserialize(clair.get_string_from_utf8()) if canal.get_last_error() == OK else null</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <h3 id="limites-format">Format des données</h3>
+  <ul>
+    <li><strong>Seuls les types JSON survivent.</strong> <code>Vector2</code>, <code>Vector3</code>, <code>Color</code>, <code>Transform</code>, objets… sont écrits sous forme de texte (<code>"(3.0, 4.0)"</code>) et relus comme du texte. Le <code>SaveDataBinder</code> tente alors de réappliquer un texte sur une propriété vectorielle : Godot l'ignore <strong>sans erreur</strong>, la propriété garde sa valeur. Décomposer les vecteurs (voir <a href="#ex-vecteur">exemple</a>).</li>
+    <li><strong>Les entiers reviennent en <code>float</code></strong> (<code>7</code> → <code>7.0</code>). Réappliqués sur une propriété <code>int</code>, ils sont reconvertis ; lus directement dans <code>data</code>, penser à <code>int()</code>.</li>
+    <li><strong>Les clés de dictionnaire deviennent des textes</strong> (une clé <code>1</code> est relue <code>"1"</code>).</li>
+    <li><strong>Pas de versionnage</strong> : aucune migration si la structure des données change entre deux versions du jeu ; utiliser <code>data.get("cle", valeur_par_defaut)</code>.</li>
+  </ul>
+  <h3 id="limites-chiffrement">Chiffrement</h3>
+  <ul>
+    <li><strong>Le début de la clé est écrit en clair.</strong> Le vecteur d'initialisation est formé des 16 premiers octets de la clé, et il est stocké en tête du fichier : ouvrir un <code>.sav</code> dans un éditeur hexadécimal révèle la moitié de la clé. Ce choix garde la compatibilité avec l'ancienne version C# du système.</li>
+    <li><strong>Chiffrement déterministe et sans intégrité.</strong> Les mêmes données donnent toujours le même fichier, et aucune signature ne détecte une modification : un fichier altéré produit au mieux un JSON illisible.</li>
+    <li><strong>La clé est dans le jeu.</strong> Quel que soit le chiffrement, la clé doit être présente dans l'exécutable ou ses ressources pour relire la sauvegarde : c'est une protection contre la curiosité, pas contre un tricheur.</li>
+    <li><strong>Clé de 32 octets UTF-8.</strong> Plus courte, elle est complétée par des zéros ; plus longue, tronquée (les caractères accentués comptent pour 2 octets).</li>
+  </ul>
+  <h3 id="limites-fichiers">Fichiers et erreurs</h3>
+  <ul>
+    <li><strong>Mauvaise clé = « aucune sauvegarde ».</strong> Une clé incorrecte, un fichier corrompu ou absent produisent tous <code>null</code> et le même message jaune (plus une erreur « Parse JSON failed » pour les deux premiers) : impossible de les distinguer par l'API.</li>
+    <li><strong>Écriture non atomique.</strong> Le fichier est tronqué puis réécrit directement : un arrêt brutal pendant l'écriture laisse un fichier vide ou incomplet. Aucune copie de secours n'est conservée.</li>
+    <li><strong>Synchrone.</strong> Lecture, écriture et chiffrement se font sur le fil principal ; sans conséquence pour quelques kilo-octets, perceptible pour de gros dictionnaires.</li>
+    <li><strong>Changer <code>is_encrypted</code> change de fichier.</strong> L'extension en dépend : après le changement, l'ancien fichier n'est ni relu ni supprimé.</li>
+    <li><strong><code>SaveManager.load</code> ne modifie pas le <code>SaveData</code> passé</strong> : il renvoie un nouvel objet qui ne contient que <code>system_id</code> et <code>data</code> (chiffrement et <code>SaveConfig</code> par défaut). Recopier <code>data</code> soi-même (le binder le fait).</li>
+    <li><strong><code>SaveManager.save</code> ne renvoie pas d'erreur</strong> (voir <a href="#ex-erreur">exemple</a>).</li>
+  </ul>
+  <h3 id="limites-binder">SaveDataBinder</h3>
+  <ul>
+    <li><strong>Pas de sous-propriétés</strong> : <code>"position:x"</code> n'est pas lu. Passer par une propriété dédiée.</li>
+    <li><strong>Une seule cible</strong> par binder (le nœud l'emporte sur la ressource) ; plusieurs binders peuvent partager un même <code>SaveData</code>, mais chacun réécrit tout le fichier à son <code>save()</code>.</li>
+    <li><strong>Rien n'est automatique</strong> : ni chargement à <code>_ready</code>, ni sauvegarde à la fermeture ; appeler <code>load()</code> et <code>save()</code> soi-même.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 300" role="img" aria-label="Schéma d'architecture du Système de Sauvegarde">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="40" width="160" height="54" rx="8"/>
+    <text x="100" y="64" text-anchor="middle">Nœud / Resource</text>
+    <text x="100" y="82" text-anchor="middle" class="small">propriétés suivies</text>
+    <rect class="box main" x="240" y="40" width="170" height="54" rx="8"/>
+    <text x="325" y="64" text-anchor="middle">SaveDataBinder</text>
+    <text x="325" y="82" text-anchor="middle" class="small">Node · pull / push</text>
+    <rect class="box main" x="470" y="40" width="170" height="54" rx="8"/>
+    <text x="555" y="64" text-anchor="middle">SaveManager</text>
+    <text x="555" y="82" text-anchor="middle" class="small">statique · console</text>
+    <rect class="box" x="470" y="140" width="170" height="54" rx="8"/>
+    <text x="555" y="164" text-anchor="middle">SaveFileAccess</text>
+    <text x="555" y="182" text-anchor="middle" class="small">fichier · AES-256-CBC</text>
+    <rect class="box" x="690" y="140" width="150" height="54" rx="8"/>
+    <text x="765" y="164" text-anchor="middle">SaveSerializer</text>
+    <text x="765" y="182" text-anchor="middle" class="small">JSON</text>
+    <rect class="box" x="240" y="140" width="170" height="54" rx="8"/>
+    <text x="325" y="164" text-anchor="middle">SaveData</text>
+    <text x="325" y="182" text-anchor="middle" class="small">id · data · clé</text>
+    <rect class="box" x="240" y="230" width="170" height="54" rx="8"/>
+    <text x="325" y="254" text-anchor="middle">SaveConfig</text>
+    <text x="325" y="272" text-anchor="middle" class="small">dossier · extensions</text>
+    <rect class="box" x="470" y="230" width="170" height="54" rx="8"/>
+    <text x="555" y="254" text-anchor="middle">user://saves/</text>
+    <text x="555" y="272" text-anchor="middle" class="small">id.json / id.sav</text>
+    <path class="arrow" d="M240 67 H182" marker-end="url(#arr)"/>
+    <text x="211" y="60" text-anchor="middle" class="small">get/set</text>
+    <path class="arrow" d="M410 67 H468" marker-end="url(#arr)"/>
+    <path class="arrow" d="M555 94 V138" marker-end="url(#arr)"/>
+    <path class="arrow" d="M640 167 H688" marker-end="url(#arr)"/>
+    <path class="arrow" d="M555 194 V228" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M325 94 V138" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M325 194 V228" marker-end="url(#arr)"/>
+    <text x="335" y="214" class="small">file_config</text>
+    <text x="335" y="120" class="small">save_data</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>SaveData</code></strong> (ressource) porte l'identifiant, le dictionnaire et les réglages de chiffrement ; elle possède une <strong><code>SaveConfig</code></strong> (ressource) créée à sa construction.</li>
+    <li><strong><code>SaveManager</code></strong>, <strong><code>SaveFileAccess</code></strong> et <strong><code>SaveSerializer</code></strong> sont des classes <em>statiques</em> enregistrées comme abstraites (non instanciables) ; elles s'appellent en chaîne par appel direct : <code>SaveManager</code> → <code>SaveFileAccess</code> (chemin, dossier, chiffrement) → <code>SaveSerializer</code> (JSON). <code>SaveManager</code> ajoute la journalisation.</li>
+    <li><strong><code>SaveDataBinder</code></strong> (nœud) lit et écrit les propriétés de sa cible par <code>Object.get</code> / <code>Object.set</code>, puis appelle <code>SaveManager</code>. Aucun signal n'est utilisé dans le module.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépendance de compilation vers l'en-tête <code>custom_logger.hpp</code> du <em>📰 Journal Console</em> (fonction <code>log_it</code> en ligne) : aucune dépendance à l'exécution vers sa bibliothèque.</li>
+    <li>Aucun lien avec les autres modules ; le binder fonctionne avec n'importe quelle classe (y compris une <code>Gauge</code>, un script GDScript, une classe d'un autre module).</li>
+    <li>Bibliothèque propre : <code>save_system_register.cpp</code> → <code>bin/save_system/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Un fichier par système de jeu (<code>system_id</code>)</td><td>Sauvegarder les options ne réécrit pas la progression ; un fichier corrompu n'emporte qu'un système.</td></tr>
+        <tr><td>Format JSON</td><td>Lisible et éditable en clair pendant le développement, portable entre versions du moteur et avec l'ancienne version C#.</td></tr>
+        <tr><td>IV dérivé de la clé, bourrage par zéros</td><td>Reproduit exactement le format de l'ancienne version C# pour relire les sauvegardes existantes. Le remplacer (IV aléatoire, PKCS#7, HMAC) rendrait ces fichiers illisibles : prévoir une migration.</td></tr>
+        <tr><td>Bourrage retiré en supprimant les octets nuls finaux</td><td>Sûr car le JSON ne contient jamais d'octet nul.</td></tr>
+        <tr><td>Classes de service statiques et abstraites</td><td>Aucun état à conserver entre deux appels : pas d'autoload à déclarer, pas d'instance à transmettre.</td></tr>
+        <tr><td>Cible du binder mémorisée par identifiant d'instance (<code>ObjectID</code>)</td><td>Le nœud cible peut être libéré sans prévenir le binder : on ne garde pas de pointeur pendant.</td></tr>
+        <tr><td><code>pull_to_save_data</code> écrit dans le dictionnaire existant</td><td>Le <code>Dictionary</code> est partagé par référence : les clés ajoutées par d'autres codes dans le même <code>SaveData</code> sont conservées.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des six classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0-c">1.0.0 <span class="date">2026-10-05</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Sources déplacées dans le dossier <code>💾Système de Sauvegarde</code> (commit « Ajout Editeur Procédural »), sans changement de code.</li>
+    </ul>
+    <h3 id="v1-0-0-b">1.0.0 <span class="date">2026-10-04</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Commentaires de <code>SaveConfig</code> (commit « Modifs »).</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-03</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>SaveManager</code>, <code>SaveData</code>, <code>SaveConfig</code>, <code>SaveFileAccess</code> (chiffrement AES-256-CBC compatible avec la version C#), <code>SaveSerializer</code> (JSON) et <code>SaveDataBinder</code> (commit « Ajout du système de sauvegarde »).</li>
+    </ul>
+  </div>
+
+  <footer>Module 💾 Système de Sauvegarde · sources : <code>src/1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/💾Système de Sauvegarde/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "SaveManager.load": "Au démarrage du jeu ou à la sélection d'un emplacement : relire options, progression, inventaire.",
+  "SaveManager.save": "Point de sauvegarde, fermeture du jeu, changement d'option : écrire un système en une ligne.",
+  "SaveData.get_data": "Lire ou compléter les valeurs sauvegardées (<code>get_data()[\"or\"] = 120</code>).",
+  "SaveData.get_encryption_key": "Vérifier qu'une clé personnalisée a bien été posée avant une version publique.",
+  "SaveData.get_file_config": "Changer le dossier de ce système (emplacements de sauvegarde, profils).",
+  "SaveData.get_is_encrypted": "Savoir quelle extension chercher (<code>.sav</code> ou <code>.json</code>) dans un menu de gestion des fichiers.",
+  "SaveData.get_system_id": "Afficher ou journaliser le nom du système sauvegardé.",
+  "SaveData.set_data": "Remplacer tout le contenu, par exemple après <code>SaveManager.load</code>.",
+  "SaveData.set_encryption_key": "Poser la clé propre au jeu (32 caractères) au lieu de la clé par défaut.",
+  "SaveData.set_file_config": "Partager une même <code>SaveConfig</code> entre tous les systèmes d'un emplacement.",
+  "SaveData.set_is_encrypted": "Désactiver pour des options lisibles ou pendant le développement ; activer pour la progression.",
+  "SaveData.set_system_id": "Nommer le fichier : « joueur », « options », « monde_1 ».",
+  "SaveConfig.get_encrypted_extension": "Lister les sauvegardes chiffrées d'un dossier.",
+  "SaveConfig.get_extension": "Lister les sauvegardes en clair d'un dossier.",
+  "SaveConfig.get_save_directory": "Afficher l'emplacement des sauvegardes, vérifier si un emplacement existe.",
+  "SaveConfig.set_encrypted_extension": "Donner une extension propre au jeu (<code>.monjeu</code>).",
+  "SaveConfig.set_extension": "Utiliser <code>.txt</code> pour que le joueur ouvre ses options d'un double-clic.",
+  "SaveConfig.set_save_directory": "Emplacements multiples (<code>user://saves/emplacement_2/</code>), profils de joueurs.",
+  "SaveDataBinder.delete": "Bouton « Nouvelle partie » ou « Effacer la sauvegarde ».",
+  "SaveDataBinder.load": "Restaurer l'état d'un joueur, d'un coffre ou d'une porte au chargement du niveau.",
+  "SaveDataBinder.pull_to_save_data": "Préparer les données sans écrire le fichier (sauvegarde groupée, envoi réseau, aperçu).",
+  "SaveDataBinder.push_from_save_data": "Réappliquer des données déjà en mémoire (annuler des changements, réinitialiser un objet).",
+  "SaveDataBinder.save": "Point de sauvegarde, fermeture du jeu, sortie d'un niveau.",
+  "SaveDataBinder.node_target": "Le joueur, un coffre, une porte : tout nœud dont l'état doit survivre.",
+  "SaveDataBinder.resource_target": "Statistiques, inventaire ou jauge stockés dans une ressource.",
+  "SaveDataBinder.save_data": "Choisir le fichier (nom, chiffrement, dossier) de ce binder.",
+  "SaveDataBinder.tracked_properties": "Choisir dans l'inspecteur ce qui est sauvegardé : « pv », « or », « ouvert »…",
+  "SaveFileAccess.delete": "Supprimer directement un fichier connu par son identifiant (outil de débogage).",
+  "SaveFileAccess.read": "Lire un fichier sans message dans la console (aperçu d'un emplacement).",
+  "SaveFileAccess.write": "Sauvegarder en récupérant le code d'erreur (disque plein, dossier protégé).",
+  "SaveSerializer.deserialize": "Relire un JSON venu d'ailleurs : presse-papiers, serveur, fichier exporté.",
+  "SaveSerializer.serialize": "Exporter une sauvegarde en texte (presse-papiers, envoi réseau, chiffrement personnalisé)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

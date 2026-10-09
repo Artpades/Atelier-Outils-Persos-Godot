@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="StructWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'une structure (Vector2/3/4, Rect2, AABB, Plane, Quaternion, Basis, Transform2D/3D, Projection) : un SpinBox par composante.
 	</brief_description>
 	<description>
+		Chaque modification reconstruit la valeur complète puis réécrit la propriété racine. Les composantes sont brutes : un [code]Quaternion[/code] s'édite en x/y/z/w, un [code]Transform3D[/code] en 9 coefficients de base + origine (pas d'angles en degrés). Réglages : [StructWidgetSettings].
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

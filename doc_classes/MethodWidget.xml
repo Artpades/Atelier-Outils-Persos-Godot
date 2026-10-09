@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="MethodWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'une méthode : bouton d'appel, un widget par argument, résultat affiché.
 	</brief_description>
 	<description>
+		Les arguments sont des valeurs locales (hors historique d'annulation) initialisées avec les valeurs par défaut de la méthode. Le bouton appelle la méthode sur la cible ; une valeur de retour est affichée sous les arguments. L'infobulle du bouton montre la signature.
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

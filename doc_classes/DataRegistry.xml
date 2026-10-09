@@ -1,17 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DataRegistry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Registre des données d'un objet : quels membres afficher, avec quels widgets, comportements et liens de signaux.
 	</brief_description>
 	<description>
+		[method sync] fusionne la liste des membres d'une cible avec les entrées : un membre nouveau reçoit une entrée ([constant DataEntry.WIDGET_AUTO]) ; un membre connu garde sa configuration ; un membre disparu est marqué [member DataEntry.is_missing], jamais supprimé. Les propriétés sans [code]PROPERTY_USAGE_EDITOR[/code] et [code]script[/code] sont ignorées ; les méthodes et signaux commençant par « _ » aussi, sauf [member include_private_methods].
+		Un nouveau membre placé sous un [code]@export_group[/code] / [code]@export_subgroup[/code] est ajouté au groupe correspondant (« Groupe » ou « Groupe / Sous-groupe ») du [GroupRegistry] passé à [method sync].
+		[codeblock]
+		var registre := DataRegistry.new()
+		registre.scan_methods = true
+		registre.sync($Joueur)
+		for entree in registre.entries:
+			print(entree.data_name, " -&gt; ", entree.resolved_choice())
+		$ProceduralEditor.registry = registre
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="apply_links">
+			<return type="void" />
+			<param index="0" name="source" type="Object" />
+			<description>
+				Connecte à [param source] les liens en mode ressource de toutes les entrées de signal (non manquantes). Idempotent : un lien déjà connecté à cet émetteur est d'abord déconnecté.
+			</description>
+		</method>
+		<method name="clear_links">
+			<return type="void" />
+			<param index="0" name="source" type="Object" />
+			<description>
+				Déconnecte de [param source] tous les liens en mode ressource du registre.
+			</description>
+		</method>
 		<method name="find" qualifiers="const">
 			<return type="DataEntry" />
 			<param index="0" name="name" type="StringName" />
 			<param index="1" name="member" type="int" enum="DataEntry.MemberKind" default="0" />
 			<description>
+				Renvoie l'entrée du membre [param name] de catégorie [param member] ([enum DataEntry.MemberKind]), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_members" qualifiers="static">
@@ -20,35 +46,51 @@
 			<param index="1" name="member" type="int" enum="DataEntry.MemberKind" />
 			<param index="2" name="scope" type="int" enum="DataEntry.InspectionScope" />
 			<description>
+				Renvoie les descriptions (format [method Object.get_property_list] / [method Object.get_method_list] / [method Object.get_signal_list]) des membres de catégorie [param member] de [param target] selon le périmètre [param scope] ([enum DataEntry.InspectionScope]). Les propriétés dynamiques ([code]_get_property_list[/code]) sont incluses.
 			</description>
 		</method>
 		<method name="get_target" qualifiers="const">
 			<return type="Object" />
 			<description>
+				Renvoie la cible de la dernière synchronisation, ou [code]null[/code] si elle a été libérée.
 			</description>
 		</method>
 		<method name="sync">
 			<return type="void" />
 			<param index="0" name="target" type="Object" />
+			<param index="1" name="groups" type="GroupRegistry" default="null" />
 			<description>
+				Mémorise [param target] et fusionne ses membres avec les entrées (catégories cochées seulement). [param groups] reçoit les groupes automatiques des nouveaux membres. Émet [signal Resource.changed] si des entrées ont changé, puis toujours [signal synced].
 			</description>
 		</method>
 	</methods>
 	<members>
+		<member name="behaviors" type="WidgetBehavior[]" setter="set_behaviors" getter="get_behaviors" default="[]">
+			Comportements conditionnels ([WidgetBehavior]) : montrer, cacher, verrouiller, styler, compléter l'infobulle ou changer l'icône de données ou de groupes selon une condition.
+		</member>
 		<member name="entries" type="DataEntry[]" setter="set_entries" getter="get_entries" default="[]">
+			Une entrée par membre, dans l'ordre d'affichage.
+		</member>
+		<member name="include_private_methods" type="bool" setter="set_include_private_methods" getter="get_include_private_methods" default="false">
+			Si [code]true[/code], les méthodes et signaux dont le nom commence par « _ » sont aussi listés.
 		</member>
 		<member name="scan_methods" type="bool" setter="set_scan_methods" getter="get_scan_methods" default="false">
+			Si [code]true[/code], [method sync] liste aussi les méthodes (affichées comme boutons d'appel).
 		</member>
 		<member name="scan_properties" type="bool" setter="set_scan_properties" getter="get_scan_properties" default="true">
+			Si [code]true[/code], [method sync] liste les propriétés visibles dans l'inspecteur.
 		</member>
 		<member name="scan_signals" type="bool" setter="set_scan_signals" getter="get_scan_signals" default="false">
+			Si [code]true[/code], [method sync] liste aussi les signaux (éditeurs de liens).
 		</member>
 		<member name="scope" type="int" setter="set_scope" getter="get_scope" enum="DataEntry.InspectionScope" default="0">
+			Périmètre des membres listés ([enum DataEntry.InspectionScope]).
 		</member>
 	</members>
 	<signals>
 		<signal name="synced">
 			<description>
+				Émis à la fin de chaque [method sync].
 			</description>
 		</signal>
 	</signals>

@@ -23,6 +23,7 @@ class Character2D : public CharacterBody2D, public CharacterAPI
     CHARACTER_COMMON_DECLARATIONS()
 
   public:
+    /// Vue du jeu, qui règle la façon dont l'IA se dirige (direction_input_to, planar_distance_to).
     enum ViewMode
     {
         VIEW_AUTO,
@@ -33,6 +34,7 @@ class Character2D : public CharacterBody2D, public CharacterAPI
     Character2D();
     void set_view_mode(ViewMode p_mode) { view_mode = p_mode; }
     ViewMode get_view_mode() const { return view_mode; }
+    /// Vue de côté effective (VIEW_AUTO : GroundMovement2D actif en mode plateforme).
     bool is_side_view() const;
     bool is_3d() const override { return false; }
 

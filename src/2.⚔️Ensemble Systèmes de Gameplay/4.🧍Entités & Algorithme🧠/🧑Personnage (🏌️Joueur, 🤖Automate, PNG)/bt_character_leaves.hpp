@@ -59,6 +59,7 @@ class BTMoveTo : public BTNode
     double arrive_distance = -1.0;
     bool run = false;
 
+    /// Premier AutomateController enfant de l'agent, ou nullptr.
     AutomateController *_controller() const;
 };
 
@@ -86,6 +87,7 @@ class BTUseAbility : public BTNode
     StringName ability_id;
     String target_key;
     bool wait_until_end = false;
+    /// Vrai une fois la capacité activée pendant cette exécution (remis à faux à _native_enter).
     bool started = false;
 };
 } // namespace godot

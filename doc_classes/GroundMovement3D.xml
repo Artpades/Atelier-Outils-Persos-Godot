@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GroundMovement3D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🦶 Déplacement au sol 3D : marche dans le plan XZ, gravité et sauts selon Y (sauts multiples, temps de grâce, hauteur variable), pour un [CharacterBody3D] ou un [RigidBody3D].
 	</brief_description>
 	<description>
+		Composant de mouvement ([MovementComponent]) à placer sous le corps à déplacer. [code]move(Vector2(x, y))[/code] donne la direction dans le plan horizontal : en coordonnées du monde ([code]x[/code] → X, [code]y[/code] → Z) par défaut, ou relative à la caméra courante si [member camera_relative] est actif ([code]y = -1[/code] = vers l'avant de la caméra).
+		Avec un [CharacterBody3D], le composant gère tout ([code]move_and_slide[/code]). Avec un [RigidBody3D], il ne pilote que la vitesse horizontale et le saut, la gravité restant celle du moteur ; le saut exige alors [member RigidBody3D.contact_monitor] et [member RigidBody3D.max_contacts_reported] &gt; 0.
+		Le visuel ([member visual_path], sinon le corps lui-même) se tourne vers la direction de marche. Les [ForceZone3D] s'ajoutent à la vitesse ; pendant un recul [Knockback3D], les commandes et le saut sont ignorés.
+		[codeblock]
+		# CharacterBody3D &gt; GroundMovement3D (camera_relative = true)
+		func _physics_process(_delta: float) -&gt; void:
+			$GroundMovement3D.move(Input.get_vector("gauche", "droite", "avant", "arriere"))
+			if Input.is_action_just_pressed("saut"):
+				$GroundMovement3D.jump()
+			elif Input.is_action_just_released("saut"):
+				$GroundMovement3D.release_jump()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,58 +23,78 @@
 		<method name="get_facing" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la dernière direction de marche dans le monde, sous forme [code]Vector2(x, z)[/code] normalisé (vers [code]-Z[/code] au départ).
 			</description>
 		</method>
 		<method name="get_world_input" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la commande convertie en direction du monde [code]Vector2(x, z)[/code] (longueur ≤ 1), en tenant compte de [member camera_relative].
 			</description>
 		</method>
 		<method name="is_on_floor" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le corps est un [CharacterBody3D] au sol ; toujours [code]false[/code] pour un corps rigide.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="40.0">
+			Accélération horizontale, en m/s², quand une direction est commandée. Multipliée par [member air_control] en l'air. Pendant un recul ([code]Knockback3D[/code]), c'est la [code]friction[/code] du recul qui s'applique à la place.
 		</member>
 		<member name="air_control" type="float" setter="set_air_control" getter="get_air_control" default="0.6">
+			Part de [member acceleration] / [member deceleration] disponible en l'air (0 = aucune maîtrise de la trajectoire, 1 = comme au sol).
 		</member>
 		<member name="camera_relative" type="bool" setter="set_camera_relative" getter="get_camera_relative" default="false">
+			Si [code]true[/code], [code]move[/code] est interprété par rapport à la caméra 3D courante du viewport (avant / droite de la caméra, ramenés à l'horizontale) : pour le joueur. Si [code]false[/code] (ou sans caméra), en coordonnées du monde : pour une IA.
 		</member>
 		<member name="coyote_time" type="float" setter="set_coyote_time" getter="get_coyote_time" default="0.1">
+			Temps de grâce, en secondes, pendant lequel on peut encore sauter après avoir quitté un rebord sans sauter.
 		</member>
 		<member name="deceleration" type="float" setter="set_deceleration" getter="get_deceleration" default="50.0">
+			Freinage horizontal, en m/s², quand aucune direction n'est commandée. Multiplié par [member air_control] en l'air.
 		</member>
 		<member name="gravity_scale" type="float" setter="set_gravity_scale" getter="get_gravity_scale" default="1.0">
+			Multiplicateur de la gravité du corps ([code]get_gravity()[/code] : gravité du projet ou des [Area2D] / [Area3D] qui la modifient). Négatif pour une gravité inversée. Ne s'applique pas à un corps rigide (sa gravité reste celle du moteur).
 		</member>
 		<member name="jump_cut" type="float" setter="set_jump_cut" getter="get_jump_cut" default="0.5">
+			Hauteur de saut variable : si le saut est relâché pendant la montée, la vitesse verticale est multipliée une fois par cette valeur (1 = aucune coupure, 0 = arrêt net de la montée).
 		</member>
 		<member name="jump_velocity" type="float" setter="set_jump_velocity" getter="get_jump_velocity" default="4.5">
+			Vitesse verticale donnée par un saut, en m/s.
 		</member>
 		<member name="max_fall_speed" type="float" setter="set_max_fall_speed" getter="get_max_fall_speed" default="50.0">
+			Vitesse de chute maximale, en m/s.
 		</member>
 		<member name="max_jumps" type="int" setter="set_max_jumps" getter="get_max_jumps" default="1">
+			Nombre de sauts possibles avant de toucher le sol (2 = double saut). [code]0[/code] désactive le saut. Tomber d'un rebord sans sauter (après [member coyote_time]) consomme le premier saut.
 		</member>
 		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="5.0">
+			Vitesse de marche maximale, en m/s, multipliée par [member run_multiplier] pendant la course.
 		</member>
 		<member name="rotate_toward_movement" type="bool" setter="set_rotate_toward_movement" getter="get_rotate_toward_movement" default="true">
+			Si [code]true[/code], le visuel tourne (autour de Y) pour regarder dans la direction de marche ([code]-Z[/code] = avant). Jamais appliqué à un [RigidBody3D].
 		</member>
 		<member name="run_multiplier" type="float" setter="set_run_multiplier" getter="get_run_multiplier" default="1.6">
+			Multiplicateur de [member max_speed] quand la course est active ([method MovementComponent.set_running]).
 		</member>
 		<member name="turn_speed" type="float" setter="set_turn_speed" getter="get_turn_speed" default="12.0">
+			Vitesse de rotation vers la direction de marche (facteur d'interpolation par seconde ; plus grand = plus rapide).
 		</member>
 		<member name="visual_path" type="NodePath" setter="set_visual_path" getter="get_visual_path" default="NodePath(&quot;&quot;)">
+			Nœud tourné vers la direction de marche si [member rotate_toward_movement] est actif (chemin relatif au composant). Vide : c'est le corps lui-même qui tourne.
 		</member>
 	</members>
 	<signals>
 		<signal name="jumped">
 			<description>
+				Émis à chaque saut effectué (y compris les sauts en l'air).
 			</description>
 		</signal>
 		<signal name="landed">
 			<description>
+				Émis quand le [CharacterBody3D] touche le sol après avoir été en l'air. Aussi émis à la première image où le corps est posé.
 			</description>
 		</signal>
 	</signals>

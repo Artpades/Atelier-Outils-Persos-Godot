@@ -1,21 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<class name="L" inherits="Object" api_type="extension"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="L" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		📰 Journal de console enrichi : chaque message est précédé de l'heure, du nom de l'appelant et d'une icône, avec mise en forme BBCode.
 	</brief_description>
 	<description>
-		Un journal de débogage avec plus de fonctionnalités que le journal de débogage par défaut comme un affichage de la date de l'appel, un nom de classe, une icône et un message avec BBCode. 
+		Classe purement statique (inutile de l'instancier) : [method log_it] écrit une ligne au format [code][hh:mm:ss] Appelant [icône] : message[/code] dans le panneau [i]Sortie[/i] de l'éditeur et dans la console.
+		L'heure est grisée, le nom de l'appelant en gras, et le message accepte tout le BBCode de [code]print_rich()[/code] ([code][color][/code], [code][b][/code], [code][url][/code]...). Les mêmes messages sont produits côté C++ par les autres modules du toolkit (sauvegarde, gestionnaire de scènes...), ce qui donne une console homogène.
+		[codeblock]
+		# Dans n'importe quel script :
+		L.log_it("Partie chargée")
+		# [14:02:31] Partie chargée
+
+		L.log_it("[color=green]Porte ouverte[/color]", self, "res://icones/porte.png")
+		# [14:02:32] Porte [icône] : Porte ouverte   (nom du nœud en gras)
+
+		L.log_it("[color=red]Sauvegarde impossible[/color]", "SaveSystem")
+		# [14:02:33] SaveSystem : Sauvegarde impossible
+		[/codeblock]
+		[b]Note :[/b] les messages sont toujours affichés, y compris dans un jeu exporté en mode release : il n'y a ni niveau de gravité, ni filtrage, ni désactivation globale.
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="log" qualifiers="static">
+		<method name="log_it" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="message" type="String" />
-			<param index="1" name="object_caller" type="Variant" />
-			<param index="2" name="icon_path" type="String" />
+			<param index="1" name="object_caller" type="Variant" default="null" />
+			<param index="2" name="icon_path" type="String" default="&quot;&quot;" />
 			<description>
+				Affiche [param message] (BBCode accepté) précédé de l'heure système [code][hh:mm:ss][/code].
+				[param object_caller] identifie l'émetteur : un [Node] affiche son [member Node.name], un autre [Object] affiche le nom de sa classe native ([method Object.get_class]), un [String] ou un [StringName] est affiché tel quel. Tout autre type (nombre, [code]null[/code]...) est ignoré.
+				[param icon_path] est le chemin d'une image ([code]res://...[/code]) insérée par une balise [code][img][/code], à sa taille d'origine. Le séparateur [code]:[/code] n'est ajouté que si un appelant ou une icône est fourni. Dans une console texte, l'image n'est pas affichée : la balise [code][img]chemin[/img][/code] apparaît en clair.
 			</description>
 		</method>
 	</methods>

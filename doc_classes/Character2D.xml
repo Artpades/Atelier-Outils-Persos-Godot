@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Character2D" inherits="CharacterBody2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🧑 Personnage 2D ([CharacterBody2D]) : une entité qui porte des composants facultatifs (vie, déplacement, capacités, contrôleurs) et leur transmet son intention de déplacement.
 	</brief_description>
 	<description>
+		Un [Character2D] ne se déplace pas tout seul : c'est un conteneur. Ses [b]composants[/b] sont ses enfants directs non spatiaux (ni [CanvasItem] ni [Node3D]) : [HealthComponent], [AbilitySystem], [PlayerController], [AutomateController], [NPCController], [Interactable], et les composants du module Mouvement &amp; Physique ([code]MovementDirector[/code], [code]GroundMovement2D[/code]...).
+		- [b]Intention de déplacement[/b] : [method set_move_input], [method request_jump], [method release_jump] et [method set_running] sont transmis au [code]MovementDirector[/code] enfant s'il existe, sinon à chaque [code]MovementComponent[/code] enfant (module Mouvement &amp; Physique). [b]Sans composant de déplacement, le personnage ne bouge pas.[/b]
+		- [b]Blocage[/b] : l'intention transmise est remplacée par zéro tant que le personnage est mort ([HealthComponent]) ou que son [AbilitySystem] porte un tag de [member movement_blocking_tags]. Elle est réappliquée à chaque image physique.
+		- [b]Identité[/b] : [member faction] et [member hostile_factions] servent au ciblage ([CharacterRegister], [BTFindTarget], [member PlayerController.auto_target_range]).
+		- [b]Inspecteur[/b] : avec [member expose_components], les propriétés de chaque composant sont aussi éditables depuis le personnage.
+		Le personnage s'inscrit dans le [CharacterRegister] à son entrée dans l'arbre (en jeu uniquement).
+		[codeblock]
+		# Gobelin : Character2D &gt; HealthComponent + GroundMovement2D
+		@onready var gobelin: Character2D = $Gobelin
+
+		func _ready() -&gt; void:
+			gobelin.get_health_component().died.connect(gobelin.queue_free)
+
+		func _on_epee_body_entered(corps: Node2D) -&gt; void:
+			if corps is Character2D and corps.is_alive():
+				corps.take_damage(25.0, self)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,109 +29,152 @@
 			<return type="Vector2" />
 			<param index="0" name="point" type="Vector3" />
 			<description>
+				Renvoie l'entrée de déplacement (longueur 1, ou nulle) qui mène vers [param point] (coordonnées globales, z ignoré). En vue de côté ([method is_side_view]), seul l'axe x compte : [code](±1, 0)[/code], ou [code](0, 0)[/code] à moins d'un demi-pixel.
 			</description>
 		</method>
 		<method name="face_toward">
 			<return type="void" />
 			<param index="0" name="point" type="Vector3" />
 			<description>
+				Oriente le regard ([method get_facing]) vers [param point] ; en vue de côté, seule la direction gauche / droite est retenue. Aucun nœud n'est tourné ni retourné : à vous d'orienter le sprite selon [method get_facing].
 			</description>
 		</method>
 		<method name="get_ability_system" qualifiers="const">
 			<return type="AbilitySystem" />
 			<description>
+				Renvoie l'[AbilitySystem] du personnage (premier composant de cette classe), ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_active_movement" qualifiers="const">
+			<return type="Node" />
+			<description>
+				Renvoie le [code]MovementComponent[/code] enfant actif (propriété [code]active[/code]), sinon le premier trouvé, ou [code]null[/code]. Les classes du module Mouvement &amp; Physique sont recherchées par leur nom : aucune dépendance de compilation.
+			</description>
+		</method>
+		<method name="get_component" qualifiers="const">
+			<return type="Node" />
+			<param index="0" name="class_name" type="StringName" />
+			<description>
+				Renvoie le premier composant (enfant direct non spatial) de la classe [param class_name] ou d'une classe dérivée, ou dont le script déclare ce [code]class_name[/code] ; [code]null[/code] sinon.
+			</description>
+		</method>
+		<method name="get_components" qualifiers="const">
+			<return type="Node[]" />
+			<description>
+				Renvoie les composants du personnage : ses enfants directs qui ne sont ni des [CanvasItem] ni des [Node3D] ([HealthComponent], [AbilitySystem], contrôleurs, composants de déplacement...).
 			</description>
 		</method>
 		<method name="get_facing" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la direction du regard (vecteur unitaire, [code](1, 0)[/code] au départ). Pendant un déplacement, elle suit le composant de déplacement actif (sa méthode [code]get_facing[/code]) ou, sans composant, l'entrée de déplacement ; [method face_toward] la change aussi.
+			</description>
+		</method>
+		<method name="get_health" qualifiers="const">
+			<return type="float" />
+			<description>
+				Raccourci : vie actuelle du [HealthComponent] ([code]0[/code] sans composant de vie).
+			</description>
+		</method>
+		<method name="get_health_component" qualifiers="const">
+			<return type="HealthComponent" />
+			<description>
+				Renvoie le [HealthComponent] du personnage, ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_max_health" qualifiers="const">
+			<return type="float" />
+			<description>
+				Raccourci : vie maximale du [HealthComponent] ([code]0[/code] sans composant de vie).
 			</description>
 		</method>
 		<method name="get_move_input" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la dernière entrée reçue par [method set_move_input] (longueur ≤ 1), même si elle est actuellement bloquée.
+			</description>
+		</method>
+		<method name="get_movement_director" qualifiers="const">
+			<return type="Node" />
+			<description>
+				Renvoie le composant [code]MovementDirector[/code] (module Mouvement &amp; Physique), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_world_position" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie la position globale sous la forme [code]Vector3(x, y, 0)[/code] : format commun aux personnages 2D et 3D.
 			</description>
 		</method>
 		<method name="heal">
 			<return type="float" />
 			<param index="0" name="amount" type="float" />
 			<description>
+				Raccourci vers [method HealthComponent.heal]. Renvoie la vie réellement rendue, [code]0[/code] sans composant de vie.
 			</description>
 		</method>
 		<method name="is_alive" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le [HealthComponent] est vivant, ou si le personnage n'a pas de composant de vie.
 			</description>
 		</method>
 		<method name="is_hostile_to" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="other" type="Node" />
 			<description>
-			</description>
-		</method>
-		<method name="is_invulnerable" qualifiers="const">
-			<return type="bool" />
-			<description>
+				Renvoie [code]true[/code] si [param other] est un autre personnage ([Character2D] ou [Character3D]) dont la faction figure dans [member hostile_factions], [b]ou[/b] qui déclare la faction de celui-ci dans ses propres [code]hostile_factions[/code] : l'hostilité est donc toujours réciproque. [code]false[/code] pour soi-même ou pour un nœud qui n'est pas un personnage.
 			</description>
 		</method>
 		<method name="is_movement_blocked" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le personnage est mort, ou si son [AbilitySystem] porte l'un des [member movement_blocking_tags] (ou un de leurs descendants : [code]etat.etourdi.fort[/code] correspond à [code]etat.etourdi[/code]).
 			</description>
 		</method>
 		<method name="is_running" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie la dernière demande de course reçue par [method set_running].
 			</description>
 		</method>
-		<method name="kill">
-			<return type="void" />
+		<method name="is_side_view" qualifiers="const">
+			<return type="bool" />
 			<description>
-			</description>
-		</method>
-		<method name="physics_step">
-			<return type="void" />
-			<param index="0" name="delta" type="float" />
-			<description>
+				Renvoie [code]true[/code] en vue de côté : [member view_mode] vaut [constant VIEW_SIDE], ou [constant VIEW_AUTO] avec un [code]GroundMovement2D[/code] actif en mode plateforme. Sans composant de déplacement, [constant VIEW_AUTO] équivaut à la vue de dessus.
 			</description>
 		</method>
 		<method name="planar_distance_to" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="point" type="Vector3" />
 			<description>
+				Renvoie la distance jusqu'à [param point] dans le plan de déplacement : écart en x seul en vue de côté, distance x / y en vue de dessus.
 			</description>
 		</method>
 		<method name="release_jump">
 			<return type="void" />
 			<description>
+				Relâche le saut (saut à hauteur variable) : transmet [code]release_jump[/code] au [code]MovementDirector[/code], sinon à chaque [code]MovementComponent[/code]. Transmis même si le personnage est bloqué.
 			</description>
 		</method>
 		<method name="request_jump">
 			<return type="void" />
 			<description>
-			</description>
-		</method>
-		<method name="revive">
-			<return type="void" />
-			<param index="0" name="health" type="float" default="-1.0" />
-			<description>
+				Demande un saut : transmet [code]jump[/code] au [code]MovementDirector[/code], sinon à chaque [code]MovementComponent[/code]. Ignoré si [method is_movement_blocked].
 			</description>
 		</method>
 		<method name="set_move_input">
 			<return type="void" />
 			<param index="0" name="input" type="Vector2" />
 			<description>
+				Fixe l'intention de déplacement (longueur limitée à 1 ; x vers la droite, y vers le bas). Elle est transmise ([code]move[/code]) au [code]MovementDirector[/code], sinon à chaque [code]MovementComponent[/code], seulement quand elle change ; elle est remplacée par zéro tant que [method is_movement_blocked].
 			</description>
 		</method>
 		<method name="set_running">
 			<return type="void" />
 			<param index="0" name="running" type="bool" />
 			<description>
+				Demande la course (ou l'arrête). Transmise avec l'intention de déplacement ([code]set_running[/code]) ; forcée à [code]false[/code] tant que le personnage est bloqué.
 			</description>
 		</method>
 		<method name="take_damage">
@@ -121,100 +182,40 @@
 			<param index="0" name="amount" type="float" />
 			<param index="1" name="source" type="Object" default="null" />
 			<description>
+				Raccourci vers [method HealthComponent.take_damage]. Renvoie les dégâts réellement appliqués, [code]0[/code] sans composant de vie.
 			</description>
 		</method>
 	</methods>
 	<members>
-		<member name="ability_system_path" type="NodePath" setter="set_ability_system_path" getter="get_ability_system_path" default="NodePath(&quot;&quot;)">
-		</member>
-		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="1500.0">
-		</member>
-		<member name="air_control" type="float" setter="set_air_control" getter="get_air_control" default="0.6">
-		</member>
-		<member name="can_move" type="bool" setter="set_can_move" getter="get_can_move" default="true">
-		</member>
-		<member name="coyote_time" type="float" setter="set_coyote_time" getter="get_coyote_time" default="0.1">
-		</member>
-		<member name="deceleration" type="float" setter="set_deceleration" getter="get_deceleration" default="2000.0">
-		</member>
 		<member name="display_name" type="String" setter="set_display_name" getter="get_display_name" default="&quot;&quot;">
+			Nom affiché du personnage (interface, bulles). Purement informatif : le module ne l'utilise pas.
+		</member>
+		<member name="expose_components" type="bool" setter="set_expose_components" getter="get_expose_components" default="true">
+			Si [code]true[/code], l'inspecteur du personnage affiche aussi les propriétés de ses composants, dans des groupes « 🧩 Nom (Classe) » (chemins [code]components/&lt;nom&gt;/&lt;propriété&gt;[/code], aussi accessibles par [method Object.get] / [method Object.set]). Elles restent enregistrées dans le composant lui-même : aucun doublon dans la scène.
 		</member>
 		<member name="faction" type="StringName" setter="set_faction" getter="get_faction" default="&amp;&quot;neutre&quot;">
-		</member>
-		<member name="gravity_scale" type="float" setter="set_gravity_scale" getter="get_gravity_scale" default="1.0">
-		</member>
-		<member name="health" type="float" setter="set_health" getter="get_health" default="100.0">
-		</member>
-		<member name="health_attribute" type="StringName" setter="set_health_attribute" getter="get_health_attribute" default="&amp;&quot;health&quot;">
+			Faction du personnage (ex. [code]joueur[/code], [code]monstres[/code]). Comparée aux [member hostile_factions] des autres personnages pour savoir qui est ennemi, et utilisée par [method CharacterRegister.get_faction_members].
 		</member>
 		<member name="hostile_factions" type="PackedStringArray" setter="set_hostile_factions" getter="get_hostile_factions" default="PackedStringArray()">
-		</member>
-		<member name="invulnerability_time" type="float" setter="set_invulnerability_time" getter="get_invulnerability_time" default="0.0">
-		</member>
-		<member name="jump_buffer_time" type="float" setter="set_jump_buffer_time" getter="get_jump_buffer_time" default="0.12">
-		</member>
-		<member name="jump_cut" type="float" setter="set_jump_cut" getter="get_jump_cut" default="0.5">
-		</member>
-		<member name="jump_velocity" type="float" setter="set_jump_velocity" getter="get_jump_velocity" default="420.0">
-		</member>
-		<member name="manual_physics" type="bool" setter="set_manual_physics" getter="get_manual_physics" default="false">
-		</member>
-		<member name="max_health" type="float" setter="set_max_health" getter="get_max_health" default="100.0">
-		</member>
-		<member name="max_health_attribute" type="StringName" setter="set_max_health_attribute" getter="get_max_health_attribute" default="&amp;&quot;max_health&quot;">
-		</member>
-		<member name="max_jumps" type="int" setter="set_max_jumps" getter="get_max_jumps" default="1">
-		</member>
-		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="200.0">
+			Factions que ce personnage considère comme ennemies. Il suffit que l'un des deux personnages déclare l'autre hostile (voir [method is_hostile_to]).
 		</member>
 		<member name="movement_blocking_tags" type="PackedStringArray" setter="set_movement_blocking_tags" getter="get_movement_blocking_tags" default="PackedStringArray(&quot;etat.etourdi&quot;, &quot;etat.immobile&quot;)">
+			Tags de l'[AbilitySystem] qui coupent le déplacement et le saut (étourdissement, enracinement...). Par défaut [code]etat.etourdi[/code] et [code]etat.immobile[/code].
 		</member>
-		<member name="movement_mode" type="int" setter="set_movement_mode" getter="get_movement_mode" enum="Character2D.MovementMode" default="0">
-		</member>
-		<member name="run_multiplier" type="float" setter="set_run_multiplier" getter="get_run_multiplier" default="1.6">
-		</member>
-		<member name="visual_path" type="NodePath" setter="set_visual_path" getter="get_visual_path" default="NodePath(&quot;&quot;)">
+		<member name="process_physics_priority" type="int" setter="set_physics_process_priority" getter="get_physics_process_priority" overrides="Node" default="-30" />
+		<member name="view_mode" type="int" setter="set_view_mode" getter="get_view_mode" enum="Character2D.ViewMode" default="0">
+			Vue du jeu, qui détermine comment l'IA se dirige ([method direction_input_to], [method planar_distance_to]) : [constant VIEW_SIDE] (seul x compte), [constant VIEW_TOP_DOWN] (x et y), [constant VIEW_AUTO] (selon le mode du [code]GroundMovement2D[/code] actif).
 		</member>
 	</members>
-	<signals>
-		<signal name="damaged">
-			<param index="0" name="amount" type="float" />
-			<param index="1" name="source" type="Object" />
-			<description>
-			</description>
-		</signal>
-		<signal name="died">
-			<description>
-			</description>
-		</signal>
-		<signal name="healed">
-			<param index="0" name="amount" type="float" />
-			<description>
-			</description>
-		</signal>
-		<signal name="health_changed">
-			<param index="0" name="health" type="float" />
-			<param index="1" name="max_health" type="float" />
-			<description>
-			</description>
-		</signal>
-		<signal name="jumped">
-			<description>
-			</description>
-		</signal>
-		<signal name="landed">
-			<description>
-			</description>
-		</signal>
-		<signal name="revived">
-			<description>
-			</description>
-		</signal>
-	</signals>
 	<constants>
-		<constant name="MOVEMENT_PLATFORMER" value="0" enum="MovementMode">
+		<constant name="VIEW_AUTO" value="0" enum="ViewMode">
+			Vue de côté si le [code]GroundMovement2D[/code] actif est en mode plateforme, vue de dessus sinon.
 		</constant>
-		<constant name="MOVEMENT_TOP_DOWN" value="1" enum="MovementMode">
+		<constant name="VIEW_SIDE" value="1" enum="ViewMode">
+			Jeu de plateforme vu de côté : l'IA ne se dirige que sur l'axe x.
+		</constant>
+		<constant name="VIEW_TOP_DOWN" value="2" enum="ViewMode">
+			Jeu vu de dessus : l'IA se dirige sur x et y.
 		</constant>
 	</constants>
 </class>

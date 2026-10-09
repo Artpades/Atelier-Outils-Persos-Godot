@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Journal Console · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 📰 Journal Console (L) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/edition/journal-console.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">📰</div>
+    <div>
+      <h1>📰_LogSystem - Édition et Debug - Documentation</h1>
+      <p class="subtitle">Module <strong>Journal Console</strong> : des messages de console horodatés, signés par leur émetteur et mis en forme.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/tool_editor</code></span>
+        <span class="badge">1 classe : L</span>
+        <span class="badge">GDScript &amp; C++</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Avec <code>print()</code>, la console devient vite un mur de lignes anonymes : impossible de savoir <em>quand</em> un message a été écrit ni <em>quel</em> objet l'a écrit, et tout a la même couleur. <strong>Ce module donne à chaque message une heure, un émetteur et, au besoin, une icône et des couleurs</strong>, en un seul appel : <code>L.log_it("Porte ouverte", self)</code>.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🕒 Horodaté et signé</h4>
+      <p>Chaque ligne commence par <code>[hh:mm:ss]</code> en gris, puis le nom du nœud (ou de la classe, ou du texte) qui l'émet, en gras.</p>
+    </div>
+    <div class="card">
+      <h4>🎨 BBCode et icône</h4>
+      <p>Le message accepte le BBCode de <code>print_rich</code> (couleurs, gras, liens) ; une petite image peut identifier le système émetteur dans le panneau <em>Sortie</em>.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Tout développeur du projet qui veut une console lisible pendant le debug. Les autres modules du toolkit (sauvegarde, gestionnaire de scènes, fenêtre d'édition…) écrivent déjà leurs messages avec ce format, côté C++.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de journalisation complet</strong> : pas de niveaux (info / avertissement / erreur), pas de filtre, pas d'écriture dans un fichier dédié, pas de désactivation en version exportée.</li>
+      <li><strong>Pas un remplaçant de <code>push_error</code> / <code>push_warning</code></strong> : ces messages n'apparaissent pas dans l'onglet <em>Débogueur › Erreurs</em> et ne donnent pas de pile d'appels.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture du panneau <em>Sortie</em> de l'éditeur montrant trois lignes : un message simple, un message avec nom de nœud en gras et une icône 16 px, un message en rouge ; à côté, la même chose écrite avec <code>print()</code> pour comparer.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code> (<code>gameplaytoolkit_tool_editor.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong> pour GDScript</td><td>Elle enregistre la classe <code>L</code>. Elle contient aussi tous les autres outils d'édition et de debug (gizmos, éditeur d'objet…) : on ne peut pas installer <code>L</code> seule.</td></tr>
+        <tr><td>Images d'icônes (<code>res://…png</code>)</td><td>Optionnelle</td><td>Uniquement si vous passez un <code>icon_path</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Côté C++, un autre module du toolkit n'a besoin d'aucune bibliothèque : la fonction <code>log_it</code> est entièrement définie dans <code>custom_logger.hpp</code>, il suffit de l'inclure.</p>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler la bibliothèque</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons tool_editor</code></pre>
+      <div class="why">compile uniquement la bibliothèque des outils d'édition (<code>tool_editor_register.cpp</code>) et régénère son <code>.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/tool_editor/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/tool_editor/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/tool_editor/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; la console affiche alors « 🛠️Module d'outils d'edition et de debug chargé avec succès ! ».</div>
+    </li>
+  </ol>
+  <p>Aucun autoload, nœud ni réglage de projet : <code>L</code> est une classe statique, utilisable immédiatement dans n'importe quel script.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Remplacer un <code>print</code> par <code>L.log_it</code></strong> :
+      <pre><code class="gdscript">L.log_it("Partie chargée")
+# [14:02:31] Partie chargée</code></pre>
+      <div class="why">l'heure (horloge du système, à la seconde) permet de situer le message par rapport aux autres.</div>
+    </li>
+    <li>
+      <strong>Signer le message</strong> en passant l'émetteur en deuxième argument :
+      <pre><code class="gdscript">L.log_it("Porte ouverte", self)          # nom du nœud, ex. « Porte »
+L.log_it("Sauvegarde écrite", "SaveSystem") # texte libre</code></pre>
+      <div class="why">quand plusieurs objets écrivent dans la console, le nom en gras dit immédiatement d'où vient la ligne.</div>
+    </li>
+    <li>
+      <strong>Colorer et illustrer</strong> avec du BBCode et une icône :
+      <pre><code class="gdscript">L.log_it("[color=red]Coffre verrouillé[/color]", self, "res://icones/cadenas_16.png")</code></pre>
+      <div class="why">le rouge attire l'œil sur les problèmes ; l'icône identifie un système d'un coup d'œil. Utiliser une image déjà petite (16 px) : elle est affichée à sa taille d'origine.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/L.xml</code>. Éléments internes, non exposés à GDScript :</p>
+  <ul>
+    <li>La fonction C++ libre <code>godot::log_it(message, object_caller, icon_path)</code> de <code>custom_logger.hpp</code>, qui fait le vrai travail et que les autres modules C++ appellent directement.</li>
+  </ul>
+  <div data-api="L"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-systeme">Comment je donne une identité visuelle à un de mes systèmes ?</h3>
+  <p>Une constante pour l'icône et une petite fonction : tous les messages du système auront le même en-tête.</p>
+  <pre><code class="gdscript">extends Node
+
+const ICONE := "res://icones/inventaire_16.png"
+
+func journal(message: String) -> void:
+	L.log_it(message, "Inventaire", ICONE)
+
+func ajouter(objet: String) -> void:
+	journal("[color=green]+ %s[/color]" % objet)</code></pre>
+
+  <h3 id="ex-ressource">Comment je signe un message émis par une ressource ?</h3>
+  <p>Pour un objet qui n'est pas un nœud, c'est le nom de sa <strong>classe native</strong> qui s'affiche (<code>Resource</code>, et non le <code>class_name</code> du script). Passer plutôt un texte :</p>
+  <pre><code class="gdscript">class_name Arme extends Resource
+
+@export var nom := "Épée"
+
+func casser() -> void:
+	L.log_it("[color=orange]%s cassée[/color]" % nom, "Arme")  # et non `self`, qui afficherait « Resource »</code></pre>
+
+  <h3 id="ex-lien">Comment je rends un message cliquable ?</h3>
+  <p>Le BBCode <code>[url]</code> est accepté par <code>print_rich</code> : dans le panneau <em>Sortie</em>, le lien est cliquable.</p>
+  <pre><code class="gdscript">L.log_it("Voir la [url=https://docs.godotengine.org]documentation[/url]", "Aide")</code></pre>
+
+  <h3 id="ex-debug-seul">Comment je n'affiche mes messages qu'en version de développement ?</h3>
+  <p><code>L.log_it</code> écrit toujours, même dans un jeu exporté. Filtrer soi-même :</p>
+  <pre><code class="gdscript">func trace(message: String, emetteur = null) -> void:
+	if OS.is_debug_build():
+		L.log_it(message, emetteur)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Aucun niveau ni filtre.</strong> Tous les messages sont affichés, y compris en export release. Pas d'équivalent de <code>push_warning</code> : rien n'apparaît dans l'onglet <em>Erreurs</em> du débogueur.</li>
+    <li><strong>Précision à la seconde.</strong> L'heure vient de l'horloge du système (<code>Time.get_time_dict_from_system</code>) : deux messages de la même frame ou de frames proches ont la même heure ; pas de millisecondes ni de numéro de frame.</li>
+    <li><strong>Émetteur : seuls les nœuds, objets et textes sont reconnus.</strong> Un objet non-nœud affiche le nom de sa classe <em>native</em> (un script <code>class_name Arme extends Resource</code> affiche « Resource »). Un nombre ou tout autre type est silencieusement ignoré.</li>
+    <li><strong>L'icône est affichée à sa taille d'origine</strong> (la balise <code>[img]</code> est générée sans taille). Une image de 512 px occupe tout le panneau : préparer des icônes de 16 px.</li>
+    <li><strong>Hors de l'éditeur, l'icône s'affiche en clair.</strong> Dans un terminal (jeu lancé en console, <code>--headless</code>), les couleurs deviennent des codes ANSI mais la balise <code>[img]res://…[/img]</code> est imprimée telle quelle (vérifié en headless).</li>
+    <li><strong>Le BBCode n'est pas échappé.</strong> Un texte venant du joueur qui contient <code>[</code> peut être interprété comme une balise ; le nom d'un nœud est aussi inséré tel quel.</li>
+    <li><strong><code>L</code> dérive d'<code>Object</code></strong> : <code>L.new()</code> crée un objet inutile qu'il faudrait libérer à la main. N'utiliser que l'appel statique.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>godot::log_it</code></strong> (fonction <code>inline</code> de <code>custom_logger.hpp</code>) construit la ligne — heure grisée, émetteur en gras, icône, séparateur <code>:</code> seulement s'il y a un émetteur ou une icône — puis appelle <code>print_line_rich</code>.</li>
+    <li><strong><code>L</code></strong> est une coquille : sa méthode statique <code>log_it</code> délègue à la fonction ci-dessus. Les valeurs par défaut sont redéclarées dans <code>_bind_methods</code> (<code>DEFVAL</code>) pour que GDScript puisse appeler <code>L.log_it("message")</code> seul.</li>
+    <li>Appel direct, sans état, sans signal ni singleton.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Le module ne dépend d'aucune autre classe du toolkit.</li>
+    <li>Il est utilisé, en C++, par <em>💾 Système de Sauvegarde</em>, <em>🎬 Gestionnaire de scènes</em>, <em>🪟 Fenêtre d'édition</em> et l'éditeur d'objet : comme la fonction est dans le header, ces modules n'ont <strong>pas</strong> besoin que <code>bin/tool_editor/</code> soit installée.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Fonction <code>inline</code> dans le header plutôt que méthode compilée dans <code>tool_editor</code></td><td>Chaque bibliothèque du toolkit est indépendante : un module ne peut pas appeler du code compilé dans une autre. Le header permet à tous d'avoir le même format sans dépendance de lien.</td></tr>
+        <tr><td>Nom de classe d'une seule lettre, <code>L</code></td><td>Appel aussi court que <code>print</code>, pour qu'il soit adopté partout.</td></tr>
+        <tr><td>Méthode nommée <code>log_it</code>, pas <code>log</code></td><td><code>log</code> est déjà une fonction globale de GDScript (logarithme) : le nom était source de confusion. Changement cassant (voir changelog).</td></tr>
+        <tr><td>Nœud → son <em>nom</em>, autre objet → sa <em>classe</em></td><td>Dans une scène, plusieurs nœuds de même classe coexistent : le nom les distingue. Une ressource n'a pas de nom fiable.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>L</code> (corrigée : elle décrivait encore l'ancienne méthode <code>log</code> sans valeurs par défaut), commentaires du header, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-05</span></h3>
+    <ul>
+      <li><span class="tag fix">Corrigé</span>Séparateur <code>:</code> manquant quand un émetteur est donné sans icône ; espaces autour du nom et de l'icône.</li>
+    </ul>
+    <h3 id="v0-3">0.3 <span class="date">2026-10-03</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>La logique passe dans une fonction libre <code>log_it</code> du header, utilisable par tous les modules C++ ; <code>L</code> devient une simple façade GDScript.</li>
+    </ul>
+    <h3 id="v0-2">0.2 <span class="date">2026-10-02</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Logger personnalisé : heure sur deux chiffres <code>[hh:mm:ss]</code>, émetteur, icône, BBCode.</li>
+      <li><span class="tag breaking">Rupture</span><code>L.log</code> renommée <code>L.log_it</code>.</li>
+    </ul>
+    <h3 id="v0-1">0.1 <span class="date">2026-09-29</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Premier journal (test des bibliothèques GDExtension multiples), intégré à l'automatisation de création de modules.</li>
+    </ul>
+  </div>
+
+  <footer>Module 📰 Journal Console · sources : <code>src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/📰Journal Console/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "L.log_it": "Partout où l'on écrirait <code>print()</code> : suivre le déroulement d'une partie, signaler un état anormal en rouge, identifier quel nœud parle quand plusieurs objets écrivent dans la console."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

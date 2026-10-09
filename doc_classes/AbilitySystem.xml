@@ -1,8 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="AbilitySystem" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌟 Système de capacités d'une entité : attributs (vie, mana, force...), tags, effets de jeu temporaires et capacités avec coût et recharge.
 	</brief_description>
 	<description>
+		Composant à placer sous un personnage, un monstre, une tourelle... Il réunit :
+		- [b]Attributs[/b] ([member attribute_definitions]) : une valeur de base, modifiée durablement par les effets instantanés et périodiques, et une valeur courante = (base + Σ ajouts) × Π multiplicateurs des effets actifs (ou la valeur imposée par [constant AttributeModifier.OPERATION_OVERRIDE]), bornée par la définition.
+		- [b]Tags[/b] : chaînes hiérarchiques ([code]etat.etourdi[/code]) comptées par source ; [method has_tag] avec [code]etat[/code] est vrai si [code]etat.etourdi[/code] est présent.
+		- [b]Effets[/b] ([GameplayEffect]) : [method apply_effect] renvoie un identifiant (handle) pour un effet à durée, [code]0[/code] pour un effet instantané, [code]-1[/code] s'il est bloqué.
+		- [b]Capacités[/b] ([Ability]) : [method activate] vérifie les conditions, paie le coût, consomme une charge, applique les effets après l'incantation, puis termine la capacité.
+		La configuration est lue au premier [code]_ready[/code] ([method initialize]). Le système avance ensuite à chaque image de [code]_process[/code] (il suit donc la pause et [member Node.process_mode]), sauf en [member manual_update].
+		[codeblock]
+		func _ready() -&gt; void:
+			var stats := AbilitySystem.new()
+			var mana := AttributeDefinition.new()
+			mana.attribute_name = &amp;"mana"
+			mana.base_value = 50.0
+			stats.attribute_definitions = [mana]
+			var boule := Ability.new()
+			boule.ability_id = &amp;"boule_de_feu"
+			boule.costs = {&amp;"mana": 20.0}
+			boule.cooldown = 1.5
+			stats.granted_abilities = [boule]
+			add_child(stats)   # initialize() est appelé à son _ready
+			stats.ability_failed.connect(func(id, raison): print(id, " refusée : ", raison))
+			stats.activate(&amp;"boule_de_feu")   # mana : 50 -&gt; 30
+			stats.activate(&amp;"boule_de_feu")   # refusée : cooldown
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,12 +36,14 @@
 			<param index="0" name="id" type="StringName" />
 			<param index="1" name="target" type="Node" default="null" />
 			<description>
+				Active la capacité [param id], avec [param target] facultatif. Si [method get_activation_failure] renvoie une raison, émet [signal ability_failed] et renvoie [code]false[/code]. Sinon, dans l'ordre : retire les coûts de la valeur de base, consomme une charge et lance la recharge (si [member Ability.cooldown] &gt; 0), annule les capacités visées par [member Ability.cancel_abilities_with_tags], accorde [member Ability.activation_owned_tags], émet [signal ability_activated], appelle [method Ability._on_activate]. Sans [member Ability.cast_time], les effets sont appliqués tout de suite, et avec [member Ability.active_duration] nulle la capacité se termine pendant l'appel.
 			</description>
 		</method>
 		<method name="add_attribute">
 			<return type="void" />
 			<param index="0" name="definition" type="AttributeDefinition" />
 			<description>
+				Ajoute un attribut (ou remplace celui de même nom) d'après [param definition] : sa base vaut [member AttributeDefinition.base_value], bornée. Une définition nulle ou sans nom est refusée avec une erreur.
 			</description>
 		</method>
 		<method name="add_tag">
@@ -25,6 +51,7 @@
 			<param index="0" name="tag" type="String" />
 			<param index="1" name="count" type="int" default="1" />
 			<description>
+				Ajoute [param count] occurrences de [param tag] ; émet [signal tag_changed] s'il était absent.
 			</description>
 		</method>
 		<method name="add_to_base">
@@ -32,6 +59,7 @@
 			<param index="0" name="name" type="StringName" />
 			<param index="1" name="amount" type="float" />
 			<description>
+				Ajoute [param amount] (négatif pour retirer) à la valeur de base de l'attribut : raccourci pour des dégâts ou soins directs.
 			</description>
 		</method>
 		<method name="apply_effect">
@@ -40,6 +68,7 @@
 			<param index="1" name="source" type="Object" default="null" />
 			<param index="2" name="level" type="float" default="1.0" />
 			<description>
+				Applique [param effect] à cette entité. [param source] est l'[AbilitySystem] responsable (entrée [code]source[/code] des expressions d'[AttributeModifier]) ; [param level] règle la magnitude. Renvoie [code]-1[/code] si les tags l'empêchent ([signal effect_blocked]), [code]0[/code] pour un effet instantané (appliqué à la valeur de base), sinon l'identifiant de l'instance active (le même lors d'un cumul ou d'un rafraîchissement).
 			</description>
 		</method>
 		<method name="apply_effect_to">
@@ -48,6 +77,7 @@
 			<param index="1" name="target" type="Node" />
 			<param index="2" name="level" type="float" default="1.0" />
 			<description>
+				Applique [param effect] à l'[AbilitySystem] de [param target] ([method find_on]) avec ce système comme source. Renvoie [code]-1[/code] si la cible n'en a pas.
 			</description>
 		</method>
 		<method name="can_activate">
@@ -55,41 +85,48 @@
 			<param index="0" name="id" type="StringName" />
 			<param index="1" name="target" type="Node" default="null" />
 			<description>
+				Renvoie [code]true[/code] si [method get_activation_failure] ne trouve aucun empêchement (appelle donc aussi [method Ability._can_activate]).
 			</description>
 		</method>
 		<method name="cancel_abilities_with_tag">
 			<return type="int" />
 			<param index="0" name="tag" type="String" />
 			<description>
+				Annule les capacités actives dont un des [member Ability.ability_tags] correspond à [param tag] (hiérarchiquement). Renvoie leur nombre.
 			</description>
 		</method>
 		<method name="cancel_ability">
 			<return type="void" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Annule la capacité active [param id] : [signal ability_ended] avec [code]cancelled[/code] vrai. Pendant l'incantation, ses effets ne sont pas appliqués ; le coût et la charge ne sont pas rendus.
 			</description>
 		</method>
 		<method name="end_ability">
 			<return type="void" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Termine normalement la capacité active [param id] (utile avec [member Ability.active_duration] = -1). Si l'incantation n'est pas finie, les effets sont d'abord appliqués.
 			</description>
 		</method>
 		<method name="find_on" qualifiers="static">
 			<return type="AbilitySystem" />
 			<param index="0" name="node" type="Node" />
 			<description>
+				Renvoie l'[AbilitySystem] de [param node] : le nœud lui-même, un enfant direct, ou le résultat de sa méthode [code]get_ability_system()[/code] ; [code]null[/code] sinon.
 			</description>
 		</method>
 		<method name="get_ability" qualifiers="const">
 			<return type="Ability" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie la ressource [Ability] accordée sous [param id], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_ability_ids" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les identifiants des capacités accordées, dans l'ordre d'octroi.
 			</description>
 		</method>
 		<method name="get_activation_failure">
@@ -97,122 +134,143 @@
 			<param index="0" name="id" type="StringName" />
 			<param index="1" name="target" type="Node" default="null" />
 			<description>
+				Renvoie pourquoi [param id] ne peut pas être activée, ou une chaîne vide. Raisons, testées dans cet ordre : [code]unknown[/code] (non accordée), [code]active[/code] (déjà en cours), [code]cooldown[/code] (plus de charge), [code]blocked[/code] (tag bloquant), [code]missing_tags[/code] (tag requis absent), [code]cost[/code] (attribut absent ou valeur courante insuffisante), [code]no_target[/code], [code]script[/code] ([method Ability._can_activate] a refusé).
 			</description>
 		</method>
 		<method name="get_active_effects" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Renvoie les instances d'effets à durée actives, un [Dictionary] chacune : [code]handle[/code], [code]effect[/code], [code]remaining[/code] (-1 sans fin), [code]stacks[/code], [code]source[/code].
 			</description>
 		</method>
 		<method name="get_attribute_names" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les noms des attributs, dans l'ordre de création.
 			</description>
 		</method>
 		<method name="get_base_value" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie la valeur de base de l'attribut (sans les modificateurs temporaires), [code]0[/code] s'il n'existe pas.
 			</description>
 		</method>
 		<method name="get_charges" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie le nombre de charges disponibles de la capacité ([code]0[/code] si elle est inconnue).
 			</description>
 		</method>
 		<method name="get_cooldown_remaining" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie le temps avant la prochaine charge [b]quand il n'en reste aucune[/b] ; [code]0[/code] tant qu'une charge est disponible.
 			</description>
 		</method>
 		<method name="get_effect_remaining" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="handle" type="int" />
 			<description>
+				Renvoie le temps restant de l'instance [param handle] : [code]-1[/code] pour un effet [constant GameplayEffect.DURATION_INFINITE], [code]0[/code] si l'identifiant n'existe pas (ou plus).
 			</description>
 		</method>
 		<method name="get_effect_stacks" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="effect" type="GameplayEffect" />
 			<description>
+				Renvoie le nombre de cumuls de la première instance active de cette ressource d'effet, [code]0[/code] si elle n'est pas active.
 			</description>
 		</method>
 		<method name="get_tags" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les tags possédés (noms exacts, sans leurs parents), triés.
 			</description>
 		</method>
 		<method name="get_value" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie la valeur courante de l'attribut (base et modificateurs des effets actifs, bornée), [code]0[/code] s'il n'existe pas (ou avant [method initialize]).
 			</description>
 		</method>
 		<method name="grant_ability">
 			<return type="void" />
 			<param index="0" name="ability" type="Ability" />
 			<description>
+				Accorde [param ability] sous son [method Ability.get_effective_id], avec toutes ses charges, et émet [signal ability_granted]. Réaccorder un identifiant existant remplace son état (charges, recharge, activation en cours).
 			</description>
 		</method>
 		<method name="has_ability" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si une capacité est accordée sous [param id].
 			</description>
 		</method>
 		<method name="has_all_tags" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="tags" type="PackedStringArray" />
 			<description>
+				Renvoie [code]true[/code] si chaque tag de [param tags] est possédé (au sens de [method has_tag]). Vrai pour un tableau vide.
 			</description>
 		</method>
 		<method name="has_any_tags" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="tags" type="PackedStringArray" />
 			<description>
+				Renvoie [code]true[/code] si au moins un tag de [param tags] est possédé (au sens de [method has_tag]).
 			</description>
 		</method>
 		<method name="has_attribute" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si l'attribut existe (toujours [code]false[/code] avant [method initialize]).
 			</description>
 		</method>
 		<method name="has_effect" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="effect" type="GameplayEffect" />
 			<description>
+				Renvoie [code]true[/code] si une instance de [b]cette ressource[/b] d'effet est active (une copie dupliquée est une autre ressource).
 			</description>
 		</method>
 		<method name="has_tag" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="tag" type="String" />
 			<description>
+				Renvoie [code]true[/code] si [param tag] est possédé, ou l'un de ses descendants : [code]etat[/code] est vrai si [code]etat.etourdi[/code] est possédé (pas l'inverse).
 			</description>
 		</method>
 		<method name="initialize">
 			<return type="void" />
 			<description>
+				Reconstruit tout depuis la configuration : attributs à leur base, [member initial_tags], capacités (charges pleines), [member initial_effects]. Les effets et tags actifs sont effacés [b]sans[/b] signal ni [method GameplayEffect._on_removed]. Appelée automatiquement au premier [code]_ready[/code].
 			</description>
 		</method>
 		<method name="is_ability_active" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] entre l'activation et la fin de la capacité (incantation comprise).
 			</description>
 		</method>
 		<method name="remove_effect">
 			<return type="bool" />
 			<param index="0" name="handle" type="int" />
 			<description>
+				Retire l'instance [param handle] : ses modificateurs et tags accordés disparaissent, [method GameplayEffect._on_removed] est appelée et [signal effect_removed] émis. Renvoie [code]false[/code] si elle n'existe pas.
 			</description>
 		</method>
 		<method name="remove_effects_with_tag">
 			<return type="int" />
 			<param index="0" name="tag" type="String" />
 			<description>
+				Retire les effets actifs dont un [member GameplayEffect.effect_tags] ou [member GameplayEffect.granted_tags] correspond à [param tag] (hiérarchiquement : [code]poison[/code] retire aussi [code]poison.fort[/code]). Renvoie leur nombre.
 			</description>
 		</method>
 		<method name="remove_tag">
@@ -220,18 +278,21 @@
 			<param index="0" name="tag" type="String" />
 			<param index="1" name="count" type="int" default="1" />
 			<description>
+				Retire [param count] occurrences de [param tag] (nom exact) ; émet [signal tag_changed] quand il n'en reste plus.
 			</description>
 		</method>
 		<method name="reset_cooldown">
 			<return type="void" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Rend toutes ses charges à la capacité et annule sa recharge.
 			</description>
 		</method>
 		<method name="revoke_ability">
 			<return type="void" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Annule la capacité si elle est active, puis la retire.
 			</description>
 		</method>
 		<method name="set_base_value">
@@ -239,53 +300,65 @@
 			<param index="0" name="name" type="StringName" />
 			<param index="1" name="value" type="float" />
 			<description>
+				Fixe la valeur de base de l'attribut (bornée par sa définition) et recalcule sa valeur courante. Erreur si l'attribut n'existe pas.
 			</description>
 		</method>
 		<method name="update">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Fait avancer le système de [param delta] secondes : périodes et durées des effets, recharges, incantation et durée des capacités actives ([method Ability._on_tick]). Appelée automatiquement à chaque image, sauf en [member manual_update].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="attribute_definitions" type="AttributeDefinition[]" setter="set_attribute_definitions" getter="get_attribute_definitions" default="[]">
+			Attributs créés par [method initialize]. Modifier ce tableau après le [code]_ready[/code] n'a d'effet qu'au prochain [method initialize] ; pour ajouter un attribut en jeu, utiliser [method add_attribute].
 		</member>
 		<member name="granted_abilities" type="Ability[]" setter="set_granted_abilities" getter="get_granted_abilities" default="[]">
+			Capacités accordées par [method initialize]. Pour en accorder en jeu : [method grant_ability].
 		</member>
 		<member name="initial_effects" type="GameplayEffect[]" setter="set_initial_effects" getter="get_initial_effects" default="[]">
+			Effets appliqués par [method initialize], avec ce système comme source (bonus de classe, régénération permanente...).
 		</member>
 		<member name="initial_tags" type="PackedStringArray" setter="set_initial_tags" getter="get_initial_tags" default="PackedStringArray()">
+			Tags ajoutés par [method initialize] (une occurrence chacun).
 		</member>
 		<member name="manual_update" type="bool" setter="set_manual_update" getter="is_manual_update" default="false">
+			Si [code]true[/code], le système n'avance plus tout seul : appelez [method update] vous-même (jeu au tour par tour, ralenti propre à une entité...).
 		</member>
 	</members>
 	<signals>
 		<signal name="ability_activated">
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Émis au début d'une activation réussie, avant l'incantation.
 			</description>
 		</signal>
 		<signal name="ability_committed">
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Émis quand les effets de la capacité viennent d'être appliqués (fin de l'incantation).
 			</description>
 		</signal>
 		<signal name="ability_ended">
 			<param index="0" name="id" type="StringName" />
 			<param index="1" name="cancelled" type="bool" />
 			<description>
+				Émis quand la capacité se termine ; [param cancelled] est vrai pour une annulation.
 			</description>
 		</signal>
 		<signal name="ability_failed">
 			<param index="0" name="id" type="StringName" />
 			<param index="1" name="reason" type="String" />
 			<description>
+				Émis quand [method activate] échoue, avec la raison [param reason] (voir [method get_activation_failure]).
 			</description>
 		</signal>
 		<signal name="ability_granted">
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Émis quand une capacité est accordée (y compris par [method initialize]).
 			</description>
 		</signal>
 		<signal name="attribute_changed">
@@ -293,39 +366,46 @@
 			<param index="1" name="old_value" type="float" />
 			<param index="2" name="new_value" type="float" />
 			<description>
+				Émis quand la valeur courante d'un attribut change.
 			</description>
 		</signal>
 		<signal name="attribute_depleted">
 			<param index="0" name="attribute" type="StringName" />
 			<description>
+				Émis quand la valeur courante d'un attribut atteint son minimum ([member AttributeDefinition.min_value]) en venant d'au-dessus.
 			</description>
 		</signal>
 		<signal name="cooldown_ready">
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Émis chaque fois qu'une charge de la capacité est récupérée.
 			</description>
 		</signal>
 		<signal name="effect_applied">
 			<param index="0" name="effect" type="GameplayEffect" />
 			<param index="1" name="handle" type="int" />
 			<description>
+				Émis à chaque application réussie ([param handle] 0 pour un effet instantané), cumul et rafraîchissement compris.
 			</description>
 		</signal>
 		<signal name="effect_blocked">
 			<param index="0" name="effect" type="GameplayEffect" />
 			<description>
+				Émis quand un effet est refusé par ses [member GameplayEffect.required_tags] ou [member GameplayEffect.blocked_by_tags].
 			</description>
 		</signal>
 		<signal name="effect_removed">
 			<param index="0" name="effect" type="GameplayEffect" />
 			<param index="1" name="handle" type="int" />
 			<description>
+				Émis quand une instance d'effet à durée prend fin ou est retirée.
 			</description>
 		</signal>
 		<signal name="tag_changed">
 			<param index="0" name="tag" type="String" />
 			<param index="1" name="present" type="bool" />
 			<description>
+				Émis quand un tag apparaît ([param present] vrai) ou disparaît complètement.
 			</description>
 		</signal>
 	</signals>

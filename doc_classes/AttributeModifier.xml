@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="AttributeModifier" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		➕ Modification d'un attribut par un [GameplayEffect] : ajout, multiplication ou remplacement, d'une valeur fixe, par niveau ou calculée par une expression.
 	</brief_description>
 	<description>
+		Valeur appliquée : [member magnitude] + [member magnitude_per_level] × (niveau − 1), ou le résultat de [member magnitude_expression] si elle est renseignée. L'expression ([Expression] Godot) reçoit [code]source[/code] et [code]target[/code] (les [AbilitySystem] concernés), [code]level[/code] et [code]stacks[/code] ; les méthodes de la cible y sont aussi appelables directement.
+		[codeblock]
+		# Dégâts = 2 × force de l'attaquant − armure de la cible.
+		var coup := AttributeModifier.new()
+		coup.attribute = &amp;"health"
+		coup.magnitude_expression = '-(source.get_value("force") * 2 - target.get_value("armure"))'
+		var attaque := GameplayEffect.new()
+		attaque.modifiers = [coup]
+		$AbilitySystem.apply_effect_to(attaque, ennemi)   # ce système est la source
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -14,32 +25,42 @@
 			<param index="2" name="level" type="float" />
 			<param index="3" name="stacks" type="int" default="1" />
 			<description>
+				Calcule la valeur pour une source, une cible et un niveau donnés. [param stacks] n'est transmis qu'à l'expression : le résultat n'est pas multiplié par les cumuls. Renvoie 0 si l'expression est invalide ou échoue (par exemple [code]source[/code] nulle).
 			</description>
 		</method>
 		<method name="get_error" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie l'erreur d'analyse de [member magnitude_expression] (vide si elle est valide ou pas encore analysée).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="attribute" type="StringName" setter="set_attribute" getter="get_attribute" default="&amp;&quot;&quot;">
+			Nom de l'attribut modifié. Ignoré si l'entité n'a pas cet attribut.
 		</member>
 		<member name="magnitude" type="float" setter="set_magnitude" getter="get_magnitude" default="0.0">
+			Valeur fixe (au niveau 1), négative pour retirer. Pour [constant OPERATION_MULTIPLY], un facteur ([code]1.5[/code] = +50 %).
 		</member>
 		<member name="magnitude_expression" type="String" setter="set_magnitude_expression" getter="get_magnitude_expression" default="&quot;&quot;">
+			Expression qui remplace [member magnitude] si elle n'est pas vide. Analysée une fois ; en cas d'erreur, un avertissement est affiché et la valeur vaut 0 (voir [method get_error]). Pour un effet à durée, elle est réévaluée à chaque recalcul des attributs.
 		</member>
 		<member name="magnitude_per_level" type="float" setter="set_magnitude_per_level" getter="get_magnitude_per_level" default="0.0">
+			Ajouté à [member magnitude] pour chaque niveau au-delà de 1.
 		</member>
 		<member name="operation" type="int" setter="set_operation" getter="get_operation" enum="AttributeModifier.Operation" default="0">
+			Ajout, multiplication ou remplacement (voir les constantes).
 		</member>
 	</members>
 	<constants>
 		<constant name="OPERATION_ADD" value="0" enum="Operation">
+			Ajoute la valeur (multipliée par le nombre de cumuls).
 		</constant>
 		<constant name="OPERATION_MULTIPLY" value="1" enum="Operation">
+			Multiplie par la valeur (élevée à la puissance des cumuls). Sur la valeur courante, les multiplications s'appliquent après tous les ajouts.
 		</constant>
 		<constant name="OPERATION_OVERRIDE" value="2" enum="Operation">
+			Remplace la valeur : ajouts et multiplications sont ignorés ; si plusieurs effets imposent une valeur, le dernier appliqué l'emporte.
 		</constant>
 	</constants>
 </class>

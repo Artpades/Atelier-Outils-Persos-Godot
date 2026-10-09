@@ -1,23 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueLine" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Réplique : un personnage dit un texte (BBCode et variables « {nom} » acceptés), puis le dialogue passe à [member next].
 	</brief_description>
 	<description>
+		Quand le [DialogueSystem] atteint une réplique, il remplace les « {nom} » du [member text] par les variables, émet [signal DialogueSystem.line_shown] et attend [method DialogueSystem.advance] (ou la fin de [member auto_advance_time]).
+		[codeblock]
+		var ligne := DialogueLine.new()
+		ligne.node_id = &amp;"accueil"
+		ligne.speaker = "Meunier"
+		ligne.text = "Bonjour {nom}, il te faut [b]{prix}[/b] pièces."
+		ligne.next = &amp;"menu"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="auto_advance_time" type="float" setter="set_auto_advance_time" getter="get_auto_advance_time" default="0.0">
+			Si supérieur à 0, le [DialogueSystem] passe tout seul à la suite après ce délai (en secondes, temps de traitement du nœud, donc figé en pause). [code]0[/code] : attendre [method DialogueSystem.advance].
 		</member>
 		<member name="next" type="StringName" setter="set_next" getter="get_next" default="&amp;&quot;&quot;">
+			Identifiant du nœud suivant. Vide : le dialogue se termine après cette réplique.
 		</member>
 		<member name="portrait" type="Texture2D" setter="set_portrait" getter="get_portrait">
+			Image de l'orateur. La [DialogueBox] l'affiche à gauche du texte, et masque le portrait s'il est vide.
 		</member>
 		<member name="speaker" type="String" setter="set_speaker" getter="get_speaker" default="&quot;&quot;">
+			Nom de l'orateur, transmis tel quel par [signal DialogueSystem.line_shown] (les variables n'y sont pas remplacées). Vide : la [DialogueBox] masque l'étiquette d'orateur.
 		</member>
 		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+			Texte de la réplique. Les « {nom} » sont remplacés par la variable [code]nom[/code] du [member DialogueSystem.variables] ; une variable absente laisse « {nom} » tel quel. Le BBCode est interprété par la [DialogueBox].
 		</member>
 		<member name="voice" type="AudioStream" setter="set_voice" getter="get_voice">
+			Son associé à la réplique. [b]Il n'est joué par aucune classe du module[/b] : à lire soi-même depuis [signal DialogueSystem.line_shown] (paramètre [code]line[/code]).
 		</member>
 	</members>
 </class>

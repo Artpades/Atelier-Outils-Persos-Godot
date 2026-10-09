@@ -10,10 +10,10 @@
 
 namespace godot
 {
-// Infobulle enrichie d'un ProceduralEditor (nœud interne) : Godot n'affiche pas de BBCode dans l'infobulle
-// d'un contrôle natif. Au survol prolongé d'un widget de l'éditeur qui a des infobulles
-// (PropertyWidget::get_tooltip_texts), une fenêtre affiche leur texte BBCode, les modèles {…} étant résolus
-// sur la cible de l'éditeur au moment de l'affichage. Fonctionne dans l'éditeur et en jeu.
+/// Infobulle enrichie d'un ProceduralEditor (nœud interne) : Godot n'affiche pas de BBCode dans l'infobulle
+/// d'un contrôle natif. Au survol prolongé d'un widget de l'éditeur qui a des infobulles
+/// (PropertyWidget::get_tooltip_texts), une fenêtre affiche leur texte BBCode, les modèles {…} étant résolus
+/// sur la cible de l'éditeur au moment de l'affichage. Fonctionne dans l'éditeur et en jeu.
 class RichTooltip : public Node
 {
     GDCLASS(RichTooltip, Node)
@@ -40,9 +40,9 @@ class RichTooltip : public Node
     void set_context(Object *p_context);
     void set_delay(double p_delay);
     double get_delay() const;
-    // Texte BBCode final des infobulles de p_widget (séparées par une ligne vide).
+    /// Texte BBCode final des infobulles de p_widget (séparées par une ligne vide).
     String build_text(PropertyWidget *p_widget) const;
-    // Affiche l'infobulle de p_widget à la position de la souris (aussi utilisé par les tests).
+    /// Affiche l'infobulle de p_widget à la position de la souris (aussi utilisé par les tests).
     void show_for(PropertyWidget *p_widget);
     void hide_tooltip();
     bool is_shown() const;

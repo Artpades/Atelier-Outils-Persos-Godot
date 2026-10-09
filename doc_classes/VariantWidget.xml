@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="VariantWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'une valeur sans type déclaré : choix du type puis widget du type choisi.
 	</brief_description>
 	<description>
+		Changer de type convertit la valeur quand c'est possible (scalaires entre eux, vecteurs entiers ↔ décimaux, Array ↔ Packed*Array...), sinon la valeur par défaut du type.
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

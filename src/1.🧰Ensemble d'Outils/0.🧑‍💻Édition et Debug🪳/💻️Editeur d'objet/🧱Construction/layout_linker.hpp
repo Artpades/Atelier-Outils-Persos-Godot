@@ -8,12 +8,12 @@
 
 namespace godot
 {
-// En jeu uniquement : applique les liens de signaux (mode ressource) de l'interface par type à chaque nœud
-// qui entre dans l'arbre (SceneTree::node_added), sans ProceduralEditor. Les connexions disparaissent avec
-// le nœud. Les Resources n'ont pas d'équivalent de node_added : leurs liens ne s'appliquent que via un
-// ProceduralEditor (ou ObjectEditorWindow::open_for).
-// Objet unique, créé au chargement du module et détruit au déchargement (tool_editor_register.cpp) ;
-// branché sur le SceneTree à la première image (call_deferred), l'arbre déjà chargé est alors parcouru.
+/// En jeu uniquement : applique les liens de signaux (mode ressource) de l'interface par type à chaque nœud
+/// qui entre dans l'arbre (SceneTree::node_added), sans ProceduralEditor. Les connexions disparaissent avec
+/// le nœud. Les Resources n'ont pas d'équivalent de node_added : leurs liens ne s'appliquent que via un
+/// ProceduralEditor (ou ObjectEditorWindow::open_for).
+/// Objet unique, créé au chargement du module et détruit au déchargement (tool_editor_register.cpp) ;
+/// branché sur le SceneTree à la première image (call_deferred), l'arbre déjà chargé est alors parcouru.
 class LayoutLinker : public Object
 {
     GDCLASS(LayoutLinker, Object)
@@ -38,7 +38,7 @@ class LayoutLinker : public Object
 
     void start();
     bool is_started() const;
-    // Nombre de nœuds auxquels des liens ont été appliqués (tests).
+    /// Nombre de nœuds auxquels des liens ont été appliqués (tests).
     int64_t get_applied_count() const;
 };
 } // namespace godot

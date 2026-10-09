@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TableWidgetSettings" inherits="ContainerWidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages d'un tableau (liste d'objets ou de dictionnaires) : colonnes affichées et transposition.
 	</brief_description>
 	<description>
+		Pour [constant DataEntry.WIDGET_TABLE].
+		[codeblock]
+		var tableau := TableWidgetSettings.new()
+		tableau.table_columns = PackedStringArray(["nom", "prix", "quantite"])
+		var entree := registre.find(&amp;"objets")
+		entree.widget_choice = DataEntry.WIDGET_TABLE
+		entree.settings = tableau
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="table_columns" type="PackedStringArray" setter="set_table_columns" getter="get_table_columns" default="PackedStringArray()">
+			Propriétés (ou clés) affichées, dans cet ordre. Vide : toutes, dans l'ordre de découverte.
 		</member>
 		<member name="transpose" type="bool" setter="set_transpose" getter="get_transpose" default="false">
+			Si [code]true[/code], une colonne par élément et une ligne par propriété.
 		</member>
 	</members>
 </class>

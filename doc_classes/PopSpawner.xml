@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PopSpawner" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💥 Fait jaillir du texte, des images et/ou des scènes depuis sa cible : chiffres de dégâts, pièces ramassées, onomatopées, icônes de statut.
 	</brief_description>
 	<description>
+		Nœud générateur de « pops » : chaque appel crée un petit élément qui apparaît en grossissant, jaillit, retombe sous la gravité puis disparaît en fondu, selon [member style]. Un pop combine un texte, une image et une scène (chacun facultatif) : l'image et le texte sont alignés sur une rangée centrée, la scène est placée derrière.
+		- [b]Cible[/b] : [member target], ou à défaut le parent. Un [Node2D] ou un [Control] donne un pop 2D ; un [Node3D] donne un pop 3D toujours tourné vers la caméra, ou un pop 2D à sa position à l'écran avec [member screen_space_3d].
+		- [b]Conteneur[/b] : les pops ne sont pas ajoutés sous la cible mais sous [member container], ou à défaut sous le [CanvasLayer] de la cible (interface) ou la scène courante (monde). Ils survivent donc à la cible (un ennemi qui meurt garde son chiffre de dégâts) et se libèrent seuls.
+		- [b]Limite[/b] : au-delà de [member max_pops] pops vivants, les plus anciens disparaissent.
+		Le point d'apparition est fixé à la création : un pop ne suit pas sa cible ensuite.
+		[codeblock]
+		# Ennemi (CharacterBody2D)
+		# └─ PopSpawner (offset : (0, -40, 0))
+		func subir_degats(montant: int) -> void:
+			vie -= montant
+			$PopSpawner.pop_number(-montant)   # « -12 » en rouge (negative_color du style)
+
+		func soigner(montant: int) -> void:
+			$PopSpawner.pop_number(montant)    # « +5 » en vert
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,16 +26,19 @@
 		<method name="clear">
 			<return type="void" />
 			<description>
+				Libère immédiatement tous les pops encore vivants créés par ce [PopSpawner].
 			</description>
 		</method>
 		<method name="get_active_count">
 			<return type="int" />
 			<description>
+				Renvoie le nombre de pops encore vivants créés par ce [PopSpawner].
 			</description>
 		</method>
 		<method name="get_active_pops">
 			<return type="Array" />
 			<description>
+				Renvoie les pops encore vivants créés par ce [PopSpawner], du plus ancien au plus récent (nœuds internes [code]PopInstance2D[/code] / [code]PopInstance3D[/code]).
 			</description>
 		</method>
 		<method name="pop">
@@ -30,6 +49,7 @@
 			<param index="3" name="color" type="Color" default="Color(0, 0, 0, 0)" />
 			<param index="4" name="at" type="Variant" default="null" />
 			<description>
+				Crée un pop combinant [param text], [param texture] et une instance de [param scene] (chacun facultatif, au moins un requis). [param color] colore le texte (alpha nul : [member PopStyle.text_color]). [param at] impose une position globale ([Vector2] pour un pop 2D, [Vector3] pour un pop 3D) à la place de celle de la cible ; [member offset] est alors ignoré. Émet [signal popped] et renvoie le pop, ou [code]null[/code] s'il n'a pas pu être créé (pop vide, [PopSpawner] hors de l'arbre, cible 3D derrière la caméra en [member screen_space_3d]).
 			</description>
 		</method>
 		<method name="pop_number">
@@ -37,12 +57,14 @@
 			<param index="0" name="value" type="float" />
 			<param index="1" name="decimals" type="int" default="0" />
 			<description>
+				Affiche [param value] signé (« +12 », « -3 ») coloré par [member PopStyle.positive_color] (positif ou nul) ou [member PopStyle.negative_color] (négatif). Avec [param decimals] à 0, la valeur est arrondie à l'entier ; sinon elle a au plus [param decimals] décimales (les zéros finaux sont retirés : 3.5 avec 2 décimales donne « +3.5 »).
 			</description>
 		</method>
 		<method name="pop_scene">
 			<return type="Node" />
 			<param index="0" name="scene" type="PackedScene" />
 			<description>
+				Crée un pop contenant une instance de [param scene] (objet, particules, animation...). La scène n'est pas mise à l'échelle par [member PopStyle.icon_size] ni par [member unit_scale_3d].
 			</description>
 		</method>
 		<method name="pop_text">
@@ -50,35 +72,45 @@
 			<param index="0" name="text" type="String" />
 			<param index="1" name="color" type="Color" default="Color(0, 0, 0, 0)" />
 			<description>
+				Crée un pop de texte, coloré par [param color] (alpha nul : [member PopStyle.text_color]).
 			</description>
 		</method>
 		<method name="pop_texture">
 			<return type="Node" />
 			<param index="0" name="texture" type="Texture2D" />
 			<description>
+				Crée un pop d'image, affichée à la taille [member PopStyle.icon_size].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="container" type="Node" setter="set_container" getter="get_container">
+			Nœud sous lequel les pops sont ajoutés. Vide : le [CanvasLayer] de la cible si elle en a un (interface), sinon la scène courante. Pour une cible 3D en [member screen_space_3d], un [CanvasLayer] interne [code]PopScreenLayer[/code] (couche 100) est créé sous la scène courante.
 		</member>
 		<member name="max_pops" type="int" setter="set_max_pops" getter="get_max_pops" default="64">
+			Nombre maximal de pops vivants pour ce [PopSpawner] ; au-delà, les plus anciens sont libérés d'un coup. 0 : sans limite.
 		</member>
 		<member name="offset" type="Vector3" setter="set_offset" getter="get_offset" default="Vector3(0, 0, 0)">
+			Décalage du point d'apparition par rapport à la cible : x et y en pixels (y vers le bas) pour un pop 2D, en mètres pour une cible 3D. Ignoré quand une position [code]at[/code] est donnée.
 		</member>
 		<member name="screen_space_3d" type="bool" setter="set_screen_space_3d" getter="get_screen_space_3d" default="false">
+			Pour une cible 3D : si [code]true[/code], le pop est dessiné en 2D par-dessus l'écran, à la position projetée de la cible par la caméra active (taille constante quelle que soit la distance). Le pop reste ensuite à cet endroit de l'écran, même si la caméra bouge.
 		</member>
 		<member name="style" type="PopStyle" setter="set_style" getter="get_style">
+			Réglages du mouvement et de l'apparence des pops. Vide : un [PopStyle] par défaut.
 		</member>
 		<member name="target" type="Node" setter="set_target" getter="get_target">
+			Nœud d'où jaillissent les pops. Vide : le parent du [PopSpawner]. Une cible qui n'est ni [Node2D], ni [Control], ni [Node3D] fait apparaître les pops à l'origine du monde (plus [member offset]).
 		</member>
 		<member name="unit_scale_3d" type="float" setter="set_unit_scale_3d" getter="get_unit_scale_3d" default="0.01">
+			Conversion des pixels du [PopStyle] en mètres pour les pops 3D : 0,01 signifie 100 px = 1 m. Augmenter pour des pops plus grands et plus rapides en 3D.
 		</member>
 	</members>
 	<signals>
 		<signal name="popped">
 			<param index="0" name="pop" type="Node" />
 			<description>
+				Émis à la création de chaque pop par ce [PopSpawner], avec le nœud du pop : pour ajouter un son, un effet ou modifier son contenu.
 			</description>
 		</signal>
 	</signals>

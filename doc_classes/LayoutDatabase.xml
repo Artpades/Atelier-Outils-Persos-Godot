@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="LayoutDatabase" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Base des interfaces par type : associe une classe native ou un class_name à ses registres de données, de groupes et de gizmos.
 	</brief_description>
 	<description>
+		Fichier [code].tres[/code] désigné par le réglage de projet [code]gameplay_toolkit/object_editor/layout_database[/code] (par défaut [code]res://object_editor_layouts.tres[/code]). Elle s'édite avec la fenêtre « Interfaces par type » (menu Projet › Outils).
+		Résolution de l'interface d'un objet ([method find_layout]) :
+		- surcharge de l'instance : métadonnée [code]object_editor_layout[/code] contenant un [TypeLayout] ;
+		- sinon le type le plus spécifique de [method type_chain] (class_name des scripts, puis classes natives) ; un [TypeLayout] d'une classe parente ne s'applique que si [member TypeLayout.include_subclasses] ;
+		- à spécificité égale, la plus grande [member TypeLayout.priority].
+		[codeblock]
+		var base := LayoutDatabase.load_project_database()
+		if base:
+			var interface := base.ensure_type("Ennemi") # class_name Ennemi
+			interface.data_registry.scan_methods = true
+			ResourceSaver.save(base, LayoutDatabase.get_project_path())
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,39 +24,46 @@
 			<return type="TypeLayout" />
 			<param index="0" name="type_name" type="String" />
 			<description>
+				Renvoie le [TypeLayout] de [param type_name], créé avec ses trois registres et ajouté à la base s'il n'existe pas.
 			</description>
 		</method>
 		<method name="find_by_type" qualifiers="const">
 			<return type="TypeLayout" />
 			<param index="0" name="type_name" type="String" />
 			<description>
+				Renvoie le [TypeLayout] déclaré exactement pour [param type_name], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="find_layout" qualifiers="const">
 			<return type="TypeLayout" />
 			<param index="0" name="object" type="Object" />
 			<description>
+				Renvoie l'interface à utiliser pour [param object] selon les règles de résolution (surcharge d'instance, type le plus spécifique, priorité), ou [code]null[/code] (interface générale).
 			</description>
 		</method>
 		<method name="get_project_path" qualifiers="static">
 			<return type="String" />
 			<description>
+				Renvoie le chemin de la base du projet (réglage [code]gameplay_toolkit/object_editor/layout_database[/code]).
 			</description>
 		</method>
 		<method name="load_project_database" qualifiers="static">
 			<return type="LayoutDatabase" />
 			<description>
+				Charge la base du projet, ou renvoie [code]null[/code] si le fichier n'existe pas. Grâce au cache de [ResourceLoader], une base en cours d'édition est la même instance.
 			</description>
 		</method>
 		<method name="type_chain" qualifiers="static">
 			<return type="PackedStringArray" />
 			<param index="0" name="object" type="Object" />
 			<description>
+				Renvoie les types de [param object], du plus spécifique au plus général : [code]class_name[/code] du script et de ses scripts de base, puis classes natives jusqu'à [code]Object[/code]. Un script sans [code]class_name[/code] n'y figure pas.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="layouts" type="TypeLayout[]" setter="set_layouts" getter="get_layouts" default="[]">
+			Interfaces déclarées, une par type.
 		</member>
 	</members>
 </class>

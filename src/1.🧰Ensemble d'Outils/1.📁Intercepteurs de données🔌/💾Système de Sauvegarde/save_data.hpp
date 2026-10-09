@@ -8,7 +8,8 @@
 
 namespace godot
 {
-// Un base de donnée contenant les données de propriétés à sauvegarder.
+/// 💾 Données d'un système de jeu à sauvegarder : identifiant (nom du fichier), dictionnaire de valeurs
+/// (écrit en JSON), réglages de chiffrement et emplacement (SaveConfig, créé à la construction).
 class SaveData : public Resource
 {
     GDCLASS(SaveData, Resource);

@@ -3,9 +3,27 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
-		Un Service utilitaire permettant de dessiner des géométries de debbogage 3D dans la vue indiquée.
+		🐛 Dessins de debug 3D (lignes, flèches, boîtes, sphères, chemins, repères, frustums, texte, icônes) tracés directement par le serveur de rendu, sans nœud dans la scène.
 	</brief_description>
 	<description>
+		Classe purement statique. Un [i]gizmo[/i] est une instance du [RenderingServer] identifiée par un [RID] : on le crée une fois avec [method create_3D_gizmo], on le redessine aussi souvent que nécessaire, puis on le libère avec [method free_3D_gizmo]. Il n'apparaît ni dans l'arbre de scène ni dans l'inspecteur.
+		Les coordonnées sont exprimées dans l'espace [b]global[/b] du monde 3D. Le matériau par défaut n'est pas éclairé, utilise la couleur passée à chaque méthode et est visible des deux côtés ; les formes restent masquées par les objets placés devant elles (sauf les icônes).
+		[b]Un gizmo = une forme :[/b] chaque méthode [code]draw_3D_*[/code] remplace la forme précédente du gizmo. Pour afficher plusieurs formes, créer un gizmo par forme.
+		[b]Épaisseur :[/b] avec [code]width[/code] inférieur ou égal à 1, les traits sont des lignes d'un pixel ; au-delà, ce sont des tubes hexagonaux de rayon [code]width × 0,005[/code] unité (2 donne 1 cm).
+		[codeblock]
+		var gizmo: RID
+
+		func _ready() -&gt; void:
+			gizmo = Gizmos3D.create_3D_gizmo(get_viewport())
+
+		func _physics_process(_delta: float) -&gt; void:
+			# Vitesse du personnage, redessinée chaque frame.
+			Gizmos3D.draw_3D_arrow(gizmo, global_position, global_position + velocity * 0.5, Color.CYAN, 0.2, 2.0)
+
+		func _exit_tree() -&gt; void:
+			Gizmos3D.free_3D_gizmo(gizmo)
+		[/codeblock]
+		[b]Note :[/b] [method draw_3D_icon] et [method draw_3D_text] modifient la position et le matériau du gizmo, et ces changements persistent : ne pas réutiliser un gizmo d'icône ou de texte pour d'autres formes.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -15,18 +33,22 @@
 			<param index="0" name="instance_rid" type="RID" />
 			<param index="1" name="material" type="Material" />
 			<description>
+				Remplace le matériau du gizmo par [param material] (par ex. un [ShaderMaterial] personnalisé, qui doit lire [code]COLOR[/code] pour récupérer la couleur des formes). [code]null[/code] retire le matériau : les formes sont alors rendues avec le matériau par défaut du moteur, sans leur couleur. Le matériau est à nouveau remplacé par [method draw_3D_icon] et retiré par [method draw_3D_text].
 			</description>
 		</method>
 		<method name="clear_3D_gizmo" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="gizmo_rid" type="RID" />
 			<description>
+				Efface la forme dessinée sur le gizmo, qui reste valide et réutilisable.
 			</description>
 		</method>
 		<method name="create_3D_gizmo" qualifiers="static">
 			<return type="RID" />
 			<param index="0" name="viewport" type="Viewport" />
 			<description>
+				Crée un gizmo vide dans le monde 3D de [param viewport] ([method Viewport.find_world_3d]) et renvoie son [RID]. Dans l'éditeur, si ce viewport n'a pas de monde 3D, le premier viewport 3D de l'éditeur est utilisé. Renvoie un [RID] vide, avec une erreur en console, si aucun monde 3D n'est trouvé.
+				Le gizmo n'est pas libéré automatiquement : appeler [method free_3D_gizmo] quand il ne sert plus.
 			</description>
 		</method>
 		<method name="draw_3D_arrow" qualifiers="static">
@@ -38,6 +60,7 @@
 			<param index="4" name="head_size" type="float" default="0.3" />
 			<param index="5" name="width" type="float" default="1.0" />
 			<description>
+				Dessine une flèche de [param from] vers [param to] : un tube (toujours au moins de largeur 1,5) terminé par un cône de longueur [param head_size] (au plus la longueur de la flèche). Si [param from] et [param to] sont confondus, rien n'est fait et l'ancienne forme reste affichée.
 			</description>
 		</method>
 		<method name="draw_3D_camera_frustum" qualifiers="static">
@@ -50,6 +73,7 @@
 			<param index="5" name="aspect" type="float" />
 			<param index="6" name="color" type="Color" default="Color(1, 0, 1, 1)" />
 			<description>
+				Dessine les 12 arêtes du volume de vision d'une caméra placée par [param transform] et regardant vers son axe -Z : [param fov] est l'angle de vue vertical en degrés, [param z_near] et [param z_far] les distances des plans proche et lointain, [param aspect] le rapport largeur / hauteur. Traits fins d'un pixel.
 			</description>
 		</method>
 		<method name="draw_3D_capsule" qualifiers="static">
@@ -62,6 +86,8 @@
 			<param index="5" name="filled" type="bool" default="false" />
 			<param index="6" name="width" type="float" default="1.0" />
 			<description>
+				Dessine une capsule d'axe vertical (Y) centrée sur [param center], de rayon [param radius] et de hauteur totale [param height] (demi-sphères comprises).
+				En contour ([param filled] à [code]false[/code]), seuls deux anneaux aux extrémités de la partie cylindrique et quatre lignes verticales sont tracés, sans les demi-sphères. Pleine, la capsule est complète.
 			</description>
 		</method>
 		<method name="draw_3D_circle" qualifiers="static">
@@ -75,6 +101,7 @@
 			<param index="6" name="segments" type="int" default="24" />
 			<param index="7" name="width" type="float" default="1.0" />
 			<description>
+				Dessine un cercle plat de centre [param center] et de rayon [param radius], perpendiculaire à [param normal] (horizontal par défaut) : contour de [param segments] segments, ou disque plein. [param normal] ne doit pas être nul.
 			</description>
 		</method>
 		<method name="draw_3D_cube" qualifiers="static">
@@ -86,6 +113,7 @@
 			<param index="4" name="filled" type="bool" default="false" />
 			<param index="5" name="width" type="float" default="1.0" />
 			<description>
+				Dessine une boîte alignée sur les axes du monde (sans rotation), centrée sur [param center] et de dimensions [param size] : les 12 arêtes, ou les 6 faces si [param filled] vaut [code]true[/code].
 			</description>
 		</method>
 		<method name="draw_3D_icon" qualifiers="static">
@@ -97,6 +125,8 @@
 			<param index="4" name="filter" type="int" enum="BaseMaterial3D.TextureFilter"
 				default="0" />
 			<description>
+				Affiche [param texture] sur un panneau de [param size] unités centré sur [param position], toujours tourné vers la caméra et visible à travers les objets (transparence alpha respectée).
+				Le filtrage [param filter] est fixé au premier appel sur ce gizmo et n'est plus modifié ensuite. L'icône remplace le matériau du gizmo et déplace le gizmo à [param position]. Si [param texture] est nulle, une erreur est écrite et le panneau est dessiné sans texture.
 			</description>
 		</method>
 		<method name="draw_3D_line" qualifiers="static">
@@ -107,6 +137,7 @@
 			<param index="3" name="color" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="4" name="width" type="float" default="1.0" />
 			<description>
+				Dessine un segment de [param from] à [param to] (ligne fine si [param width] vaut 1 ou moins, tube sinon).
 			</description>
 		</method>
 		<method name="draw_3D_origin" qualifiers="static">
@@ -118,6 +149,7 @@
 			<param index="3" name="head_size" type="float" default="0.2" />
 			<param index="4" name="width" type="float" default="2.0" />
 			<description>
+				Dessine un repère d'axes à l'origine de [param transform] : trois flèches X (rouge), Y (vert) et Z (bleu) suivant les axes de sa base, de longueur [param size] (multipliée par l'échelle de la base), avec des pointes de [param head_size]. Les flèches sont toujours des tubes (largeur minimale 1,5).
 			</description>
 		</method>
 		<method name="draw_3D_path" qualifiers="static">
@@ -134,6 +166,9 @@
 			<param index="9" name="color" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="10" name="arrow_head_size" type="float" default="12.0" />
 			<description>
+				Dessine un chemin passant par [param points] (au moins 2 ; sinon rien n'est fait et l'ancienne forme reste affichée). Mêmes options que [method Gizmos2D.draw_2D_path], en unités du monde : [param as_arrows] (tronçons en flèches), [param segments_per_line], [param spacing] (pointillés), [param use_bezier] (lissage, 3 points minimum).
+				[param show_points] place une petite sphère pleine de rayon [param point_radius] sur chaque point d'origine.
+				[b]Attention :[/b] [param arrow_head_size] est en unités du monde ; sa valeur par défaut (12) dépasse la longueur des tronçons usuels, qui deviennent alors entièrement des cônes. Utiliser une valeur de l'ordre de 0,2.
 			</description>
 		</method>
 		<method name="draw_3D_polygon" qualifiers="static">
@@ -144,6 +179,7 @@
 			<param index="3" name="filled" type="bool" default="false" />
 			<param index="4" name="width" type="float" default="1.0" />
 			<description>
+				Dessine le polygone [param points] (au moins 3 points ; sinon une erreur est écrite et l'ancienne forme reste affichée) : contour fermé, ou surface pleine triangulée en éventail depuis le premier point. Le remplissage n'est correct que pour un polygone [b]plan et convexe[/b].
 			</description>
 		</method>
 		<method name="draw_3D_rectangle" qualifiers="static">
@@ -156,6 +192,7 @@
 			<param index="5" name="filled" type="bool" default="false" />
 			<param index="6" name="width" type="float" default="1.0" />
 			<description>
+				Dessine un rectangle plat centré sur [param center], de dimensions [param size], perpendiculaire à [param normal] (horizontal par défaut) : contour ou surface pleine. L'orientation des côtés autour de la normale est calculée automatiquement et ne peut pas être choisie.
 			</description>
 		</method>
 		<method name="draw_3D_sphere" qualifiers="static">
@@ -168,6 +205,7 @@
 			<param index="5" name="segments" type="int" default="16" />
 			<param index="6" name="width" type="float" default="1.0" />
 			<description>
+				Dessine une sphère de centre [param center] et de rayon [param radius] : en contour, trois cercles orthogonaux de [param segments] segments ; pleine, une sphère à [param segments] méridiens et [param segments] / 2 parallèles.
 			</description>
 		</method>
 		<method name="draw_3D_text" qualifiers="static">
@@ -179,12 +217,15 @@
 			<param index="4" name="font_size" type="int" default="32" />
 			<param index="5" name="pixel_size" type="float" default="0.01" />
 			<description>
+				Écrit [param text] sur une seule ligne, de gauche à droite (pas de retour à la ligne ni d'écriture de droite à gauche), avec la police par défaut du thème, centré horizontalement sur [param position] et toujours tourné vers la caméra. [param font_size] règle la résolution des lettres et [param pixel_size] la taille d'un pixel de police en unités du monde (hauteur à l'écran d'environ [param font_size] × [param pixel_size]).
+				Le texte retire le matériau du gizmo (dont celui de [method apply_shader_on_gizmo]) et déplace le gizmo à [param position]. Il est masqué par les objets placés devant lui.
 			</description>
 		</method>
 		<method name="free_3D_gizmo" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="gizmo_rid" type="RID" />
 			<description>
+				Libère le gizmo et toutes les ressources qu'il utilise (maillage, matériaux d'icône et de texte). Le [RID] ne doit plus être utilisé. Sans effet, et sans message, si le [RID] est invalide.
 			</description>
 		</method>
 	</methods>

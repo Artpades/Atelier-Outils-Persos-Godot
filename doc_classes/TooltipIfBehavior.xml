@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TooltipIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement « Infobulle si » : ajoute une infobulle BBCode aux cibles tant que la condition est vraie.
 	</brief_description>
 	<description>
+		L'infobulle s'ajoute à celle de la donnée ([member DataEntry.tooltip]) et à celles des autres comportements actifs. Elle n'a d'effet que sur les données, pas sur les groupes.
+		[codeblock]
+		var avertir := TooltipIfBehavior.new()
+		avertir.get_condition().property_path = ^"surcharge"
+		avertir.tooltip = "[color=orange]Surcharge :[/color] {poids} / {poids_max} kg"
+		avertir.targets = PackedStringArray(["poids"])
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
 		<member name="tooltip" type="String" setter="set_tooltip" getter="get_tooltip" default="&quot;&quot;">
+			Infobulle BBCode ajoutée ; modèles [code]{propriété}[/code] et [code]{fonction()}[/code] résolus à l'affichage.
 		</member>
 	</members>
 </class>

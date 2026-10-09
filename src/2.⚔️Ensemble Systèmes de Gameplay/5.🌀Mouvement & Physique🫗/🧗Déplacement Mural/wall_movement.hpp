@@ -60,8 +60,10 @@ class WallMovement2D : public MovementComponent
 
   private:
     WallSettings wall;
+    /// État calculé à la dernière image physique (is_sliding / is_climbing).
     bool sliding = false;
     bool climbing = false;
+    /// Normale du dernier mur touché (sens du saut mural).
     Vector2 last_normal;
 };
 
@@ -87,6 +89,7 @@ class WallMovement3D : public MovementComponent
 
   private:
     WallSettings wall;
+    /// État calculé à la dernière image physique (is_sliding / is_climbing).
     bool sliding = false;
     bool climbing = false;
 };

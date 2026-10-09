@@ -1,31 +1,64 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GroupEntry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Groupe de données affichées ensemble dans un conteneur (boîte, grille, cadre ou onglets).
 	</brief_description>
 	<description>
+		Le groupe s'affiche à la place de la [b]première[/b] de ses données dans l'ordre du [DataRegistry], et les présente dans l'ordre de [member data_names]. Une donnée n'appartient qu'à un groupe. Un nom qui ne désigne aucune donnée affichable est signalé par « ⚠ donnée manquante » sous le titre.
+		Un groupe [constant CONTAINER_TABS] ne contient que d'autres groupes ([member child_groups]), un par onglet.
+		[codeblock]
+		var groupes := GroupRegistry.new()
+		var stats := groupes.ensure("Statistiques")
+		stats.container_type = GroupEntry.CONTAINER_GRID
+		stats.columns = 2
+		groupes.assign("vie", stats)
+		groupes.assign("force", stats)
+		$ProceduralEditor.group_registry = groupes
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
+		<member name="child_groups" type="PackedStringArray" setter="set_child_groups" getter="get_child_groups" default="PackedStringArray()">
+			Pour [constant CONTAINER_TABS] : noms des groupes affichés en onglets, dans cet ordre.
+		</member>
 		<member name="columns" type="int" setter="set_columns" getter="get_columns" default="2">
+			Nombre de colonnes d'un groupe [constant CONTAINER_GRID] (1 à 12).
 		</member>
 		<member name="container_type" type="int" setter="set_container_type" getter="get_container_type" enum="GroupEntry.ContainerType" default="0">
+			Conteneur du groupe. Choisir [constant CONTAINER_VBOX] ou [constant CONTAINER_HBOX] règle aussi [member is_vertical].
 		</member>
 		<member name="data_names" type="PackedStringArray" setter="set_data_names" getter="get_data_names" default="PackedStringArray()">
+			Données du groupe, dans l'ordre d'affichage.
 		</member>
 		<member name="group_name" type="String" setter="set_group_name" getter="get_group_name" default="&quot;&quot;">
+			Nom du groupe, affiché comme titre (ou titre de l'onglet).
+		</member>
+		<member name="icon" type="Texture2D" setter="set_icon" getter="get_icon">
+			Icône devant le titre du groupe (et de son onglet).
 		</member>
 		<member name="is_vertical" type="bool" setter="set_is_vertical" getter="get_is_vertical" default="true">
+			Orientation de la boîte d'un groupe [constant CONTAINER_PANEL] (et des boîtes en général).
+		</member>
+		<member name="style" type="InterfaceStyle" setter="set_style" getter="get_style">
+			Style du groupe (titre et conteneur) ; son fond est dessiné dans un cadre autour du groupe.
 		</member>
 	</members>
 	<constants>
 		<constant name="CONTAINER_VBOX" value="0" enum="ContainerType">
+			Données empilées verticalement.
 		</constant>
 		<constant name="CONTAINER_HBOX" value="1" enum="ContainerType">
+			Données côte à côte.
 		</constant>
 		<constant name="CONTAINER_GRID" value="2" enum="ContainerType">
+			Données en grille de [member columns] colonnes.
 		</constant>
 		<constant name="CONTAINER_PANEL" value="3" enum="ContainerType">
+			Données dans un cadre ([PanelContainer]) orienté par [member is_vertical].
+		</constant>
+		<constant name="CONTAINER_TABS" value="4" enum="ContainerType">
+			Onglets : un onglet par groupe de [member child_groups].
 		</constant>
 	</constants>
 </class>

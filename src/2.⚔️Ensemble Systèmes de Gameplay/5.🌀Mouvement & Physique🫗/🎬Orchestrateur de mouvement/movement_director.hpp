@@ -17,6 +17,7 @@ class MovementContext : public Resource
     GDCLASS(MovementContext, Resource)
 
   public:
+    /// Condition d'activation automatique d'un contexte (évaluée par MovementDirector::is_condition_met).
     enum Condition
     {
         CONDITION_ALWAYS,
@@ -53,6 +54,7 @@ class MovementContext : public Resource
     Condition condition = CONDITION_ALWAYS;
     String expression;
     int priority = 0;
+    /// Expression analysée à la première évaluation (remise à zéro par set_expression) ; parse_failed évite de répéter l'avertissement.
     Ref<Expression> parsed;
     bool parse_failed = false;
 };
@@ -119,13 +121,16 @@ class MovementDirector : public Node
     TypedArray<MovementContext> contexts;
     bool auto_switch = true;
     bool auto_configure = true;
+    /// Contexte courant et contexte forcé par set_context (vide = automatique).
     StringName current;
     StringName forced;
+    /// Dernière intention reçue : recopiée sur les composants activés par _apply.
     Vector2 move_input;
     bool jump_held = false;
     bool running = false;
     float vertical_input = 0.0f;
 
+    /// Active les composants du contexte et désactive les autres composants cités dans un contexte (les autres ne sont pas touchés).
     void _apply(const Ref<MovementContext> &p_context);
 
     DEBUG_MODE_DECLARATIONS()

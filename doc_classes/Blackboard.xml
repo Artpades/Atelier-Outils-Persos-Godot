@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Blackboard" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Tableau noir : valeurs nommées partagées par les états d'une [StateMachine], les nœuds d'un [BehaviorTree] et les dialogues.
 	</brief_description>
 	<description>
+		Dictionnaire de valeurs (clés [String]) que les comportements lisent et écrivent. Les clés qui sont des identifiants valides sont utilisables directement dans les expressions des conditions ([member BTCondition.expression], [member StateTransition.condition], conditions de dialogue) : [code]vie &lt; 20 and cible != null[/code].
+		Une même ressource peut être donnée à une [StateMachine], un [BehaviorTree] et un [DialogueSystem] pour qu'ils communiquent. Elle est locale à la scène ([member Resource.resource_local_to_scene]) : chaque instance d'une scène reçoit sa propre copie.
+		[codeblock]
+		var tableau := Blackboard.new()
+		tableau.set_values({"vie": 100, "cible": null})
+		$StateMachine.blackboard = tableau
+		$BehaviorTree.blackboard = tableau
+		tableau.value_changed.connect(func(cle, valeur): print(cle, " = ", valeur))
+		tableau.set_value("vie", 15) # affiche « vie = 15 »
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,17 +21,20 @@
 		<method name="clear">
 			<return type="void" />
 			<description>
+				Vide le tableau noir. Émet [signal Resource.changed] (pas [signal value_changed]).
 			</description>
 		</method>
 		<method name="erase_value">
 			<return type="void" />
 			<param index="0" name="key" type="String" />
 			<description>
+				Supprime [param key] et émet [signal value_changed] avec une valeur [code]null[/code]. Sans effet si la clé n'existe pas.
 			</description>
 		</method>
 		<method name="get_keys" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie la liste des clés.
 			</description>
 		</method>
 		<method name="get_value" qualifiers="const">
@@ -28,12 +42,14 @@
 			<param index="0" name="key" type="String" />
 			<param index="1" name="default" type="Variant" default="null" />
 			<description>
+				Renvoie la valeur de [param key], ou [param default] si la clé est absente.
 			</description>
 		</method>
 		<method name="has_value" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="key" type="String" />
 			<description>
+				Renvoie [code]true[/code] si [param key] existe (même si sa valeur est [code]null[/code]).
 			</description>
 		</method>
 		<method name="set_value">
@@ -41,12 +57,14 @@
 			<param index="0" name="key" type="String" />
 			<param index="1" name="value" type="Variant" />
 			<description>
+				Écrit [param value] sous [param key] et émet [signal value_changed], seulement si la valeur change réellement (même valeur [b]et[/b] même type : passer de [code]1[/code] à [code]1.0[/code] émet le signal).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="true" />
 		<member name="values" type="Dictionary" setter="set_values" getter="get_values" default="{}">
+			Toutes les valeurs. L'affectation remplace le contenu (clés converties en [String]) et émet [signal Resource.changed], pas [signal value_changed]. Attention : le getter renvoie le dictionnaire interne lui-même ; le modifier directement ([code]values["x"] = 1[/code]) change le tableau noir [b]sans[/b] émettre de signal. Utiliser [method set_value].
 		</member>
 	</members>
 	<signals>
@@ -54,6 +72,7 @@
 			<param index="0" name="key" type="String" />
 			<param index="1" name="value" type="Variant" />
 			<description>
+				Émis par [method set_value] (quand la valeur change) et [method erase_value] (avec [param value] = [code]null[/code]).
 			</description>
 		</signal>
 	</signals>

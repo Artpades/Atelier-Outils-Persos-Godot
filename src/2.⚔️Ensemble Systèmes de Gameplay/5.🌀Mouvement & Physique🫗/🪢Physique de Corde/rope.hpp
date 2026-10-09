@@ -92,14 +92,17 @@ class Rope2D : public Node2D
     double width = 3.0;
     Color color = Color(0.8, 0.65, 0.4);
 
+    /// Positions courantes et précédentes (Verlet) des points, corps accrochés, dernier pas de temps (vitesses).
     LocalVector<Vector2> points;
     LocalVector<Vector2> previous;
     LocalVector<Attachment> attachments;
     double last_delta = 1.0 / 60.0;
+    /// Registre des cordes dans l'arbre (en jeu), parcouru par find_rope_of / find_nearest.
     static LocalVector<ObjectID> ropes;
 
     Vector2 _start_position() const;
     Node2D *_end_anchor() const;
+    /// Une image : Verlet + poids des accroches, ancrages, contraintes de longueur, collisions, puis déplacement des corps accrochés.
     void _simulate(double p_delta);
 
     DEBUG_MODE_DECLARATIONS()
@@ -177,6 +180,7 @@ class Rope3D : public Node3D
     double attached_weight = 1.5;
     Color color = Color(0.8, 0.65, 0.4);
 
+    /// Positions courantes et précédentes (Verlet) des points, corps accrochés, dernier pas de temps (vitesses).
     LocalVector<Vector3> points;
     LocalVector<Vector3> previous;
     LocalVector<Attachment> attachments;
@@ -184,10 +188,12 @@ class Rope3D : public Node3D
     MeshInstance3D *mesh_instance = nullptr; // enfant interne possédé
     Ref<ImmediateMesh> mesh;
     Ref<StandardMaterial3D> material;
+    /// Registre des cordes dans l'arbre (en jeu), parcouru par find_rope_of / find_nearest.
     static LocalVector<ObjectID> ropes;
 
     Vector3 _start_position() const;
     Node3D *_end_anchor() const;
+    /// Une image : Verlet + poids des accroches, ancrages, contraintes de longueur, collisions, puis déplacement des corps accrochés.
     void _simulate(double p_delta);
     void _redraw();
 
@@ -215,6 +221,7 @@ class RopeMovement2D : public MovementComponent
     double get_regrab_delay() const { return regrab_delay; }
 
     bool try_grab();
+    /// Décroche le corps avec la vitesse de la corde (plus jump_up_velocity vers le haut si p_jump).
     void release(bool p_jump = false);
     bool is_attached() const { return Rope2D::find_rope_of(get_body()) != nullptr; }
     Rope2D *get_rope() const { return Rope2D::find_rope_of(get_body()); }
@@ -231,6 +238,7 @@ class RopeMovement2D : public MovementComponent
     double swing_force = 2000.0;
     double jump_up_velocity = 320.0;
     double regrab_delay = 0.3;
+    /// Instant du dernier lâcher (Time, temps réel) pour regrab_delay.
     uint64_t released_msec = 0;
 };
 
@@ -254,6 +262,7 @@ class RopeMovement3D : public MovementComponent
     double get_regrab_delay() const { return regrab_delay; }
 
     bool try_grab();
+    /// Décroche le corps avec la vitesse de la corde (plus jump_up_velocity vers le haut si p_jump).
     void release(bool p_jump = false);
     bool is_attached() const { return Rope3D::find_rope_of(get_body()) != nullptr; }
     Rope3D *get_rope() const { return Rope3D::find_rope_of(get_body()); }
@@ -270,6 +279,7 @@ class RopeMovement3D : public MovementComponent
     double swing_force = 30.0;
     double jump_up_velocity = 4.5;
     double regrab_delay = 0.3;
+    /// Instant du dernier lâcher (Time, temps réel) pour regrab_delay.
     uint64_t released_msec = 0;
 };
 } // namespace godot

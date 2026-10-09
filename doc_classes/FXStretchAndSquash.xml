@@ -1,27 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXStretchAndSquash" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🪗 Effet « squash and stretch » : étire la cible dans le sens de son mouvement et l'écrase lors d'un impact (chute brutale de vitesse).
 	</brief_description>
 	<description>
+		Tant que l'effet est actif, la vitesse de la cible est mesurée à chaque frame à partir de sa position globale (aucune physique requise : fonctionne sur tout [Control], [Node2D] ou [Node3D] qui se déplace).
+		- [b]Étirement[/b] : plus la vitesse approche [member max_speed], plus la cible s'allonge dans l'axe du mouvement et s'amincit dans l'autre (volume à peu près conservé), jusqu'à [member max_stretch].
+		- [b]Impact[/b] : si la vitesse chute de plus de [member impact_threshold] d'une frame à l'autre (atterrissage, collision), la cible est écrasée dans l'axe de l'ancien mouvement, puis reprend sa forme selon [member impact_recovery_speed]. En 3D, seul l'axe vertical est écrasé.
+		Les vitesses sont exprimées dans l'unité de la cible : pixels par seconde en 2D, mètres par seconde en 3D (les valeurs par défaut sont prévues pour la 2D). L'échelle et la rotation de la cible sont mémorisées au jeu et restaurées instantanément à l'arrêt.
+		[codeblock]
+		# Balle (CharacterBody2D) qui s'étire en volant et s'écrase en touchant le sol
+		# └─ PlayerFX (special_effects : [FXStretchAndSquash])
+		func _ready() -> void:
+			$PlayerFX.play()   # l'effet reste actif : il réagit à chaque déplacement
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="enable_impact_squash" type="bool" setter="set_enable_impact_squash" getter="get_enable_impact_squash" default="true">
+			Active l'écrasement à l'impact, déclenché par une chute brutale de vitesse.
 		</member>
 		<member name="impact_recovery_speed" type="float" setter="set_impact_recovery_speed" getter="get_impact_recovery_speed" default="12.0">
+			Rapidité avec laquelle l'écrasement d'impact se résorbe (fraction [code]impact_recovery_speed × delta[/code] retirée à chaque frame).
 		</member>
 		<member name="impact_threshold" type="float" setter="set_impact_threshold" getter="get_impact_threshold" default="300.0">
+			Perte de vitesse minimale entre deux frames (px/s en 2D, m/s en 3D) pour déclencher un écrasement. Trop bas, de simples changements de direction déclenchent des impacts.
 		</member>
 		<member name="max_impact_squash" type="float" setter="set_max_impact_squash" getter="get_max_impact_squash" default="0.4">
+			Écrasement maximal d'un impact ([code]0.4[/code] : la cible perd jusqu'à 40 % dans l'axe de l'impact). L'intensité est proportionnelle à la perte de vitesse rapportée à [member max_speed].
 		</member>
 		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="600.0">
+			Vitesse (px/s en 2D, m/s en 3D) à laquelle l'étirement atteint [member max_stretch]. Sert aussi de référence pour l'intensité des impacts.
 		</member>
 		<member name="max_stretch" type="float" setter="set_max_stretch" getter="get_max_stretch" default="0.5">
+			Étirement maximal : à [code]0.5[/code], la cible s'allonge jusqu'à 1,5 fois dans l'axe du mouvement.
 		</member>
 		<member name="orient_to_velocity" type="bool" setter="set_orient_to_velocity" getter="get_orient_to_velocity" default="false">
+			Si [code]true[/code], la cible est tournée dans la direction de son mouvement (axe X local en 2D, axe -Z en 3D) et étirée le long de cet axe. Sa rotation est donc écrasée à chaque frame où elle bouge.
 		</member>
 		<member name="smooth_speed" type="float" setter="set_smooth_speed" getter="get_smooth_speed" default="15.0">
+			Rapidité avec laquelle l'échelle rejoint la déformation visée (fraction [code]smooth_speed × delta[/code] par frame). Plus bas, la déformation est plus molle et en retard.
 		</member>
 	</members>
 </class>

@@ -9,17 +9,17 @@
 
 namespace godot
 {
-// Entrée du registre de données : configuration d'affichage d'UN membre (propriété, méthode ou signal).
-// Port de DataEntry (C#), sans ExtraData : les réglages sont une Resource typée (WidgetSettings).
-//
-// Les valeurs des énumérations sont EXPLICITES et ne doivent jamais être renumérotées : elles sont
-// enregistrées comme entiers dans les .tres. Toute nouvelle valeur s'ajoute à la fin.
+/// Entrée du registre de données : configuration d'affichage d'UN membre (propriété, méthode ou signal).
+/// Port de DataEntry (C#), sans ExtraData : les réglages sont une Resource typée (WidgetSettings).
+///
+/// Les valeurs des énumérations sont EXPLICITES et ne doivent jamais être renumérotées : elles sont
+/// enregistrées comme entiers dans les .tres. Toute nouvelle valeur s'ajoute à la fin.
 class DataEntry : public Resource
 {
     GDCLASS(DataEntry, Resource)
 
   public:
-    // Catégorie de membre introspectable (get_property_list / get_method_list / get_signal_list).
+    /// Catégorie de membre introspectable (get_property_list / get_method_list / get_signal_list).
     enum MemberKind
     {
         MEMBER_PROPERTY = 0,
@@ -28,7 +28,7 @@ class DataEntry : public Resource
         MEMBER_PREVIEW = 3, // aperçu personnalisé (PreviewWidget) : pas un membre de l'objet, jamais « manquant »
     };
 
-    // Famille de donnée, déduite de l'introspection (WidgetTable::kind_of). Détermine les widgets autorisés.
+    /// Famille de donnée, déduite de l'introspection (WidgetTable::kind_of). Détermine les widgets autorisés.
     enum DataKind
     {
         KIND_UNSUPPORTED = 0,
@@ -51,7 +51,7 @@ class DataEntry : public Resource
         KIND_PREVIEW = 17,
     };
 
-    // Widget choisi pour une donnée. Les choix valides dépendent du DataKind (WidgetTable::allowed_for).
+    /// Widget choisi pour une donnée. Les choix valides dépendent du DataKind (WidgetTable::allowed_for).
     enum WidgetChoice
     {
         WIDGET_AUTO = 0,
@@ -83,16 +83,16 @@ class DataEntry : public Resource
         WIDGET_PREVIEW = 26, // aperçu (classe dans PreviewSettings::preview_class)
     };
 
-    // Périmètre des membres scannés par DataRegistry::sync.
+    /// Périmètre des membres scannés par DataRegistry::sync.
     enum InspectionScope
     {
-        // Membres du script s'il y en a un, sinon ceux de la classe de l'objet (SCOPE_CLASS_ONLY).
+        /// Membres du script s'il y en a un, sinon ceux de la classe de l'objet (SCOPE_CLASS_ONLY).
         SCOPE_AUTO = 0,
-        // Uniquement les membres déclarés par le script attaché.
+        /// Uniquement les membres déclarés par le script attaché.
         SCOPE_SCRIPT_ONLY = 1,
-        // Tous les membres, y compris ceux du moteur (très long pour un Node).
+        /// Tous les membres, y compris ceux du moteur (très long pour un Node).
         SCOPE_ALL = 2,
-        // Uniquement les membres déclarés par la classe de l'objet (sans ses classes parentes).
+        /// Uniquement les membres déclarés par la classe de l'objet (sans ses classes parentes).
         SCOPE_CLASS_ONLY = 3,
     };
 
@@ -101,19 +101,19 @@ class DataEntry : public Resource
     MemberKind member = MEMBER_PROPERTY;
     DataKind kind = KIND_UNSUPPORTED;
     WidgetChoice widget_choice = WIDGET_AUTO;
-    // Classe (native ou class_name) héritant de PropertyWidget, utilisée quand widget_choice vaut WIDGET_CUSTOM.
+    /// Classe (native ou class_name) héritant de PropertyWidget, utilisée quand widget_choice vaut WIDGET_CUSTOM.
     StringName custom_widget_class;
     Ref<WidgetSettings> settings;
     String tooltip; // infobulle (BBCode, modèle dynamique {propriété} / {fonction()})
     bool is_vertical = false;
     bool enabled = true;
     bool is_missing = false;
-    // Signal : liens en mode ressource (appliqués par DataRegistry::apply_links). Les liens natifs vivent dans la scène.
+    /// Signal : liens en mode ressource (appliqués par DataRegistry::apply_links). Les liens natifs vivent dans la scène.
     TypedArray<SignalLink> links;
 
   protected:
     static void _bind_methods();
-    // Restreint la liste de widget_choice aux choix autorisés pour le type (inspecteur Godot et ProceduralEditor).
+    /// Restreint la liste de widget_choice aux choix autorisés pour le type (inspecteur Godot et ProceduralEditor).
     void _validate_property(PropertyInfo &p_property) const;
 
   public:
@@ -140,7 +140,7 @@ class DataEntry : public Resource
     void set_links(const TypedArray<SignalLink> &p_links);
     TypedArray<SignalLink> get_links() const;
 
-    // Widget effectivement utilisé : résout AUTO et remplace un choix devenu invalide pour le DataKind.
+    /// Widget effectivement utilisé : résout AUTO et remplace un choix devenu invalide pour le DataKind.
     WidgetChoice resolved_choice() const;
 };
 } // namespace godot

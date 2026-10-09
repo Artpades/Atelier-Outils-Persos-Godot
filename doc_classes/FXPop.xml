@@ -1,29 +1,50 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXPop" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💥 Effet qui fait jaillir un ou plusieurs pops (texte, image, scène) de la cible à chaque jeu : idéal en effet enchaîné.
 	</brief_description>
 	<description>
+		Version « effet » du [PopSpawner] : au jeu, [member count] pops sont créés depuis la cible, avec le même fonctionnement (style, conteneur automatique, 2D / 3D). L'effet n'a pas d'état et rien ne se passe à l'arrêt : les pops vivent leur vie et se libèrent seuls.
+		Il se combine naturellement avec les autres effets : « +1 » à la collecte d'un objet, « Paf ! » en même temps qu'une secousse, pièces qui jaillissent d'un coffre. Contrairement au [PopSpawner], il n'a ni limite de pops, ni signal, ni position imposée.
+		[codeblock]
+		var paf := FXPop.new()
+		paf.text = "Paf !"
+		paf.color = Color.YELLOW
+		var secousse := FXShake.new()
+		secousse.effects_on_play_fx = [paf]   # le texte jaillit au début de la secousse
+		$PlayerFX.special_effects = [secousse]
+		$PlayerFX.play()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0, 0, 0, 0)">
+			Couleur du texte. Alpha nul (par défaut) : [member PopStyle.text_color].
 		</member>
 		<member name="count" type="int" setter="set_count" getter="get_count" default="1">
+			Nombre de pops créés à chaque jeu (gerbe de pièces, étincelles...). Chacun tire sa propre direction et vitesse.
 		</member>
 		<member name="offset" type="Vector3" setter="set_offset" getter="get_offset" default="Vector3(0, 0, 0)">
+			Décalage du point d'apparition par rapport à la cible : en pixels pour une cible 2D (y vers le bas), en mètres pour une cible 3D.
 		</member>
 		<member name="scene" type="PackedScene" setter="set_scene" getter="get_scene">
+			Scène instanciée dans chaque pop (facultative), derrière l'image et le texte.
 		</member>
 		<member name="screen_space_3d" type="bool" setter="set_screen_space_3d" getter="get_screen_space_3d" default="false">
+			Pour une cible 3D : pop dessiné en 2D par-dessus l'écran à la position projetée de la cible, au lieu d'un pop 3D. Voir [member PopSpawner.screen_space_3d].
 		</member>
 		<member name="style" type="PopStyle" setter="set_style" getter="get_style">
+			Réglages du mouvement et de l'apparence des pops. Vide : un [PopStyle] par défaut.
 		</member>
 		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+			Texte du pop (facultatif). Texte, image et scène vides : rien n'est créé et un avertissement est affiché.
 		</member>
 		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+			Image du pop (facultative), affichée à la taille [member PopStyle.icon_size] à gauche du texte.
 		</member>
 		<member name="unit_scale_3d" type="float" setter="set_unit_scale_3d" getter="get_unit_scale_3d" default="0.01">
+			Conversion des pixels du [PopStyle] en mètres pour les pops 3D (0,01 : 100 px = 1 m).
 		</member>
 	</members>
 </class>

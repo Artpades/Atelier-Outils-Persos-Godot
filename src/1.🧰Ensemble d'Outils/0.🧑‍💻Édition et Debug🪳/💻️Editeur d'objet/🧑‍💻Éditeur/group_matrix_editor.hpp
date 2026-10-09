@@ -9,10 +9,10 @@
 
 namespace godot
 {
-// Onglet « Groupes » de la fenêtre de configuration (éditeur, port de GroupMatrixEditor C#) : un bloc par
-// groupe (ordre, nom, conteneur VBox / HBox / Grid / Panel, colonnes, orientation, suppression) avec ses
-// données (retrait, ajout ; une donnée n'appartient qu'à un groupe). Les noms qui ne désignent aucune donnée
-// ou une donnée manquante (is_missing) sont signalés par ⚠. Émet "registry_changed" après chaque modification.
+/// Onglet « Groupes » de la fenêtre de configuration (éditeur, port de GroupMatrixEditor C#) : un bloc par
+/// groupe (ordre, nom, conteneur VBox / HBox / Grid / Panel, colonnes, orientation, suppression) avec ses
+/// données (retrait, ajout ; une donnée n'appartient qu'à un groupe). Les noms qui ne désignent aucune donnée
+/// ou une donnée manquante (is_missing) sont signalés par ⚠. Émet "registry_changed" après chaque modification.
 class GroupMatrixEditor : public VBoxContainer
 {
     GDCLASS(GroupMatrixEditor, VBoxContainer)

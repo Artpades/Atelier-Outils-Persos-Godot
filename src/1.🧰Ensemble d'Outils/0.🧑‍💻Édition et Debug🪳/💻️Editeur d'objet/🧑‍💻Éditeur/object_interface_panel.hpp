@@ -19,12 +19,12 @@
 
 namespace godot
 {
-// Panneau d'édition d'un objet ET de son interface (éditeur ; fenêtre de la barre d'outils) :
-// - l'interface est celle du type de l'objet dans la base du projet (LayoutDatabase) ; s'il n'en a pas, une
-//   nouvelle interface est préparée pour son type, ajoutée à la base seulement à l'enregistrement ;
-// - onglets Aperçu (ProceduralEditor) / Données / Groupes / Gizmos (mêmes éditeurs que les autres fenêtres) ;
-// - « Enregistrer » écrit la base (créée si besoin) ; les gizmos du type sont dessinés en direct.
-// Une interface héritée d'une classe parente peut être copiée en une interface propre au type de l'objet.
+/// Panneau d'édition d'un objet ET de son interface (éditeur ; fenêtre de la barre d'outils) :
+/// - l'interface est celle du type de l'objet dans la base du projet (LayoutDatabase) ; s'il n'en a pas, une
+///   nouvelle interface est préparée pour son type, ajoutée à la base seulement à l'enregistrement ;
+/// - onglets Aperçu (ProceduralEditor) / Données / Groupes / Gizmos (mêmes éditeurs que les autres fenêtres) ;
+/// - « Enregistrer » écrit la base (créée si besoin) ; les gizmos du type sont dessinés en direct.
+/// Une interface héritée d'une classe parente peut être copiée en une interface propre au type de l'objet.
 class ObjectInterfacePanel : public VBoxContainer
 {
     GDCLASS(ObjectInterfacePanel, VBoxContainer)
@@ -37,7 +37,7 @@ class ObjectInterfacePanel : public VBoxContainer
     bool pending = false; // layout pas encore dans la base (ajouté à l'enregistrement)
     bool dirty = false;
 
-    // Enfants possédés.
+    /// Enfants possédés.
     Label *type_label = nullptr;
     Label *dirty_label = nullptr;
     Button *own_button = nullptr;
@@ -72,7 +72,7 @@ class ObjectInterfacePanel : public VBoxContainer
     GizmoListEditor *get_gizmo_list() const;
     InterfaceStyleEditor *get_style_editor() const;
     GizmoHost *get_gizmo_host() const;
-    // Ajoute l'interface à la base si besoin et écrit la base à l'emplacement du réglage de projet.
+    /// Ajoute l'interface à la base si besoin et écrit la base à l'emplacement du réglage de projet.
     Error save();
 };
 } // namespace godot

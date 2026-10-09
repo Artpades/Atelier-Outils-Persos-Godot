@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ContainerWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Base des widgets qui contiennent d'autres widgets (collections, objets) : section repliable construite à l'ouverture.
 	</brief_description>
 	<description>
+		Le contenu n'est construit qu'à l'ouverture (dépliage paresseux), puis reconstruit seulement quand la [b]structure[/b] de la valeur change (taille, clés, types, objet) ; les valeurs des éléments sont suivies par leurs propres widgets. Disposition : boîte, grille, flux ou onglets selon le choix. Réglages : [ContainerWidgetSettings].
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

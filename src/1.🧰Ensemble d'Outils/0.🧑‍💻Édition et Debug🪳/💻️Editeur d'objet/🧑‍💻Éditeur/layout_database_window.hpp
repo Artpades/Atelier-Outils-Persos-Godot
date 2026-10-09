@@ -19,11 +19,11 @@
 
 namespace godot
 {
-// Fenêtre « Interfaces par type » (éditeur) : édite la LayoutDatabase du projet (réglage
-// gameplay_toolkit/object_editor/layout_database). À gauche les types ; à droite, pour le type choisi, ses
-// réglages (ProceduralEditor), puis les onglets Données / Groupes / Gizmos (mêmes éditeurs que les autres
-// fenêtres). Les membres d'un type sont lus sur une instance d'exemple (créée puis libérée).
-// Les modifications sont en mémoire jusqu'à « Enregistrer ». Une seule fenêtre ouverte à la fois.
+/// Fenêtre « Interfaces par type » (éditeur) : édite la LayoutDatabase du projet (réglage
+/// gameplay_toolkit/object_editor/layout_database). À gauche les types ; à droite, pour le type choisi, ses
+/// réglages (ProceduralEditor), puis les onglets Données / Groupes / Gizmos (mêmes éditeurs que les autres
+/// fenêtres). Les membres d'un type sont lus sur une instance d'exemple (créée puis libérée).
+/// Les modifications sont en mémoire jusqu'à « Enregistrer ». Une seule fenêtre ouverte à la fois.
 class LayoutDatabaseWindow : public Window
 {
     GDCLASS(LayoutDatabaseWindow, Window)
@@ -34,7 +34,7 @@ class LayoutDatabaseWindow : public Window
     Ref<LayoutDatabase> database;
     int selected = -1;
 
-    // Enfants possédés.
+    /// Enfants possédés.
     Label *path_label = nullptr;
     Label *dirty_label = nullptr;
     Button *create_button = nullptr;
@@ -71,7 +71,7 @@ class LayoutDatabaseWindow : public Window
   public:
     static LayoutDatabaseWindow *open();
     static void close_current();
-    // Crée une instance d'exemple d'un type (classe native ou class_name) ; Variant nul si impossible.
+    /// Crée une instance d'exemple d'un type (classe native ou class_name) ; Variant nul si impossible.
     static Variant instantiate_sample(const String &p_type);
     Ref<LayoutDatabase> get_database() const;
 };

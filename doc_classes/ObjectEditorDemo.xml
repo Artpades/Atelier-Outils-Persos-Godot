@@ -1,16 +1,63 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ObjectEditorDemo" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Nœud de démonstration et de test de l'éditeur d'objet : une propriété de chaque type pris en charge.
 	</brief_description>
 	<description>
+		Ses propriétés sont dynamiques (booléen, entier, décimal borné, enums, flags, textes, couleurs, toutes les structures, RID, collections typées et libres, ressource, nœud, chemin, Variant) et couvrent les cas particuliers :
+		- [code]valeur_bornee[/code] : le setter borne la valeur entre 0 et 10 (correction du widget après écriture) ;
+		- [code]lecture_seule[/code] et [code]rid[/code] : lecture seule ;
+		- [code]compteur[/code] : modifié de l'extérieur par [method increment_counter], ou toutes les 0,5 s si [code]auto_increment[/code] ;
+		- [code]dernier_appel[/code] : écrit par [method recevoir], cible des liens de signaux.
+		Voir la scène [code]🧪Démos de modules/0.🧰🧑‍💻/Démo éditeur d'objet.tscn[/code].
+		[codeblock]
+		var demo := ObjectEditorDemo.new()
+		add_child(demo)
+		demo.set("auto_increment", true)
+		ObjectEditorWindow.open_for(demo)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="combine" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="count" type="int" default="3" />
+			<param index="1" name="text" type="String" default="&quot;x&quot;" />
+			<description>
+				Renvoie [param text] répété [param count] fois (méthode à deux arguments avec valeurs par défaut, pour tester le bouton de méthode).
+			</description>
+		</method>
+		<method name="emettre">
+			<return type="void" />
+			<param index="0" name="nouvelle" type="int" />
+			<description>
+				Écrit [param nouvelle] dans [code]entier[/code] puis émet [signal valeur_changee].
+			</description>
+		</method>
 		<method name="increment_counter">
 			<return type="void" />
 			<description>
+				Ajoute 1 à la propriété [code]compteur[/code] (modification externe).
+			</description>
+		</method>
+		<method name="recevoir">
+			<return type="void" />
+			<param index="0" name="a" type="int" />
+			<param index="1" name="b" type="String" />
+			<param index="2" name="c" type="float" />
+			<description>
+				Écrit [code]"a|b|c"[/code] dans la propriété [code]dernier_appel[/code] (cible de liens de signaux).
 			</description>
 		</method>
 	</methods>
+	<signals>
+		<signal name="valeur_changee">
+			<param index="0" name="nouvelle" type="int" />
+			<param index="1" name="ancienne" type="int" />
+			<description>
+				Émis par [method emettre] avec la nouvelle et l'ancienne valeur de [code]entier[/code].
+			</description>
+		</signal>
+	</signals>
 </class>

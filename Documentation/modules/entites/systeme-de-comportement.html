@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Système de Comportement · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🤾 Système de Comportement (arbres de comportement, machine à états hiérarchique, tableau noir, vue en graphe) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/entites/systeme-de-comportement.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🤾</div>
+    <div>
+      <h1>🤾_BehaviorSystem - Entités &amp; Algorithme - Documentation</h1>
+      <p class="subtitle">Module <strong>Système de Comportement</strong> : intelligence des personnages par arbre de comportement et machine à états hiérarchique, avec tableau noir partagé, éditeur en graphe et débogage en direct.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/entity_algorithm</code></span>
+        <span class="badge">24 classes : BehaviorTree · 19 BTNode · StateMachine · State · StateTransition · Blackboard · BehaviorGraphView</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un garde qui patrouille, poursuit l'intrus puis l'attaque ; un récolteur qui va chercher des pièces mais fuit quand on l'approche : écrit dans un seul <code>_physics_process</code>, ce genre de comportement devient vite un mur de <code>if</code> et de variables d'état, impossible à visualiser et fragile à modifier. <strong>Ce module découpe le comportement en petits nœuds de scène réutilisables</strong>, que l'on agence dans l'arbre de scène ou dans un éditeur en graphe, et que l'on peut regarder s'exécuter en direct.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🌿 Arbre de comportement — <code>BehaviorTree</code></h4>
+      <p>Des priorités et des enchaînements : « fuir si en danger, sinon récolter, sinon errer ». Séquences, sélecteurs, parallèles, décorateurs (inverseur, répéteur, recharge, limite de temps) et feuilles (conditions, attentes, actions par script).</p>
+    </div>
+    <div class="card">
+      <h4>🤖 Machine à états hiérarchique — <code>StateMachine</code></h4>
+      <p>Des états exclusifs et leurs transitions : « Patrouille → Alerte (Poursuite ⇄ Attaque) → Étourdi ». Sous-états, mémoire du dernier sous-état, transitions sur événement, condition ou durée.</p>
+    </div>
+    <div class="card">
+      <h4>🧩 Commun — <code>Blackboard</code>, <code>BehaviorGraphView</code></h4>
+      <p>Un tableau noir de valeurs partagées et lisibles dans des expressions (<code>vie &lt; 20 and cible != null</code>), et une vue en graphe (TechTree / MindMap) pour éditer et déboguer.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui écrivent l'IA des ennemis et PNJ (actions et états en GDScript), et les game designers qui ajustent priorités, conditions et durées dans l'inspecteur ou l'éditeur en graphe, sans toucher au code.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de déplacement ni de recherche de chemin</strong> : il décide <em>quoi</em> faire, pas <em>comment</em> se déplacer. Les actions prêtes à l'emploi pour personnages (<code>BTFindTarget</code>, <code>BTMoveTo</code>, <code>BTUseAbility</code>) sont dans le module <em>🧑 Personnage</em> ; le mouvement, dans <em>🌀 Mouvement &amp; Physique</em>.</li>
+      <li><strong>Pas un remplaçant de l'<code>AnimationTree</code></strong> : la machine à états pilote la logique ; les états d'animation restent dans l'<code>AnimationTree</code> (un état peut y faire <code>travel()</code>).</li>
+      <li><strong>Pas un système de dialogue</strong>, même s'il en partage le tableau noir et la vue en graphe : voir <a href="systeme-de-dialogue.html">💬 Système de Dialogue</a>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF de la démo « Démo HFSM » : le garde passe de Patrouille à Alerte/Poursuite puis Attaque quand on approche la souris, avec en bas la <code>BehaviorGraphView</code> dont l'état actif s'allume en cyan et les flèches de transition s'animent.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/entity_algorithm/</code> (<code>gameplaytoolkit_entity_algorithm.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient toutes les classes du module, le plugin d'éditeur (bouton « 🗺️ Éditeur de comportement », débogueur) et les modules voisins de la même catégorie (dialogue, personnages, capacités).</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧍🧠/</code> et <code>res://🖼️Editor Icons/🧰🧑‍💻/</code></td><td>Optionnelle</td><td>Seulement pour les icônes des nœuds dans l'arbre de scène. Sans elles, Godot affiche les icônes par défaut.</td></tr>
+        <tr><td>Module <em>🧑 Personnage</em></td><td>Optionnelle</td><td>Fournit des personnages 2D/3D et des feuilles prêtes à l'emploi (<code>BTFindTarget</code>, <code>BTMoveTo</code>, <code>BTUseAbility</code>). Même bibliothèque.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons entity_algorithm</code></pre>
+      <div class="why">compile uniquement la bibliothèque <em>Entités &amp; Algorithme</em> et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/entity_algorithm/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/entity_algorithm/</code>.
+      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/entity_algorithm/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage, et le plugin d'éditeur (inspecteur, débogueur) n'est installé qu'à ce moment. Les recompilations suivantes sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>BehaviorTree</code>, <code>BTSequence</code>, <code>StateMachine</code>, <code>State</code>… et l'inspecteur d'une <code>StateMachine</code> doit afficher le bouton <kbd>🗺️ Éditeur de comportement</kbd>.
+      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet n'est requis. Le débogage en direct fonctionne automatiquement pour un jeu lancé depuis l'éditeur (F5 / F6) ; il est inactif dans un export.</p>
+  <p>Des démos jouables et des suites de tests se trouvent dans <code>GameplayToolkit/🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/</code> (« Démo Arbre de Comportement », « Démo HFSM »).</p>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la boîte « Ajouter un nœud » filtrée sur « BT » (liste des BTNode avec leurs icônes), puis de l'inspecteur d'une StateMachine avec le bouton « 🗺️ Éditeur de comportement » en tête.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-arbre">A. Un ennemi qui fuit quand il est blessé, sinon patrouille (BehaviorTree)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Sous le nœud de l'ennemi (par exemple un <code>CharacterBody2D</code>), ajouter un <code>BehaviorTree</code></strong> et régler <code>process_callback</code> sur <em>Physics</em>.
+      <div class="why">l'arbre pilote son parent (l'« agent ») ; l'exécuter dans la boucle physique le synchronise avec les déplacements.</div>
+    </li>
+    <li>
+      <strong>Sous le <code>BehaviorTree</code>, ajouter un <code>BTSelector</code></strong> et cocher <code>reactive</code>.
+      <div class="why">c'est la racine : elle essaie ses branches dans l'ordre de priorité. En mode réactif, la branche prioritaire (fuir) est réévaluée à chaque tick et peut interrompre la patrouille.</div>
+    </li>
+    <li>
+      <strong>Sous le sélecteur, ajouter un <code>BTSequence</code> contenant un <code>BTCondition</code> (<code>expression</code> = <code>vie &lt; 30</code>) puis un <code>BTAction</code></strong> nommé « Fuir ».
+      <div class="why">une séquence n'exécute l'action que si la condition réussit : « si blessé, alors fuir ». La condition lit la clé <code>vie</code> du tableau noir.</div>
+    </li>
+    <li>
+      <strong>Attacher un script à « Fuir »</strong> :
+      <pre><code class="gdscript">extends BTAction
+
+func _tick(_delta: float) -> int:
+	var agent: CharacterBody2D = get_agent()
+	var menace: Vector2 = get_blackboard().get_value("menace", Vector2.ZERO)
+	agent.velocity = (agent.global_position - menace).normalized() * 200.0
+	agent.move_and_slide()
+	return RUNNING # fuit tant que la condition reste vraie</code></pre>
+      <div class="why"><code>RUNNING</code> signifie « pas fini » : l'action est rappelée au tick suivant. Comme le sélecteur est réactif, dès que <code>vie &gt;= 30</code>, la séquence échoue et l'arbre passe à la branche suivante.</div>
+    </li>
+    <li>
+      <strong>Ajouter en second enfant du sélecteur une action « Patrouiller »</strong> (même principe), puis alimenter le tableau noir depuis l'ennemi :
+      <pre><code class="gdscript">func prendre_degats(montant: int, source: Vector2) -> void:
+	vie -= montant
+	$BehaviorTree.blackboard.set_value("vie", vie)
+	$BehaviorTree.blackboard.set_value("menace", source)</code></pre>
+      <div class="why">le tableau noir est la mémoire partagée de l'arbre : le jeu y écrit, les conditions et actions y lisent.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène, puis sélectionner le <code>BehaviorTree</code> et cliquer sur <kbd>🗺️ Éditeur de comportement</kbd></strong>.
+      <div class="why">la fenêtre montre l'arbre en direct pendant que le jeu tourne : branche en cours en ambre, succès en vert, échecs en rouge.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-hfsm">B. Un garde à états : Patrouille ⇄ Alerte (StateMachine)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Sous le garde, ajouter une <code>StateMachine</code>, puis deux <code>State</code> enfants : « Patrouille » et « Alerte »</strong>.
+      <div class="why">un seul état enfant est actif à la fois ; le premier est l'état initial (modifiable avec <code>initial_state</code>). La machine démarre seule (<code>autostart</code>).</div>
+    </li>
+    <li>
+      <strong>Sur « Patrouille », ajouter une transition</strong> dans <code>transitions</code> : <code>target_state</code> = <code>../Alerte</code>, <code>condition</code> = <code>distance &lt; 120</code>. Sur « Alerte », la transition inverse avec <code>distance &gt; 220</code>.
+      <div class="why">sans <code>event</code>, la transition est automatique : vérifiée à chaque image. Les deux seuils différents évitent les allers-retours incessants à la frontière.</div>
+    </li>
+    <li>
+      <strong>Attacher un script à chaque état</strong> pour son comportement :
+      <pre><code class="gdscript">extends State # Alerte
+
+func _on_enter() -> void:
+	get_agent().vitesse = 170.0
+
+func _on_physics_update(_delta: float) -> void:
+	get_agent().aller_vers(get_agent().intrus)</code></pre>
+      <div class="why"><code>_on_enter</code> / <code>_on_exit</code> règlent l'état une seule fois ; les mises à jour ne sont appelées que pour l'état actif.</div>
+    </li>
+    <li>
+      <strong>Mettre à jour la distance dans le tableau noir</strong>, depuis le script du garde :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	$StateMachine.blackboard.set_value("distance", global_position.distance_to(intrus))</code></pre>
+      <div class="why">les conditions des transitions ne lisent que le tableau noir et l'agent : c'est le point de contact entre le jeu et la machine.</div>
+    </li>
+    <li>
+      <strong>Envoyer un événement</strong> pour les réactions ponctuelles : ajouter un état « Etourdi », une transition depuis « Patrouille » avec <code>event</code> = <code>etourdir</code>, et une transition retour avec <code>min_time_in_state</code> = <code>2</code>, puis :
+      <pre><code class="gdscript">func _on_coup_recu() -> void:
+	$StateMachine.send_event(&amp;"etourdir")</code></pre>
+      <div class="why">un événement n'est pris en compte que si l'état actif (ou un parent) a une transition qui l'attend : le garde déjà étourdi ignore un second coup.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/*.xml</code>. Seuls les éléments <strong>exposés à Godot</strong> figurent ici ; le reste est interne et peut changer sans préavis :</p>
+  <ul>
+    <li><strong>Classes d'éditeur internes</strong> (sans référence publique) : <code>BehaviorEditorPlugin</code> (plugin du module), <code>BehaviorInspectorPlugin</code> (boutons de l'inspecteur), <code>BehaviorDebuggerPlugin</code> (réception des messages du jeu), <code>BehaviorEditorWindow</code> (fenêtre « Éditeur de comportement »).</li>
+    <li><strong>Classes de jeu internes</strong> : <code>BehaviorDebugger</code> (relais qui envoie les instantanés à l'éditeur, messages <code>behavior:runners</code>, <code>behavior:snapshot</code>, <code>behavior:watch</code>) et <code>BehaviorExpression</code> (évaluateur d'expressions, classe C++ non enregistrée).</li>
+    <li><code>State</code> : les méthodes <code>_internal_enter</code>, <code>_internal_exit</code>, <code>_internal_update</code>… appelées par la machine (non exposées). <code>StateMachine</code> : la file des transitions en attente. <code>BTNode</code> : les comportements natifs <code>_native_tick</code> / <code>_native_enter</code> / <code>_native_exit</code> des classes C++.</li>
+    <li>Le format exact des « instantanés » (<code>get_debug_snapshot</code>) est décrit dans les en-têtes C++ et peut évoluer.</li>
+    <li><code>BTFindTarget</code>, <code>BTMoveTo</code> et <code>BTUseAbility</code> sont documentés avec le module <em>🧑 Personnage</em>. Cochez « membres hérités » pour voir les méthodes de <code>BTNode</code> / <code>State</code> dans les tableaux des classes filles.</li>
+  </ul>
+
+  <h3 id="api-arbre">🌿 Arbre de comportement</h3>
+  <div data-api="BehaviorTree BTNode BTComposite BTOrderedComposite BTSequence BTSelector BTParallel BTDecorator BTInverter BTForceResult BTRepeater BTCooldown BTTimeLimit BTAction BTCondition BTWait BTSetValue BTCallMethod BTSendEvent"></div>
+
+  <h3 id="api-hfsm">🤖 Machine à états hiérarchique (HFSM)</h3>
+  <div data-api="StateMachine State StateTransition"></div>
+
+  <h3 id="api-graphe">🗺️ Graphe de comportement</h3>
+  <div data-api="BehaviorGraphView"></div>
+
+  <h3 id="api-commun">🧩 Commun</h3>
+  <div data-api="Blackboard"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-expressions">Comment j'écris une condition sans script ?</h3>
+  <p><code>BTCondition.expression</code>, <code>StateTransition.condition</code> et <code>BTSetValue.value_expression</code> sont des <code>Expression</code> Godot. On y dispose de chaque clé du tableau noir (si c'est un identifiant valide), de <code>agent</code>, de <code>blackboard</code>, et des méthodes de l'agent appelées directement.</p>
+  <pre><code class="gdscript"># Exemples d'expressions valides
+vie &lt; 20 and cible != null
+is_on_floor() and not blesse              # méthode de l'agent
+agent.global_position.distance_to(cible.global_position) &lt; 64
+blackboard.get_value("mode", "calme") == "furieux"   # clé non identifiant
+munitions - 1                              # (BTSetValue) valeur calculée</code></pre>
+
+  <h3 id="ex-cooldown">Comment j'empêche une attaque d'être répétée trop souvent ?</h3>
+  <p>Envelopper l'action dans un <code>BTCooldown</code> ; ajouter un <code>BTTimeLimit</code> si elle peut se bloquer. Construit ici par code, ce qui équivaut à l'agencement dans l'arbre de scène.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var attaque := BTSequence.new()
+	var a_portee := BTCondition.new()
+	a_portee.expression = "distance &lt; 40"
+	var recharge := BTCooldown.new()
+	recharge.duration = 3.0
+	var limite := BTTimeLimit.new()
+	limite.duration = 1.5
+	limite.add_child(preload("res://ia/coup_special.gd").new())  # extends BTAction
+	recharge.add_child(limite)
+	attaque.add_child(a_portee)
+	attaque.add_child(recharge)
+	$BehaviorTree/Racine.add_child(attaque)
+	$BehaviorTree/Racine.move_child(attaque, 0)   # priorité maximale</code></pre>
+
+  <h3 id="ex-attente">Comment je fais attendre l'IA un temps aléatoire ?</h3>
+  <p><code>BTWait</code> avec <code>random_deviation</code> : la durée est tirée à chaque nouvelle exécution. Une séquence « regarder autour — attendre — repartir » paraît ainsi moins mécanique.</p>
+  <pre><code class="gdscript">var pause := BTWait.new()
+pause.duration = 2.0
+pause.random_deviation = 1.0   # entre 1 et 3 secondes
+$BehaviorTree/Racine/Errance.add_child(pause)</code></pre>
+
+  <h3 id="ex-callmethod">Comment j'appelle une méthode existante sans écrire d'action ?</h3>
+  <p><code>BTCallMethod</code> appelle une méthode de l'agent (ou d'un de ses enfants) et peut ranger le résultat dans le tableau noir ou s'en servir comme statut.</p>
+  <pre><code class="gdscript">var recharger := BTCallMethod.new()
+recharger.node_path = ^"Arme"           # relatif à l'agent
+recharger.method = &amp;"recharger"         # func recharger() -> bool
+recharger.use_result_as_status = true   # false => FAILURE
+recharger.result_key = "rechargee"</code></pre>
+
+  <h3 id="ex-hierarchie">Comment j'organise des sous-états (état composé, mémoire) ?</h3>
+  <p>Un <code>State</code> qui a des enfants <code>State</code> est composé. Ses transitions s'appliquent quel que soit le sous-état actif : « Alerte → Patrouille » quitte aussi bien « Poursuite » qu'« Attaque ». Avec <code>remember_last_substate</code>, revenir en Alerte reprend le dernier sous-état.</p>
+  <pre><code class="gdscript"># Garde
+# └ StateMachine
+#   ├ Patrouille        ──[distance &lt; 120]──▶ ../Alerte
+#   ├ Alerte (remember_last_substate)  ──[distance &gt; 220]──▶ ../Patrouille
+#   │ ├ Poursuite       ──[distance &lt; 30]──▶ ../Attaque
+#   │ └ Attaque         ──[distance &gt; 45]──▶ ../Poursuite
+#   └ Etourdi           ──[⏱ 2 s]──▶ ../Patrouille
+func _ready() -> void:
+	$StateMachine.state_changed.connect(func(de: State, vers: State):
+		$Etiquette.text = " / ".join($StateMachine.get_active_path().map(func(e): return e.name)))</code></pre>
+
+  <h3 id="ex-event-consomme">Comment un état intercepte-t-il un événement avant ses parents ?</h3>
+  <p>Les événements remontent de la feuille vers la racine ; un état les consomme en renvoyant <code>true</code> dans <code>_on_event</code>. Ici, en Attaque, un coup reçu provoque une parade au lieu de l'étourdissement géré plus haut.</p>
+  <pre><code class="gdscript">extends State # Attaque
+
+func _on_event(evenement: StringName, donnees: Variant) -> bool:
+	if evenement == &amp;"etourdir" and get_agent().peut_parer():
+		get_agent().parer(donnees)
+		return true   # consommé : pas de transition vers Etourdi
+	return false</code></pre>
+
+  <h3 id="ex-check">Comment j'écris une condition de transition en GDScript ?</h3>
+  <p>Étendre <code>StateTransition</code> et redéfinir <code>_check</code> : utile quand la condition est trop complexe pour une expression. Elle se combine (« et ») avec <code>condition</code> et <code>min_time_in_state</code>.</p>
+  <pre><code class="gdscript">class_name TransitionLigneDeVue
+extends StateTransition
+
+func _check(etat: Node) -> bool:
+	var agent: Node2D = etat.get_agent()
+	var rayon: RayCast2D = agent.get_node("Vue")
+	return rayon.is_colliding() and rayon.get_collider().is_in_group("joueur")</code></pre>
+
+  <h3 id="ex-combinaison">Comment je combine arbre et machine à états ?</h3>
+  <p>L'arbre décide, la machine gère la posture : <code>BTSendEvent</code> envoie un événement à la première <code>StateMachine</code> enfant de l'agent. En partageant le même <code>Blackboard</code>, les deux voient les mêmes valeurs.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var tableau := Blackboard.new()
+	$BehaviorTree.blackboard = tableau
+	$StateMachine.blackboard = tableau     # avant le démarrage (autostart différé)
+
+	var alerter := BTSendEvent.new()
+	alerter.event = &amp;"alerte"
+	alerter.require_consumed = true        # échoue si la machine ignore l'événement
+	$BehaviorTree/Racine/Detection.add_child(alerter)</code></pre>
+
+  <h3 id="ex-tour">Comment j'exécute l'IA au tour par tour ?</h3>
+  <p><code>PROCESS_MANUAL</code> : rien ne s'exécute tout seul. Chaque appel à <code>tick()</code> fait un pas de l'arbre ; pour une machine à états, <code>update()</code> met à jour les états et vérifie les transitions.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$BehaviorTree.process_callback = BehaviorTree.PROCESS_MANUAL
+
+func jouer_tour_ennemi() -> void:
+	var statut: int = $BehaviorTree.tick(1.0)   # 1 « seconde » par tour pour les BTWait / BTCooldown
+	while statut == BTNode.RUNNING:
+		await get_tree().create_timer(0.2).timeout
+		statut = $BehaviorTree.tick(1.0)
+	fin_du_tour()</code></pre>
+
+  <h3 id="ex-perf">Comment je fais tourner beaucoup d'agents à moindre coût ?</h3>
+  <p><code>tick_interval</code> espace les ticks ; le <code>delta</code> reçu est alors le temps cumulé, donc <code>BTWait</code> et <code>BTCooldown</code> restent justes. Décaler les agents évite qu'ils réfléchissent tous à la même image.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$BehaviorTree.tick_interval = 0.2       # 5 décisions par seconde
+	$BehaviorTree.active = false
+	await get_tree().create_timer(randf() * 0.2).timeout
+	$BehaviorTree.active = true</code></pre>
+
+  <h3 id="ex-graphe">Comment j'affiche le comportement d'un ennemi en jeu (débogage, démo) ?</h3>
+  <p><code>BehaviorGraphView</code> est un <code>Control</code> ordinaire : on l'ajoute à une interface et on lui donne une cible. Elle accepte aussi un <code>DialogueSystem</code>.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var vue := BehaviorGraphView.new()
+	vue.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	vue.custom_minimum_size.y = 260
+	vue.layout_mode = BehaviorGraphView.LAYOUT_TOP_DOWN
+	$CanvasLayer.add_child(vue)
+	vue.set_target($Ennemi/StateMachine)
+	vue.node_activated.connect(func(id: String): vue.center_on(id))</code></pre>
+
+  <h3 id="ex-editeur">Comment je modifie l'arbre ou la machine dans l'éditeur en graphe ?</h3>
+  <p>Sélectionner la <code>StateMachine</code>, le <code>BehaviorTree</code> ou l'un de leurs nœuds, puis <kbd>🗺️ Éditeur de comportement</kbd>. Clic droit sur un nœud : ajouter un enfant / sous-état, envelopper dans un décorateur, ajouter / modifier / retirer une transition, définir l'état initial, renommer, monter / descendre, supprimer, ouvrir le script. Glisser un nœud sur un autre le déplace ; <kbd>Maj</kbd> + glisser crée une transition. Tout est annulable. La fenêtre suit la sélection de l'éditeur (sauf si elle est épinglée) et, jeu lancé, affiche le même comportement en direct.</p>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la fenêtre « Éditeur de comportement » sur la démo HFSM, menu contextuel ouvert sur l'état « Alerte » (Ajouter un sous-état, Ajouter une transition…), arcs orange des transitions automatiques et violets des transitions sur événement.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-arbre">Arbre de comportement</h3>
+  <ul>
+    <li><strong>L'arbre tourne en boucle.</strong> Quand la racine termine, <code>finished</code> est émis et l'arbre recommence au tick suivant, indéfiniment. Pour un comportement « une seule fois », passer <code>active</code> à <code>false</code> dans <code>finished</code>, ou utiliser <code>PROCESS_MANUAL</code>.</li>
+    <li><strong>Redéfinir <code>_tick</code> remplace le comportement natif.</strong> Un script sur un <code>BTWait</code>, un <code>BTSequence</code> ou un <code>BTCooldown</code> qui redéfinit <code>_tick</code> désactive entièrement leur logique C++ (testé : un <code>BTWait</code> scripté n'attend plus). <code>_on_enter</code> / <code>_on_exit</code>, eux, s'ajoutent au comportement natif.</li>
+    <li><strong>Une seule racine.</strong> Seul le premier enfant <code>BTNode</code> du <code>BehaviorTree</code> est exécuté ; un décorateur n'utilise que son premier enfant (avertissements de configuration dans l'éditeur).</li>
+    <li><strong>Mode réactif = coûts répétés.</strong> Avec <code>reactive</code>, les enfants placés avant l'enfant en cours sont réexécutés à chaque tick (et leurs <code>_on_enter</code> / <code>_on_exit</code> rappelés s'ils terminent à chaque fois).</li>
+    <li><strong><code>BTCooldown</code> survit aux interruptions.</strong> Sa recharge est basée sur le temps de l'arbre et n'est pas remise à zéro par <code>interrupt()</code> ni par la désactivation de l'arbre (utiliser <code>reset_cooldown()</code>).</li>
+    <li><strong><code>BTRepeater</code> sans fin.</strong> Avec <code>count = 0</code> en mode <em>Always</em>, il reste <code>RUNNING</code> pour toujours ; en mode « jusqu'à » avec <code>count = 0</code>, tant que la condition d'arrêt n'arrive pas.</li>
+    <li><strong><code>BTCallMethod</code> est instantané</strong> : il ne peut pas attendre la fin d'une méthode asynchrone (<code>await</code>) ; écrire une <code>BTAction</code> pour cela.</li>
+    <li><strong><code>tick()</code> ignore <code>active</code></strong> : un arbre inactif s'exécute quand même si on l'appelle à la main.</li>
+    <li><strong>Pas d'agent typé</strong> : <code>get_agent()</code> renvoie un <code>Node</code> ; une faute de frappe dans un nom de propriété n'est détectée qu'à l'exécution.</li>
+  </ul>
+
+  <h3 id="limites-hfsm">Machine à états</h3>
+  <ul>
+    <li><strong>Les <code>StateTransition</code> sont partagées entre les instances d'une scène.</strong> Ce sont des sous-ressources non locales à la scène : instancier deux fois le même ennemi donne deux états qui pointent sur <em>les mêmes</em> objets transition (vérifié en test). Modifier une transition en jeu (<code>enabled = false</code>, <code>condition</code>…) la modifie pour tous les ennemis. Pour un réglage par instance, dupliquer le tableau (<code>transitions = transitions.map(func(t): return t.duplicate())</code>) ou cocher <em>Local to Scene</em> sur les transitions. Le <code>Blackboard</code>, lui, est bien local à chaque instance.</li>
+    <li><strong>Une seule transition automatique par mise à jour</strong>, la première remplie en partant de la feuille ; l'ordre du tableau <code>transitions</code> compte.</li>
+    <li><strong>Transitions toujours externes</strong> : une transition vers soi-même ou vers un sous-état ressort de l'état source et y rentre (<code>_on_exit</code> puis <code>_on_enter</code>).</li>
+    <li><strong>Transitions demandées pendant une transition</strong> (dans <code>_on_enter</code>) : mises en file, franchies juste après ; <code>transition_to()</code> renvoie alors <code>true</code> avant que la transition ait eu lieu. Au-delà de 16 en chaîne, les suivantes sont abandonnées (erreur).</li>
+    <li><strong>Mode <em>Physics</em> : temps mixte.</strong> Les transitions sont vérifiées dans <code>_physics_process</code>, mais <code>get_time_in_state()</code> (donc <code>min_time_in_state</code>) est cumulé par <code>_process</code>.</li>
+    <li><strong>Mode manuel : <code>physics_update()</code> ne vérifie pas les transitions</strong>, seul <code>update()</code> le fait.</li>
+    <li><strong>Démarrage différé.</strong> Avec <code>autostart</code>, la machine démarre après le <code>_ready</code> de l'agent (<code>call_deferred</code>) : dans ce <code>_ready</code>, <code>get_active_state()</code> vaut encore <code>null</code> et <code>send_event()</code> renvoie <code>false</code>.</li>
+    <li><strong>Machine imbriquée</strong> : ses <code>autostart</code>, <code>process_callback</code>, <code>agent_path</code> et <code>blackboard</code> sont ignorés ; appeler <code>start()</code> dessus produit une erreur.</li>
+    <li><strong>Chemins fragiles</strong> : <code>target_state</code> et <code>initial_state</code> sont des <code>NodePath</code>. Renommer ou déplacer un état dans l'arbre de scène les casse (avertissement de configuration) ; l'éditeur en graphe, lui, répare les chemins.</li>
+  </ul>
+
+  <h3 id="limites-commun">Expressions, tableau noir et graphe</h3>
+  <ul>
+    <li><strong>Expressions évaluées à chaque vérification</strong> : coût d'une <code>Expression</code> par condition et par image (l'analyse est mise en cache, mais réanalysée dès qu'une clé est ajoutée ou retirée du tableau noir). Une expression invalide vaut <em>faux</em> sans erreur bloquante (avertissement une fois).</li>
+    <li><strong>Clés inaccessibles par leur nom</strong> : les clés qui ne sont pas des identifiants ASCII, et les mots réservés (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>, <code>true</code>, <code>false</code>, <code>null</code>, <code>self</code>, <code>PI</code>, <code>TAU</code>, <code>INF</code>, <code>NAN</code>, ainsi que <code>agent</code> et <code>blackboard</code>) ne sont lisibles que par <code>blackboard.get_value("…")</code>. Une clé absente fait échouer l'expression : initialiser les clés au démarrage.</li>
+    <li><strong><code>Blackboard.values</code> n'est pas une copie.</strong> Modifier le dictionnaire renvoyé change le tableau noir <em>sans</em> émettre <code>value_changed</code> (vérifié). <code>set_values()</code> et <code>clear()</code> émettent <code>changed</code>, pas <code>value_changed</code>.</li>
+    <li><strong><code>BehaviorGraphView</code> reconstruit tout à chaque relecture</strong> (10 fois par seconde par défaut) : prévoir son coût sur de très grands arbres, ou augmenter <code>refresh_interval</code>. La disposition est automatique (pas de placement libre des nœuds).</li>
+    <li><strong>Débogage limité au jeu lancé depuis l'éditeur</strong> : dans un export, le relais est inactif ; seule une <code>BehaviorGraphView</code> intégrée au jeu peut afficher l'état. Les comportements sont repérés par leur chemin dans la scène courante : deux instances à des chemins identiques ne se distinguent pas.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 360" role="img" aria-label="Schéma d'architecture du Système de Comportement">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <!-- Agent -->
+    <rect class="box" x="330" y="14" width="200" height="50" rx="8"/>
+    <text x="430" y="36" text-anchor="middle">Agent (personnage)</text>
+    <text x="430" y="54" text-anchor="middle" class="small">parent par défaut</text>
+    <!-- BT -->
+    <text x="20" y="96" class="small">🌿 Arbre de comportement</text>
+    <rect class="box main" x="20" y="106" width="180" height="54" rx="8"/>
+    <text x="110" y="130" text-anchor="middle">BehaviorTree</text>
+    <text x="110" y="148" text-anchor="middle" class="small">tick → racine</text>
+    <rect class="box" x="20" y="190" width="180" height="70" rx="8"/>
+    <text x="110" y="212" text-anchor="middle">BTNode</text>
+    <text x="110" y="230" text-anchor="middle" class="small">composites · décorateurs</text>
+    <text x="110" y="246" text-anchor="middle" class="small">feuilles (scripts)</text>
+    <path class="arrow" d="M110 160 V188" marker-end="url(#arr)"/>
+    <text x="118" y="178" class="small">execute()</text>
+    <!-- HFSM -->
+    <text x="660" y="96" class="small">🤖 Machine à états</text>
+    <rect class="box main" x="660" y="106" width="180" height="54" rx="8"/>
+    <text x="750" y="130" text-anchor="middle">StateMachine</text>
+    <text x="750" y="148" text-anchor="middle" class="small">chemin actif · file</text>
+    <rect class="box" x="660" y="190" width="180" height="54" rx="8"/>
+    <text x="750" y="214" text-anchor="middle">State ×N</text>
+    <text x="750" y="232" text-anchor="middle" class="small">_on_enter / _on_event…</text>
+    <rect class="box" x="660" y="270" width="180" height="40" rx="8"/>
+    <text x="750" y="295" text-anchor="middle">StateTransition</text>
+    <path class="arrow" d="M750 160 V188" marker-end="url(#arr)"/>
+    <path class="arrow" d="M750 244 V268" marker-end="url(#arr)"/>
+    <!-- Blackboard -->
+    <rect class="box" x="330" y="160" width="200" height="54" rx="8"/>
+    <text x="430" y="184" text-anchor="middle">Blackboard</text>
+    <text x="430" y="202" text-anchor="middle" class="small">+ BehaviorExpression</text>
+    <path class="arrow dashed" d="M200 225 Q270 200 328 190" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M660 290 Q580 250 532 200" marker-end="url(#arr)"/>
+    <text x="250" y="196" class="small">conditions</text>
+    <path class="arrow" d="M200 120 Q300 60 330 44" marker-end="url(#arr)"/>
+    <path class="arrow" d="M660 120 Q560 60 530 44" marker-end="url(#arr)"/>
+    <text x="250" y="70" class="small">get_agent()</text>
+    <path class="arrow" d="M200 250 Q430 330 658 220" marker-end="url(#arr)"/>
+    <text x="400" y="306" text-anchor="middle" class="small">BTSendEvent → send_event()</text>
+    <!-- Débogage -->
+    <rect class="box" x="20" y="300" width="200" height="50" rx="8"/>
+    <text x="120" y="322" text-anchor="middle">BehaviorGraphView</text>
+    <text x="120" y="340" text-anchor="middle" class="small">get_debug_snapshot()</text>
+    <rect class="box" x="250" y="320" width="300" height="34" rx="8"/>
+    <text x="400" y="342" text-anchor="middle" class="small">BehaviorDebugger (jeu) ⇄ BehaviorDebuggerPlugin (éditeur)</text>
+    <path class="arrow dashed" d="M110 298 V262" marker-end="url(#arr)"/>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Arbre</strong> : le <code>BehaviorTree</code> appelle directement <code>execute(delta)</code> sur sa racine, qui appelle ses enfants, etc. Pas de signal entre nœuds : tout est appel direct et valeur de retour (<code>SUCCESS</code> / <code>FAILURE</code> / <code>RUNNING</code>). Les nœuds trouvent leur arbre en remontant leurs parents <code>BTNode</code>, puis l'agent et le tableau noir via l'arbre.</li>
+    <li><strong>Machine à états</strong> : la <code>StateMachine</code> tient le chemin actif (chaque état mémorise son sous-état actif). Elle appelle les méthodes virtuelles des états (appels directs) et émet ses signaux (<code>state_changed</code>, <code>transitioned</code>…) pour le reste du jeu. Les transitions sont des ressources passives, interrogées par la machine (<code>is_satisfied</code>).</li>
+    <li><strong>Tableau noir</strong> : ressource partagée, seul canal entre le jeu et les conditions. Les expressions sont évaluées par <code>BehaviorExpression</code> (une instance par condition, analyse mise en cache).</li>
+    <li><strong>Pont arbre → machine</strong> : <code>BTSendEvent</code> appelle <code>send_event()</code> sur une machine de l'agent.</li>
+    <li><strong>Débogage</strong> : chaque exécuteur produit un instantané (<code>get_debug_snapshot()</code>, un <code>Dictionary</code>) ; <code>BehaviorGraphView</code> le dessine, soit en le lisant directement (en jeu), soit en le recevant de l'éditeur. En jeu lancé depuis l'éditeur, les exécuteurs s'inscrivent auprès du singleton interne <code>BehaviorDebugger</code>, qui envoie à l'éditeur la liste des comportements vivants (1 fois/s) et les instantanés des comportements observés (10 fois/s) par <code>EngineDebugger</code>.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Arbre, machine et dialogue dépendent du <code>Blackboard</code> et de <code>BehaviorExpression</code> (dossier <em>🧩 Commun</em>) ; l'arbre dépend de la machine uniquement via <code>BTSendEvent</code>.</li>
+    <li><code>BehaviorGraphView</code> connaît les trois exécuteurs (<code>StateMachine</code>, <code>BehaviorTree</code>, <code>DialogueSystem</code>) pour <code>resolve_runner()</code>, mais ne les modifie jamais.</li>
+    <li>Le module <em>🧑 Personnage</em> dépend de celui-ci (feuilles <code>BTFindTarget</code>, <code>BTMoveTo</code>, <code>BTUseAbility</code>, <code>AutomateController</code>) ; l'inverse n'est pas vrai : l'agent est un simple <code>Node</code>.</li>
+    <li>Tout est compilé dans <code>entity_algorithm_register.cpp</code> → <code>bin/entity_algorithm/</code>. Un module d'une autre bibliothèque passe par Godot (<code>ClassDB</code>, <code>call</code>, <code>connect</code>) sans inclure les <code>.hpp</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Nœuds de comportement = <strong>nœuds de scène</strong> (pas des ressources)</td><td>Ils s'éditent dans l'arbre de scène, reçoivent un script et des <code>@export</code> comme n'importe quel nœud, et chaque instance d'ennemi a son propre état d'exécution sans duplication manuelle.</td></tr>
+        <tr><td>Méthodes virtuelles (<code>_tick</code>, <code>_on_enter</code>…) plutôt que signaux</td><td>Une feuille doit <em>renvoyer</em> un statut et un état doit pouvoir <em>consommer</em> un événement : un retour de fonction l'exprime directement, sans état partagé.</td></tr>
+        <tr><td>Conditions sous forme d'<code>Expression</code> texte</td><td>Les game designers règlent les seuils dans l'inspecteur sans script ; l'analyse est mise en cache pour limiter le coût.</td></tr>
+        <tr><td>Transitions externes, file pour les transitions imbriquées</td><td>Sémantique simple et prévisible (sortie puis entrée), et aucune réentrance : une transition demandée dans <code>_on_enter</code> ne peut pas casser celle en cours.</td></tr>
+        <tr><td>Une seule transition automatique par mise à jour</td><td>Évite les cascades imprévisibles dans une même image ; un état fraîchement entré a au moins une mise à jour avant de repartir.</td></tr>
+        <tr><td>Démarrage différé de la machine</td><td>L'agent (parent) n'est prêt qu'après ses enfants : un <code>_on_enter</code> appelé dans le <code>_ready</code> de la machine trouverait un agent pas encore initialisé.</td></tr>
+        <tr><td>Horloge propre à l'arbre pour <code>BTCooldown</code></td><td>La recharge suit la pause, le ralenti et <code>tick_interval</code> de l'arbre, et fonctionne en tour par tour.</td></tr>
+        <tr><td><code>Blackboard</code> local à la scène par défaut</td><td>Chaque instance d'un ennemi doit avoir sa propre mémoire (vie, cible) même si la ressource est enregistrée dans la scène.</td></tr>
+        <tr><td>Instantanés en <code>Dictionary</code> pour le graphe et le débogueur</td><td>Le même format passe par le réseau de débogage (jeu → éditeur) et se lit en local : une seule vue sert à l'édition, au débogage à distance et à l'affichage en jeu.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des 24 classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Arbre de comportement : <code>BehaviorTree</code>, composites (séquence, sélecteur, parallèle), décorateurs (inverseur, résultat forcé, répéteur, recharge, limite de temps), feuilles (action, condition, attente, écriture, appel de méthode, événement).</li>
+      <li><span class="tag add">Ajouté</span>Machine à états hiérarchique : <code>StateMachine</code>, <code>State</code>, <code>StateTransition</code> (événements, conditions, durée minimale, mémoire des sous-états).</li>
+      <li><span class="tag add">Ajouté</span><code>Blackboard</code> et expressions partagées ; <code>BehaviorGraphView</code> ; éditeur en graphe et débogage en direct du jeu.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🤾 Système de Comportement · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/4.🧍Entités &amp; Algorithme🧠/🤾Système de Comportement/</code> · démos et tests : <code>GameplayToolkit/🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  // 🌿 BehaviorTree
+  "BehaviorTree.active": "Désactiver l'IA pendant une cinématique, un étourdissement géré ailleurs, ou quand l'ennemi est hors écran.",
+  "BehaviorTree.process_callback": "<em>Physics</em> pour un <code>CharacterBody</code> ; <em>Manual</em> pour le tour par tour ou une IA cadencée par votre code.",
+  "BehaviorTree.tick_interval": "Des dizaines d'ennemis : 0,1 à 0,3 s suffit pour des décisions, sans coût à chaque image.",
+  "BehaviorTree.agent_path": "Arbre rangé ailleurs que directement sous le personnage (nœud « IA » regroupant plusieurs composants).",
+  "BehaviorTree.blackboard": "Partager la mémoire avec une <code>StateMachine</code> ou un dialogue ; préremplir des valeurs dans l'inspecteur.",
+  "BehaviorTree.tick": "Tour par tour, tests automatiques, ou IA déclenchée par un événement (à chaque bruit entendu).",
+  "BehaviorTree.interrupt": "Réagir immédiatement à un événement (coup reçu, téléportation) : la prochaine décision repart de zéro.",
+  "BehaviorTree.get_root_bt_node": "Ajouter des branches par code ou parcourir l'arbre.",
+  "BehaviorTree.get_agent_node": "Depuis un outil externe, retrouver le personnage piloté par l'arbre.",
+  "BehaviorTree.get_last_status": "Afficher l'état de l'IA (« en cours », « échec ») dans un HUD de débogage.",
+  "BehaviorTree.get_tick_count": "Statistiques de performance, ou ne faire quelque chose qu'un tick sur N.",
+  "BehaviorTree.get_elapsed_time": "Horloge de l'IA, cohérente avec les <code>BTCooldown</code> (suit la pause et le tour par tour).",
+  "BehaviorTree.get_debug_snapshot": "Outil de débogage maison, export du comportement en JSON.",
+  "BehaviorTree.ticked": "Rafraîchir un affichage de débogage à chaque décision.",
+  "BehaviorTree.finished": "Comportement « une seule fois » (désactiver l'arbre), ou compter les cycles d'une routine.",
+  "BehaviorTree.PROCESS_IDLE": "IA de menus, d'objets ou de PNJ sans physique.",
+  "BehaviorTree.PROCESS_PHYSICS": "Personnages qui se déplacent avec <code>move_and_slide()</code>.",
+  "BehaviorTree.PROCESS_MANUAL": "Tour par tour, ou IA déclenchée par votre propre ordonnanceur.",
+  // 🌿 BTNode
+  "BTNode._on_enter": "Lancer une animation, choisir une destination, réserver une ressource au début d'une action.",
+  "BTNode._on_exit": "Arrêter l'animation, libérer la réservation, remettre la vitesse à zéro, que l'action ait réussi ou été interrompue.",
+  "BTNode._tick": "La logique de votre action ou condition : renvoyer <code>RUNNING</code> tant qu'elle n'est pas finie.",
+  "BTNode.execute": "Écrire un composite ou un décorateur personnalisé qui exécute ses enfants.",
+  "BTNode.abort": "Composite personnalisé qui doit arrêter proprement un enfant en cours.",
+  "BTNode.get_behavior_tree": "Accéder aux réglages de l'arbre (temps, tick) depuis une action.",
+  "BTNode.get_agent": "Déplacer, animer, interroger le personnage depuis une action.",
+  "BTNode.get_blackboard": "Lire la cible, écrire un résultat à destination des autres nœuds.",
+  "BTNode.get_bt_children": "Composite personnalisé (choix aléatoire pondéré, enfant le plus prioritaire…).",
+  "BTNode.get_bt_child_count": "Vérifier qu'un composite personnalisé a bien des enfants.",
+  "BTNode.get_bt_child": "Décorateur ou composite personnalisé qui vise un enfant précis.",
+  "BTNode.get_last_status": "Tests automatiques, ou affichage de l'état d'une branche.",
+  "BTNode.is_running": "Savoir si une action longue est en cours (pour l'afficher ou l'interrompre).",
+  "BTNode.get_running_time": "Action à durée (« viser pendant 0,5 s »), ou abandon après un délai.",
+  "BTNode.get_last_tick": "Savoir si un nœud a été exécuté au dernier tick (débogage).",
+  "BTNode.get_debug_kind": "Outil de débogage maison qui colore les nœuds comme le graphe.",
+  "BTNode.get_debug_info": "Afficher le détail d'un nœud (compteur, temps restant) dans votre propre outil.",
+  "BTNode.SUCCESS": "Valeur de retour de <code>_tick</code> : l'action a réussi.",
+  "BTNode.FAILURE": "Valeur de retour de <code>_tick</code> : l'action a échoué (cible perdue, chemin impossible).",
+  "BTNode.RUNNING": "Valeur de retour de <code>_tick</code> : pas encore fini (déplacement en cours, animation).",
+  // 🌿 Composites et décorateurs
+  "BTOrderedComposite.reactive": "Sélecteur de priorités qui doit pouvoir interrompre une action longue quand une branche prioritaire redevient possible.",
+  "BTOrderedComposite.random_order": "Comportements variés : choisir au hasard entre plusieurs animations d'attente ou trajets.",
+  "BTParallel.success_threshold": "« Avancer en tirant » : 1 = réussir dès que le déplacement réussit.",
+  "BTParallel.failure_threshold": "0 = ne pas échouer tant qu'il reste un enfant en cours ; 1 (défaut) = le premier échec arrête tout.",
+  "BTDecorator.get_child_node": "Décorateur personnalisé qui exécute son enfant sous condition.",
+  "BTForceResult.result": "Étape facultative d'une séquence (<em>Success</em>), ou branche « d'essai » qui ne doit jamais réussir (<em>Failure</em>).",
+  "BTRepeater.count": "Rafale de N tirs, N tentatives d'ouverture d'une porte.",
+  "BTRepeater.mode": "Réessayer jusqu'à réussir, ou continuer tant que c'est possible.",
+  "BTRepeater.get_iteration": "Afficher « tentative 2/3 » ou adapter l'action au rang de l'essai.",
+  "BTRepeater.REPEAT_ALWAYS": "Répéter un nombre fixe de fois (rafale, routine).",
+  "BTRepeater.REPEAT_UNTIL_SUCCESS": "Réessayer une action qui peut échouer (crocheter, viser).",
+  "BTRepeater.REPEAT_UNTIL_FAILURE": "Continuer tant que possible (frapper tant que la cible est à portée).",
+  "BTCooldown.duration": "Attaque spéciale toutes les 5 s, cri d'alerte limité à un toutes les 10 s.",
+  "BTCooldown.include_failures": "Ne pas retenter tout de suite une action ratée (coûteuse ou bruyante).",
+  "BTCooldown.get_remaining": "Afficher le temps de recharge d'un boss, ou décider d'une autre action en attendant.",
+  "BTCooldown.reset_cooldown": "Phase 2 d'un boss : l'attaque redevient immédiatement disponible.",
+  "BTTimeLimit.duration": "Abandonner une poursuite ou un chemin bloqué au bout de quelques secondes.",
+  "BTCondition.expression": "Tests sans script : <code>vie &lt; 20</code>, <code>cible != null</code>, <code>is_on_floor()</code>.",
+  "BTCondition.get_error": "Afficher l'erreur d'une expression mal écrite dans un outil de débogage.",
+  "BTWait.duration": "Pause entre deux actions (regarder autour, recharger, reprendre son souffle).",
+  "BTWait.random_deviation": "Rendre le rythme moins mécanique en variant les pauses.",
+  "BTSetValue.key": "Mémoriser un résultat pour les autres nœuds (« derniere_position »).",
+  "BTSetValue.value_expression": "Calculer la valeur : <code>munitions - 1</code>, <code>agent.global_position</code>, <code>true</code>.",
+  "BTCallMethod.node_path": "Appeler une méthode d'un composant de l'agent (arme, animation, inventaire).",
+  "BTCallMethod.method": "Réutiliser une méthode existante (<code>sauter</code>, <code>recharger</code>) sans écrire d'action.",
+  "BTCallMethod.arguments": "Paramètres fixes de l'appel (force du saut, identifiant d'animation).",
+  "BTCallMethod.result_key": "Ranger le résultat (cible trouvée, distance) pour les nœuds suivants.",
+  "BTCallMethod.use_result_as_status": "Méthode qui renvoie <code>bool</code> : en faire une condition (<code>peut_voir_joueur()</code>).",
+  "BTSendEvent.state_machine_path": "Plusieurs machines sur l'agent : désigner la bonne.",
+  "BTSendEvent.event": "Faire changer la machine à états d'état depuis une décision de l'arbre (« attaquer », « fuir »).",
+  "BTSendEvent.require_consumed": "Faire échouer la branche si la machine n'a pas pu réagir (déjà occupée).",
+  // 🤖 StateMachine
+  "StateMachine.autostart": "Désactiver pour démarrer l'IA seulement quand le joueur entre dans la zone.",
+  "StateMachine.process_callback": "<em>Physics</em> quand les transitions dépendent des collisions ; <em>Manual</em> pour le tour par tour.",
+  "StateMachine.agent_path": "Machine rangée ailleurs que sous le personnage piloté.",
+  "StateMachine.blackboard": "Partager les valeurs avec un <code>BehaviorTree</code> ou un dialogue ; préremplir dans l'inspecteur.",
+  "StateMachine.history_size": "Garder plus de transitions pour comprendre un bug, ou 0 en production.",
+  "StateMachine.start": "Démarrer l'IA à la main (<code>autostart</code> désactivé), après avoir préparé le tableau noir.",
+  "StateMachine.stop": "Mort du personnage, cinématique : arrêter proprement (les <code>_on_exit</code> sont appelés).",
+  "StateMachine.restart": "Réapparition d'un ennemi : repartir des états initiaux en oubliant les sous-états mémorisés.",
+  "StateMachine.is_running": "Ne pas envoyer d'événement à une machine arrêtée.",
+  "StateMachine.is_root_machine": "Outil générique qui doit savoir si une machine s'exécute elle-même.",
+  "StateMachine.send_event": "Réactions ponctuelles : coup reçu, bruit entendu, ordre du joueur.",
+  "StateMachine.transition_to": "Forcer un état depuis le jeu (mort, script de quête, cheat de débogage).",
+  "StateMachine.update": "Mode manuel : faire avancer la machine d'un pas (tour par tour).",
+  "StateMachine.physics_update": "Mode manuel : appeler les <code>_on_physics_update</code> au rythme de votre choix.",
+  "StateMachine.get_active_state": "Afficher l'état courant, ou adapter l'animation à l'état feuille.",
+  "StateMachine.get_active_path": "Afficher « Alerte / Poursuite » ou tester si un état composé est actif.",
+  "StateMachine.get_agent_node": "Depuis un outil externe, retrouver le personnage piloté.",
+  "StateMachine.get_elapsed_time": "Horodater des événements de l'IA, mesurer la durée d'un combat.",
+  "StateMachine.get_history": "Comprendre une suite de transitions inattendue (journal de débogage).",
+  "StateMachine.clear_history": "Repartir d'un historique vide avant un test.",
+  "StateMachine.get_debug_snapshot": "Outil de débogage maison, export du comportement.",
+  "StateMachine.started": "Initialiser l'affichage de l'IA une fois la machine prête (démarrage différé).",
+  "StateMachine.stopped": "Nettoyer l'affichage de débogage, désactiver des effets liés à l'IA.",
+  "StateMachine.state_changed": "Changer l'animation, l'icône au-dessus de la tête, la musique de combat.",
+  "StateMachine.transitioned": "Journaliser toutes les transitions, même celles qui rentrent dans le même état.",
+  "StateMachine.event_received": "Journal des événements reçus (débogage, rejouer une partie).",
+  "StateMachine.PROCESS_IDLE": "Cas général : mises à jour et transitions à chaque image.",
+  "StateMachine.PROCESS_PHYSICS": "Conditions basées sur la physique (au sol, collision, vitesse).",
+  "StateMachine.PROCESS_MANUAL": "Tour par tour ou IA cadencée par votre code.",
+  // 🤖 State
+  "State.transitions": "Définir où l'on peut aller depuis cet état, et à quelles conditions.",
+  "State.initial_state": "Choisir le sous-état d'entrée sans réordonner l'arbre de scène.",
+  "State.remember_last_substate": "Revenir en combat là où on en était (Poursuite ou Attaque) après une interruption.",
+  "State._on_enter": "Régler vitesse, couleur, animation en entrant dans l'état.",
+  "State._on_exit": "Annuler ce que l'état avait mis en place (vitesse, effets, minuteries).",
+  "State._on_update": "Logique continue de l'état : viser, compter, mettre à jour le tableau noir.",
+  "State._on_physics_update": "Déplacements (<code>move_and_slide</code>) propres à l'état.",
+  "State._on_event": "Réagir à un événement dans cet état seulement, et l'empêcher de remonter (parade au lieu d'étourdissement).",
+  "State.get_parent_state": "Remonter la hiérarchie depuis un état (outil, débogage).",
+  "State.get_state_machine": "Accéder à la machine depuis un état (historique, signaux).",
+  "State.get_substates": "Choisir un sous-état au hasard ou les parcourir.",
+  "State.is_compound": "Outil générique qui distingue états simples et composés.",
+  "State.get_initial_substate": "Savoir quel sous-état sera activé en entrant.",
+  "State.get_active_substate": "Depuis un état composé, adapter son comportement au sous-état actif.",
+  "State.is_active": "Ignorer une demande si l'état n'est plus actif (rappel différé, minuterie).",
+  "State.get_time_in_state": "Comportement qui évolue avec le temps (s'énerver après 5 s d'alerte).",
+  "State.get_agent": "Piloter le personnage depuis l'état.",
+  "State.get_blackboard": "Lire les valeurs du jeu, écrire pour les autres états.",
+  "State.send_event": "Un état qui déclenche un événement (fin d'animation d'attaque → « attaque_finie »).",
+  "State.transition_to": "Changer d'état depuis le script de l'état (<code>transition_to(\"../Fuite\")</code>).",
+  "State.entered": "Effets visuels ou sonores branchés dans l'éditeur, sans script d'état.",
+  "State.exited": "Arrêter un effet lancé à l'entrée, depuis un autre nœud.",
+  "State.updated": "Suivre un état depuis un autre nœud (barre de progression, débogage).",
+  // 🤖 StateTransition
+  "StateTransition.target_state": "Désigner l'état d'arrivée (<code>../Alerte</code>).",
+  "StateTransition.event": "Transition déclenchée par le jeu : coup reçu, ordre, fin d'animation.",
+  "StateTransition.condition": "Transition automatique sur un seuil : <code>distance &lt; 120</code>, <code>vie &lt;= 0</code>.",
+  "StateTransition.min_time_in_state": "Étourdissement de 2 s, ou délai minimal contre les allers-retours.",
+  "StateTransition.enabled": "Activer une transition selon la phase du jeu (boss en phase 2) ; attention, partagée entre instances.",
+  "StateTransition._check": "Condition trop complexe pour une expression (ligne de vue, requête physique).",
+  "StateTransition.is_automatic": "Outil générique qui distingue transitions automatiques et sur événement.",
+  "StateTransition.is_satisfied": "Tester une transition à la main (débogage, tests automatiques).",
+  "StateTransition.resolve_target": "Vérifier qu'une transition pointe vers un état existant.",
+  "StateTransition.get_label": "Afficher la transition dans un outil maison, comme le fait le graphe.",
+  "StateTransition.get_condition_error": "Afficher l'erreur d'une condition mal écrite.",
+  // 🗺️ BehaviorGraphView
+  "BehaviorGraphView.target_path": "Afficher en jeu le comportement d'un ennemi choisi dans l'inspecteur (démo, débogage).",
+  "BehaviorGraphView.live_update": "Désactiver pour figer l'affichage et inspecter un instant précis.",
+  "BehaviorGraphView.refresh_interval": "Plus long sur de grands arbres pour économiser, plus court pour suivre des transitions rapides.",
+  "BehaviorGraphView.layout_mode": "TechTree pour les arbres larges, vertical pour les arbres profonds, MindMap pour les machines à états.",
+  "BehaviorGraphView.editable": "Construire votre propre éditeur en jeu (glisser-déposer, liens, suppression).",
+  "BehaviorGraphView.show_transition_labels": "Masquer les libellés quand la machine a beaucoup de transitions.",
+  "BehaviorGraphView.show_history": "Voir les dernières transitions ou répliques en surimpression.",
+  "BehaviorGraphView.placeholder_text": "Message d'aide quand aucun ennemi n'est sélectionné.",
+  "BehaviorGraphView.set_target": "Changer d'ennemi observé (clic sur un ennemi en mode débogage).",
+  "BehaviorGraphView.get_target": "Savoir quel comportement est affiché.",
+  "BehaviorGraphView.set_snapshot": "Afficher un comportement reçu par le réseau ou chargé d'un fichier (replay).",
+  "BehaviorGraphView.get_snapshot": "Enregistrer l'état affiché (capture de débogage).",
+  "BehaviorGraphView.refresh": "Forcer la mise à jour juste après une modification, sans attendre l'intervalle.",
+  "BehaviorGraphView.clear": "Vider l'affichage entre deux sélections.",
+  "BehaviorGraphView.set_selected_id": "Mettre en évidence un nœud choisi ailleurs (liste, recherche).",
+  "BehaviorGraphView.get_selected_id": "Afficher le détail du nœud sélectionné dans un panneau voisin.",
+  "BehaviorGraphView.set_zoom": "Boutons de zoom, ou zoom initial adapté à l'écran.",
+  "BehaviorGraphView.get_zoom": "Mémoriser le zoom entre deux ouvertures.",
+  "BehaviorGraphView.set_view_offset": "Restaurer une position de vue enregistrée.",
+  "BehaviorGraphView.get_view_offset": "Mémoriser la position de la vue.",
+  "BehaviorGraphView.fit_to_view": "Bouton « Tout afficher », ou après un redimensionnement.",
+  "BehaviorGraphView.center_on": "Suivre l'état actif, ou centrer sur un nœud double-cliqué.",
+  "BehaviorGraphView.toggle_collapsed": "Replier les branches peu intéressantes d'un grand arbre.",
+  "BehaviorGraphView.is_collapsed": "Mémoriser les branches repliées.",
+  "BehaviorGraphView.get_node_ids": "Construire une liste ou une recherche des nœuds affichés.",
+  "BehaviorGraphView.get_node_data": "Panneau de détail du nœud sélectionné (classe, statut, info).",
+  "BehaviorGraphView.get_node_rect": "Placer une bulle ou un menu à côté d'un nœud ; tests automatiques.",
+  "BehaviorGraphView.get_node_at": "Info-bulle ou menu personnalisés selon le nœud survolé.",
+  "BehaviorGraphView.resolve_runner": "Depuis n'importe quel <code>State</code> ou <code>BTNode</code>, retrouver la machine ou l'arbre.",
+  "BehaviorGraphView.node_selected": "Afficher le détail du nœud cliqué, ou le sélectionner dans votre outil.",
+  "BehaviorGraphView.node_activated": "Ouvrir le script du nœud, ou centrer la vue dessus.",
+  "BehaviorGraphView.node_context_menu_requested": "Ouvrir votre propre menu (ajouter, supprimer, forcer la transition).",
+  "BehaviorGraphView.node_dropped": "Éditeur maison : déplacer un nœud sous un autre.",
+  "BehaviorGraphView.link_requested": "Éditeur maison : créer une transition ou un lien de dialogue.",
+  "BehaviorGraphView.delete_requested": "Éditeur maison : supprimer le nœud sélectionné.",
+  "BehaviorGraphView.LAYOUT_TECH_TREE": "Arbres de comportement larges, lecture de gauche à droite.",
+  "BehaviorGraphView.LAYOUT_TOP_DOWN": "Arbres profonds, affichage dans un panneau large et bas.",
+  "BehaviorGraphView.LAYOUT_MIND_MAP": "Machines à états et dialogues, lisibles autour d'un centre.",
+  // 🧩 Blackboard
+  "Blackboard.values": "Préremplir les valeurs de départ dans l'inspecteur, ou charger / sauvegarder toute la mémoire.",
+  "Blackboard.set_value": "Transmettre une information du jeu à l'IA (vie, cible, distance, bruit entendu).",
+  "Blackboard.get_value": "Lire une valeur avec une valeur par défaut depuis une action ou un état.",
+  "Blackboard.has_value": "Distinguer « pas encore de cible » de « cible = null ».",
+  "Blackboard.erase_value": "Oublier une information périmée (dernière position connue).",
+  "Blackboard.clear": "Réinitialiser la mémoire d'un ennemi qui réapparaît.",
+  "Blackboard.get_keys": "Afficher toute la mémoire dans un panneau de débogage.",
+  "Blackboard.value_changed": "Réagir dans le jeu à une valeur écrite par l'IA (afficher « ! » quand <code>alerte</code> passe à vrai)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

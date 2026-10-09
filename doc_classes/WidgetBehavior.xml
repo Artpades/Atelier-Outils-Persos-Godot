@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="WidgetBehavior" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement conditionnel d'éléments de l'interface : une condition booléenne et des cibles (données ou groupes).
 	</brief_description>
 	<description>
+		Base des comportements de [member DataRegistry.behaviors]. La condition ([member condition]) est une propriété booléenne ou une fonction qui renvoie un booléen, lue sur la cible de l'éditeur ; [member invert] l'inverse. Les cibles ([member targets]) sont des noms de données ou de groupes.
+		Les comportements fournis ([ShowIfBehavior], [HideIfBehavior], [EnableIfBehavior], [StyleIfBehavior], [TooltipIfBehavior], [IconIfBehavior]) se combinent : une cible est visible si aucun « Cacher si » n'est actif et aucun « Montrer si » n'est inactif. Ils sont réévalués après chaque relecture du [SyncController].
+		Pour un comportement personnalisé, hériter de [WidgetBehavior] dans un script et surcharger [method _apply] :
+		[codeblock]
+		class_name ClignoterSi
+		extends WidgetBehavior
+
+		func _apply(target: Control, active: bool) -&gt; void:
+			if target:
+				target.modulate = Color.RED if active else Color.WHITE
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,12 +24,14 @@
 			<param index="0" name="target" type="Control" />
 			<param index="1" name="active" type="bool" />
 			<description>
+				À surcharger dans un comportement de script. Appelée quand l'état de la condition change pour la cible [param target] (le widget ou le conteneur du groupe, [code]null[/code] si la cible n'est pas affichée), et après chaque reconstruction de l'interface. [param active] : condition vraie (inversion comprise).
 			</description>
 		</method>
 		<method name="evaluate">
 			<return type="bool" />
 			<param index="0" name="context" type="Object" />
 			<description>
+				Évalue la condition sur [param context] (la cible de l'éditeur), inversion comprise. Une condition non réglée (propriété sans chemin) vaut [code]false[/code].
 			</description>
 		</method>
 		<method name="format_text" qualifiers="static">
@@ -25,22 +39,34 @@
 			<param index="0" name="template" type="String" />
 			<param index="1" name="context" type="Object" />
 			<description>
+				Remplace dans [param template] chaque [code]{chemin}[/code] par [code]context.get_indexed(chemin)[/code] et chaque [code]{fonction()}[/code] par le retour de la fonction appelée sans argument. [code]{{[/code] et [code]}}[/code] donnent des accolades. Une propriété absente donne [code]&lt;null&gt;[/code], une fonction absente [code]‹ fonction() ? ›[/code].
+			</description>
+		</method>
+		<method name="get_condition">
+			<return type="ArgumentBinding" />
+			<description>
+				Renvoie la condition, créée à la première lecture si elle n'existe pas (source Propriété, type booléen attendu, sans chemin).
 			</description>
 		</method>
 		<method name="get_display_name" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie le nom affiché dans l'éditeur : « Montrer si », « Cacher si »... ou, pour un comportement de script, son [code]class_name[/code] (à défaut le nom du fichier).
 			</description>
 		</method>
 	</methods>
 	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition">
+		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_stored_condition">
+			Source de la condition (propriété ou fonction booléenne de la cible). Vide : créée par [method get_condition], et fausse tant qu'aucun chemin n'est donné.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+			Si [code]false[/code], le comportement est ignoré.
 		</member>
 		<member name="invert" type="bool" setter="set_invert" getter="get_invert" default="false">
+			Inverse la condition.
 		</member>
 		<member name="targets" type="PackedStringArray" setter="set_targets" getter="get_targets" default="PackedStringArray()">
+			Noms des données et des groupes visés.
 		</member>
 	</members>
 </class>

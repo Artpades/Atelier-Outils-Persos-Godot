@@ -48,6 +48,7 @@ class WaterArea2D : public Area2D
     double angular_drag = 3.0;
     Vector2 current;            // accélération du courant
     double surface_offset = 0.0;
+    /// Registre des zones d'eau dans l'arbre (en jeu), parcouru par find_containing.
     static LocalVector<ObjectID> waters;
 
     DEBUG_MODE_DECLARATIONS()
@@ -89,6 +90,7 @@ class WaterArea3D : public Area3D
     double angular_drag = 3.0;
     Vector3 current;
     double surface_offset = 0.0;
+    /// Registre des zones d'eau dans l'arbre (en jeu), parcouru par find_containing.
     static LocalVector<ObjectID> waters;
 
     DEBUG_MODE_DECLARATIONS()
@@ -196,10 +198,12 @@ class SwimMovement2D : public MovementComponent
   private:
     SwimSettings swim;
     Vector2 heading = Vector2(1, 0);
+    /// Dérive accumulée (courant + zones de force), amortie par drag ; intention filtrée (debug) ; dernière profondeur mesurée (debug).
     Vector2 drift;
     Vector2 desired;
     double last_depth = 0.0;
 
+    /// Style Flottaison : déplacement direct et rappel vers float_depth. _orient : incline le visuel selon heading.
     void _step_surface(class CharacterBody2D *p_character, WaterArea2D *p_water, double p_delta);
     void _orient(double p_delta);
 };
@@ -236,10 +240,12 @@ class SwimMovement3D : public MovementComponent
     SwimSettings swim;
     bool camera_relative = false;
     Vector3 heading = Vector3(0, 0, -1);
+    /// Dérive accumulée (courant + zones de force), amortie par drag ; intention filtrée (debug) ; dernière profondeur mesurée (debug).
     Vector3 drift;
     Vector3 desired;
     double last_depth = 0.0;
 
+    /// Style Flottaison : déplacement direct et rappel vers float_depth. _orient : oriente le visuel vers heading.
     void _step_surface(class CharacterBody3D *p_character, WaterArea3D *p_water, double p_delta);
     void _orient(double p_delta);
 };

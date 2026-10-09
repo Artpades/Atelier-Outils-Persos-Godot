@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="CursorStyle" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		👆 Apparence d'un curseur de souris : une image fixe, ou plusieurs images jouées en boucle (curseur animé). Utilisée par [CursorChanger].
 	</brief_description>
 	<description>
+		Ressource décrivant un curseur : ses images ([member frames]), sa vitesse d'animation, son point actif ([member hotspot]) et la forme de curseur système qu'il remplace ([member shape]).
+		Les images d'un curseur matériel sont limitées à 256 × 256 pixels par le système ; préférer 32 × 32 ou 64 × 64.
+		[codeblock]
+		var sablier := CursorStyle.new()
+		sablier.frames = [preload("res://curseurs/sablier_1.png"), preload("res://curseurs/sablier_2.png")]
+		sablier.frames_per_second = 6.0
+		sablier.hotspot = Vector2(16, 16)   # centre d'une image 32 × 32
+		$CursorChanger.style = sablier
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,17 +21,22 @@
 			<return type="Texture2D" />
 			<param index="0" name="time" type="float" />
 			<description>
+				Renvoie l'image à afficher [param time] secondes après l'activation du style (l'animation boucle). Renvoie la première image s'il n'y en a qu'une ou si [member frames_per_second] vaut 0, et [code]null[/code] si [member frames] est vide.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="frames" type="Texture2D[]" setter="set_frames" getter="get_frames" default="[]">
+			Images du curseur : une seule pour un curseur fixe, plusieurs pour un curseur animé. Vide : le [CursorChanger] affiche le curseur du système.
 		</member>
 		<member name="frames_per_second" type="float" setter="set_frames_per_second" getter="get_frames_per_second" default="10.0">
+			Vitesse de l'animation, en images par seconde. À [code]0[/code], seule la première image est affichée.
 		</member>
 		<member name="hotspot" type="Vector2" setter="set_hotspot" getter="get_hotspot" default="Vector2(0, 0)">
+			Point actif de l'image, en pixels depuis le coin haut-gauche : la pointe d'une flèche, le centre d'un viseur. C'est ce point qui clique.
 		</member>
 		<member name="shape" type="int" setter="set_shape" getter="get_shape" enum="Input.CursorShape" default="0">
+			Forme de curseur système remplacée par ce style. [i]Arrow[/i] (par défaut) est le curseur courant ; d'autres formes ([i]Pointing Hand[/i] au-dessus des boutons, [i]IBeam[/i] au-dessus des champs de texte...) restent celles du système tant qu'aucun style ne les remplace.
 		</member>
 	</members>
 </class>

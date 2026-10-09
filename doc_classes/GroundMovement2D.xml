@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GroundMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🦶 Déplacement au sol 2D : plateforme (gravité, sauts multiples, temps de grâce, hauteur de saut variable) ou vue de dessus, pour un [CharacterBody2D] ou un [RigidBody2D].
 	</brief_description>
 	<description>
+		Composant de mouvement ([MovementComponent]) à placer sous le corps à déplacer.
+		- [b]Plateforme[/b] ([constant MODE_PLATFORMER]) : [code]move.x[/code] marche, [method MovementComponent.jump] saute ; gravité, sauts multiples ([member max_jumps]), temps de grâce ([member coyote_time]), mémoire du saut ([member MovementComponent.jump_buffer_time]) et hauteur variable ([member jump_cut]).
+		- [b]Vue de dessus[/b] ([constant MODE_TOP_DOWN]) : [code]move[/code] déplace dans les deux axes, sans gravité ni saut.
+		Avec un [CharacterBody2D], le composant gère tout ([code]move_and_slide[/code]). Avec un [RigidBody2D], il ne pilote que la vitesse (horizontale en plateforme) et le saut, la gravité restant celle du moteur ; le saut exige alors [member RigidBody2D.contact_monitor] et [member RigidBody2D.max_contacts_reported] &gt; 0.
+		Le visuel désigné par [member visual_path] est retourné selon la direction. Les [ForceZone2D] s'ajoutent à la vitesse ; pendant un recul [Knockback2D], les commandes et le saut sont ignorés.
+		[codeblock]
+		# CharacterBody2D &gt; GroundMovement2D (visual_path = ../Sprite2D)
+		func _physics_process(_delta: float) -&gt; void:
+			$GroundMovement2D.move(Vector2(Input.get_axis("gauche", "droite"), 0))
+			$GroundMovement2D.set_running(Input.is_action_pressed("courir"))
+			if Input.is_action_just_pressed("saut"):
+				$GroundMovement2D.jump()
+			elif Input.is_action_just_released("saut"):
+				$GroundMovement2D.release_jump()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,56 +26,75 @@
 		<method name="get_facing" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la direction du regard : [code]Vector2(±1, 0)[/code] en plateforme, la dernière direction commandée (normalisée) en vue de dessus.
 			</description>
 		</method>
 		<method name="is_on_floor" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le corps est un [CharacterBody2D] au sol ; toujours [code]false[/code] pour un corps rigide.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="1500.0">
+			Accélération horizontale, en px/s², quand une direction est commandée. Multipliée par [member air_control] en l'air. Pendant un recul ([code]Knockback2D[/code]), c'est la [code]friction[/code] du recul qui s'applique à la place.
 		</member>
 		<member name="air_control" type="float" setter="set_air_control" getter="get_air_control" default="0.6">
+			Part de [member acceleration] / [member deceleration] disponible en l'air (0 = aucune maîtrise de la trajectoire, 1 = comme au sol).
 		</member>
 		<member name="coyote_time" type="float" setter="set_coyote_time" getter="get_coyote_time" default="0.1">
+			Temps de grâce, en secondes, pendant lequel on peut encore sauter après avoir quitté un rebord sans sauter.
 		</member>
 		<member name="deceleration" type="float" setter="set_deceleration" getter="get_deceleration" default="2000.0">
+			Freinage horizontal, en px/s², quand aucune direction n'est commandée. Multiplié par [member air_control] en l'air.
 		</member>
 		<member name="gravity_scale" type="float" setter="set_gravity_scale" getter="get_gravity_scale" default="1.0">
+			Multiplicateur de la gravité du corps ([code]get_gravity()[/code] : gravité du projet ou des [Area2D] / [Area3D] qui la modifient). Négatif pour une gravité inversée. Ne s'applique pas à un corps rigide (sa gravité reste celle du moteur).
 		</member>
 		<member name="jump_cut" type="float" setter="set_jump_cut" getter="get_jump_cut" default="0.5">
+			Hauteur de saut variable : si le saut est relâché pendant la montée, la vitesse verticale est multipliée une fois par cette valeur (1 = aucune coupure, 0 = arrêt net de la montée).
 		</member>
 		<member name="jump_velocity" type="float" setter="set_jump_velocity" getter="get_jump_velocity" default="420.0">
+			Vitesse verticale donnée par un saut, en px/s.
 		</member>
 		<member name="max_fall_speed" type="float" setter="set_max_fall_speed" getter="get_max_fall_speed" default="1500.0">
+			Vitesse de chute maximale, en px/s.
 		</member>
 		<member name="max_jumps" type="int" setter="set_max_jumps" getter="get_max_jumps" default="1">
+			Nombre de sauts possibles avant de toucher le sol (2 = double saut). [code]0[/code] désactive le saut. Tomber d'un rebord sans sauter (après [member coyote_time]) consomme le premier saut.
 		</member>
 		<member name="max_speed" type="float" setter="set_max_speed" getter="get_max_speed" default="200.0">
+			Vitesse de marche maximale, en px/s, multipliée par [member run_multiplier] pendant la course.
 		</member>
 		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="GroundMovement2D.Mode" default="0">
+			Plateforme (vue de côté, gravité et saut) ou vue de dessus (déplacement libre en x et y).
 		</member>
 		<member name="run_multiplier" type="float" setter="set_run_multiplier" getter="get_run_multiplier" default="1.6">
+			Multiplicateur de [member max_speed] quand la course est active ([method MovementComponent.set_running]).
 		</member>
 		<member name="visual_path" type="NodePath" setter="set_visual_path" getter="get_visual_path" default="NodePath(&quot;&quot;)">
+			Nœud visuel ([Sprite2D], [AnimatedSprite2D]...) retourné selon la direction : sa propriété [code]flip_h[/code] s'il en a une, sinon le signe de [code]scale.x[/code]. Chemin relatif au composant ; vide = aucun retournement.
 		</member>
 	</members>
 	<signals>
 		<signal name="jumped">
 			<description>
+				Émis à chaque saut effectué (y compris les sauts en l'air).
 			</description>
 		</signal>
 		<signal name="landed">
 			<description>
+				Émis quand le [CharacterBody2D] touche le sol après avoir été en l'air, en mode plateforme uniquement. Aussi émis à la première image où le corps est posé.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="MODE_PLATFORMER" value="0" enum="Mode">
+			Vue de côté : gravité, saut, [code]move.x[/code] seul compte pour la marche.
 		</constant>
 		<constant name="MODE_TOP_DOWN" value="1" enum="Mode">
+			Vue de dessus : [code]move[/code] déplace en x et y, ni gravité ni saut.
 		</constant>
 	</constants>
 </class>

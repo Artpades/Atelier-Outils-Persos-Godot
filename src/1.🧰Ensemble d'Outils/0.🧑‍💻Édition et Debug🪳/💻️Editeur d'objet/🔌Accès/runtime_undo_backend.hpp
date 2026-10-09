@@ -7,7 +7,7 @@
 
 namespace godot
 {
-// Annulation en jeu : UndoRedo possédé par ce backend (créé à la construction, libéré dans NOTIFICATION_PREDELETE).
+/// Annulation en jeu : UndoRedo possédé par ce backend (créé à la construction, libéré dans NOTIFICATION_PREDELETE).
 class RuntimeUndoBackend : public UndoBackend
 {
     GDCLASS(RuntimeUndoBackend, UndoBackend)

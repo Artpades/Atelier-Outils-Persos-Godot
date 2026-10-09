@@ -1,17 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueChoice" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Choix du joueur : propose les [DialogueOption] disponibles et attend [method DialogueSystem.choose].
 	</brief_description>
 	<description>
+		Le [DialogueSystem] filtre [member options] (condition remplie, option unique pas encore prise), puis émet [signal DialogueSystem.choices_shown]. S'il ne reste aucune option, il passe directement à [member fallback_next] sans rien afficher.
+		[codeblock]
+		var menu := DialogueChoice.new()
+		menu.node_id = &amp;"menu"
+		menu.prompt = "Que veux-tu, {nom} ?"
+		var partir := DialogueOption.new()
+		partir.text = "Au revoir"
+		partir.next = &amp;"fin"
+		menu.options.append(partir)
+		menu.fallback_next = &amp;"fin"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="fallback_next" type="StringName" setter="set_fallback_next" getter="get_fallback_next" default="&amp;&quot;&quot;">
+			Nœud atteint quand aucune option n'est disponible. Vide : le dialogue se termine.
 		</member>
 		<member name="options" type="DialogueOption[]" setter="set_options" getter="get_options" default="[]">
+			Options possibles, dans l'ordre d'affichage. Les options nulles sont ignorées.
 		</member>
 		<member name="prompt" type="String" setter="set_prompt" getter="get_prompt" default="&quot;&quot;">
+			Question affichée avec les options (variables « {nom} » remplacées). Vide : la [DialogueBox] laisse le texte de la réplique précédente.
 		</member>
 	</members>
 </class>

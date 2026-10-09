@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="VisualsRegister" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎭 Un changement visuel : le nœud à modifier et la texture, le maillage ou la scène à lui donner.
 	</brief_description>
 	<description>
+		Élément d'un [VisualsAsset]. Seule la ressource adaptée au type du nœud ciblé est utilisée (voir [method VisualsAsset.swap_visuals]) : on peut donc n'en renseigner qu'une.
+		[codeblock]
+		var arme := VisualsRegister.new()
+		arme.node_visual = ^"../Main/Arme" # relatif au VisualsSwapper
+		arme.mesh = preload("res://armes/epee_glace.tres")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="mesh" type="Mesh" setter="set_mesh" getter="get_mesh">
+			Maillage donné à un [MeshInstance3D] ou un [MeshInstance2D]. Les matériaux surchargés du nœud ([member GeometryInstance3D.material_override]...) sont conservés.
 		</member>
 		<member name="modeling_import" type="PackedScene" setter="set_modeling_import" getter="get_modeling_import">
+			Scène instanciée sous un nœud qui n'est ni à texture ni à maillage (Node3D conteneur d'un modèle importé, Node2D, AnimatedSprite2D...) : elle remplace tous ses enfants.
 		</member>
 		<member name="node_visual" type="NodePath" setter="set_node_visual" getter="get_node_visual" default="NodePath(&quot;&quot;)">
+			Chemin du nœud à modifier, relatif au nœud de contexte (le [VisualsSwapper], ou le nœud passé à [method VisualsAsset.apply]). Vide : le registre est ignoré.
 		</member>
 		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+			Texture donnée à un [Sprite2D], [Sprite3D], [Polygon2D] ou [TextureRect]. Les autres réglages du nœud ([code]hframes[/code], [code]region_rect[/code]...) ne sont pas modifiés.
 		</member>
 	</members>
 </class>

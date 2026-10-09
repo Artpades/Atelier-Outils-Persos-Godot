@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PreviewWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Aperçu personnalisé dans l'interface (image, modèle 3D, scène 2D...) ; base des aperçus de script.
 	</brief_description>
 	<description>
+		Un aperçu n'édite aucune propriété : c'est une entrée [constant DataEntry.MEMBER_PREVIEW] du registre, placée, groupée, stylée et ciblée par les comportements comme une donnée. Sa source ([member PreviewSettings.source]) est relue par le [SyncController] ; quand elle change (autre objet ou autre valeur), [method _on_source_changed] est appelée.
+		Pour créer un aperçu, hériter de [PreviewWidget] avec un [code]class_name[/code] :
+		[codeblock]
+		class_name ApercuCouleur
+		extends PreviewWidget
+
+		func _build_preview(source: Variant) -&gt; Control:
+			var rect := ColorRect.new()
+			rect.color = source if source is Color else Color.BLACK
+			return rect
+
+		func _get_source_hint() -&gt; Dictionary:
+			return {"type": TYPE_COLOR}
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,17 +26,20 @@
 			<return type="Control" />
 			<param index="0" name="source" type="Variant" />
 			<description>
+				À surcharger : construit le contrôle d'aperçu pour [param source]. Appelée au premier affichage et, par défaut, à chaque changement de source. [code]null[/code] : « Aucun aperçu ».
 			</description>
 		</method>
 		<method name="_get_source_hint" qualifiers="virtual const">
 			<return type="Dictionary" />
 			<description>
+				À surcharger : type attendu ([code]{"type": TYPE_OBJECT, "class_name": "Texture2D"}[/code]) pour que l'éditeur propose les propriétés et fonctions compatibles comme source.
 			</description>
 		</method>
 		<method name="_on_source_changed" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="source" type="Variant" />
 			<description>
+				À surcharger : réagit à un changement de source sans tout reconstruire. Sans surcharge, l'aperçu est reconstruit.
 			</description>
 		</method>
 		<method name="_update_preview" qualifiers="virtual">
@@ -29,53 +47,63 @@
 			<param index="0" name="source" type="Variant" />
 			<param index="1" name="delta" type="float" />
 			<description>
+				À surcharger : appelée à chaque image avec la source et [param delta] (animation, aperçu « en action »). La surcharger suffit à activer l'appel à chaque image.
 			</description>
 		</method>
 		<method name="get_preview_content" qualifiers="const">
 			<return type="Control" />
 			<description>
+				Renvoie le contrôle d'aperçu actuel.
 			</description>
 		</method>
 		<method name="get_preview_settings" qualifiers="const">
 			<return type="PreviewSettings" />
 			<description>
+				Renvoie les réglages de l'aperçu ([PreviewSettings]).
 			</description>
 		</method>
 		<method name="get_source" qualifiers="const">
 			<return type="Variant" />
 			<description>
+				Renvoie la dernière source affichée.
 			</description>
 		</method>
 		<method name="get_source_hint" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie le type de source attendu (résultat de [method _get_source_hint]).
 			</description>
 		</method>
 		<method name="instantiate_source_node" qualifiers="const">
 			<return type="Node" />
 			<param index="0" name="source" type="Variant" />
 			<description>
+				Renvoie un nœud à ajouter à une scène d'aperçu : instance d'une [PackedScene], ou copie d'un [Node] (sans ses scripts sauf [member PreviewSettings.duplicate_scripts]) ; [code]null[/code] sinon. L'original n'est jamais déplacé.
 			</description>
 		</method>
 		<method name="make_info" qualifiers="static">
 			<return type="Dictionary" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie la description d'un aperçu nommé [param name] (Variant en lecture seule), utilisée pour son [ValueAccessor].
 			</description>
 		</method>
 		<method name="make_stage_2d" qualifiers="const">
 			<return type="PreviewStage2D" />
 			<description>
+				Crée une scène 2D isolée ([PreviewStage2D]) à renvoyer depuis [method _build_preview].
 			</description>
 		</method>
 		<method name="make_stage_3d" qualifiers="const">
 			<return type="PreviewStage3D" />
 			<description>
+				Crée une scène 3D isolée ([PreviewStage3D]) à renvoyer depuis [method _build_preview].
 			</description>
 		</method>
 		<method name="rebuild_preview">
 			<return type="void" />
 			<description>
+				Détruit et reconstruit l'aperçu avec la source actuelle.
 			</description>
 		</method>
 	</methods>

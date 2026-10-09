@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestion de Caméras · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🎞️ Gestion de Caméras (CameraManager, CameraPanner, OrbitalCamera) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/gestion-de-cameras.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🎞️</div>
+    <div>
+      <h1>🎞️_CameraSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>Gestion de Caméras</strong> : passer en douceur d'une caméra à l'autre, explorer une carte 2D à la souris, orbiter autour d'un personnage 3D.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/camera</code></span>
+        <span class="badge">3 classes : CameraManager · CameraPanner · OrbitalCamera</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Changer de caméra dans Godot est instantané : <code>make_current()</code> coupe brutalement d'un plan à l'autre. Pour un plan de coupe vers une porte qui s'ouvre, un passage de la vue de jeu à la vue de dialogue ou un retour au joueur, il faut une caméra intermédiaire, un <code>Tween</code> et du nettoyage. Il faut aussi réécrire à chaque projet la caméra « carte » qu'on déplace et zoome à la souris, et la caméra orbitale à la troisième personne. <strong>Ce module rassemble ces trois besoins.</strong></p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🎬 <code>CameraManager</code> — les transitions</h4>
+      <p>Un <strong>gestionnaire global</strong> qui rend une caméra courante, instantanément ou en glissant de l'ancienne vers la nouvelle (position, rotation, zoom, champ de vision).</p>
+    </div>
+    <div class="card">
+      <h4>🗺️ <code>CameraPanner</code> — la carte 2D</h4>
+      <p>Une <strong>Camera2D</strong> que le joueur déplace et zoome lui-même : souris, molette, trackpad, tactile, manette.</p>
+    </div>
+    <div class="card">
+      <h4>🛰️ <code>OrbitalCamera</code> — la troisième personne</h4>
+      <p>Un <strong>pivot 3D</strong> qui fait tourner un <code>SpringArm3D</code> (et sa caméra) autour d'un personnage, avec lissage et limites de tangage.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui mettent en scène des changements de plan, et ceux qui font des jeux de stratégie, de gestion, d'éditeur de niveau (2D) ou d'action à la troisième personne (3D).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une caméra qui suit le joueur</strong> : ni <code>CameraManager</code> ni <code>CameraPanner</code> ne suivent une cible. Pour suivre un personnage en 2D, une <code>Camera2D</code> enfant du joueur suffit ; voir aussi le module <em>〰️ Follow</em>.</li>
+      <li><strong>Pas un système de « caméras virtuelles » à priorités</strong> (à la Cinemachine / Phantom Camera) : on demande explicitement quelle caméra activer.</li>
+      <li><strong>Pas d'effets de caméra</strong> : pour les secousses, voir <em>💥 Secousse</em>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF en trois parties : transition 3D de la caméra du joueur vers une caméra fixe sur un coffre ; carte 2D zoomée à la molette vers le curseur ; personnage 3D autour duquel la caméra orbite à la souris.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/camera/</code> (<code>gameplaytoolkit_camera.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les trois classes.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code> (module <em>⚙️ Générateur de Gestionnaire</em>, classe <code>ManagerBuilder</code>)</td><td>Optionnelle</td><td>Permet à <code>CameraManager.get_instance()</code> de <strong>créer</strong> le gestionnaire s'il n'existe pas. Sans elle, il faut placer un <code>CameraManager</code> en autoload ou dans la scène ; <code>get_instance()</code> renvoie alors cette instance (ou <code>null</code>).</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🎥🎞️/</code></td><td>Optionnelle</td><td>Icônes des trois classes dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) :
+      <pre><code class="language-shell">scons camera</code></pre>
+      <div class="why">compile uniquement la bibliothèque des caméras (registre <code>camera_register.cpp</code>). Ajouter <code>scons tool_editor</code> pour la création automatique du gestionnaire.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/camera/</code></strong> (et éventuellement <code>bin/tool_editor/</code>) dans <code>res://bin/</code>, puis <strong>redémarrer l'éditeur</strong>.
+      <div class="why">les <code>.gdextension</code> référencent leurs binaires par des chemins <code>res://bin/…</code> absolus ; les nouvelles extensions ne sont découvertes qu'au démarrage.</div>
+    </li>
+    <li>
+      <strong>(Recommandé) Déclarer un autoload <code>CameraManager</code></strong> : une scène dont la racine est un nœud <code>CameraManager</code>, avec ses durées par défaut réglées.
+      <div class="why">sans <code>ManagerBuilder</code>, c'est obligatoire pour que <code>get_instance()</code> trouve le gestionnaire ; avec, cela permet de régler <code>transition_duration_2d/3d</code> dans l'inspecteur au lieu de les régler par code.</div>
+    </li>
+  </ol>
+  <p>Les trois classes sont des <strong>classes d'exécution</strong> : elles n'ont aucun effet dans l'éditeur (un <code>CameraPanner</code> ne bouge pas, un <code>OrbitalCamera</code> ne tourne pas).</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-transition">A. Transition entre deux caméras 3D (CameraManager)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Placer deux <code>Camera3D</code></strong> dans la scène : <code>CameraJeu</code> (cochée <em>Current</em>) et <code>CameraPorte</code>, cadrée sur une porte.
+      <div class="why">la transition part de la caméra courante du Viewport : il en faut une au départ, sinon le changement est instantané.</div>
+    </li>
+    <li>
+      <strong>Appeler la transition</strong> depuis un script :
+      <pre><code class="gdscript">func montrer_porte() -> void:
+	var cameras := CameraManager.get_instance()
+	cameras.switch_3d_camera($CameraPorte, true, 1.0)
+	await cameras.current_camera_3d_switched
+	$Porte.ouvrir()</code></pre>
+      <div class="why">une caméra interne glisse de <code>CameraJeu</code> vers <code>CameraPorte</code> en 1 s (courbe cubique) ; le signal indique quand <code>CameraPorte</code> est réellement devenue courante.</div>
+    </li>
+    <li>
+      <strong>Revenir au jeu</strong> avec <code>switch_3d_camera($CameraJeu)</code>.
+      <div class="why">sans durée (−1), c'est <code>transition_duration_3d</code> (1 s) qui s'applique.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-carte">B. Carte 2D déplaçable (CameraPanner)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>CameraPanner</code></strong> dans la scène de la carte (cocher <em>Enabled</em>).
+      <div class="why">c'est une <code>Camera2D</code> : elle devient la vue du Viewport comme n'importe quelle caméra 2D.</div>
+    </li>
+    <li>
+      <strong>Lancer</strong> : clic du milieu maintenu pour déplacer, molette pour zoomer vers le curseur, flèches du clavier ou stick (actions <code>ui_*</code>) pour se déplacer.
+      <div class="why">les réglages par défaut couvrent souris, trackpad et manette ; ajuster <code>min_zoom</code> / <code>max_zoom</code> à la taille de la carte.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-orbite">C. Caméra orbitale à la troisième personne (OrbitalCamera)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Construire la hiérarchie</strong> : <code>Joueur › OrbitalCamera › SpringArm3D › Camera3D</code>. Régler la longueur du <code>SpringArm3D</code> (<code>spring_length</code> = 4).
+      <div class="why">le bras gère la distance et les collisions avec les murs ; l'<code>OrbitalCamera</code> ne fait que l'orienter.</div>
+    </li>
+    <li>
+      <strong>Assigner <code>arm_3d</code></strong> = le <code>SpringArm3D</code> dans l'inspecteur.
+      <div class="why">sans lui, une erreur est affichée au lancement et rien ne tourne.</div>
+    </li>
+    <li>
+      <strong>Transmettre la souris</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		$OrbitalCamera.look_around(event.relative)</code></pre>
+      <div class="why">l'<code>OrbitalCamera</code> ne lit aucune entrée : on choisit la source (souris, stick, gyroscope…).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/CameraManager.xml</code>, <code>CameraPanner.xml</code> et <code>OrbitalCamera.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li><code>CameraManager</code> : les caméras transitoires internes (<code>CameraTransitioner2D</code> / <code>CameraTransitioner3D</code>, enfants <em>internes</em> de la caméra cible, invisibles dans l'arbre et jamais sauvegardés), les <code>Tween</code> actifs, et les méthodes <code>_attach_transitioner</code>, <code>_disable_all_cameras_2d/3d</code>, <code>_on_transition_*_complete</code>.</li>
+    <li><code>CameraPanner</code> : la position et le zoom cibles, <code>_apply_zoom</code> (zoom en gardant fixe un point de l'écran), <code>_handle_joypad_input</code>.</li>
+    <li><code>OrbitalCamera</code> : la rotation cible du bras.</li>
+  </ul>
+  <div data-api="CameraManager CameraPanner OrbitalCamera"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-dialogue">Comment je passe en vue de dialogue 2D puis reviens au joueur ?</h3>
+  <p>Le zoom et l'<code>offset</code> sont interpolés en même temps que la position : idéal pour un rapprochement sur deux personnages.</p>
+  <pre><code class="gdscript">func debut_dialogue(pnj: Node2D) -> void:
+	$CameraDialogue.global_position = ($Joueur.global_position + pnj.global_position) / 2
+	$CameraDialogue.zoom = Vector2(2, 2)
+	CameraManager.get_instance().switch_2d_camera($CameraDialogue, true, 0.6, Tween.TRANS_SINE, Tween.EASE_OUT)
+
+func fin_dialogue() -> void:
+	CameraManager.get_instance().switch_2d_camera($Joueur/Camera2D, true, 0.4)</code></pre>
+
+  <h3 id="ex-coupe">Comment je fais une coupe franche (sans transition) ?</h3>
+  <pre><code class="gdscript">CameraManager.get_instance().switch_3d_camera($CameraSurveillance, false)
+# Le signal current_camera_3d_switched est émis pendant l'appel : pas d'await ici.</code></pre>
+
+  <h3 id="ex-await">Comment j'attends la fin d'une transition sans risquer de bloquer ?</h3>
+  <p>Si la caméra est déjà courante, ou si le changement est instantané, le signal est émis <strong>avant</strong> l'<code>await</code>. Tester l'état :</p>
+  <pre><code class="gdscript">func basculer_vers(cam: Camera3D, duree := -1.0) -> void:
+	var cameras := CameraManager.get_instance()
+	cameras.switch_3d_camera(cam, true, duree)
+	if cameras.is_transitioning_3d():
+		await cameras.current_camera_3d_switched</code></pre>
+
+  <h3 id="ex-centrer">Comment je recentre une carte sur un point (une unité, une alerte) ?</h3>
+  <p><code>CameraPanner</code> réécrit sa position à chaque image : la modifier directement ne sert à rien. <code>teleport</code> place la caméra immédiatement ; pour un glissement, il suffit d'avancer progressivement :</p>
+  <pre><code class="gdscript">func aller_a(point: Vector2) -> void:
+	$CameraPanner.teleport(point, $CameraPanner.zoom.x)
+
+func glisser_vers(point: Vector2) -> void:
+	var t := create_tween()
+	t.tween_method(func(p): $CameraPanner.teleport(p, $CameraPanner.zoom.x),
+		$CameraPanner.position, point, 0.5)</code></pre>
+
+  <h3 id="ex-manette">Comment j'oriente la caméra orbitale au stick de la manette ?</h3>
+  <p><code>look_around</code> attend un déplacement (pixels de souris) : pour un stick, multiplier par une vitesse et par <code>delta</code>.</p>
+  <pre><code class="gdscript">const VITESSE_STICK := 800.0
+
+func _process(delta: float) -> void:
+	var stick := Input.get_vector("cam_gauche", "cam_droite", "cam_haut", "cam_bas")
+	if stick != Vector2.ZERO:
+		$OrbitalCamera.look_around(stick * VITESSE_STICK * delta)</code></pre>
+
+  <h3 id="ex-orbite-cinema">Comment je combine orbite et transition (visée, inventaire) ?</h3>
+  <p>Une seconde caméra placée au-dessus de l'épaule et un <code>CameraManager</code> donnent un passage en mode visée.</p>
+  <pre><code class="gdscript">func viser(actif: bool) -> void:
+	var cible: Camera3D = $OrbitalCamera/SpringArm3D/CameraVisee if actif else $OrbitalCamera/SpringArm3D/Camera3D
+	CameraManager.get_instance().switch_3d_camera(cible, true, 0.2, Tween.TRANS_QUAD, Tween.EASE_OUT)
+	$OrbitalCamera.sensitivity = 0.002 if actif else 0.005</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-manager">CameraManager</h3>
+  <ul>
+    <li><strong>Désactive toutes les caméras du Viewport, y compris celles des <code>SubViewport</code> qu'il contient</strong> (vérifié). En écran partagé ou avec une mini-carte dans un <code>SubViewport</code>, la caméra de ce dernier est désactivée par un changement de caméra du jeu principal : la réactiver ensuite, ou garder ces <code>SubViewport</code> hors de l'arbre du Viewport principal.</li>
+    <li><strong>Cible figée au début de la transition.</strong> Si la caméra cible bouge (elle suit un joueur), la vue rejoint l'ancienne position puis « saute » à la fin.</li>
+    <li><strong>Réglages non interpolés</strong> : limites (<code>limit_*</code>), lissage, <code>drag_*</code> d'une <code>Camera2D</code> ; <code>environment</code>, <code>attributes</code>, <code>h_offset</code> / <code>v_offset</code>, <code>keep_aspect</code> d'une <code>Camera3D</code>. La projection perspective / orthogonale change d'un coup au début. Avec une <code>Camera2D</code> à limites ou à lissage, un léger saut est possible à la fin, car c'est la position du nœud qui est visée, pas le centre d'écran réellement affiché.</li>
+    <li><strong>La transition se fige pendant la pause</strong> (vérifié) : le <code>Tween</code> appartient au gestionnaire. Pour une transition dans un menu de pause, régler <code>process_mode = ALWAYS</code> sur le <code>CameraManager</code>.</li>
+    <li><strong>Signaux synchrones ou absents</strong> : émis pendant l'appel pour un changement instantané ou une caméra déjà courante ; jamais émis pour une transition interrompue ni si la caméra cible est libérée avant la fin.</li>
+    <li><strong>Un seul Viewport à la fois par dimension</strong> : une transition 2D et une 3D peuvent coexister, mais une nouvelle transition 2D (même dans un autre Viewport) interrompt la précédente.</li>
+  </ul>
+
+  <h3 id="limites-panner">CameraPanner</h3>
+  <ul>
+    <li><strong>Écoute <code>_input</code>, sans vérifier qu'elle est la caméra active</strong> : deux <code>CameraPanner</code> dans la scène réagissent tous deux ; la molette et le glisser agissent aussi au-dessus de l'interface (une liste déroulante qui défile zoome aussi la carte). Désactiver <code>process_mode</code> du panner inactif, ou consommer l'évènement dans l'interface.</li>
+    <li><strong>Position et zoom réécrits à chaque image</strong> : <code>position = …</code> ou <code>zoom = …</code> par code est annulé ; utiliser <code>teleport</code>.</li>
+    <li><strong>Hypothèses de repère</strong> : la position est locale (un parent déplacé ou tourné fausse le glisser), la rotation de la caméra est ignorée, et le zoom vers le curseur suppose <code>anchor_mode = Drag Center</code> (valeur par défaut). Le zoom est uniforme (<code>zoom.y</code> est écrasé par <code>zoom.x</code>).</li>
+    <li><strong>Actions par défaut <code>ui_*</code></strong> : les flèches du clavier et la croix de la manette déplacent aussi la carte, y compris pendant la navigation dans un menu. Utiliser des actions dédiées.</li>
+    <li><strong>Pas de bornes de déplacement</strong> : la caméra peut sortir de la carte (les <code>limit_*</code> de <code>Camera2D</code> limitent l'affichage, pas la position cible, ce qui crée une « zone morte » au bord).</li>
+  </ul>
+
+  <h3 id="limites-orbital">OrbitalCamera</h3>
+  <ul>
+    <li><strong>Interpolation des angles composante par composante</strong> : le lacet n'est pas ramené à ±180°. Après plusieurs tours, la rotation cible accumule des multiples de 2π ; c'est sans effet visible tant que le lissage est actif, mais <code>arm_3d.rotation.y</code> lu par un autre script peut valoir 20 rad.</li>
+    <li><strong>Pas de lecture d'entrée, pas de zoom, pas de distance</strong> : la distance est celle du <code>SpringArm3D</code>.</li>
+    <li><strong>Lissage dépendant de la fréquence d'images</strong> (poids <code>smooth_speed × delta</code> borné à 1) : très léger écart de ressenti entre 30 et 144 i/s.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 210" role="img" aria-label="Schéma d'une transition du CameraManager">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="140" height="54" rx="8"/>
+    <text x="90" y="54" text-anchor="middle">Votre code</text>
+    <text x="90" y="72" text-anchor="middle" class="small">switch_3d_camera()</text>
+    <rect class="box main" x="220" y="30" width="170" height="54" rx="8"/>
+    <text x="305" y="54" text-anchor="middle">CameraManager</text>
+    <text x="305" y="72" text-anchor="middle" class="small">singleton · Tween</text>
+    <rect class="box" x="450" y="30" width="170" height="54" rx="8"/>
+    <text x="535" y="54" text-anchor="middle">Caméra transitoire</text>
+    <text x="535" y="72" text-anchor="middle" class="small">enfant interne · top_level</text>
+    <rect class="box" x="680" y="30" width="160" height="54" rx="8"/>
+    <text x="760" y="54" text-anchor="middle">Caméra cible</text>
+    <text x="760" y="72" text-anchor="middle" class="small">courante à la fin</text>
+    <rect class="box" x="450" y="130" width="170" height="54" rx="8"/>
+    <text x="535" y="154" text-anchor="middle">Ancienne caméra</text>
+    <text x="535" y="172" text-anchor="middle" class="small">état de départ copié</text>
+    <path class="arrow" d="M160 57 H218" marker-end="url(#arr)"/>
+    <path class="arrow" d="M390 57 H448" marker-end="url(#arr)"/>
+    <text x="419" y="50" text-anchor="middle" class="small">anime</text>
+    <path class="arrow" d="M620 57 H678" marker-end="url(#arr)"/>
+    <text x="649" y="50" text-anchor="middle" class="small">rejoint</text>
+    <path class="arrow dashed" d="M535 130 V86" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M305 84 Q250 150 120 86" marker-end="url(#arr)"/>
+    <text x="180" y="140" class="small">current_camera_3d_switched</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>CameraManager</code></strong> est un singleton obtenu par <code>get_instance()</code> (via <code>ManagerBuilder</code> si disponible). À chaque transition, il désactive toutes les caméras du Viewport, rattache sa caméra transitoire sous la caméra cible (enfant interne, <code>top_level</code>), y copie l'état de l'ancienne caméra et l'anime par un <code>Tween</code> parallèle. Un rappel final rend la cible courante et émet le signal. Les appels sont directs ; seul le signal de fin remonte vers le code appelant.</li>
+    <li><strong><code>CameraPanner</code></strong> et <strong><code>OrbitalCamera</code></strong> sont des nœuds autonomes, sans lien avec le gestionnaire ni entre eux : ils peuvent être les caméras de départ ou d'arrivée d'une transition.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>CameraManager</code> → <code>ManagerBuilder</code> (module <em>⚙️ Générateur de Gestionnaire</em>, bibliothèque <code>tool_editor</code>) : couplage <strong>faible et optionnel</strong>, par <code>ClassDB</code> (<code>class_call_static</code>), sans inclure son code. Absent, le gestionnaire fonctionne s'il est placé en scène ou en autoload.</li>
+    <li>Aucun autre module n'est requis. Bibliothèque propre : <code>camera_register.cpp</code> → <code>bin/camera/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Une caméra transitoire plutôt que d'animer l'ancienne ou la nouvelle caméra</td><td>Les caméras du jeu ne sont jamais modifiées : la caméra du joueur retrouve exactement son réglage, et la cible peut être une caméra fixe de décor.</td></tr>
+        <tr><td>Caméra transitoire enfant <em>interne</em> de la cible</td><td>Elle doit être dans le même Viewport que la cible ; interne, elle n'apparaît pas dans l'arbre et n'est jamais sauvegardée avec la scène. Libérée avec la cible si celle-ci disparaît.</td></tr>
+        <tr><td>Interpolation de <code>global_transform</code> plutôt que de la position et des angles</td><td>La rotation prend le plus court chemin : pas de tour complet entre −179° et 179°.</td></tr>
+        <tr><td>Une transition interrompue repart de l'état atteint</td><td>Enchaîner deux plans rapidement ne provoque pas de saut vers l'ancienne caméra.</td></tr>
+        <tr><td>Caméra cible mémorisée par <code>ObjectID</code> dans le rappel de fin</td><td>Si elle est libérée pendant la transition, le rappel ne touche pas un pointeur invalide.</td></tr>
+        <tr><td><code>CameraPanner</code> lisse vers des valeurs cibles</td><td>Molette et trackpad envoient des à-coups ; viser une cible puis la rejoindre donne un mouvement fluide, et le zoom au curseur se calcule sur la cible (pas de dérive).</td></tr>
+        <tr><td>Poids de lissage borné à 1</td><td>Une image très longue (chargement) ne fait pas dépasser la cible.</td></tr>
+        <tr><td><code>OrbitalCamera</code> ne lit pas les entrées</td><td>La même caméra sert à la souris, au stick, au tactile ou à un script de cinématique ; <code>look_around</code> peut être connecté à n'importe quel signal portant un <code>Vector2</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des trois classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Conversion du module en GDExtension (« Convertions 4 modules de widget et spatialité ») : <code>CameraManager</code> (transitions 2D / 3D interruptibles), <code>CameraPanner</code>, <code>OrbitalCamera</code>.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🎞️ Gestion de Caméras · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/🎞️Gestion de Caméras🎛️/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "CameraManager.transition_duration_2d": "Régler une fois pour tout le jeu la durée des changements de plan 2D.",
+  "CameraManager.transition_duration_3d": "Régler une fois pour tout le jeu la durée des changements de plan 3D.",
+  "CameraManager.get_current_camera_2d": "Savoir quelle caméra 2D est affichée (pour y revenir après une cinématique).",
+  "CameraManager.get_current_camera_3d": "Mémoriser la caméra de jeu avant une cinématique, pour y revenir ensuite.",
+  "CameraManager.get_instance": "Accéder au gestionnaire depuis n'importe quel script, sans autoload.",
+  "CameraManager.is_transitioning_2d": "Bloquer les commandes du joueur pendant un changement de plan 2D, ou savoir s'il faut attendre le signal.",
+  "CameraManager.is_transitioning_3d": "Ignorer les entrées pendant un plan de coupe, ou savoir s'il faut attendre le signal.",
+  "CameraManager.switch_2d_camera": "Vue de dialogue, zoom sur un évènement, passage d'une salle à l'autre dans un jeu à écrans fixes.",
+  "CameraManager.switch_3d_camera": "Plan de coupe vers une porte, caméra de dialogue, caméra de surveillance, mode visée.",
+  "CameraManager.current_camera_2d_switched": "Lancer l'action mise en scène une fois le cadrage atteint.",
+  "CameraManager.current_camera_3d_switched": "Ouvrir la porte, lancer le dialogue ou rendre la main au joueur quand la caméra est en place.",
+  "CameraPanner.action_pan_down": "Associer le déplacement de la carte à une action dédiée (stick droit, touche S).",
+  "CameraPanner.action_pan_left": "Associer le déplacement de la carte à une action dédiée (stick droit, touche Q).",
+  "CameraPanner.action_pan_right": "Associer le déplacement de la carte à une action dédiée (stick droit, touche D).",
+  "CameraPanner.action_pan_up": "Associer le déplacement de la carte à une action dédiée (stick droit, touche Z).",
+  "CameraPanner.action_zoom_in": "Zoom à la gâchette droite ou à la touche +.",
+  "CameraPanner.action_zoom_out": "Dézoom à la gâchette gauche ou à la touche −.",
+  "CameraPanner.joypad_pan_speed": "Adapter la vitesse du stick à la taille de la carte.",
+  "CameraPanner.joypad_zoom_speed": "Rendre le zoom à la gâchette plus progressif ou plus rapide.",
+  "CameraPanner.lerp_speed": "Baisser pour un glissement « cinématique », monter pour un outil d'édition très réactif.",
+  "CameraPanner.max_zoom": "Empêcher de zoomer au-delà du pixel art lisible.",
+  "CameraPanner.min_zoom": "Empêcher de dézoomer au point de voir le vide autour de la carte.",
+  "CameraPanner.pan_mouse_button": "Clic droit pour déplacer dans un jeu de stratégie, clic gauche dans une simple visionneuse.",
+  "CameraPanner.touch_pan_sensitivity": "Ajuster le glissement à deux doigts sur trackpad ou tablette.",
+  "CameraPanner.zoom_factor": "Molette plus fine (1,05) pour un éditeur, plus rapide (1,3) pour une grande carte.",
+  "CameraPanner.teleport": "Recentrer sur une unité sélectionnée, une alerte, ou restaurer la vue sauvegardée.",
+  "OrbitalCamera.arm_3d": "Désigner le bras à ressort qui porte la caméra du joueur.",
+  "OrbitalCamera.max_pitch": "Empêcher de regarder le personnage par-dessous (sol, eau).",
+  "OrbitalCamera.min_pitch": "Limiter la vue plongeante (rester derrière le personnage).",
+  "OrbitalCamera.sensitivity": "Option « sensibilité de la souris » du menu, ou sensibilité réduite en mode visée.",
+  "OrbitalCamera.smooth_speed": "Caméra « lourde » pour un jeu contemplatif, réactive pour un jeu d'action.",
+  "OrbitalCamera.use_smoothing": "Désactiver pour une visée précise à la souris, sans retard.",
+  "OrbitalCamera.look_around": "Brancher la souris, le stick droit, un geste tactile ou un script de cinématique."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -80,7 +80,7 @@ class CustomTooltip : public Node
     bool hovering = false;
     double hover_time = 0.0;
     bool shown = false;
-    bool content_dirty = true;
+    bool content_dirty = true; // contenu modifié : reconstruit au prochain affichage ou à la frame suivante
 
     Node *_resolve_target() const;
     void _connect_target();
@@ -89,10 +89,15 @@ class CustomTooltip : public Node
     void _on_mouse_exited();
     void _on_content_changed() { content_dirty = true; }
 
+    /// Crée le CanvasLayer et le panneau internes (une seule fois, au premier affichage).
     void _build_ui();
+    /// Recrée les éléments du panneau (titre, icône, vidéo, texte, scène) depuis content.
     void _rebuild_content();
+    /// Place le panneau près de la souris, de l'autre côté si besoin, sans sortir de l'écran.
     void _place_at_mouse();
+    /// Fin du fondu de disparition (ignorée si l'infobulle a été réaffichée entre-temps).
     void _finish_hide();
+    /// Passe p_node et ses descendants en MOUSE_FILTER_IGNORE : l'infobulle ne vole jamais la souris.
     static void _ignore_mouse(Node *p_node);
 };
 } // namespace godot

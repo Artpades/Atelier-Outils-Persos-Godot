@@ -24,11 +24,13 @@ class MovementComponent : public Node
     GDCLASS(MovementComponent, Node)
 
   public:
+    /// Active / désactive le composant ; appelle _on_activated / _on_deactivated et émet le signal correspondant.
     void set_active(bool p_active);
     bool is_active() const { return active; }
 
     void move(const Vector2 &p_input) { move_input = p_input.limit_length(1.0f); }
     Vector2 get_move_input() const { return move_input; }
+    /// Demande un saut : bouton considéré maintenu, demande valable jump_buffer_time secondes.
     void jump();
     void release_jump() { jump_held = false; }
     bool is_jump_held() const { return jump_held; }
@@ -41,6 +43,7 @@ class MovementComponent : public Node
 
     /// Saut demandé il y a moins de jump_buffer_time ? (consume = l'oublier).
     bool has_jump_request(bool p_consume = false);
+    /// Corps déplacé = parent du composant.
     Node *get_body() const { return get_parent(); }
 
     /// Accélération externe (zones de force, courants d'eau) subie par un corps.
@@ -58,6 +61,7 @@ class MovementComponent : public Node
 
     /// Étape native des classes C++ (si actif).
     virtual void _physics_step(double /*p_delta*/) {}
+    /// Appelés au changement de `active` (remise à zéro d'un état propre au composant).
     virtual void _on_activated() {}
     virtual void _on_deactivated() {}
     /// Gizmos de débogage (debug_mode, composant actif) : la base dessine vitesse, intention et nom ;
@@ -70,11 +74,13 @@ class MovementComponent : public Node
 
     GDVIRTUAL1(_movement_step, double)
 
+    /// Intention courante, reçue de move(), jump(), set_running()... (directement ou via le MovementDirector).
     Vector2 move_input;
     bool jump_held = false;
     bool running = false;
     float vertical_input = 0.0f;
     double jump_buffer_time = 0.12;
+    /// Temps restant de la demande de saut (décrémenté à chaque image physique, actif ou non).
     double jump_buffer = 0.0;
 
   private:

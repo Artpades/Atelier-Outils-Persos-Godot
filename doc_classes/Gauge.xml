@@ -10,6 +10,7 @@
 		[codeblock]
 		var vie := Gauge.new()
 		vie.max_value = 200.0
+		vie.fill() # la valeur courante est restée à 100 : changer le maximum ne remplit pas la jauge
 		vie.thresholds = PackedFloat32Array([25.0, 50.0])
 		vie.threshold_crossed_down.connect(func(seuil): print("Sous ", seuil, " %"))
 		vie.depleted.connect(_mourir)

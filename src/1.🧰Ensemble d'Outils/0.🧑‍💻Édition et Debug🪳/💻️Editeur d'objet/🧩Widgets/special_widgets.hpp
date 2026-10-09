@@ -15,8 +15,8 @@
 
 namespace godot
 {
-// Sélecteur de nœud en jeu (l'éditeur utilise EditorInterface::popup_node_selector) : arbre de la scène
-// courante ; les nœuds d'un type non autorisé sont grisés. Se libère à la fermeture.
+/// Sélecteur de nœud en jeu (l'éditeur utilise EditorInterface::popup_node_selector) : arbre de la scène
+/// courante ; les nœuds d'un type non autorisé sont grisés. Se libère à la fermeture.
 class NodeSelectorDialog : public AcceptDialog
 {
     GDCLASS(NodeSelectorDialog, AcceptDialog)
@@ -34,13 +34,13 @@ class NodeSelectorDialog : public AcceptDialog
     static void _bind_methods() {}
 
   public:
-    // Ouvre le sélecteur sous p_owner ; p_callback(Node) est appelé à la validation.
+    /// Ouvre le sélecteur sous p_owner ; p_callback(Node) est appelé à la validation.
     static void open(Node *p_owner, Node *p_root, const PackedStringArray &p_valid_types, const Callable &p_callback);
 };
 
-// NodePath, ou Object de type nœud (choix « PathButton ») : chemin + bouton « … » (sélecteur de nœud) ;
-// pour un NodePath dans l'éditeur, « Propriété… » ajoute un sous-chemin de propriété (popup_property_selector).
-// Le chemin est relatif au nœud qui porte la propriété.
+/// NodePath, ou Object de type nœud (choix « PathButton ») : chemin + bouton « … » (sélecteur de nœud) ;
+/// pour un NodePath dans l'éditeur, « Propriété… » ajoute un sous-chemin de propriété (popup_property_selector).
+/// Le chemin est relatif au nœud qui porte la propriété.
 class PathWidget : public PropertyWidget
 {
     GDCLASS(PathWidget, PropertyWidget)
@@ -66,8 +66,8 @@ class PathWidget : public PropertyWidget
     void pull_value(const Variant &p_value) override;
 };
 
-// Variant : choix du type (OptionButton) + widget du type choisi. Changer de type convertit la valeur
-// quand c'est possible (scalaires entre eux, vecteurs entiers / décimaux...), sinon valeur par défaut du type.
+/// Variant : choix du type (OptionButton) + widget du type choisi. Changer de type convertit la valeur
+/// quand c'est possible (scalaires entre eux, vecteurs entiers / décimaux...), sinon valeur par défaut du type.
 class VariantWidget : public PropertyWidget
 {
     GDCLASS(VariantWidget, PropertyWidget)
@@ -89,8 +89,8 @@ class VariantWidget : public PropertyWidget
     static bool convertible(Variant::Type p_from, Variant::Type p_to);
 };
 
-// Valeurs locales des arguments d'une méthode : propriétés dynamiques "arg_0", "arg_1"... décrites comme
-// les paramètres de la méthode, initialisées avec default_args (alignés sur les derniers paramètres).
+/// Valeurs locales des arguments d'une méthode : propriétés dynamiques "arg_0", "arg_1"... décrites comme
+/// les paramètres de la méthode, initialisées avec default_args (alignés sur les derniers paramètres).
 class ArgumentStore : public RefCounted
 {
     GDCLASS(ArgumentStore, RefCounted)
@@ -112,8 +112,8 @@ class ArgumentStore : public RefCounted
     Array get_values() const;
 };
 
-// Méthode (choix « Button ») : bouton au nom de la méthode, un widget par argument (valeurs locales, hors
-// historique d'annulation), appel par callv, résultat affiché si la méthode retourne une valeur.
+/// Méthode (choix « Button ») : bouton au nom de la méthode, un widget par argument (valeurs locales, hors
+/// historique d'annulation), appel par callv, résultat affiché si la méthode retourne une valeur.
 class MethodWidget : public PropertyWidget
 {
     GDCLASS(MethodWidget, PropertyWidget)
@@ -132,7 +132,7 @@ class MethodWidget : public PropertyWidget
 
   public:
     bool is_value_widget() const override { return false; }
-    // Signature lisible : nom(a: int, b: String = "x") -> int
+    /// Signature lisible : nom(a: int, b: String = "x") -> int
     static String signature(const Dictionary &p_method_info);
 };
 } // namespace godot

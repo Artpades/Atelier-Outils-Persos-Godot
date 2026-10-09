@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Gizmos2D" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🐛 Dessins de debug 2D (lignes, flèches, formes, chemins, texte, icônes) tracés directement par le serveur de rendu, sans nœud dans la scène.
 	</brief_description>
 	<description>
+		Classe purement statique. Un [i]gizmo[/i] est un élément de dessin du [RenderingServer] identifié par un [RID] : on le crée une fois avec [method create_2D_gizmo], on le redessine aussi souvent que nécessaire (chaque frame si la forme bouge), puis on le libère avec [method free_2D_gizmo].
+		Le gizmo est rattaché au canvas du [World2D] du viewport fourni : ses coordonnées sont celles du monde 2D, et il suit donc la [Camera2D]. Il n'apparaît ni dans l'arbre de scène ni dans l'inspecteur.
+		[b]Un gizmo = une forme :[/b] chaque méthode [code]draw_2D_*[/code] efface d'abord le dessin précédent du gizmo. Pour afficher plusieurs formes en même temps, créer un gizmo par forme.
+		[codeblock]
+		var gizmo: RID
+
+		func _ready() -&gt; void:
+			gizmo = Gizmos2D.create_2D_gizmo(get_viewport())
+
+		func _process(_delta: float) -&gt; void:
+			# Flèche du joueur vers la souris, redessinée chaque frame.
+			Gizmos2D.draw_2D_arrow(gizmo, global_position, get_global_mouse_position(), 12.0, 2.0, Color.YELLOW)
+
+		func _exit_tree() -&gt; void:
+			Gizmos2D.free_2D_gizmo(gizmo) # sinon le dessin reste à l'écran et le RID fuit
+		[/codeblock]
+		[b]Note :[/b] une méthode appelée avec un [RID] invalide écrit une erreur en rouge dans la console et ne fait rien.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,18 +30,22 @@
 			<param index="0" name="gizmo_rid" type="RID" />
 			<param index="1" name="material" type="Material" />
 			<description>
+				Censée appliquer [param material] au gizmo. [b]Ne fonctionne pas dans la version actuelle :[/b] le matériau transmis au serveur de rendu est toujours vide (la méthode lit un identifiant de shader que les matériaux natifs ne fournissent pas), si bien que l'appel retire au contraire tout matériau du gizmo. Passer [code]null[/code] fait planter le moteur.
 			</description>
 		</method>
 		<method name="clear_2D_gizmo" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="gizmo_rid" type="RID" />
 			<description>
+				Efface tout ce qui est dessiné sur le gizmo, qui reste valide et réutilisable (utile pour masquer temporairement un dessin sans le libérer).
 			</description>
 		</method>
 		<method name="create_2D_gizmo" qualifiers="static">
 			<return type="RID" />
 			<param index="0" name="viewport" type="Viewport" />
 			<description>
+				Crée un gizmo vide rattaché au canvas du [World2D] de [param viewport] ([method Viewport.find_world_2d]) et renvoie son [RID]. Renvoie un [RID] vide, avec une erreur en console, si [param viewport] est nul ou n'a pas de monde 2D.
+				Le gizmo n'est pas libéré automatiquement : appeler [method free_2D_gizmo] quand il ne sert plus (typiquement dans [method Node._exit_tree]).
 			</description>
 		</method>
 		<method name="draw_2D_arrow" qualifiers="static">
@@ -36,6 +58,7 @@
 			<param index="5" name="color" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="6" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine une flèche de [param from] vers [param to] : une ligne d'épaisseur [param width] terminée par une pointe triangulaire pleine. La pointe mesure [param arrow_head_size] pixels de long (au plus la longueur de la flèche) et autant de large. Si [param from] et [param to] sont confondus, le gizmo est seulement effacé. [param antialiasing] ne lisse que la ligne.
 			</description>
 		</method>
 		<method name="draw_2D_capsule" qualifiers="static">
@@ -47,6 +70,8 @@
 			<param index="4" name="thickness" type="float" default="2.0" />
 			<param index="5" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine le contour d'une capsule verticale centrée sur [param position] : [param size].x est son diamètre, [param size].y sa hauteur totale (un cercle si la hauteur est inférieure au diamètre). Pas de mode plein.
+				[b]Attention :[/b] la position est appliquée comme transformation du gizmo et n'est pas réinitialisée par les autres méthodes : réutiliser ce gizmo pour une autre forme la décale d'autant.
 			</description>
 		</method>
 		<method name="draw_2D_circle" qualifiers="static">
@@ -59,6 +84,7 @@
 			<param index="5" name="thickness" type="float" default="2.0" />
 			<param index="6" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine un cercle de centre [param center] et de rayon [param radius] : contour d'épaisseur [param thickness] (24 segments) ou disque plein si [param filled] vaut [code]true[/code].
 			</description>
 		</method>
 		<method name="draw_2D_icon" qualifiers="static">
@@ -69,6 +95,7 @@
 			<param index="3" name="size" type="Vector2" default="Vector2(0, 0)" />
 			<param index="4" name="filter" type="int" enum="RenderingServer.CanvasItemTextureFilter" default="1" />
 			<description>
+				Dessine la texture [param icon] centrée sur [param position], à la taille [param size] (taille d'origine de la texture si [param size] vaut [code]Vector2(0, 0)[/code]), avec le filtrage [param filter] (pixels nets par défaut). Si [param icon] est nul, le gizmo est effacé et une erreur est écrite en console.
 			</description>
 		</method>
 		<method name="draw_2D_line" qualifiers="static">
@@ -80,6 +107,7 @@
 			<param index="4" name="color" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="5" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine un segment de [param from] à [param to], d'épaisseur [param width]. Attention à l'ordre des paramètres : ici l'épaisseur précède la couleur.
 			</description>
 		</method>
 		<method name="draw_2D_origin" qualifiers="static">
@@ -93,6 +121,8 @@
 			<param index="6" name="cross_color" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="7" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine un repère d'axes : une flèche rouge pour l'axe X et une flèche verte pour l'axe Y (vers le bas de l'écran en 2D), de longueur [param length], plus une petite croix de couleur [param cross_color] tournée à 45° à l'origine ([param cross_size] à [code]0[/code] pour la masquer). Le repère est placé et orienté par [param transform] (ex. [member Node2D.global_transform]).
+				[b]Attention :[/b] [param transform] reste appliqué au gizmo pour les dessins suivants (voir [method draw_2D_capsule]).
 			</description>
 		</method>
 		<method name="draw_2D_path" qualifiers="static">
@@ -110,6 +140,13 @@
 			<param index="10" name="arrow_head_size" type="float" default="12.0" />
 			<param index="11" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine un chemin passant par [param points] (au moins 2 ; sinon rien n'est fait et l'ancien dessin reste affiché).
+				- [param as_arrows] : chaque tronçon est une flèche (pointe de [param arrow_head_size] pixels).
+				- [param segments_per_line] : découpe chaque segment en autant de tronçons (utile avec [param as_arrows] ou [param spacing]).
+				- [param spacing] : longueur retirée à la fin de chaque tronçon, pour un tracé en pointillés.
+				- [param use_bezier] : avec au moins 3 points, lisse le chemin par des courbes de Bézier passant par les milieux des segments ; [param segments_per_line] fixe alors le nombre de points par portion de courbe.
+				- [param show_points] : marque chaque point d'origine d'un disque de couleur [param color] (rayon [param point_radius] × 1,5) avec un centre blanc de rayon [param point_radius].
+				[param antialiasing] ne s'applique qu'aux marqueurs de points, pas aux lignes.
 			</description>
 		</method>
 		<method name="draw_2D_polygon" qualifiers="static">
@@ -121,6 +158,7 @@
 			<param index="4" name="thickness" type="float" default="2.0" />
 			<param index="5" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine le polygone [param points] : contour fermé automatiquement, d'épaisseur [param thickness], ou surface pleine si [param filled] vaut [code]true[/code] (le polygone doit alors être simple, sans côtés qui se croisent, sinon Godot refuse de le trianguler). Avec moins de 2 points, rien n'est fait et l'ancien dessin reste affiché.
 			</description>
 		</method>
 		<method name="draw_2D_rectangle" qualifiers="static">
@@ -132,6 +170,7 @@
 			<param index="4" name="thickness" type="float" default="2.0" />
 			<param index="5" name="antialiasing" type="bool" default="false" />
 			<description>
+				Dessine le rectangle [param rect] (position = coin supérieur gauche) : contour d'épaisseur [param thickness], ou rectangle plein si [param filled] vaut [code]true[/code].
 			</description>
 		</method>
 		<method name="draw_2D_text" qualifiers="static">
@@ -142,12 +181,14 @@
 			<param index="3" name="color" type="Color" default="Color(1, 1, 1, 1)" />
 			<param index="4" name="font_size" type="int" default="12" />
 			<description>
+				Écrit [param text] sur une seule ligne avec la police par défaut du thème ([member ThemeDB.fallback_font]), à la taille [param font_size]. [param position] est le début de la ligne de base (bas des lettres), pas le coin supérieur gauche.
 			</description>
 		</method>
 		<method name="free_2D_gizmo" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="gizmo_rid" type="RID" />
 			<description>
+				Libère le gizmo : son dessin disparaît et le [RID] ne doit plus être utilisé. À appeler pour chaque gizmo créé, sans quoi il reste affiché et occupe de la mémoire jusqu'à la fermeture du jeu.
 			</description>
 		</method>
 	</methods>

@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TextEditWidgetSettings" inherits="WidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages d'une zone de texte multiligne : hauteur.
 	</brief_description>
 	<description>
+		Pour [constant DataEntry.WIDGET_TEXT_EDIT].
+		[codeblock]
+		var zone := TextEditWidgetSettings.new()
+		zone.height = 160.0
+		registre.find(&amp;"description").settings = zone
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="height" type="float" setter="set_height" getter="get_height" default="80.0">
+			Hauteur minimale de la zone de texte, en pixels (≥ 1).
 		</member>
 	</members>
 </class>

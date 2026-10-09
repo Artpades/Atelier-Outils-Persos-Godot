@@ -1,46 +1,120 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SwimMovement3D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌊 Nage 3D d'un [CharacterBody3D] dans une [WaterArea3D] : trois styles (Flottaison, Directionnel, Poisson), coups de nage et sortie de l'eau par un saut.
 	</brief_description>
 	<description>
+		Composant de mouvement ([MovementComponent]) à placer sous un [CharacterBody3D], en général activé par un [MovementDirector] dans le contexte « eau ». Sans eau autour du corps, il se contente d'appliquer la gravité.
+		- [b]Directionnel[/b] (défaut) : [code]move[/code] vise l'avant / les côtés (de la caméra si [member camera_relative], en suivant son inclinaison : pousser en avant caméra baissée fait plonger) et [method MovementComponent.set_vertical_input] monte / descend. Le saut donne un coup de nage ou fait sortir de l'eau près de la surface.
+		- [b]Poisson[/b] : [code]move.x[/code] tourne (lacet), [method MovementComponent.set_vertical_input] cabre / pique, [code]move.y[/code] vers l'avant accélère et vers l'arrière ralentit ; le corps nage toujours.
+		- [b]Flottaison[/b] : déplacement horizontal direct ; [method MovementComponent.set_vertical_input] (ou le saut maintenu) fait monter, sinon le corps remonte vers [member float_depth].
+		Le courant de l'eau et les [ForceZone3D] s'ajoutent sous forme de dérive.
+		[codeblock]
+		func _physics_process(_delta: float) -&gt; void:
+			var nage := $SwimMovement3D
+			nage.move(Input.get_vector("gauche", "droite", "avant", "arriere"))
+			nage.set_vertical_input(Input.get_axis("descendre", "monter"))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="get_heading" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Renvoie la direction de nage actuelle (normalisée, tangage compris). En Flottaison, la direction horizontale du déplacement.
+			</description>
+		</method>
+		<method name="get_speed" qualifiers="const">
+			<return type="float" />
+			<description>
+				Renvoie la vitesse de nage le long de [method get_heading] (styles Directionnel et Poisson ; non mise à jour en Flottaison).
+			</description>
+		</method>
 		<method name="get_water" qualifiers="const">
 			<return type="WaterArea3D" />
 			<description>
+				Renvoie la [WaterArea3D] qui contient le corps, ou [code]null[/code].
 			</description>
 		</method>
 	</methods>
 	<members>
-		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="20.0">
+		<member name="acceleration" type="float" setter="set_acceleration" getter="get_acceleration" default="12.0">
+			Accélération de la nage, en m/s² : la vitesse le long de la direction de nage monte vers la cible à ce rythme et retombe deux fois moins vite sans commande. En Flottaison, rythme auquel la vitesse rejoint la commande sur chaque axe.
+		</member>
+		<member name="align_to_heading" type="bool" setter="set_align_to_heading" getter="get_align_to_heading" default="true">
+			Si [code]true[/code], le visuel ([member visual_path], sinon le corps) est orienté vers la direction de nage, tangage compris, puis redressé (lacet seul) à la désactivation. Son orientation globale est réécrite à chaque image.
 		</member>
 		<member name="buoyancy" type="float" setter="set_buoyancy" getter="get_buoyancy" default="6.0">
+			Flottaison uniquement : force de rappel, en m/s², vers la profondeur d'équilibre [member float_depth] quand aucune commande verticale n'est donnée. Ignorée par les styles Directionnel et Poisson.
 		</member>
 		<member name="camera_relative" type="bool" setter="set_camera_relative" getter="get_camera_relative" default="false">
+			Si [code]true[/code], la commande est relative à la caméra 3D courante : en Directionnel avec son inclinaison complète, en Flottaison ramenée à l'horizontale. Ignoré par le style Poisson.
 		</member>
-		<member name="drag" type="float" setter="set_drag" getter="get_drag" default="3.0">
+		<member name="cruise_ratio" type="float" setter="set_cruise_ratio" getter="get_cruise_ratio" default="0.4">
+			Poisson uniquement : vitesse de croisière, en part de [member swim_speed] ; le corps ne nage jamais plus lentement (sauf en arrière en 3D, qui ralentit jusqu'à l'arrêt).
+		</member>
+		<member name="drag" type="float" setter="set_drag" getter="get_drag" default="2.0">
+			Freinage de l'eau, par seconde. Directionnel et Poisson : amortit la dérive due au courant et aux zones de force. Flottaison : freine les axes sans commande.
 		</member>
 		<member name="float_depth" type="float" setter="set_float_depth" getter="get_float_depth" default="0.6">
+			Profondeur d'équilibre sous la surface, en m. Flottaison : profondeur vers laquelle le corps remonte. Directionnel et Poisson : le corps ne peut pas remonter plus haut à la nage (il est repoussé dessous) et la nage redevient horizontale près de cette profondeur.
 		</member>
 		<member name="jump_out_velocity" type="float" setter="set_jump_out_velocity" getter="get_jump_out_velocity" default="5.0">
+			Vitesse verticale, en m/s, donnée par un saut près de la surface (moins de [member surface_tolerance] de profondeur) : le corps sort de l'eau.
 		</member>
-		<member name="stroke_velocity" type="float" setter="set_stroke_velocity" getter="get_stroke_velocity" default="3.0">
+		<member name="run_multiplier" type="float" setter="set_run_multiplier" getter="get_run_multiplier" default="1.6">
+			Directionnel et Poisson : multiplicateur de [member swim_speed] pendant la course.
+		</member>
+		<member name="stroke_cooldown" type="float" setter="set_stroke_cooldown" getter="get_stroke_cooldown" default="0.35">
+			Directionnel et Poisson : délai minimal, en secondes, entre deux coups de nage.
+		</member>
+		<member name="stroke_velocity" type="float" setter="set_stroke_velocity" getter="get_stroke_velocity" default="4.0">
+			Élan, en m/s, ajouté à la vitesse de nage par un coup de nage (saut sous l'eau), plafonné au double de la vitesse maximale. Sans effet en Flottaison.
+		</member>
+		<member name="style" type="int" setter="set_style" getter="get_style" default="1">
+			Style de nage : [constant STYLE_SURFACE] (Flottaison), [constant STYLE_DIRECTIONAL] (Directionnel, défaut) ou [constant STYLE_FISH] (Poisson). Valeur bornée entre 0 et 2.
 		</member>
 		<member name="surface_tolerance" type="float" setter="set_surface_tolerance" getter="get_surface_tolerance" default="0.8">
+			Profondeur maximale, en m, à laquelle le saut fait sortir de l'eau ([signal jumped_out]) au lieu de donner un coup de nage.
 		</member>
-		<member name="swim_speed" type="float" setter="set_swim_speed" getter="get_swim_speed" default="4.0">
+		<member name="swim_speed" type="float" setter="set_swim_speed" getter="get_swim_speed" default="5.0">
+			Vitesse de nage maximale, en m/s (multipliée par [member run_multiplier] pendant la course, sauf en Flottaison).
+		</member>
+		<member name="turn_speed" type="float" setter="set_turn_speed" getter="get_turn_speed" default="3.5">
+			Directionnel et Poisson : vitesse maximale de rotation de la direction de nage, en radians par seconde. Plus elle est faible, plus les virages sont larges.
+		</member>
+		<member name="undulation_amplitude" type="float" setter="set_undulation_amplitude" getter="get_undulation_amplitude" default="0.25">
+			Poisson : amplitude, en radians, de l'ondulation du visuel autour de son axe vertical (lacet), modulée par la vitesse.
+		</member>
+		<member name="undulation_frequency" type="float" setter="set_undulation_frequency" getter="get_undulation_frequency" default="2.5">
+			Poisson : fréquence de l'ondulation, en hertz.
+		</member>
+		<member name="visual_path" type="NodePath" setter="set_visual_path" getter="get_visual_path" default="NodePath(&quot;&quot;)">
+			Nœud orienté par [member align_to_heading] (chemin relatif au composant). Vide : c'est le corps lui-même qui est tourné, avec sa forme de collision. Préférer un nœud visuel enfant.
 		</member>
 	</members>
 	<signals>
 		<signal name="jumped_out">
 			<description>
+				Émis quand un saut près de la surface fait sortir le corps de l'eau.
 			</description>
 		</signal>
 		<signal name="stroked">
 			<description>
+				Émis à chaque coup de nage (saut sous l'eau, styles Directionnel et Poisson).
 			</description>
 		</signal>
 	</signals>
+	<constants>
+		<constant name="STYLE_SURFACE" value="0" enum="Style">
+			Flottaison : déplacement direct selon la commande, remontée automatique vers [member float_depth].
+		</constant>
+		<constant name="STYLE_DIRECTIONAL" value="1" enum="Style">
+			Directionnel (à la Mario Galaxy) : la direction de nage tourne vers la commande, garde son élan et s'oriente.
+		</constant>
+		<constant name="STYLE_FISH" value="2" enum="Style">
+			Poisson : nage toujours vers l'avant (vitesse de croisière), la commande oriente, le visuel ondule.
+		</constant>
+	</constants>
 </class>

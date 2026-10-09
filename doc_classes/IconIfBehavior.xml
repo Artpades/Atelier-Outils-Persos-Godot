@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="IconIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement « Icône si » : remplace l'icône des widgets cibles tant que la condition est vraie.
 	</brief_description>
 	<description>
+		Si plusieurs « Icône si » sont actifs sur la même cible, le dernier de la liste l'emporte. Sans effet sur les groupes.
+		[codeblock]
+		var icone := IconIfBehavior.new()
+		icone.get_condition().property_path = ^"empoisonne"
+		icone.icon = preload("res://icones/poison.png")
+		icone.targets = PackedStringArray(["vie"])
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
 		<member name="icon" type="Texture2D" setter="set_icon" getter="get_icon">
+			Icône affichée tant que la condition est vraie.
 		</member>
 	</members>
 </class>

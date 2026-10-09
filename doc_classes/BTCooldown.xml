@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTCooldown" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Temps de recharge : après une réussite de l'enfant, échoue sans l'exécuter pendant [member duration] secondes.
 	</brief_description>
 	<description>
+		Empêche une action d'être répétée trop souvent (attaque spéciale, cri d'alerte). Le temps est celui de l'arbre ([method BehaviorTree.get_elapsed_time]) : il s'arrête avec l'arbre (pause, [member BehaviorTree.active] à [code]false[/code]). La recharge survit à [method BehaviorTree.interrupt] ; [method reset_cooldown] l'annule.
+		[codeblock]
+		var recharge := BTCooldown.new()
+		recharge.duration = 4.0
+		recharge.add_child(action_boule_de_feu)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,18 +17,22 @@
 		<method name="get_remaining" qualifiers="const">
 			<return type="float" />
 			<description>
+				Temps de recharge restant en secondes ([code]0[/code] si l'enfant est disponible).
 			</description>
 		</method>
 		<method name="reset_cooldown">
 			<return type="void" />
 			<description>
+				Annule la recharge en cours : l'enfant sera exécuté au prochain tick.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="1.0">
+			Durée de la recharge, en secondes de temps de l'arbre.
 		</member>
 		<member name="include_failures" type="bool" setter="set_include_failures" getter="get_include_failures" default="false">
+			Si [code]true[/code], un échec de l'enfant déclenche aussi la recharge.
 		</member>
 	</members>
 </class>

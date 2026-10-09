@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputBinding" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Liaison d'une action d'entrée : quand l'action émet un évènement, appeler une méthode d'un nœud, sans code.
 	</brief_description>
 	<description>
+		Rangée dans [member InputAction.bindings], une liaison décrit « quand l'action émet [member event], appeler [member method] sur le nœud [member target] ». Le [PlayerInput] qui met l'action à jour exécute l'appel ; le chemin [member target] est donc [b]relatif au PlayerInput[/b].
+		Arguments transmis : les arguments du signal (si [member pass_value]), puis ceux de [member arguments]. Une cible ou une méthode introuvable ne provoque pas d'erreur : la liaison est ignorée, [signal PlayerInput.binding_failed] est émis et un avertissement est affiché une fois.
+		[codeblock]
+		# Saut : pressed → ../Joueur.sauter()
+		var saut := InputBinding.new()
+		saut.event = &amp;"pressed"
+		saut.target = NodePath("../Joueur")
+		saut.method = &amp;"sauter"
+		saut.pass_value = false
+		$PlayerInput.get_action(&amp;"saut").bindings.append(saut)
+
+		# Déplacement : value_changed(Vector2) → ../Joueur.deplacer(direction, 1.5)
+		var marche := InputBinding.new()
+		marche.event = &amp;"value_changed"
+		marche.target = NodePath("../Joueur")
+		marche.method = &amp;"deplacer"
+		marche.arguments = [1.5]
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,26 +30,34 @@
 			<return type="Array" />
 			<param index="0" name="signal_arguments" type="Array" />
 			<description>
+				Renvoie les arguments de l'appel pour un signal émis avec [param signal_arguments] : ceux-ci si [member pass_value] est vrai, suivis de [member arguments].
 			</description>
 		</method>
 		<method name="get_description" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie un résumé lisible, ex. [code]pressed → ../Joueur.sauter(valeur)[/code], suivi de [code][désactivée][/code] si [member enabled] est faux. Utilisé par le journal de débogage.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="arguments" type="Array" setter="set_arguments" getter="get_arguments" default="[]">
+			Arguments fixes ajoutés après la valeur du signal (ex. une vitesse, un identifiant d'arme).
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], la liaison est ignorée (ni appelée, ni journalisée).
 		</member>
 		<member name="event" type="StringName" setter="set_event" getter="get_event" default="&amp;&quot;pressed&quot;">
+			Nom du signal de l'action qui déclenche l'appel : [code]pressed[/code], [code]released[/code], [code]toggled[/code], [code]held[/code], [code]multi_pressed[/code], [code]value_changed[/code]... (voir [method InputAction.get_events]).
 		</member>
 		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+			Nom de la méthode appelée sur [member target]. Son nombre de paramètres doit correspondre aux arguments transmis.
 		</member>
 		<member name="pass_value" type="bool" setter="set_pass_value" getter="get_pass_value" default="true">
+			Si [code]true[/code], les arguments du signal (valeur, vitesse, nombre d'appuis...) sont transmis en premier. Désactiver pour appeler une méthode sans paramètre sur [code]value_changed[/code].
 		</member>
 		<member name="target" type="NodePath" setter="set_target" getter="get_target" default="NodePath(&quot;&quot;)">
+			Chemin du nœud cible, [b]relatif au [PlayerInput][/b] qui possède l'action (ex. [code]../Joueur[/code]).
 		</member>
 	</members>
 </class>

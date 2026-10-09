@@ -41,7 +41,7 @@ float PopStyle::get_alpha_at(double p_age) const
 #define BIND_POP_PROPERTY(m_variant_type, m_name, ...)                                                     \
     ClassDB::bind_method(D_METHOD("set_" #m_name, "value"), &PopStyle::set_##m_name);                    \
     ClassDB::bind_method(D_METHOD("get_" #m_name), &PopStyle::get_##m_name);                             \
-    ADD_PROPERTY(PropertyInfo(Variant::m_variant_type, #m_name, ##__VA_ARGS__), "set_" #m_name, "get_" #m_name)
+    ADD_PROPERTY(PropertyInfo(Variant::m_variant_type, #m_name, __VA_ARGS__), "set_" #m_name, "get_" #m_name)
 
 void PopStyle::_bind_methods()
 {
@@ -61,7 +61,7 @@ void PopStyle::_bind_methods()
     BIND_POP_PROPERTY(FLOAT, spin_max, PROPERTY_HINT_RANGE, U"-1080,1080,1,or_less,or_greater,suffix:°/s");
 
     ADD_GROUP("Floor", "");
-    BIND_POP_PROPERTY(BOOL, use_floor);
+    BIND_POP_PROPERTY(BOOL, use_floor, PROPERTY_HINT_NONE, "");
     BIND_POP_PROPERTY(FLOAT, floor_offset, PROPERTY_HINT_RANGE, "0,500,1,or_greater,suffix:px");
     BIND_POP_PROPERTY(FLOAT, bounce, PROPERTY_HINT_RANGE, "0,1,0.01");
     BIND_POP_PROPERTY(FLOAT, floor_friction, PROPERTY_HINT_RANGE, "0,1,0.01");
@@ -77,13 +77,13 @@ void PopStyle::_bind_methods()
     ADD_GROUP("Appearance", "");
     BIND_POP_PROPERTY(OBJECT, font, PROPERTY_HINT_RESOURCE_TYPE, "Font");
     BIND_POP_PROPERTY(INT, font_size, PROPERTY_HINT_RANGE, "1,256,1,or_greater,suffix:px");
-    BIND_POP_PROPERTY(COLOR, text_color);
-    BIND_POP_PROPERTY(COLOR, positive_color);
-    BIND_POP_PROPERTY(COLOR, negative_color);
+    BIND_POP_PROPERTY(COLOR, text_color, PROPERTY_HINT_NONE, "");
+    BIND_POP_PROPERTY(COLOR, positive_color, PROPERTY_HINT_NONE, "");
+    BIND_POP_PROPERTY(COLOR, negative_color, PROPERTY_HINT_NONE, "");
     BIND_POP_PROPERTY(INT, outline_size, PROPERTY_HINT_RANGE, "0,64,1,or_greater,suffix:px");
-    BIND_POP_PROPERTY(COLOR, outline_color);
+    BIND_POP_PROPERTY(COLOR, outline_color, PROPERTY_HINT_NONE, "");
     BIND_POP_PROPERTY(VECTOR2, icon_size, PROPERTY_HINT_NONE, "suffix:px");
     BIND_POP_PROPERTY(FLOAT, spacing, PROPERTY_HINT_RANGE, "0,64,1,or_greater,suffix:px");
     BIND_POP_PROPERTY(INT, z_index, PROPERTY_HINT_RANGE, "-4096,4096,1");
-    BIND_POP_PROPERTY(BOOL, always_on_top_3d);
+    BIND_POP_PROPERTY(BOOL, always_on_top_3d, PROPERTY_HINT_NONE, "");
 }

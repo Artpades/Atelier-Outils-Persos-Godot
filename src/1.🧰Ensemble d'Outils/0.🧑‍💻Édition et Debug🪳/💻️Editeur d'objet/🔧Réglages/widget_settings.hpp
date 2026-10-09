@@ -9,23 +9,23 @@
 
 namespace godot
 {
-// Réglages d'un widget (remplace le Dictionary ExtraData du C#) : propriétés exportées, donc validées
-// par l'inspecteur. Utilisable telle quelle pour les réglages communs ; chaque widget qui a besoin de
-// plus déclare sa sous-classe (PropertyWidget::get_settings_class).
-// Priorité : réglages de l'entrée > indice (hint) de la propriété > valeurs par défaut du widget.
+/// Réglages d'un widget (remplace le Dictionary ExtraData du C#) : propriétés exportées, donc validées
+/// par l'inspecteur. Utilisable telle quelle pour les réglages communs ; chaque widget qui a besoin de
+/// plus déclare sa sous-classe (PropertyWidget::get_settings_class).
+/// Priorité : réglages de l'entrée > indice (hint) de la propriété > valeurs par défaut du widget.
 class WidgetSettings : public Resource
 {
     GDCLASS(WidgetSettings, Resource)
 
   public:
-    // Partie du widget qui reçoit le style. Valeurs enregistrées : jamais renumérotées.
+    /// Partie du widget qui reçoit le style. Valeurs enregistrées : jamais renumérotées.
     enum StyleTarget
     {
         STYLE_WIDGET = 0, // widget entier (libellé + valeur), fond dessiné derrière
         STYLE_VALUE = 1,  // contrôle de la valeur seulement
         STYLE_LABEL = 2,  // libellé seulement
     };
-    // Place de l'icône. Valeurs enregistrées : jamais renumérotées.
+    /// Place de l'icône. Valeurs enregistrées : jamais renumérotées.
     enum IconPosition
     {
         ICON_BEFORE_LABEL = 0,
@@ -61,7 +61,7 @@ class WidgetSettings : public Resource
     double get_label_ratio() const;
 };
 
-// Nombres (SpinBox, sliders, barres de progression). Présents, ces réglages REMPLACENT l'indice Range de la propriété.
+/// Nombres (SpinBox, sliders, barres de progression). Présents, ces réglages REMPLACENT l'indice Range de la propriété.
 class RangeWidgetSettings : public WidgetSettings
 {
     GDCLASS(RangeWidgetSettings, WidgetSettings)
@@ -92,7 +92,7 @@ class RangeWidgetSettings : public WidgetSettings
     String get_suffix() const;
 };
 
-// TextureProgressBar : bornes de RangeWidgetSettings + textures (sans texture de progression : ProgressBar simple).
+/// TextureProgressBar : bornes de RangeWidgetSettings + textures (sans texture de progression : ProgressBar simple).
 class TextureProgressWidgetSettings : public RangeWidgetSettings
 {
     GDCLASS(TextureProgressWidgetSettings, RangeWidgetSettings)
@@ -111,7 +111,7 @@ class TextureProgressWidgetSettings : public RangeWidgetSettings
     Ref<Texture2D> get_under_texture() const;
 };
 
-// TextEdit : hauteur de la zone de texte.
+/// TextEdit : hauteur de la zone de texte.
 class TextEditWidgetSettings : public WidgetSettings
 {
     GDCLASS(TextEditWidgetSettings, WidgetSettings)
@@ -127,7 +127,7 @@ class TextEditWidgetSettings : public WidgetSettings
     double get_height() const;
 };
 
-// Structures (un SpinBox par composante) : pas des composantes décimales.
+/// Structures (un SpinBox par composante) : pas des composantes décimales.
 class StructWidgetSettings : public WidgetSettings
 {
     GDCLASS(StructWidgetSettings, WidgetSettings)
@@ -143,7 +143,7 @@ class StructWidgetSettings : public WidgetSettings
     double get_step() const;
 };
 
-// Conteneurs (objets, collections) : disposition et dépliage.
+/// Conteneurs (objets, collections) : disposition et dépliage.
 class ContainerWidgetSettings : public WidgetSettings
 {
     GDCLASS(ContainerWidgetSettings, WidgetSettings)
@@ -168,9 +168,9 @@ class ContainerWidgetSettings : public WidgetSettings
     int get_max_displayed() const;
 };
 
-// Tableau (liste d'objets ou de dictionnaires) : une ligne par élément et une colonne par propriété / clé,
-// ou l'inverse (transpose). columns : propriétés affichées, dans cet ordre (vide : toutes, dans l'ordre de
-// découverte).
+/// Tableau (liste d'objets ou de dictionnaires) : une ligne par élément et une colonne par propriété / clé,
+/// ou l'inverse (transpose). columns : propriétés affichées, dans cet ordre (vide : toutes, dans l'ordre de
+/// découverte).
 class TableWidgetSettings : public ContainerWidgetSettings
 {
     GDCLASS(TableWidgetSettings, ContainerWidgetSettings)
@@ -189,9 +189,9 @@ class TableWidgetSettings : public ContainerWidgetSettings
     PackedStringArray get_table_columns() const;
 };
 
-// Aperçu personnalisé : classe (native ou class_name héritant de PreviewWidget), source (l'objet affiché si
-// source = Propriété sans chemin ; sinon une propriété, une fonction ou une valeur manuelle), hauteur,
-// mise à jour. Un aperçu de script peut déclarer ses propres réglages en héritant de PreviewSettings.
+/// Aperçu personnalisé : classe (native ou class_name héritant de PreviewWidget), source (l'objet affiché si
+/// source = Propriété sans chemin ; sinon une propriété, une fonction ou une valeur manuelle), hauteur,
+/// mise à jour. Un aperçu de script peut déclarer ses propres réglages en héritant de PreviewSettings.
 class PreviewSettings : public WidgetSettings
 {
     GDCLASS(PreviewSettings, WidgetSettings)

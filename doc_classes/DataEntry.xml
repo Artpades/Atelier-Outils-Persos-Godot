@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DataEntry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Configuration d'affichage d'UN membre d'un objet (propriété, méthode, signal) ou d'un aperçu : widget, réglages, infobulle, liens.
 	</brief_description>
 	<description>
+		Une entrée d'un [DataRegistry]. Elle est créée automatiquement par [method DataRegistry.sync] (widget [constant WIDGET_AUTO]) puis se règle dans la fenêtre de configuration ou par code.
+		Les valeurs des énumérations sont enregistrées comme entiers dans les [code].tres[/code] et ne sont jamais renumérotées.
+		[codeblock]
+		var entree := registre.find(&amp;"vitesse")
+		entree.widget_choice = DataEntry.WIDGET_H_SLIDER
+		var bornes := RangeWidgetSettings.new()
+		bornes.max_value = 20.0
+		bornes.suffix = " m/s"
+		entree.settings = bornes
+		entree.tooltip = "Vitesse actuelle : [b]{vitesse}[/b]"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,123 +22,204 @@
 		<method name="resolved_choice" qualifiers="const">
 			<return type="int" enum="DataEntry.WidgetChoice" />
 			<description>
+				Renvoie le widget réellement utilisé : [member widget_choice], ou le widget par défaut de [member kind] si le choix vaut [constant WIDGET_AUTO] ou n'est pas autorisé pour ce type.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="custom_widget_class" type="StringName" setter="set_custom_widget_class" getter="get_custom_widget_class" default="&amp;&quot;&quot;">
+			Classe du widget quand [member widget_choice] vaut [constant WIDGET_CUSTOM] : classe native ou [code]class_name[/code] de script héritant de [PropertyWidget]. Vide : lecture seule avec un avertissement.
 		</member>
 		<member name="data_name" type="StringName" setter="set_data_name" getter="get_data_name" default="&amp;&quot;&quot;">
+			Nom du membre (propriété, méthode ou signal) ou de l'aperçu.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+			Si [code]false[/code], la donnée n'est pas affichée (sa configuration est conservée).
 		</member>
 		<member name="is_missing" type="bool" setter="set_is_missing" getter="get_is_missing" default="false">
+			Vrai si le membre n'existe plus sur la dernière cible synchronisée. L'entrée n'est jamais supprimée automatiquement ; elle n'est pas affichée.
 		</member>
 		<member name="is_vertical" type="bool" setter="set_is_vertical" getter="get_is_vertical" default="false">
+			Orientation du widget : libellé au-dessus de la valeur, et éléments empilés verticalement pour un conteneur. Vrai par défaut pour les objets et collections créés par la synchronisation.
 		</member>
 		<member name="kind" type="int" setter="set_kind" getter="get_kind" enum="DataEntry.DataKind" default="0">
+			Famille de donnée, déduite du type et de l'indice du membre ; elle détermine les widgets autorisés.
+		</member>
+		<member name="links" type="SignalLink[]" setter="set_links" getter="get_links" default="[]">
+			Signal uniquement : liens en mode ressource ([SignalLink]) appliqués en jeu par [method DataRegistry.apply_links]. Les liens natifs, eux, sont enregistrés dans la scène.
 		</member>
 		<member name="member" type="int" setter="set_member" getter="get_member" enum="DataEntry.MemberKind" default="0">
+			Catégorie du membre : propriété, méthode, signal ou aperçu.
 		</member>
 		<member name="settings" type="WidgetSettings" setter="set_settings" getter="get_settings">
+			Réglages du widget. La classe attendue dépend du widget ([RangeWidgetSettings] pour un nombre...) ; un [WidgetSettings] simple convient à tous (réglages communs seulement).
+		</member>
+		<member name="tooltip" type="String" setter="set_tooltip" getter="get_tooltip" default="&quot;&quot;">
+			Infobulle BBCode affichée par l'infobulle enrichie, avec modèles dynamiques [code]{propriété}[/code] et [code]{fonction()}[/code].
 		</member>
 		<member name="widget_choice" type="int" setter="set_widget_choice" getter="get_widget_choice" enum="DataEntry.WidgetChoice" default="0">
+			Widget choisi. L'inspecteur ne propose que les choix autorisés pour [member kind].
 		</member>
 	</members>
 	<constants>
 		<constant name="MEMBER_PROPERTY" value="0" enum="MemberKind">
+			Propriété de l'objet.
 		</constant>
 		<constant name="MEMBER_METHOD" value="1" enum="MemberKind">
+			Méthode de l'objet.
 		</constant>
 		<constant name="MEMBER_SIGNAL" value="2" enum="MemberKind">
+			Signal de l'objet.
+		</constant>
+		<constant name="MEMBER_PREVIEW" value="3" enum="MemberKind">
+			Aperçu personnalisé : pas un membre de l'objet, jamais marqué manquant.
 		</constant>
 		<constant name="KIND_UNSUPPORTED" value="0" enum="DataKind">
+			Type non pris en charge : affiché en lecture seule (Label).
 		</constant>
 		<constant name="KIND_BOOL" value="1" enum="DataKind">
+			Booléen : CheckBox (défaut), CheckButton, Label.
 		</constant>
 		<constant name="KIND_NUMBER" value="2" enum="DataKind">
+			[code]int[/code] ou [code]float[/code] : SpinBox (défaut), HSlider, VSlider, ProgressBar, TextureProgressBar, Label.
 		</constant>
 		<constant name="KIND_TEXT" value="3" enum="DataKind">
+			[code]String[/code] ou [code]StringName[/code] : LineEdit (défaut), TextEdit, Label.
 		</constant>
 		<constant name="KIND_ENUM" value="4" enum="DataKind">
+			Entier ou texte avec l'indice [code]PROPERTY_HINT_ENUM[/code] : OptionButton (défaut), liste de CheckButton ou de CheckBox exclusifs, Label.
 		</constant>
 		<constant name="KIND_FLAGS" value="5" enum="DataKind">
+			Entier avec l'indice [code]PROPERTY_HINT_FLAGS[/code] : liste de CheckBox (défaut) ou de CheckButton (masque de bits), Label.
 		</constant>
 		<constant name="KIND_COLOR" value="6" enum="DataKind">
+			Couleur : ColorPickerButton (défaut), SpinBox par canal + aperçu, Label.
 		</constant>
 		<constant name="KIND_METHOD" value="7" enum="DataKind">
+			Méthode : bouton d'appel avec un widget par argument.
 		</constant>
 		<constant name="KIND_SIGNAL" value="8" enum="DataKind">
+			Signal : liste de liens « signal → méthode ».
 		</constant>
 		<constant name="KIND_OBJECT" value="9" enum="DataKind">
+			Objet : sous-objet déplié dans un conteneur (défaut), sélecteur de nœud (PathButton), Label.
 		</constant>
 		<constant name="KIND_NODE_PATH" value="10" enum="DataKind">
+			[code]NodePath[/code] : sélecteur de chemin (défaut) ou dépliage du nœud ciblé.
 		</constant>
 		<constant name="KIND_ARRAY" value="11" enum="DataKind">
+			[code]Array[/code] : un widget par élément dans un conteneur (défaut), ou tableau (TableWidget).
 		</constant>
 		<constant name="KIND_DICTIONARY" value="12" enum="DataKind">
+			[code]Dictionary[/code] : un widget par entrée dans un conteneur.
 		</constant>
 		<constant name="KIND_STRUCT" value="13" enum="DataKind">
+			Structure (Vector2/3/4 et variantes entières, Rect2, AABB, Plane, Quaternion, Basis, Transform2D/3D, Projection) : un SpinBox par composante.
 		</constant>
 		<constant name="KIND_VARIANT" value="14" enum="DataKind">
+			Valeur sans type déclaré : choix du type puis widget de ce type.
 		</constant>
 		<constant name="KIND_RID" value="15" enum="DataKind">
+			[code]RID[/code] : identifiant affiché en lecture seule.
 		</constant>
 		<constant name="KIND_PACKED_ARRAY" value="16" enum="DataKind">
+			[code]Packed*Array[/code] : un widget par élément dans un conteneur.
+		</constant>
+		<constant name="KIND_PREVIEW" value="17" enum="DataKind">
+			Aperçu personnalisé ([PreviewWidget]) : le seul choix est WIDGET_PREVIEW.
 		</constant>
 		<constant name="WIDGET_AUTO" value="0" enum="WidgetChoice">
+			Widget par défaut du type de donnée (premier des choix autorisés).
 		</constant>
 		<constant name="WIDGET_CHECK_BOX" value="1" enum="WidgetChoice">
+			Case à cocher ([CheckBox]).
 		</constant>
 		<constant name="WIDGET_CHECK_BUTTON" value="2" enum="WidgetChoice">
+			Interrupteur ([CheckButton]).
 		</constant>
 		<constant name="WIDGET_LABEL" value="3" enum="WidgetChoice">
+			Texte en lecture seule ; disponible pour tous les types.
 		</constant>
 		<constant name="WIDGET_SPIN_BOX" value="4" enum="WidgetChoice">
+			Champ numérique ([SpinBox]) ; sans bornes déclarées, il est illimité.
 		</constant>
 		<constant name="WIDGET_H_SLIDER" value="5" enum="WidgetChoice">
+			Curseur horizontal avec la valeur affichée à côté ; 0-100 sans bornes déclarées.
 		</constant>
 		<constant name="WIDGET_V_SLIDER" value="6" enum="WidgetChoice">
+			Curseur vertical (100 px de haut) avec la valeur affichée à côté.
 		</constant>
 		<constant name="WIDGET_PROGRESS_BAR" value="7" enum="WidgetChoice">
+			Barre de progression en lecture seule.
 		</constant>
 		<constant name="WIDGET_TEXTURE_PROGRESS_BAR" value="8" enum="WidgetChoice">
+			Barre de progression texturée ([TextureProgressWidgetSettings]) ; sans texture de progression, une barre simple.
 		</constant>
 		<constant name="WIDGET_LINE_EDIT" value="9" enum="WidgetChoice">
+			Champ de texte sur une ligne, validé par Entrée ou à la perte du focus.
 		</constant>
 		<constant name="WIDGET_TEXT_EDIT" value="10" enum="WidgetChoice">
+			Zone de texte multiligne, validée à la perte du focus.
 		</constant>
 		<constant name="WIDGET_OPTION_BUTTON" value="11" enum="WidgetChoice">
+			Liste déroulante (enum).
 		</constant>
 		<constant name="WIDGET_CHECK_BUTTON_LIST" value="12" enum="WidgetChoice">
+			Liste d'interrupteurs : exclusifs pour un enum, indépendants pour des flags.
 		</constant>
 		<constant name="WIDGET_COLOR_PICKER_BUTTON" value="13" enum="WidgetChoice">
+			Bouton de sélection de couleur ([ColorPickerButton]).
 		</constant>
 		<constant name="WIDGET_COLOR_RECT_CHANNELS" value="14" enum="WidgetChoice">
+			Un SpinBox par canal (0 à 1) et un rectangle d'aperçu.
 		</constant>
 		<constant name="WIDGET_BUTTON" value="15" enum="WidgetChoice">
+			Bouton : appel d'une méthode ([MethodWidget]) ou liste de liens d'un signal ([SignalWidget]).
 		</constant>
 		<constant name="WIDGET_BOX_CONTAINER" value="16" enum="WidgetChoice">
+			Éléments ou propriétés empilés dans une boîte (orientation : [member DataEntry.is_vertical]).
 		</constant>
 		<constant name="WIDGET_GRID_CONTAINER" value="17" enum="WidgetChoice">
+			Éléments ou propriétés en grille ([member ContainerWidgetSettings.columns]).
 		</constant>
 		<constant name="WIDGET_PATH_BUTTON" value="18" enum="WidgetChoice">
+			Chemin + bouton « … » de sélection de nœud ([PathWidget]).
 		</constant>
 		<constant name="WIDGET_STRUCT_SPIN_BOXES" value="19" enum="WidgetChoice">
+			Un SpinBox par composante d'une structure ([StructWidget]).
 		</constant>
 		<constant name="WIDGET_CUSTOM" value="20" enum="WidgetChoice">
+			Classe de [member DataEntry.custom_widget_class] (héritant de [PropertyWidget]).
 		</constant>
 		<constant name="WIDGET_VARIANT_SELECTOR" value="21" enum="WidgetChoice">
+			Choix du type d'une valeur Variant puis widget du type ([VariantWidget]).
 		</constant>
 		<constant name="WIDGET_CHECK_BOX_LIST" value="22" enum="WidgetChoice">
+			Liste de cases à cocher : exclusives pour un enum, indépendantes pour des flags.
+		</constant>
+		<constant name="WIDGET_FLOW_CONTAINER" value="23" enum="WidgetChoice">
+			Éléments ou propriétés qui passent à la ligne ([FlowContainer]).
+		</constant>
+		<constant name="WIDGET_TAB_CONTAINER" value="24" enum="WidgetChoice">
+			Un onglet par élément ou propriété ([TabContainer]).
+		</constant>
+		<constant name="WIDGET_TABLE" value="25" enum="WidgetChoice">
+			Tableau d'objets ou de dictionnaires : une ligne par élément, une colonne par propriété ([TableWidget]). Array uniquement.
+		</constant>
+		<constant name="WIDGET_PREVIEW" value="26" enum="WidgetChoice">
+			Aperçu ([PreviewWidget]) dont la classe est [member PreviewSettings.preview_class].
 		</constant>
 		<constant name="SCOPE_AUTO" value="0" enum="InspectionScope">
+			Membres du script s'il y en a un, sinon ceux de la seule classe de l'objet.
 		</constant>
 		<constant name="SCOPE_SCRIPT_ONLY" value="1" enum="InspectionScope">
+			Uniquement les membres déclarés par le script attaché (rien sans script).
 		</constant>
 		<constant name="SCOPE_ALL" value="2" enum="InspectionScope">
+			Tous les membres, y compris ceux du moteur (très nombreux pour un nœud).
 		</constant>
 		<constant name="SCOPE_CLASS_ONLY" value="3" enum="InspectionScope">
+			Uniquement les membres déclarés par la classe de l'objet, sans ses classes parentes.
 		</constant>
 	</constants>
 </class>

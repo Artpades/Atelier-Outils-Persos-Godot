@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="AerodynamicMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🪂 Physique aérodynamique 2D : plané ou vol libre d'un [CharacterBody2D], traînée et portance passives d'un [RigidBody2D].
 	</brief_description>
 	<description>
+		Composant de mouvement ([MovementComponent]) au double usage :
+		- Sous un [CharacterBody2D], quand il est actif : [b]plané[/b] ([constant MODE_GLIDE] : gravité réduite, chute plafonnée, [code]move.x[/code] dirige, battements d'ailes avec le saut si [member max_flaps] &gt; 0) ou [b]vol libre[/b] ([constant MODE_FLY] : [code]move[/code] dans toutes les directions, freinage sans commande). L'accélération des [ForceZone2D] est multipliée par [member wind_influence].
+		- Sous un [RigidBody2D], [b]même inactif[/b] : traînée quadratique ([member drag_coefficient]) et portance ([member lift_coefficient], oscillante avec [member flutter_frequency]) appliquées à chaque image physique.
+		Avec un [MovementDirector], le vol libre crée un contexte « vol » à activer par [code]set_context("vol")[/code], et le plané un contexte « plané » (en l'air, saut maintenu, en chute).
+		[codeblock]
+		# Feuille morte : RigidBody2D &gt; AerodynamicMovement2D
+		$Feuille/AerodynamicMovement2D.drag_coefficient = 0.02
+		$Feuille/AerodynamicMovement2D.lift_coefficient = 0.01
+		$Feuille/AerodynamicMovement2D.flutter_frequency = 1.5
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,49 +21,67 @@
 		<method name="get_flaps_left" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie le nombre de battements d'ailes encore disponibles.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="drag_coefficient" type="float" setter="set_drag_coefficient" getter="get_drag_coefficient" default="0.002">
+			Corps rigide uniquement : coefficient de traînée quadratique (décélération = coefficient × vitesse², opposée à la vitesse). Plus grand = l'objet atteint vite une faible vitesse limite (plume, parachute).
 		</member>
 		<member name="flap_velocity" type="float" setter="set_flap_velocity" getter="get_flap_velocity" default="250.0">
+			Plané : vitesse verticale, en px/s, donnée par un battement d'ailes.
 		</member>
 		<member name="flutter_frequency" type="float" setter="set_flutter_frequency" getter="get_flutter_frequency" default="0.0">
+			Corps rigide uniquement : si supérieur à 0, la portance change de sens à cette fréquence (en hertz), ce qui fait voleter l'objet comme une feuille ou un papier.
 		</member>
 		<member name="fly_acceleration" type="float" setter="set_fly_acceleration" getter="get_fly_acceleration" default="900.0">
+			Vol libre : accélération, en px/s², vers la vitesse commandée.
 		</member>
 		<member name="fly_drag" type="float" setter="set_fly_drag" getter="get_fly_drag" default="1.5">
+			Vol libre : freinage par seconde quand aucune direction n'est commandée.
 		</member>
 		<member name="fly_speed" type="float" setter="set_fly_speed" getter="get_fly_speed" default="260.0">
+			Vol libre : vitesse maximale, en px/s.
 		</member>
 		<member name="glide_acceleration" type="float" setter="set_glide_acceleration" getter="get_glide_acceleration" default="500.0">
+			Plané : accélération horizontale, en px/s², vers la vitesse commandée.
 		</member>
 		<member name="glide_fall_speed" type="float" setter="set_glide_fall_speed" getter="get_glide_fall_speed" default="70.0">
+			Plané : vitesse de chute maximale, en px/s.
 		</member>
 		<member name="glide_gravity_scale" type="float" setter="set_glide_gravity_scale" getter="get_glide_gravity_scale" default="0.35">
+			Plané : multiplicateur de la gravité du corps (0,35 = chute trois fois plus lente avant d'atteindre [member glide_fall_speed]). S'applique aussi pendant la montée.
 		</member>
 		<member name="glide_speed" type="float" setter="set_glide_speed" getter="get_glide_speed" default="260.0">
+			Plané : vitesse horizontale maximale, en px/s.
 		</member>
 		<member name="lift_coefficient" type="float" setter="set_lift_coefficient" getter="get_lift_coefficient" default="0.0">
+			Corps rigide uniquement : coefficient de portance, force perpendiculaire à la vitesse proportionnelle à la vitesse² (négatif : sens inverse). 0 = aucune portance.
 		</member>
 		<member name="max_flaps" type="int" setter="set_max_flaps" getter="get_max_flaps" default="0">
+			Plané : nombre de battements d'ailes (saut en l'air) disponibles. Le compteur n'est rechargé qu'à l'[b]activation[/b] du composant ([signal MovementComponent.activated]) : sans [MovementDirector] qui le désactive puis le réactive, aucun battement n'est disponible.
 		</member>
 		<member name="mode" type="int" setter="set_mode" getter="get_mode" default="0">
+			[constant MODE_GLIDE] (plané) ou [constant MODE_FLY] (vol libre). Lu aussi par [method MovementDirector.create_default_contexts] pour choisir le contexte créé.
 		</member>
 		<member name="wind_influence" type="float" setter="set_wind_influence" getter="get_wind_influence" default="2.0">
+			Multiplicateur de l'accélération des zones de force subie par le personnage (un planeur est plus sensible au vent qu'un marcheur). Sans effet sur un corps rigide, qui reçoit directement la force des zones.
 		</member>
 	</members>
 	<signals>
 		<signal name="flapped">
 			<description>
+				Émis à chaque battement d'ailes.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="MODE_GLIDE" value="0" enum="Mode">
+			Plané : gravité réduite, chute plafonnée, battements d'ailes avec le saut.
 		</constant>
 		<constant name="MODE_FLY" value="1" enum="Mode">
+			Vol libre : [code]move[/code] déplace dans toutes les directions, sans gravité.
 		</constant>
 	</constants>
 </class>

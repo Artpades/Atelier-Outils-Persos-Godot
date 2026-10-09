@@ -64,6 +64,7 @@ class DialogueSystem : public Node
     /// Premier DialogueSystem dans l'arbre de scène (pour les PNJ qui lancent un dialogue).
     static DialogueSystem *get_main();
 
+    /// Instantané pour BehaviorGraphView et le débogueur : graphe du dialogue, nœud courant, 8 dernières entrées.
     Dictionary get_debug_snapshot() const;
 
   protected:
@@ -80,17 +81,24 @@ class DialogueSystem : public Node
     WaitState wait_state = WAIT_NONE;
     StringName current_id;
     ObjectID interlocutor_id;
+    /// Options filtrées du choix en cours (format de get_available_options).
     Array available_options;
+    /// Identifiants des nœuds parcourus depuis start() (affichés comme visités dans le graphe).
     Dictionary visited;
     Dictionary seen_options; // « chemin|id|n° » des options once_only déjà prises
     Array history;
+    /// Temps restant avant l'avance automatique de la réplique (DialogueLine::auto_advance_time).
     double auto_advance_remaining = 0.0;
     BehaviorExpression evaluator;
 
+    /// Systèmes présents dans l'arbre, dans l'ordre d'entrée (pour get_main).
     static LocalVector<ObjectID> instances;
 
+    /// Avance jusqu'à la prochaine réplique ou au prochain choix (embranchements et actions traités au passage,
+    /// MAX_STEPS au plus) ; termine le dialogue sur un lien vide, un nœud introuvable ou une fin.
     void _goto(const StringName &p_id);
     void _log(const String &p_entry);
+    /// Clé « chemin du dialogue|id du choix|rang de l'option » mémorisée pour les options once_only.
     String _option_key(int p_index) const;
 };
 } // namespace godot

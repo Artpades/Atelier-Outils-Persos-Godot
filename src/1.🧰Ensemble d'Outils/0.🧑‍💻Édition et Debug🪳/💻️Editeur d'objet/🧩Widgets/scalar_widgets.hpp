@@ -17,12 +17,12 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 
-// Widgets des types scalaires (Phase 1). Les contrôles enfants sont créés et possédés par le widget
-// (libérés avec lui) : les pointeurs bruts vers eux restent donc valides tant que le widget existe.
+/// Widgets des types scalaires (Phase 1). Les contrôles enfants sont créés et possédés par le widget
+/// (libérés avec lui) : les pointeurs bruts vers eux restent donc valides tant que le widget existe.
 
 namespace godot
 {
-// bool : CheckBox / CheckButton.
+/// bool : CheckBox / CheckButton.
 class BoolWidget : public PropertyWidget
 {
     GDCLASS(BoolWidget, PropertyWidget)
@@ -37,14 +37,14 @@ class BoolWidget : public PropertyWidget
     void pull_value(const Variant &p_value) override;
 };
 
-// int / float : SpinBox, HSlider, VSlider (éditables) ; ProgressBar, TextureProgressBar (lecture seule).
-// Bornes : RangeWidgetSettings > indice PROPERTY_HINT_RANGE > défauts (0-100 pour sliders et barres, sans borne pour SpinBox).
+/// int / float : SpinBox, HSlider, VSlider (éditables) ; ProgressBar, TextureProgressBar (lecture seule).
+/// Bornes : RangeWidgetSettings > indice PROPERTY_HINT_RANGE > défauts (0-100 pour sliders et barres, sans borne pour SpinBox).
 class NumberWidget : public PropertyWidget
 {
     GDCLASS(NumberWidget, PropertyWidget)
 
   public:
-    // Contenu d'un indice "min,max[,step][,or_greater][,or_less][,suffix:x]".
+    /// Contenu d'un indice "min,max[,step][,or_greater][,or_less][,suffix:x]".
     struct RangeSpec
     {
         bool has_bounds = false;
@@ -76,7 +76,7 @@ class NumberWidget : public PropertyWidget
     StringName get_settings_class() const override { return "RangeWidgetSettings"; }
 };
 
-// String / StringName : LineEdit, TextEdit.
+/// String / StringName : LineEdit, TextEdit.
 class TextWidget : public PropertyWidget
 {
     GDCLASS(TextWidget, PropertyWidget)
@@ -99,15 +99,15 @@ class TextWidget : public PropertyWidget
     StringName get_settings_class() const override { return "TextEditWidgetSettings"; }
 };
 
-// PROPERTY_HINT_ENUM (int ou String, format "Nom:valeur") : OptionButton, ou liste de CheckButton/CheckBox
-// exclusifs (ButtonGroup). PROPERTY_HINT_FLAGS : liste de CheckBox/CheckButton sans groupe (masque de bits).
+/// PROPERTY_HINT_ENUM (int ou String, format "Nom:valeur") : OptionButton, ou liste de CheckButton/CheckBox
+/// exclusifs (ButtonGroup). PROPERTY_HINT_FLAGS : liste de CheckBox/CheckButton sans groupe (masque de bits).
 class EnumWidget : public PropertyWidget
 {
     GDCLASS(EnumWidget, PropertyWidget)
 
   public:
-    // Analyse un hint_string d'enum ou de flags. Valeurs implicites : suivante (enum), 1 << index (flags),
-    // le libellé lui-même (enum texte).
+    /// Analyse un hint_string d'enum ou de flags. Valeurs implicites : suivante (enum), 1 << index (flags),
+    /// le libellé lui-même (enum texte).
     static void parse_items(const String &p_hint, bool p_flags, bool p_text, PackedStringArray &r_labels, Array &r_values);
 
   private:
@@ -131,7 +131,7 @@ class EnumWidget : public PropertyWidget
     void pull_value(const Variant &p_value) override;
 };
 
-// Color : ColorPickerButton, ou un SpinBox par canal + ColorRect d'aperçu.
+/// Color : ColorPickerButton, ou un SpinBox par canal + ColorRect d'aperçu.
 class ColorWidget : public PropertyWidget
 {
     GDCLASS(ColorWidget, PropertyWidget)

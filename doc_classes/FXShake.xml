@@ -1,19 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXShake" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💥 Effet qui secoue la position de la cible (bruit continu) pendant une durée donnée, puis la remet à sa place.
 	</brief_description>
 	<description>
+		Au jeu de l'effet, la position locale de la cible ([Control], [Node2D] ou [Node3D]) est mémorisée ; à chaque frame, elle est remplacée par cette position plus un décalage tiré d'un bruit Simplex (mouvement organique, pas un tremblement aléatoire saccadé). L'amplitude décroît jusqu'à zéro si [member decrease_over_time] est actif.
+		Après [member duration] secondes, l'effet s'arrête seul (et émet [signal Effect.fx_stopped]) ; à [code]0[/code], il secoue jusqu'à [method Effect.stop_fx]. À l'arrêt, la position mémorisée est restaurée.
+		[member max_amplitude] est exprimée dans l'unité de la cible : des pixels en 2D, des mètres en 3D (réduire fortement la valeur par défaut en 3D).
+		[codeblock]
+		# Secousse d'une Camera2D lors d'une explosion
+		var secousse := FXShake.new()
+		secousse.duration = 0.4
+		secousse.max_amplitude = 12.0
+		$Camera2D/PlayerFX.special_effects = [secousse]
+		$Camera2D/PlayerFX.play()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="decrease_over_time" type="bool" setter="set_decrease_over_time" getter="get_decrease_over_time" default="true">
+			Si [code]true[/code], l'amplitude décroît linéairement de [member max_amplitude] à 0 sur [member duration]. Sans effet si [member duration] vaut 0.
 		</member>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+			Durée de la secousse en secondes, après laquelle l'effet s'arrête seul. À [code]0[/code], la secousse dure jusqu'à l'arrêt explicite de l'effet.
 		</member>
 		<member name="frequency" type="float" setter="set_frequency" getter="get_frequency" default="15.0">
+			Rapidité des oscillations (environ en oscillations par seconde) : basse pour un roulis lourd, haute pour une vibration.
 		</member>
 		<member name="max_amplitude" type="float" setter="set_max_amplitude" getter="get_max_amplitude" default="10.0">
+			Décalage maximal par axe autour de la position d'origine, dans l'unité de la cible (pixels en 2D, mètres en 3D).
 		</member>
 	</members>
 </class>

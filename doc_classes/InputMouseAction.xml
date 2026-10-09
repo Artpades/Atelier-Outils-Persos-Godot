@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputMouseAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action souris / stylet : position dans le viewport, mouvement relatif, pression, molette.
 	</brief_description>
 	<description>
+		Lit la souris du viewport du [PlayerInput] : position (en pixels, ou de 0 à 1 avec [member normalize_position]), mouvement accumulé pendant l'image (× [member motion_sensitivity]), pression du stylet et molette. Le mouvement et la molette viennent des évènements transmis par le [PlayerInput] ([method PlayerInput.handle_input_event]).
+		La valeur ([method InputAction.get_value]) est le mouvement de la dernière image. Pas d'emplacement de réassignation.
+		[codeblock]
+		var regard := InputMouseAction.new()
+		regard.action_name = &amp;"regard"
+		regard.motion_sensitivity = 0.003
+		regard.motion.connect(func(rel: Vector2):
+			$Tete.rotate_y(-rel.x)
+			$Tete/Camera3D.rotate_x(-rel.y))
+		regard.scrolled.connect(func(delta: Vector2): $Tete/Camera3D.fov += delta.y)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,48 +22,59 @@
 		<method name="get_motion" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie le mouvement (× [member motion_sensitivity]) de la dernière mise à jour.
 			</description>
 		</method>
 		<method name="get_mouse_position" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la dernière position lue dans le viewport (normalisée si [member normalize_position]).
 			</description>
 		</method>
 		<method name="get_pressure" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la pression du stylet (0 à 1) du dernier mouvement ; 0 pour une souris.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="invert_y" type="bool" setter="set_invert_y" getter="get_invert_y" default="false">
+			Inverse l'axe vertical du mouvement (visée « avion »).
 		</member>
 		<member name="motion_sensitivity" type="float" setter="set_motion_sensitivity" getter="get_motion_sensitivity" default="1.0">
+			Multiplicateur du mouvement relatif (pixels → unités du jeu, ex. radians pour une caméra).
 		</member>
 		<member name="normalize_position" type="bool" setter="set_normalize_position" getter="get_normalize_position" default="false">
+			Si [code]true[/code], la position est exprimée de 0 à 1 par rapport à la taille visible du viewport.
 		</member>
 		<member name="position_threshold" type="float" setter="set_position_threshold" getter="get_position_threshold" default="0.5">
+			Déplacement minimal (pixels) avant d'émettre [signal position_changed]. Avec [member normalize_position], il est divisé par 1000.
 		</member>
 	</members>
 	<signals>
 		<signal name="motion">
 			<param index="0" name="relative" type="Vector2" />
 			<description>
+				Émis à chaque mise à jour où la souris a bougé, avec le mouvement [param relative] de l'image ; puis une fois [code](0, 0)[/code] à l'arrêt.
 			</description>
 		</signal>
 		<signal name="position_changed">
 			<param index="0" name="position" type="Vector2" />
 			<description>
+				Émis quand la position change de plus de [member position_threshold], et à la première mise à jour.
 			</description>
 		</signal>
 		<signal name="pressure_changed">
 			<param index="0" name="pressure" type="float" />
 			<description>
+				Émis quand la pression du stylet change.
 			</description>
 		</signal>
 		<signal name="scrolled">
 			<param index="0" name="delta" type="Vector2" />
 			<description>
+				Émis avec le défilement accumulé pendant l'image : [code]y[/code] négatif vers le haut, [code]x[/code] pour la molette horizontale.
 			</description>
 		</signal>
 	</signals>

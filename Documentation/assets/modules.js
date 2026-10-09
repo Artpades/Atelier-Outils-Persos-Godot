@@ -1,0 +1,108 @@
+// 🗂️ Registre des modules documentés : alimente la navigation, l'accueil et le suivi de couverture.
+// À la main : ajouter une entrée par module, et renseigner `page` dès que sa page HTML existe.
+//   emoji   : émoticône du module (titre « [emoji]_[domaine] - [catégorie] - Documentation »)
+//   domain  : nom du système global (ex : FadeSystem)
+//   classes : classes exposées par le module (leur API est lue dans api-data.js)
+//   page    : chemin de la page depuis Documentation/ (vide tant qu'elle n'est pas rédigée)
+window.GTK_MODULES = [
+  {
+    id: "edition", emoji: "🧑‍💻", name: "Édition et Debug", trailing: "🪳",
+    modules: [
+      { emoji: "💻️", name: "Éditeur d'objet", domain: "ObjectEditorSystem", page: "",
+        classes: ["ObjectEditorWindow", "ProceduralEditor", "WidgetFactory", "LayoutDatabase", "LayoutDatabaseWindow", "LayoutLinker", "TypeLayout",
+          "DataEntry", "DataRegistry", "GroupEntry", "GroupRegistry", "GizmoHost", "GizmoEntry", "GizmoRegistry", "ArgumentBinding", "SignalLink",
+          "WidgetBehavior", "ShowIfBehavior", "HideIfBehavior", "EnableIfBehavior", "StyleIfBehavior", "TooltipIfBehavior", "IconIfBehavior",
+          "UndoBackend", "RuntimeUndoBackend", "EditorUndoBackend", "ValueAccessor", "ShaderParameterBinding", "InterfaceStyle", "SyncController",
+          "WidgetSettings", "RangeWidgetSettings", "TextureProgressWidgetSettings", "TextEditWidgetSettings", "StructWidgetSettings",
+          "ContainerWidgetSettings", "TableWidgetSettings", "PreviewSettings", "PropertyWidget", "BoolWidget", "NumberWidget", "TextWidget",
+          "EnumWidget", "ColorWidget", "SignalWidget", "PathWidget", "VariantWidget", "MethodWidget", "StructWidget", "ObjectWidget",
+          "ContainerWidget", "CollectionWidget", "TableWidget", "PreviewWidget", "PreviewStage2D", "PreviewStage3D", "TexturePreview",
+          "Model3DPreview", "Scene2DPreview", "PreviewSourceEditor", "EditorIconPicker", "RichTooltip", "ObjectEditorDemo", "ObjectEditorDemoResource",
+          "PropertyBoolCallback", "WidgetPropertyModifierBuilder"] },
+      { emoji: "🐛", name: "Gizmos", domain: "GizmoSystem", page: "", classes: ["Gizmos2D", "Gizmos3D"] },
+      { emoji: "⚙️", name: "Générateur de Gestionnaire", domain: "ManagerBuilder", page: "", classes: ["ManagerBuilder"] },
+      { emoji: "✋", name: "Système de Handles", domain: "HandleSystem", page: "", classes: ["HandlersManager"] },
+      { emoji: "📰", name: "Journal Console", domain: "LogSystem", page: "", classes: ["L"] },
+      { emoji: "🪟", name: "Fenêtre d'édition", domain: "WindowEditor", page: "", classes: ["WindowEditor"] },
+    ],
+  },
+  {
+    id: "donnees", emoji: "📁", name: "Intercepteurs de données", trailing: "🔌",
+    modules: [
+      { emoji: "🌡️", name: "Stack And Flow (Jauge)", domain: "GaugeSystem", page: "", classes: ["Gauge"] },
+      { emoji: "💾", name: "Système de Sauvegarde", domain: "SaveSystem", page: "",
+        classes: ["SaveManager", "SaveData", "SaveDataBinder", "SaveConfig", "SaveFileAccess", "SaveSerializer"] },
+      { emoji: "🕹️", name: "Entrées de périphérique", domain: "InputSystem", page: "",
+        classes: ["PlayerInput", "PlayerInputUI", "InputContext", "InputAction", "InputButtonAction", "InputAxisAction", "InputCircleAction",
+          "InputSphereAction", "InputMouseAction", "InputGyroAction", "InputBinding", "InputRebinder"] },
+      { emoji: "📱", name: "Entrées tactiles", domain: "TouchInputSystem", page: "", classes: ["MobileInput"] },
+      { emoji: "🗄️", name: "Multijoueur", domain: "MultiplayerSystem", page: "", classes: ["NetworkSession", "LanDiscovery", "SecureChannel"] },
+    ],
+  },
+  {
+    id: "widgets", emoji: "🧭", name: "Widgets & Spatialité", trailing: "🌍",
+    modules: [
+      { emoji: "✊", name: "Glisser-Déposer d'objet", domain: "DragAndDropSystem", page: "", classes: ["DragAndDropSystem", "DraggableComponent"] },
+      { emoji: "✏️", name: "Système de dessin", domain: "DrawingSystem", page: "",
+        classes: ["DrawingStudio", "DrawingDocument", "DrawingLayer", "DrawingBrush", "DrawingCanvas"] },
+      { emoji: "🎞️", name: "Gestion de Caméras", domain: "CameraSystem", page: "", classes: ["CameraManager", "CameraPanner", "OrbitalCamera"] },
+      { emoji: "🎬", name: "Gestionnaire de scènes", domain: "SceneSystem", page: "", classes: ["SceneManager"] },
+      { emoji: "🎭", name: "Changeur de Visuels", domain: "VisualsSystem", page: "", classes: ["VisualsSwapper", "VisualsRegister", "VisualsAsset"] },
+      { emoji: "🏆", name: "Succès - Réalisation", domain: "AchievementSystem", page: "",
+        classes: ["AchievementManager", "Achievement", "AchievementCondition", "AchievementCounterCondition", "AchievementCollectionCondition"] },
+      { emoji: "🏭", name: "Générateur d'objet", domain: "SpawnSystem", page: "", classes: ["Spawner", "PoolSpawner", "SpawnEntry", "SpawnPoolEntry"] },
+      { emoji: "🖥️", name: "HUD interactif dans le monde 3D", domain: "SpatialHUDSystem", page: "", classes: ["InteractiveHUD3D"] },
+    ],
+  },
+  {
+    id: "effets", emoji: "✨", name: "Effets Spéciaux et Sensations", trailing: "🎵",
+    modules: [
+      { emoji: "✨", name: "Socle des effets (PlayerFX)", domain: "EffectSystem", page: "", classes: ["PlayerFX", "Effect"] },
+      { emoji: "🌈", name: "Fondu Couleur", domain: "FadeSystem", page: "modules/effets/fondu-couleur.html", classes: ["FXFade", "ScreenFader"] },
+      { emoji: "⏯️", name: "Ralentissement - Arrêt du temps", domain: "TimeSystem", page: "", classes: ["TimeManipulatorFX"] },
+      { emoji: "〰️", name: "Follow", domain: "FollowSystem", page: "", classes: ["FXFollower"] },
+      { emoji: "🌻", name: "Ciblage d'objet", domain: "TargetingSystem", page: "", classes: ["FXTargeter"] },
+      { emoji: "👆", name: "Changeur du visuel du curseur", domain: "CursorSystem", page: "", classes: ["CursorChanger", "CursorStyle"] },
+      { emoji: "💥", name: "Pop de texte, d'image et d'objets", domain: "PopSystem", page: "", classes: ["FXPop", "PopSpawner", "PopStyle"] },
+      { emoji: "💥", name: "Secousse", domain: "ShakeSystem", page: "", classes: ["FXShake"] },
+      { emoji: "🔁", name: "Music Looper", domain: "AudioSystem", page: "", classes: ["MusicLooper"] },
+      { emoji: "🔊", name: "Effet joueur de son", domain: "AudioSystem", page: "", classes: ["FXAudio"] },
+      { emoji: "🗨️", name: "Infobulle Personnalisable", domain: "TooltipSystem", page: "", classes: ["CustomTooltip", "TooltipContent"] },
+      { emoji: "🛟", name: "Floating Dock", domain: "DockSystem", page: "", classes: ["FloatingDock"] },
+      { emoji: "🦣", name: "Agrandissement - Rétrécissement", domain: "ScaleSystem", page: "", classes: ["FXChangeSize"] },
+      { emoji: "🪗", name: "Squash and Stretch", domain: "SquashSystem", page: "", classes: ["FXStretchAndSquash"] },
+    ],
+  },
+  {
+    id: "entites", emoji: "🧍", name: "Entités & Algorithme", trailing: "🧠",
+    modules: [
+      { emoji: "🧑", name: "Personnage (Joueur, Automate, PNJ)", domain: "CharacterSystem", page: "",
+        classes: ["Character2D", "Character3D", "PlayerController", "AutomateController", "NPCController", "CharacterRegister", "HealthComponent",
+          "Interactable", "BTFindTarget", "BTMoveTo", "BTUseAbility"] },
+      { emoji: "🌟", name: "Système de Capacité", domain: "AbilitySystem", page: "",
+        classes: ["AbilitySystem", "Ability", "GameplayEffect", "AttributeDefinition", "AttributeModifier"] },
+      { emoji: "💬", name: "Système de Dialogue", domain: "DialogueSystem", page: "",
+        classes: ["DialogueSystem", "DialogueResource", "DialogueBox", "DialogueNode", "DialogueLine", "DialogueOption", "DialogueChoice",
+          "DialogueBranch", "DialogueAction", "DialogueEnd"] },
+      { emoji: "🤾", name: "Système de Comportement", domain: "BehaviorSystem", page: "",
+        classes: ["BehaviorTree", "Blackboard", "BTNode", "BTComposite", "BTOrderedComposite", "BTSequence", "BTSelector", "BTParallel",
+          "BTDecorator", "BTInverter", "BTForceResult", "BTRepeater", "BTCooldown", "BTTimeLimit", "BTAction", "BTCondition", "BTWait",
+          "BTSetValue", "BTCallMethod", "BTSendEvent", "StateMachine", "State", "StateTransition", "BehaviorGraphView"] },
+    ],
+  },
+  {
+    id: "mouvement", emoji: "🌀", name: "Mouvement & Physique", trailing: "🫗",
+    modules: [
+      { emoji: "🧩", name: "Socle du mouvement", domain: "MovementSystem", page: "", classes: ["MovementComponent"] },
+      { emoji: "🎬", name: "Orchestrateur de mouvement", domain: "MovementSystem", page: "", classes: ["MovementDirector", "MovementContext"] },
+      { emoji: "🦶", name: "Déplacement au sol", domain: "MovementSystem", page: "", classes: ["GroundMovement2D", "GroundMovement3D"] },
+      { emoji: "🌊", name: "Déplacement aquatique", domain: "MovementSystem", page: "", classes: ["SwimMovement2D", "SwimMovement3D", "WaterArea2D", "WaterArea3D"] },
+      { emoji: "🧗", name: "Déplacement mural", domain: "MovementSystem", page: "", classes: ["WallMovement2D", "WallMovement3D"] },
+      { emoji: "🌬️", name: "Recul", domain: "PhysicsSystem", page: "", classes: ["Knockback2D", "Knockback3D"] },
+      { emoji: "🧲", name: "Zone de force", domain: "PhysicsSystem", page: "", classes: ["ForceZone2D", "ForceZone3D"] },
+      { emoji: "🪂", name: "Physique aérodynamique", domain: "PhysicsSystem", page: "", classes: ["AerodynamicMovement2D", "AerodynamicMovement3D"] },
+      { emoji: "🪢", name: "Physique de corde", domain: "PhysicsSystem", page: "", classes: ["Rope2D", "Rope3D", "RopeMovement2D", "RopeMovement3D"] },
+      { emoji: "🫨", name: "Physique trémousse", domain: "PhysicsSystem", page: "", classes: ["Jiggle2D", "Jiggle3D"] },
+    ],
+  },
+];

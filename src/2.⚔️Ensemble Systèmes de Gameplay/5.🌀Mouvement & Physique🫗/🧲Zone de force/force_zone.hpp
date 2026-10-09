@@ -37,6 +37,7 @@ struct ForceZoneSettings
     bool affect_rigid_bodies = true;
     bool affect_characters = true;
 
+    /// Facteur d'atténuation (0 à 1) selon la distance au centre, et facteur de turbulence (sinus combinés, graine par instance).
     double attenuation(double p_distance) const;
     double turbulence_factor(double p_time, double p_seed) const;
 };
@@ -86,6 +87,7 @@ class ForceZone2D : public Area2D
   private:
     ForceZoneSettings settings;
     Vector2 direction = Vector2(1, 0);
+    /// Temps écoulé (turbulence) et registre des zones dans l'arbre, parcouru par get_acceleration_on.
     double elapsed = 0.0;
     static LocalVector<ObjectID> zones;
 
@@ -134,6 +136,7 @@ class ForceZone3D : public Area3D
   private:
     ForceZoneSettings settings;
     Vector3 direction = Vector3(1, 0, 0);
+    /// Temps écoulé (turbulence) et registre des zones dans l'arbre, parcouru par get_acceleration_on.
     double elapsed = 0.0;
     static LocalVector<ObjectID> zones;
 

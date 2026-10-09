@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTInverter" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Inverseur : transforme [constant BTNode.SUCCESS] en [constant BTNode.FAILURE] et inversement ([constant BTNode.RUNNING] inchangé).
 	</brief_description>
 	<description>
+		Sert à exprimer une condition négative (« si l'ennemi n'est [b]pas[/b] visible ») sans écrire de script. Sans enfant, échoue.
+		[codeblock]
+		var pas_vu := BTInverter.new()
+		pas_vu.add_child(condition_vu)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

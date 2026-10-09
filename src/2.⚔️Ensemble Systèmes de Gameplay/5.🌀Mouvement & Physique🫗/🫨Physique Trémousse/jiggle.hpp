@@ -59,6 +59,7 @@ class Jiggle2D : public Node2D
   private:
     JiggleSettings jiggle;
     Vector2 gravity;
+    /// Pose de repos capturée au _ready, puis position / vitesse de la masse simulée (globales) et décalage borné.
     Vector2 rest_position;
     double rest_rotation = 0.0;
     Vector2 rest_scale = Vector2(1, 1);
@@ -95,6 +96,7 @@ class Jiggle3D : public Node3D
   private:
     JiggleSettings jiggle;
     Vector3 gravity;
+    /// Pose de repos capturée au _ready, puis position / vitesse de la masse simulée (globales) et décalage borné.
     Transform3D rest_transform;
     Vector3 simulated_position;
     Vector3 simulated_velocity;

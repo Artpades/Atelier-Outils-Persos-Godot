@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PreviewStage3D" inherits="SubViewportContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Scène 3D isolée pour un aperçu : SubViewport avec son propre monde, caméra en orbite et lumière.
 	</brief_description>
 	<description>
+		Rien de ce qui est affiché ne touche la vraie scène. Glisser (clic gauche) fait tourner la caméra autour du contenu, la molette zoome. Le contenu est libéré avec la scène. Le viewport n'est rendu que quand il est visible.
+		[codeblock]
+		func _build_preview(source: Variant) -&gt; Control:
+			var scene := make_stage_3d()
+			var cube := MeshInstance3D.new()
+			cube.mesh = BoxMesh.new()
+			scene.set_content(cube)
+			return scene
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,27 +20,32 @@
 		<method name="frame">
 			<return type="void" />
 			<description>
+				Cadre la caméra sur la boîte englobante des [VisualInstance3D] du contenu.
 			</description>
 		</method>
 		<method name="get_camera" qualifiers="const">
 			<return type="Camera3D" />
 			<description>
+				Renvoie la caméra en orbite.
 			</description>
 		</method>
 		<method name="get_content" qualifiers="const">
 			<return type="Node3D" />
 			<description>
+				Renvoie le nœud affiché, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_viewport_node" qualifiers="const">
 			<return type="SubViewport" />
 			<description>
+				Renvoie le [SubViewport] interne.
 			</description>
 		</method>
 		<method name="set_content">
 			<return type="void" />
 			<param index="0" name="node" type="Node3D" />
 			<description>
+				Remplace le contenu par [param node] (possédé ensuite par la scène, l'ancien est libéré ; [code]null[/code] : vide) puis recadre.
 			</description>
 		</method>
 		<method name="set_orbit">
@@ -39,6 +54,7 @@
 			<param index="1" name="pitch" type="float" />
 			<param index="2" name="distance" type="float" />
 			<description>
+				Place la caméra : rotation horizontale [param yaw] et verticale [param pitch] (radians, bornée à ±1,5) et [param distance] du centre.
 			</description>
 		</method>
 	</methods>

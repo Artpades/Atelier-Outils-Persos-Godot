@@ -18,6 +18,8 @@ class SaveFileAccess : public Object
 
   private:
     // 🔑 Chiffrement
+    // IV dérivé de la clé et écrit en tête du fichier (compatibilité avec l'ancienne version C#) : il expose
+    // les 16 premiers octets de la clé. Pas de HMAC : une altération n'est pas détectée.
     static PackedByteArray pad_key(const String &p_key);
     static PackedByteArray generate_iv(const String &p_key);
     static PackedByteArray encrypt(const PackedByteArray &p_data, const String &p_key);
@@ -31,12 +33,12 @@ class SaveFileAccess : public Object
     static void _bind_methods();
 
   public:
-    // Ecrit sur le contenu du SaveData dans un fichier.
-    // Renvoit Error::ERR_FILE_NOT_FOUND si le fichier n'existe pas ou ne peut être lu.
+    /// Écrit le contenu du SaveData dans son fichier (dossier créé si besoin), chiffré si is_encrypted.
+    /// Renvoie OK, ERR_INVALID_PARAMETER (argument nul) ou l'erreur d'ouverture du fichier.
     static Error write(const Ref<SaveData> &p_save_data, const Ref<SaveConfig> &p_config);
     /// Retourne un SaveData nul si le fichier n'existe pas ou ne peut pas être lu.
     static Ref<SaveData> read(const String &p_system_id, const Ref<SaveConfig> &p_config, bool p_encrypted = false, const String &p_encryption_key = String());
-    // Efface le SaveData du fichier.
+    /// Supprime le fichier de sauvegarde de p_system_id s'il existe (extension selon p_encrypted).
     static void delete_file(const String &p_system_id, const Ref<SaveConfig> &p_config, bool p_encrypted = false);
 };
 } // namespace godot

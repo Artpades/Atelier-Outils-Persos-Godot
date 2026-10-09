@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Dialogue complet : la liste de ses nœuds et l'identifiant du nœud de départ, à enregistrer en [code].tres[/code].
 	</brief_description>
 	<description>
+		Se crée dans l'inspecteur (puis s'édite en graphe avec le bouton « 💬 Éditeur de dialogue ») ou par code. Les nœuds sont reliés par leurs identifiants : [method validate] signale les liens cassés et les doublons.
+		[codeblock]
+		var accueil := DialogueLine.new()
+		accueil.node_id = &amp;"accueil"
+		accueil.speaker = "Garde"
+		accueil.text = "Halte !"
+		accueil.next = &amp;"fin"
+		var fin := DialogueEnd.new()
+		fin.node_id = &amp;"fin"
+		var dialogue := DialogueResource.new()
+		dialogue.nodes.assign([accueil, fin])
+		print(dialogue.validate()) # [] : aucun problème
+		$DialogueSystem.start(dialogue)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,12 +26,14 @@
 			<return type="StringName" />
 			<param index="0" name="prefix" type="String" />
 			<description>
+				Renvoie un identifiant libre de la forme [code]prefixe_N[/code] (N à partir de 1), par exemple pour ajouter un nœud par code sans collision.
 			</description>
 		</method>
 		<method name="get_dialogue_node" qualifiers="const">
 			<return type="DialogueNode" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie le nœud d'identifiant [param id], ou [code]null[/code] s'il n'existe pas ou si [param id] est vide. Recherche linéaire dans [member nodes] (premier trouvé en cas de doublon).
 			</description>
 		</method>
 		<method name="get_graph_snapshot" qualifiers="const">
@@ -24,29 +41,35 @@
 			<param index="0" name="current" type="StringName" default="&amp;&quot;&quot;" />
 			<param index="1" name="visited" type="Dictionary" default="{}" />
 			<description>
+				Description du dialogue au format attendu par [method BehaviorGraphView.set_snapshot]. Les nœuds sont rangés en arbre par un parcours en largeur depuis le départ ; les autres liens deviennent des arcs ; les nœuds inaccessibles sont rattachés à la racine et signalés. [param current] marque le nœud actif, [param visited] (clés = identifiants) les nœuds déjà parcourus. Utilisé par l'éditeur de dialogue et par [method DialogueSystem.get_debug_snapshot].
 			</description>
 		</method>
 		<method name="get_start_node" qualifiers="const">
 			<return type="DialogueNode" />
 			<description>
+				Renvoie le nœud de départ : celui de [member start_id], ou le premier de [member nodes] si [member start_id] est vide. [code]null[/code] si introuvable.
 			</description>
 		</method>
 		<method name="has_dialogue_node" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si un nœud porte l'identifiant [param id].
 			</description>
 		</method>
 		<method name="validate" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Liste les problèmes détectés (vide si tout va bien) : nœud nul, identifiant vide ou en double, nœud de départ introuvable, lien vers un identifiant inexistant. Les messages sont en français, prêts à afficher.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="nodes" type="DialogueNode[]" setter="set_nodes" getter="get_nodes" default="[]">
+			Tous les nœuds du dialogue, dans un ordre quelconque (sauf si [member start_id] est vide : le premier sert alors de départ).
 		</member>
 		<member name="start_id" type="StringName" setter="set_start_id" getter="get_start_id" default="&amp;&quot;&quot;">
+			Identifiant du nœud de départ. Vide : le premier élément de [member nodes].
 		</member>
 	</members>
 </class>

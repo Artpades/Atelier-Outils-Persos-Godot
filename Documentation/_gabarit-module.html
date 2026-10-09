@@ -1,0 +1,177 @@
+<!doctype html>
+<!--
+  ✍️📄 Gabarit de page de module — structure « Structurer un Documentation de Module ».
+  1. Copier ce fichier vers Documentation/modules/<catégorie>/<module>.html
+  2. Remplacer chaque [crochet], supprimer chaque bloc <div class="callout gabarit"> une fois la section rédigée.
+  3. Renseigner `page` du module dans assets/modules.js (data-page ci-dessous = même chemin).
+  Exemple complet : modules/effets/fondu-couleur.html
+-->
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>[Nom du module] · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module [emoji] [Nom du module] du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/[catégorie]/[module].html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">[emoji]</div>
+    <div>
+      <h1>[Emoticône]_[NomDeDomaine] - [Nom de la catégorie] - Documentation</h1>
+      <p class="subtitle">Module <strong>[Nom du module]</strong> : [une phrase].</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/[id]</code></span>
+        <span class="badge">[n] classes</span>
+      </div>
+    </div>
+  </div>
+  <div class="callout gabarit">
+    <p>L'émoticône représente visuellement le domaine (ex : 🎵 pour l'audio, 💥 pour les effets, 🎮 pour le gameplay). Le nom de domaine est le système global (ex : <code>AudioSystem</code>), la catégorie celle du dossier <code>src/</code> (ex : Effets Spéciaux et Sensations).</p>
+    <p>Remplacer l'émoticône du bloc <code>.logo</code> par un logo ou une capture représentative si elle existe.</p>
+  </div>
+
+  <h2 id="presentation">📝 Présentation</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Une phrase ou deux : <strong>exemple de problème existant et quel problème ce module résout</strong>, pas comment il le résout.</li>
+      <li>À qui il s'adresse (un autre développeur du projet ? l'utilisateur final via l'éditeur ? un autre module ?).</li>
+      <li>Ce qu'il <strong>n'est pas</strong> censé faire, si le nom prête à confusion avec un module voisin.</li>
+      <li>Aucun détail technique : quelqu'un qui lit seulement cette section doit savoir en 10 secondes si ce module est pertinent pour son besoin.</li>
+    </ul>
+  </div>
+  <p>[Problème résolu.]</p>
+  <p><strong>Pour qui ?</strong> [Public visé.]</p>
+  <div class="callout"><div class="callout-title">Ce que ce module n'est pas</div><p>[Distinction avec les modules voisins.]</p></div>
+  <div class="figure-todo"><div><strong>📷 Image à insérer</strong></div><div>[Exemple d'utilisation en image.]</div></div>
+
+  <h2 id="installation">🛠️ Installation</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Les <strong>dépendances obligatoires</strong> (autres modules, plugins Godot, version minimale du moteur) — sans lesquelles rien ne fonctionne.</li>
+      <li>Où placer les fichiers / comment ajouter le module au projet (autoload à déclarer, nœud à instancier, plugin à activer).</li>
+      <li>Toute <strong>étape de configuration initiale</strong> requise avant le premier usage.</li>
+      <li>Distinguer clairement les dépendances optionnelles des dépendances dures.</li>
+      <li>Dire pourquoi ces étapes sont importantes (bloc <code>.why</code>).</li>
+    </ul>
+  </div>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>[...]</td></tr>
+        <tr><td>Bibliothèque <code>bin/[id]/</code></td><td><strong>Obligatoire</strong></td><td>[...]</td></tr>
+        <tr><td>[...]</td><td>Optionnelle</td><td>[...]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li><strong>[Étape]</strong><div class="why">[Pourquoi cette étape est nécessaire.]</div></li>
+  </ol>
+  <div class="figure-todo"><div><strong>📷 Image à insérer</strong></div><div>[Installation pas à pas.]</div></div>
+
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Un parcours <strong>pas-à-pas, dans l'ordre</strong>, pour arriver à un premier résultat fonctionnel simple — juste le chemin le plus court vers « ça marche ».</li>
+      <li>Dire <strong>à quoi sert</strong> chaque étape pour mieux comprendre le module.</li>
+      <li>Écrit de manière neutre, orienté action (« Ajouter ceci », « Configurer cela »).</li>
+      <li>Doit fonctionner tel quel si on le suit ligne par ligne sans rien connaître d'autre du module.</li>
+      <li>Ne couvre <strong>pas</strong> les cas limites ni les options avancées (rôle des sections Exemples et API).</li>
+    </ul>
+  </div>
+  <ol class="steps">
+    <li><strong>[Action]</strong><div class="why">[À quoi elle sert.]</div></li>
+  </ol>
+
+  <h2 id="api">💻 API Accessible</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Les tableaux sont générés depuis <code>doc_classes/*.xml</code> : rédiger les descriptions <strong>dans les XML</strong>, puis lancer <code>python Documentation/generer_api.py</code>.</li>
+      <li>La colonne « 🎓 Dans quel cas je peux l'utiliser » se remplit dans <code>window.GTK_USAGES</code> en bas de page (clé <code>"Classe.membre"</code>).</li>
+      <li>Préciser ci-dessous ce qui est <strong>interne/privé</strong> (non documenté dans les tableaux, susceptible de changer sans préavis).</li>
+    </ul>
+  </div>
+  <p>Référence générée depuis <code>doc_classes/[Classe].xml</code>. Éléments internes, non exposés : [...]</p>
+  <div data-api="[ClasseA ClasseB]"></div>
+
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Des cas d'usage <strong>concrets et variés</strong>, au-delà du tutoriel — notamment les cas moins évidents ou les combinaisons avec d'autres modules.</li>
+      <li>Chaque exemple est autonome (copier-coller fonctionnel), avec un titre qui dit quel besoin il illustre : « Comment je fais si… ».</li>
+      <li>Ajouter un visuel (.png / .gif / schéma / démo interactive) quand il aide.</li>
+    </ul>
+  </div>
+  <h3 id="ex-1">Comment je [besoin] ?</h3>
+  <p>[Description de l'exemple.]</p>
+  <pre><code class="gdscript">[code]</code></pre>
+
+  <h2 id="limitations">🚧 Limitations</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Ce que le module <strong>ne fait pas</strong>, ne fait pas bien, ou ne fait pas dans certaines conditions (performance, plateforme, taille de projet).</li>
+      <li>Les <strong>cas particuliers non gérés</strong> identifiés en Architecture (appels concurrents, absence d'une dépendance optionnelle…).</li>
+      <li>Toute limite qui pourrait surprendre en production.</li>
+      <li>Ne pas minimiser ni euphémiser : l'honnêteté prime sur la présentation flatteuse.</li>
+    </ul>
+  </div>
+  <ul>
+    <li><strong>[Limite.]</strong> [Conséquence et contournement.]</li>
+  </ul>
+
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Comment le module est structuré <strong>en interne</strong> : quels objets le composent, comment ils communiquent (signal, appel direct, singleton).</li>
+      <li>Ses <strong>dépendances</strong> vis-à-vis d'autres modules, et dans quel sens va le couplage.</li>
+      <li>Un schéma (SVG <code>.diagram</code>) si la structure dépasse 2-3 objets.</li>
+      <li>Les décisions de conception non évidentes et <strong>pourquoi</strong> ce choix plutôt qu'une alternative.</li>
+    </ul>
+  </div>
+  <h3 id="composants">Composants et communication</h3>
+  <ul><li>[...]</li></ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul><li>[...]</li></ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody><tr><td>[...]</td><td>[...]</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="callout gabarit">
+    <ul>
+      <li>Versions de la plus récente à la plus ancienne.</li>
+      <li>Pour chaque version : <span class="tag add">Ajouté</span><span class="tag change">Modifié</span><span class="tag fix">Corrigé</span><span class="tag remove">Retiré</span>, et <span class="tag breaking">Rupture</span> pour tout changement qui casse du code dépendant.</li>
+      <li>Référencer la version du module si d'autres modules en dépendent.</li>
+    </ul>
+  </div>
+  <div class="changelog">
+    <h3 id="v1-0-0">1.0.0 <span class="date">[AAAA-MM-JJ]</span></h3>
+    <ul><li><span class="tag add">Ajouté</span>[...]</li></ul>
+  </div>
+
+  <footer>Module [emoji] [Nom] · sources : <code>src/[chemin]/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+<script>
+window.GTK_USAGES = {
+  // "Classe.membre": "Cas concret d'utilisation",
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

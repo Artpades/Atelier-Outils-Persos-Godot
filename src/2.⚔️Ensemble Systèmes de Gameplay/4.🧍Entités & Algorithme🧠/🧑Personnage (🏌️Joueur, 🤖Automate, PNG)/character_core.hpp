@@ -63,14 +63,18 @@ struct CharacterCore
     PackedStringArray movement_blocking_tags;
     bool expose_components = true;
 
+    /// Intention de déplacement reçue (longueur ≤ 1), conservée même quand elle est bloquée.
     Vector2 move_input;
+    /// Demande de course reçue (set_running).
     bool running = false;
     // Dernière intention transmise : forward_movement ne renvoie que les changements, pour ne pas écraser
     // une intention donnée directement au MovementDirector / aux composants (PlayerInput, script...).
     Vector2 forwarded_input;
     bool forwarded_running = false;
     bool forwarded_once = false;
+    /// Vrai entre request_jump et release_jump.
     bool jump_held = false;
+    /// Direction du regard (get_facing) ; en 3D : x → X, y → Z du monde.
     Vector2 facing = Vector2(1, 0);
 
     CharacterCore();
@@ -89,7 +93,9 @@ struct CharacterCore
     // 🌀 Déplacement : transmis au MovementDirector, sinon à chaque MovementComponent (module Mouvement & Physique).
     Node *find_movement_director(const Node *p_owner) const;
     Node *find_active_movement(const Node *p_owner) const;
+    /// Transmet move / set_running (coupés si bloqué) au directeur ou aux composants, seulement si l'intention a changé.
     void forward_movement(Node *p_owner);
+    /// Appelle p_method (jump, release_jump) sur le directeur, sinon sur chaque MovementComponent.
     void forward_call(Node *p_owner, const StringName &p_method);
 
     // 🧩 Propriétés des composants, éditables depuis le personnage (« components/<nom>/<propriété> »).

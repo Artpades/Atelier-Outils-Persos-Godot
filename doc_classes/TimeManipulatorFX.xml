@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TimeManipulatorFX" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		⏯️ Ralentit, accélère ou fige brièvement tout le jeu en pilotant [member Engine.time_scale] (ralenti progressif, « hit stop » sur un impact).
 	</brief_description>
 	<description>
+		Nœud qui contrôle la vitesse globale du jeu :
+		- [method set_time_scale] fixe une vitesse visée ([member target_time_scale]) que [member Engine.time_scale] rejoint progressivement, à la vitesse [member recovery_speed].
+		- [method trigger_hit_stop] fige (ou ralentit) le jeu net pendant une durée en temps réel, puis rend la vitesse d'avant : l'effet classique d'un coup qui « porte ».
+		L'interpolation et la durée du gel utilisent le temps réel : elles progressent même quand le jeu est presque à l'arrêt. À son entrée dans l'arbre ([method Node._ready]), le nœud remet le jeu à la vitesse 1 ; à sa sortie, il la remet aussi à 1.
+		Classe « runtime » : elle n'agit pas dans l'éditeur. Un seul [TimeManipulatorFX] doit être actif à la fois (idéalement dans un autoload).
+		[codeblock]
+		# Autoload « Temps » : un TimeManipulatorFX.
+		func _on_coup_critique() -> void:
+			Temps.trigger_hit_stop(0.08)     # gel de 80 ms
+
+		func _on_visee_activee(active: bool) -> void:
+			Temps.set_time_scale(0.3 if active else 1.0)   # ralenti progressif
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,12 +24,14 @@
 		<method name="is_hit_stopping" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant un gel lancé par [method trigger_hit_stop].
 			</description>
 		</method>
 		<method name="set_time_scale">
 			<return type="void" />
 			<param index="0" name="target_scale" type="float" />
 			<description>
+				Fixe la vitesse visée ([code]0.5[/code] : deux fois plus lent, [code]2[/code] : deux fois plus rapide, [code]0[/code] : arrêt). Les valeurs négatives sont ramenées à 0. La vitesse réelle la rejoint progressivement selon [member recovery_speed]. Pendant un gel, la valeur est écrasée à la fin du gel par la vitesse d'avant le gel.
 			</description>
 		</method>
 		<method name="trigger_hit_stop">
@@ -23,22 +39,27 @@
 			<param index="0" name="duration" type="float" />
 			<param index="1" name="scale" type="float" default="0.0" />
 			<description>
+				Passe immédiatement le jeu à la vitesse [param scale] (0 : arrêt total) pendant [param duration] secondes de temps réel, puis rétablit d'un coup la vitesse visée d'avant le gel. Émet [signal hit_stop_started] puis [signal hit_stop_finished]. Ignoré si un gel est déjà en cours ou si le nœud n'est pas dans l'arbre. Le minuteur s'écoule aussi pendant la pause du jeu.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="recovery_speed" type="float" setter="set_recovery_speed" getter="get_recovery_speed" default="5.0">
+			Vitesse à laquelle [member Engine.time_scale] rejoint [member target_time_scale] (facteur d'interpolation par seconde de temps réel). Plus elle est grande, plus la transition est brève ; à 0, la vitesse ne change plus.
 		</member>
 		<member name="target_time_scale" type="float" setter="set_target_time_scale" getter="get_target_time_scale" default="1.0">
+			Vitesse visée du jeu (équivaut à [method set_time_scale]). Non enregistrée dans la scène : elle repart à 1 au [method Node._ready].
 		</member>
 	</members>
 	<signals>
 		<signal name="hit_stop_finished">
 			<description>
+				Émis à la fin d'un gel, une fois la vitesse rétablie. N'est pas émis si le nœud quitte l'arbre pendant le gel.
 			</description>
 		</signal>
 		<signal name="hit_stop_started">
 			<description>
+				Émis au début d'un gel lancé par [method trigger_hit_stop].
 			</description>
 		</signal>
 	</signals>

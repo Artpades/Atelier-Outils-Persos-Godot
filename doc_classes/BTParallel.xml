@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTParallel" inherits="BTComposite" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Parallèle : exécute tous ses enfants à chaque tick et décide selon des seuils de réussites et d'échecs.
 	</brief_description>
 	<description>
+		Chaque enfant encore en cours est exécuté à chaque tick ; un enfant terminé n'est plus réexécuté pendant l'exécution en cours. Dès que [member success_threshold] réussites sont atteintes, le parallèle réussit ; sinon, dès que [member failure_threshold] échecs sont atteints (ou que tous ont fini), il échoue. Les enfants encore en cours sont alors interrompus. Un parallèle sans enfant réussit.
+		[codeblock]
+		# Se déplacer en tirant : réussit quand le déplacement réussit, quel que soit le tir.
+		var parallele := BTParallel.new()
+		parallele.success_threshold = 1
+		parallele.failure_threshold = 0
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="failure_threshold" type="int" setter="set_failure_threshold" getter="get_failure_threshold" default="1">
+			Nombre d'échecs qui font échouer le parallèle. [code]0[/code] = tous les enfants. Par défaut, un seul échec suffit.
 		</member>
 		<member name="success_threshold" type="int" setter="set_success_threshold" getter="get_success_threshold" default="0">
+			Nombre de réussites qui font réussir le parallèle. [code]0[/code] = tous les enfants. Vérifié avant le seuil d'échec.
 		</member>
 	</members>
 </class>

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glisser-Déposer d'objet · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module ✊ Glisser-Déposer d'objet (DragAndDropSystem, DraggableComponent) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/glisser-deposer-d-objet.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">✊</div>
+    <div>
+      <h1>✊_DragAndDropSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>Glisser-Déposer d'objet</strong> : saisir à la souris un objet 2D, 3D ou d'interface, le déplacer, puis le poser sur un emplacement ou le renvoyer à sa place.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/drag_and_drop</code></span>
+        <span class="badge">2 classes : DragAndDropSystem · DraggableComponent</span>
+        <span class="badge">Control, 2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Poser une carte sur un emplacement du plateau, ranger un objet dans un inventaire, déplacer une pièce d'échecs, faire glisser une caisse sur le sol d'une scène 3D : à chaque fois il faut détecter l'objet sous le curseur, le faire suivre sans « saut », décider où il atterrit et le renvoyer à sa place si le dépôt n'est pas valide. <strong>Ce module fournit ce comportement tout fait</strong>, configurable dans l'inspecteur, pour des <code>Control</code>, des <code>Node2D</code> et des <code>Node3D</code>, sans toucher aux scripts des objets déplacés.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🖱️ <code>DragAndDropSystem</code> — le chef d'orchestre</h4>
+      <p>Un <strong>nœud</strong> qui lit la souris, détecte l'objet survolé, le fait suivre le pointeur et applique son comportement au relâchement. Il signale chaque étape (survol, saisie, aimantage, relâchement).</p>
+    </div>
+    <div class="card">
+      <h4>📦 <code>DraggableComponent</code> — la fiche d'un objet</h4>
+      <p>Une <strong>ressource</strong> par objet déplaçable : quel nœud, quelle zone de saisie, sur quel plan glisser en 3D, que faire au relâchement, quels emplacements l'attirent.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay de jeux de cartes, de puzzle, d'inventaire ou de construction, et les game designers qui veulent régler emplacements et distances d'aimantage dans l'éditeur.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas le glisser-déposer de données de Godot</strong> (<code>_get_drag_data</code> / <code>_drop_data</code> des <code>Control</code>) : ici on déplace réellement un nœud dans la scène, on ne transporte pas une donnée entre deux widgets.</li>
+      <li><strong>Pas un système physique</strong> : l'objet est téléporté sous le pointeur (position globale), sans collisions ni inertie. Pour des objets qui se poussent, utiliser des corps physiques.</li>
+      <li><strong>Pas un système tactile multipoint</strong> : un seul objet saisi à la fois, au pointeur de la souris (le tactile fonctionne via l'émulation souris de Godot).</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : trois cartes (Node2D) sur une table ; une carte glissée près d'un emplacement s'y aimante, une autre lâchée dans le vide revient à sa place.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/drag_and_drop/</code> (<code>gameplaytoolkit_drag_and_drop.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les deux classes du module. Aucune autre bibliothèque du toolkit n'est nécessaire.</td></tr>
+        <tr><td>Une <code>Camera3D</code> courante</td><td>Obligatoire en 3D</td><td>Les objets 3D sont détectés et déplacés par le rayon de la caméra courante du Viewport ; sans caméra, aucun <code>Node3D</code> ne peut être saisi.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧭🌍/</code></td><td>Optionnelle</td><td>Seulement pour les icônes des deux classes dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons drag_and_drop</code></pre>
+      <div class="why">compile uniquement cette bibliothèque (registre <code>drag_and_drop_register.cpp</code>) et régénère son <code>.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/drag_and_drop/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/drag_and_drop/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/drag_and_drop/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; les recompilations suivantes sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>DragAndDropSystem</code>, et l'inspecteur permet de créer un <code>DraggableComponent</code>.
+      <div class="why">le panneau <em>Sortie</em> affiche « Module de glisser-déposer chargé avec succès ! » au chargement ; son absence indique une bibliothèque non chargée.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload n'est requis : un <code>DragAndDropSystem</code> par scène (ou par écran d'interface) suffit.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : une carte (<code>Node2D</code>) qu'on pose sur un emplacement, et qui revient à sa place si on la lâche ailleurs.</p>
+  <ol class="steps">
+    <li>
+      <strong>Construire la scène</strong> : un <code>Node2D</code> racine avec un enfant <code>Carte</code> (un <code>Sprite2D</code> de 80 × 120 px) et un enfant <code>Emplacement</code> (un <code>Marker2D</code> à l'endroit où la carte doit se poser).
+      <div class="why">la carte prendra la <em>position globale</em> de l'emplacement : un simple marqueur suffit.</div>
+    </li>
+    <li>
+      <strong>Ajouter un nœud <code>DragAndDropSystem</code></strong> comme enfant de la racine.
+      <div class="why">c'est lui qui lit la souris ; les chemins des composants seront relatifs à lui (d'où les <code>../</code> ci-dessous).</div>
+    </li>
+    <li>
+      <strong>Dans <code>draggables</code>, ajouter un élément <code>Nouveau DraggableComponent</code></strong>, puis régler <code>target_node_path</code> = <code>../Carte</code> et <code>local_bounds_2d</code> = <code>(-40, -60, 80, 120)</code>.
+      <div class="why">la zone de saisie d'un <code>Node2D</code> n'est pas déduite du sprite : elle est donnée dans le repère local du nœud (ici centrée, comme un <code>Sprite2D</code> centré).</div>
+    </li>
+    <li>
+      <strong>Dans <code>snap_targets</code>, ajouter <code>../Emplacement</code></strong>, et laisser <code>release_behavior</code> à <em>Snap To Valid Point</em> et <code>snap_distance_threshold</code> à 50.
+      <div class="why">au relâchement, la carte se pose sur l'emplacement si elle en est à moins de 50 px ; sinon elle revient à la position qu'elle avait au lancement.</div>
+    </li>
+    <li>
+      <strong>Réagir au dépôt</strong> dans un script de la racine :
+      <pre><code class="gdscript">func _ready() -> void:
+	$DragAndDropSystem.snapped.connect(_on_carte_posee)
+
+func _on_carte_posee(carte: Node, emplacement: Node) -> void:
+	print(carte.name, " posée sur ", emplacement.name)</code></pre>
+      <div class="why"><code>snapped</code> n'est émis que si la carte finit exactement sur un emplacement : c'est le bon endroit pour valider un coup.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène</strong> et glisser la carte au clic gauche.
+      <div class="why">le nœud est une classe d'exécution : dans l'éditeur, rien ne bouge, c'est voulu.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/DragAndDropSystem.xml</code> et <code>doc_classes/DraggableComponent.xml</code>. Éléments internes, non exposés (susceptibles de changer) :</p>
+  <ul>
+    <li><code>DragAndDropSystem</code> : la position du pointeur suivie dans <code>_input</code>, les décalages de saisie <code>offset_2d</code> / <code>offset_3d</code>, l'origine du plan de glissement 3D, et les méthodes <code>_resolve_target</code>, <code>_update_hover</code>, <code>_update_drag</code>, <code>_find_snap_target</code>, <code>_snap_while_dragging</code>…</li>
+    <li><code>DraggableComponent</code> : l'identifiant (<code>ObjectID</code>) du nœud ciblé, mis en cache après résolution du chemin.</li>
+  </ul>
+  <div data-api="DragAndDropSystem DraggableComponent"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="demo">Aperçu interactif : relâchement et aimantage</h3>
+  <p>Reproduction simplifiée de la logique de <code>release()</code> et de l'aimantage <code>SNAP_ALWAYS</code> : distance entre l'origine de l'objet et chaque point, seuil, retour à la position initiale.</p>
+  <div class="card demo" id="dnd-demo">
+    <canvas width="420" height="220" aria-label="Aperçu du glisser-déposer"></canvas>
+    <div class="controls">
+      <label>Relâchement (<code>release_behavior</code>)
+        <select data-k="release">
+          <option value="snap">Snap To Valid Point</option>
+          <option value="return">Return To Initial</option>
+          <option value="leave">Leave In Place</option>
+          <option value="nothing">Do Nothing</option>
+        </select>
+      </label>
+      <label>Aimantage (<code>snap_behavior</code>)
+        <select data-k="snapmode">
+          <option value="close">Snap When Close</option>
+          <option value="always">Always Snap</option>
+          <option value="none">None</option>
+        </select>
+      </label>
+      <label>Seuil (<code>snap_distance_threshold</code>) <output data-o="thr">50</output>
+        <input type="range" data-k="thr" min="0" max="150" step="1" value="50">
+      </label>
+      <output data-o="signal">Signaux : —</output>
+    </div>
+  </div>
+
+  <h3 id="ex-derniere-place">Comment je fais revenir un objet à son dernier emplacement plutôt qu'à sa place de départ ?</h3>
+  <p>La position de retour est mémorisée une fois (au <code>_ready</code>) et n'est jamais mise à jour par un dépôt. Il suffit de la remplacer à chaque aimantage :</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$DragAndDropSystem.snapped.connect(func(noeud: Node, _emplacement: Node):
+		for composant in $DragAndDropSystem.draggables:
+			if composant.target_node == noeud:
+				composant.save_initial_position())</code></pre>
+
+  <h3 id="ex-inventaire">Comment je rends des icônes d'interface (Control) déplaçables dans un inventaire ?</h3>
+  <p>Un <code>Control</code> en <code>MOUSE_FILTER_STOP</code> (valeur par défaut d'un <code>Panel</code>, d'un <code>TextureRect</code>…) consomme le clic avant le système : il faut le passer en <em>Ignore</em> ou <em>Pass</em>. Les emplacements sont d'autres <code>Control</code> ; c'est leur coin supérieur gauche qui est comparé.</p>
+  <pre><code class="gdscript">@onready var dnd: DragAndDropSystem = $DragAndDropSystem
+
+func _ready() -> void:
+	var cases := []
+	for case_inv in $Grille.get_children():
+		cases.append(dnd.get_path_to(case_inv))
+	for objet in $Objets.get_children():
+		objet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var composant := DraggableComponent.new()
+		composant.target_node_path = dnd.get_path_to(objet)
+		composant.snap_targets = cases
+		composant.snap_distance_threshold = 40.0
+		dnd.register_draggable(composant)</code></pre>
+  <div class="callout warn"><p>Le <code>DragAndDropSystem</code> déplace le <code>Control</code> par <code>global_position</code> : s'il est l'enfant d'un <code>Container</code> (<code>GridContainer</code>, <code>HBoxContainer</code>…), le conteneur le remettra à sa place au prochain tri. Placer les objets déplaçables sous un simple <code>Control</code>.</p></div>
+
+  <h3 id="ex-3d">Comment je fais glisser des objets 3D sur le sol ?</h3>
+  <p>Le plan <em>World Y</em> est horizontal et passe par la position de l'objet au moment de la saisie : l'objet reste à sa hauteur et suit le pointeur sur le sol.</p>
+  <pre><code class="gdscript">func rendre_deplacable(meuble: Node3D, taille: Vector3) -> void:
+	var composant := DraggableComponent.new()
+	composant.target_node_path = $DragAndDropSystem.get_path_to(meuble)
+	composant.bounds_3d = AABB(Vector3(-taille.x / 2, 0, -taille.z / 2), taille)
+	composant.drag_plane_3d = DraggableComponent.DRAG_PLANE_WORLD_Y
+	composant.release_behavior = DraggableComponent.RELEASE_DO_NOTHING
+	$DragAndDropSystem.register_draggable(composant)</code></pre>
+
+  <h3 id="ex-surbrillance">Comment je mets en surbrillance l'objet survolé et l'objet saisi ?</h3>
+  <p>Les signaux transmettent directement le nœud ciblé.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var dnd := $DragAndDropSystem
+	dnd.pointed.connect(func(n): n.modulate = Color(1.2, 1.2, 1.2))
+	dnd.depointed.connect(func(n): n.modulate = Color.WHITE)
+	dnd.grabbed.connect(func(n): n.z_index = 10)   # au-dessus des autres cartes
+	dnd.released.connect(func(n): n.z_index = 0)</code></pre>
+
+  <h3 id="ex-clic-clic">Comment je fais un déplacement « clic pour prendre, clic pour poser » (jeu de plateau, manette émulée) ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$DragAndDropSystem.input_mode = DragAndDropSystem.INPUT_MODE_TOGGLE
+
+# Ou par code : prendre la pièce choisie dans un menu, elle suit le pointeur jusqu'au prochain clic.
+func prendre(piece: DraggableComponent) -> void:
+	if $DragAndDropSystem.is_free():
+		$DragAndDropSystem.grab(piece)</code></pre>
+
+  <h3 id="ex-son">Comment je combine le dépôt avec un effet (son, flash) ?</h3>
+  <p>Avec le module <em>✨ Socle des effets</em>, un <code>PlayerFX</code> enfant de l'emplacement joue un effet au dépôt.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$DragAndDropSystem.snapped.connect(func(_carte, emplacement):
+		var fx = emplacement.get_node_or_null("PlayerFX")
+		if fx:
+			fx.play())</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>La position de retour n'évolue pas.</strong> Un objet posé sur un emplacement, puis repris et lâché dans le vide, revient à sa position <em>de départ</em>, pas à son dernier emplacement (vérifié). Voir <a href="#ex-derniere-place">l'exemple</a>.</li>
+    <li><strong>Un <code>Control</code> en <code>MOUSE_FILTER_STOP</code> bloque la saisie</strong>, qu'il soit l'objet lui-même ou une interface placée au-dessus (vérifié : <em>Stop</em> bloque, <em>Pass</em> et <em>Ignore</em> fonctionnent). C'est voulu pour qu'un menu ouvert empêche de saisir le décor, mais surprenant pour un <code>Panel</code> déplaçable.</li>
+    <li><strong>Pas de tri par ordre d'affichage.</strong> Entre deux objets 2D superposés, c'est le premier de <code>draggables</code> qui est saisi, pas celui dessiné au-dessus. Un objet 2D l'emporte toujours sur un objet 3D.</li>
+    <li><strong>Zone de saisie manuelle.</strong> Pour un <code>Node2D</code>, <code>local_bounds_2d</code> (64 × 64 px centré par défaut) ne suit ni la texture ni la forme réelle ; pour un <code>Node3D</code>, <code>bounds_3d</code> est une boîte, pas le maillage.</li>
+    <li><strong>Aimantage sur l'origine.</strong> La distance et la position finale utilisent la position globale : le coin supérieur gauche d'un <code>Control</code>, l'origine d'un <code>Node2D</code> / <code>Node3D</code>. Un emplacement et un objet de familles différentes (Control et Node2D) ne s'attirent jamais.</li>
+    <li><strong>Parents qui repositionnent leurs enfants.</strong> Un objet enfant d'un <code>Container</code> est replacé par le conteneur ; un objet enfant d'un nœud animé bouge avec lui.</li>
+    <li><strong>Un seul objet à la fois</strong>, un seul pointeur (la souris ; le tactile passe par « Émuler la souris depuis le tactile »). Pas de prise en charge native de la manette.</li>
+    <li><strong>Interruptions silencieuses.</strong> Si le nœud saisi est libéré ou sort de l'arbre, ou si son composant est retiré par <code>unregister_draggable</code>, la saisie est abandonnée sans signal <code>released</code>.</li>
+    <li><strong>État dans la ressource.</strong> La position initiale et le nœud résolu sont stockés dans le <code>DraggableComponent</code> : une même ressource partagée entre deux systèmes ou deux instances de scène mélange leurs états (cocher <code>resource_local_to_scene</code> ou créer les composants par code).</li>
+    <li><strong>Coût.</strong> Le survol est recalculé à chaque image et à chaque mouvement de souris, en parcourant tous les composants (en 3D : une intersection rayon / boîte par objet). Négligeable pour quelques dizaines d'objets, à surveiller au-delà de quelques centaines.</li>
+    <li><strong>Pas d'aperçu dans l'éditeur</strong> : classe d'exécution, les zones de saisie ne sont pas dessinées.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 230" role="img" aria-label="Schéma d'architecture du module Glisser-Déposer">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="150" height="54" rx="8"/>
+    <text x="95" y="54" text-anchor="middle">Souris</text>
+    <text x="95" y="72" text-anchor="middle" class="small">_input / _unhandled_input</text>
+    <rect class="box main" x="240" y="30" width="190" height="54" rx="8"/>
+    <text x="335" y="54" text-anchor="middle">DragAndDropSystem</text>
+    <text x="335" y="72" text-anchor="middle" class="small">Node · survol, saisie, relâchement</text>
+    <rect class="box" x="500" y="30" width="170" height="54" rx="8"/>
+    <text x="585" y="54" text-anchor="middle">DraggableComponent</text>
+    <text x="585" y="72" text-anchor="middle" class="small">Resource · réglages + état</text>
+    <rect class="box" x="500" y="140" width="170" height="54" rx="8"/>
+    <text x="585" y="164" text-anchor="middle">Nœud ciblé</text>
+    <text x="585" y="182" text-anchor="middle" class="small">Control · Node2D · Node3D</text>
+    <rect class="box" x="720" y="140" width="120" height="54" rx="8"/>
+    <text x="780" y="164" text-anchor="middle">Emplacements</text>
+    <text x="780" y="182" text-anchor="middle" class="small">snap_targets</text>
+    <rect class="box" x="240" y="140" width="190" height="54" rx="8"/>
+    <text x="335" y="164" text-anchor="middle">Votre code</text>
+    <text x="335" y="182" text-anchor="middle" class="small">pointed · grabbed · snapped…</text>
+    <path class="arrow" d="M170 57 H238" marker-end="url(#arr)"/>
+    <path class="arrow" d="M430 57 H498" marker-end="url(#arr)"/>
+    <text x="464" y="50" text-anchor="middle" class="small">lit</text>
+    <path class="arrow" d="M410 84 Q480 150 498 160" marker-end="url(#arr)"/>
+    <text x="470" y="125" class="small">global_position</text>
+    <path class="arrow dashed" d="M670 167 H718" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M335 84 V138" marker-end="url(#arr)"/>
+    <text x="345" y="116" class="small">signaux</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>DragAndDropSystem</code></strong> est un <code>Node</code> autonome. Il suit le pointeur dans <code>_input</code> (et y capte le relâchement, pour ne jamais le perdre), saisit dans <code>_unhandled_input</code> (pour laisser la priorité à l'interface), et met à jour le survol ou la position de l'objet saisi à chaque image et à chaque mouvement.</li>
+    <li><strong><code>DraggableComponent</code></strong> est une ressource passive : le système lit ses réglages et y écrit l'état (nœud résolu, position initiale). Aucun signal entre les deux.</li>
+    <li>Le nœud ciblé n'a besoin d'aucun script : il est déplacé par <code>global_position</code>. Le code du jeu réagit par les signaux du système (<code>pointed</code>, <code>depointed</code>, <code>grabbed</code>, <code>snapped</code>, <code>released</code>).</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>DragAndDropSystem</code> → <code>DraggableComponent</code> : même bibliothèque, couplage direct.</li>
+    <li>Aucune dépendance vers les autres modules du toolkit ; les autres modules ne dépendent pas de celui-ci. Bibliothèque propre (<code>drag_and_drop_register.cpp</code> → <code>bin/drag_and_drop/</code>).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Saisie dans <code>_unhandled_input</code>, relâchement dans <code>_input</code></td><td>Un menu ouvert au-dessus du plateau doit empêcher de saisir une pièce ; mais un relâchement au-dessus d'un bouton ne doit pas laisser l'objet collé au pointeur.</td></tr>
+        <tr><td>Le clic de relâchement en mode bascule est consommé</td><td>Sans cela, le même clic relâcherait l'objet dans <code>_input</code> puis le ressaisirait aussitôt dans <code>_unhandled_input</code>.</td></tr>
+        <tr><td>Réglages dans une ressource, logique dans un seul nœud</td><td>Aucun script à ajouter aux objets déplacés ; les composants se configurent dans l'inspecteur et se dupliquent facilement.</td></tr>
+        <tr><td>Nœud ciblé mémorisé par <code>ObjectID</code></td><td>Le nœud peut être libéré à tout moment sans prévenir la ressource : pas de pointeur invalide.</td></tr>
+        <tr><td>Plan de glissement 3D fixé à la saisie</td><td>Si le plan suivait l'objet, un aimantage (qui déplace l'objet hors du plan) ferait dériver le glissement.</td></tr>
+        <tr><td>Avec <code>SNAP_ALWAYS</code>, la distance est mesurée depuis la position <em>voulue</em></td><td>Mesurée depuis la position réelle (déjà aimantée), l'objet ne se décrocherait jamais du point.</td></tr>
+        <tr><td>Comparaison approchée pour émettre <code>snapped</code></td><td><code>set_global_position</code> sous des parents transformés introduit des arrondis : une égalité stricte raterait le dépôt.</td></tr>
+        <tr><td>Classe d'exécution (<code>GDREGISTER_RUNTIME_CLASS</code>)</td><td>Dans l'éditeur, cliquer sur la scène ne doit pas déplacer les objets édités.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>DragAndDropSystem</code> et <code>DraggableComponent</code>, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Ajout module glisser déposer : <code>DragAndDropSystem</code> (Control, Node2D, Node3D, modes maintenu / bascule) et <code>DraggableComponent</code> (plans de glissement 3D, comportements de relâchement, aimantage).</li>
+    </ul>
+  </div>
+
+  <footer>Module ✊ Glisser-Déposer d'objet · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/✊📦🤚Glisser-Déposer d'objet/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "DragAndDropSystem.action_button": "Saisir au clic droit dans un jeu où le clic gauche sert déjà (déplacer l'unité, tirer).",
+  "DragAndDropSystem.draggables": "Lister dans l'inspecteur les pièces, cartes ou meubles déplaçables d'un niveau.",
+  "DragAndDropSystem.input_mode": "<em>Toggle</em> pour un jeu de plateau, un trackpad ou l'accessibilité (pas besoin de garder le bouton enfoncé).",
+  "DragAndDropSystem.get_draggable_at": "Afficher une infobulle sur l'objet sous le curseur, ou vérifier ce qui se trouve sous un point.",
+  "DragAndDropSystem.get_grabbed_component": "Afficher les emplacements valides pour l'objet en main, ou le nom de l'objet tenu.",
+  "DragAndDropSystem.get_hovered_component": "Changer la forme du curseur (main ouverte) quand un objet saisissable est survolé.",
+  "DragAndDropSystem.grab": "Prendre en main un objet choisi dans un menu ou créé à l'instant (objet acheté qui suit le curseur).",
+  "DragAndDropSystem.initialize_draggables": "Après avoir rangé le plateau par code, faire de la nouvelle disposition la position de retour de toutes les pièces.",
+  "DragAndDropSystem.is_free": "Avant un <code>grab()</code> par code, pour ne pas provoquer d'erreur.",
+  "DragAndDropSystem.is_occupied": "Bloquer la caméra ou les raccourcis pendant qu'un objet est tenu.",
+  "DragAndDropSystem.register_draggable": "Rendre déplaçable un objet instancié en jeu (carte piochée, objet ramassé).",
+  "DragAndDropSystem.release": "Forcer le dépôt quand le temps du tour est écoulé ou qu'un menu s'ouvre.",
+  "DragAndDropSystem.unregister_draggable": "Figer une pièce une fois posée sur la bonne case (puzzle résolu).",
+  "DragAndDropSystem.pointed": "Surbrillance, son de survol, infobulle.",
+  "DragAndDropSystem.depointed": "Retirer la surbrillance ou l'infobulle.",
+  "DragAndDropSystem.grabbed": "Passer l'objet au premier plan (<code>z_index</code>), jouer un son de prise, afficher les emplacements.",
+  "DragAndDropSystem.released": "Remettre le <code>z_index</code>, masquer les emplacements, son de pose.",
+  "DragAndDropSystem.snapped": "Valider un coup, vérifier une solution de puzzle, équiper l'objet dans l'emplacement.",
+  "DragAndDropSystem.INPUT_MODE_HOLD": "Comportement classique d'un glisser-déposer à la souris.",
+  "DragAndDropSystem.INPUT_MODE_TOGGLE": "Prendre / poser en deux clics (tactile, accessibilité, jeux de plateau).",
+  "DraggableComponent.bounds_3d": "Adapter la zone de clic à la taille d'une caisse, d'un meuble, d'une pièce 3D.",
+  "DraggableComponent.drag_plane_3d": "<em>World Y</em> pour glisser sur le sol, <em>Camera</em> pour un objet tenu face à l'écran, <em>Object Z</em> pour un tiroir qui coulisse sur un mur.",
+  "DraggableComponent.initial_position_2d": "Lire ou corriger par code la place de retour d'une carte.",
+  "DraggableComponent.initial_position_3d": "Lire ou corriger par code la place de retour d'un objet 3D.",
+  "DraggableComponent.local_bounds_2d": "Faire correspondre la zone de saisie à la taille du sprite d'une carte ou d'un pion.",
+  "DraggableComponent.release_behavior": "<em>Snap To Valid Point</em> pour un puzzle, <em>Return To Initial</em> pour un objet qu'on « essaie », <em>Leave In Place</em> pour du rangement libre.",
+  "DraggableComponent.snap_behavior": "<em>Always Snap</em> pour un placement sur grille qui « clique » pendant le glissement.",
+  "DraggableComponent.snap_distance_threshold": "Agrandir pour un public jeune ou le tactile, réduire pour des emplacements serrés.",
+  "DraggableComponent.snap_targets": "Cases d'un plateau, emplacements d'équipement, socles d'un puzzle.",
+  "DraggableComponent.snap_to_cursor": "Petits objets (pions, icônes) qu'on veut voir centrés sous le doigt ou le curseur.",
+  "DraggableComponent.target_node": "Retrouver le nœud déplacé à partir du composant (dans un signal ou une boucle).",
+  "DraggableComponent.target_node_path": "Désigner dans l'inspecteur le nœud à déplacer.",
+  "DraggableComponent.save_initial_position": "Après un dépôt réussi, faire de l'emplacement actuel la nouvelle place de retour.",
+  "DraggableComponent.DRAG_PLANE_CAMERA": "Objet tenu « en main » qui reste à la même profondeur à l'écran.",
+  "DraggableComponent.DRAG_PLANE_OBJECT_X": "Glissière dans le plan YZ local de l'objet.",
+  "DraggableComponent.DRAG_PLANE_OBJECT_Y": "Objet posé sur une surface inclinée qui glisse sur cette surface.",
+  "DraggableComponent.DRAG_PLANE_OBJECT_Z": "Tableau ou aimant déplacé sur un mur orienté.",
+  "DraggableComponent.DRAG_PLANE_WORLD_X": "Déplacement vertical dans un plan YZ fixe (vue de côté).",
+  "DraggableComponent.DRAG_PLANE_WORLD_Y": "Déplacer des meubles, des unités, des caisses sur le sol.",
+  "DraggableComponent.DRAG_PLANE_WORLD_Z": "Déplacement dans un plan XY fixe (jeu 2,5D vu de face).",
+  "DraggableComponent.RELEASE_RETURN_TO_INITIAL": "Objet qu'on peut examiner ou essayer, mais qui reprend toujours sa place.",
+  "DraggableComponent.RELEASE_SNAP_TO_VALID_POINT": "Puzzle, plateau, inventaire : seuls les emplacements sont valides.",
+  "DraggableComponent.RELEASE_LEAVE_IN_PLACE": "Rangement libre avec emplacements « magnétiques » facultatifs.",
+  "DraggableComponent.RELEASE_DO_NOTHING": "Placement totalement libre (décoration, bac à sable).",
+  "DraggableComponent.SNAP_NONE": "Désactiver l'aimantage tout en gardant le relâchement libre.",
+  "DraggableComponent.SNAP_WHEN_CLOSE": "Aimantage discret au moment de lâcher.",
+  "DraggableComponent.SNAP_ALWAYS": "Placement sur grille ou sur cases qui accroche pendant le glissement."
+};
+
+// 🎮 Aperçu interactif : reproduit release() et _snap_while_dragging() (drag_and_drop_system.cpp)
+(function () {
+  const root = document.getElementById("dnd-demo");
+  const canvas = root.querySelector("canvas");
+  const ctx = canvas.getContext("2d");
+  const q = (s) => root.querySelector(s);
+  const initial = { x: 70, y: 110 };
+  const slots = [{ x: 250, y: 70, n: "Emplacement1" }, { x: 340, y: 150, n: "Emplacement2" }];
+  const st = { obj: { ...initial }, grab: null, release: "snap", snapmode: "close", thr: 50 };
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || "#888";
+
+  function nearest(p) {
+    let best = null, bd = Infinity;
+    slots.forEach((s) => { const d = Math.hypot(s.x - p.x, s.y - p.y); if (d <= st.thr && d < bd) { bd = d; best = s; } });
+    return best;
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = css("--surface-2"); ctx.fillRect(0, 0, canvas.width, canvas.height);
+    slots.forEach((s) => {
+      ctx.strokeStyle = css("--text-muted"); ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.arc(s.x, s.y, st.thr, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeRect(s.x - 20, s.y - 30, 40, 60);
+    });
+    ctx.strokeStyle = css("--text-muted"); ctx.strokeRect(initial.x - 20, initial.y - 30, 40, 60);
+    ctx.fillStyle = st.grab ? "#f0a83a" : "#e85d75";
+    ctx.fillRect(st.obj.x - 20, st.obj.y - 30, 40, 60);
+    ctx.fillStyle = "#fff"; ctx.fillRect(st.obj.x - 2, st.obj.y - 2, 4, 4);
+  }
+  function pos(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height }; }
+  canvas.addEventListener("pointerdown", (e) => {
+    const p = pos(e);
+    if (Math.abs(p.x - st.obj.x) <= 20 && Math.abs(p.y - st.obj.y) <= 30) {
+      st.grab = { dx: st.obj.x - p.x, dy: st.obj.y - p.y };
+      canvas.setPointerCapture(e.pointerId);
+      q('[data-o="signal"]').textContent = "Signaux : grabbed";
+      draw();
+    }
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!st.grab) return;
+    const p = pos(e), wanted = { x: p.x + st.grab.dx, y: p.y + st.grab.dy };
+    const s = st.snapmode === "always" ? nearest(wanted) : null; // distance depuis la position voulue
+    st.obj = s ? { x: s.x, y: s.y } : wanted;
+    draw();
+  });
+  canvas.addEventListener("pointerup", () => {
+    if (!st.grab) return;
+    st.grab = null;
+    const s = nearest(st.obj);
+    if (st.release === "return") st.obj = { ...initial };
+    else if (st.release === "snap") st.obj = s ? { x: s.x, y: s.y } : { ...initial };
+    else if (st.release === "leave" && s && st.snapmode === "close") st.obj = { x: s.x, y: s.y };
+    const on = s && s.x === st.obj.x && s.y === st.obj.y;
+    q('[data-o="signal"]').textContent = "Signaux : " + (on ? "snapped(" + s.n + ") → " : "") + "released";
+    draw();
+  });
+  root.addEventListener("input", (e) => {
+    const k = e.target.dataset.k; if (!k) return;
+    st[k] = k === "thr" ? +e.target.value : e.target.value;
+    if (k === "thr") q('[data-o="thr"]').textContent = st.thr;
+    draw();
+  });
+  draw();
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ColorWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'une couleur : ColorPickerButton ou un SpinBox par canal avec aperçu.
 	</brief_description>
 	<description>
+		L'alpha n'est pas éditable avec l'indice [code]PROPERTY_HINT_COLOR_NO_ALPHA[/code]. En mode canaux, chaque canal est borné entre 0 et 1 (pas de couleurs HDR). Le sélecteur valide à la fermeture de son popup.
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

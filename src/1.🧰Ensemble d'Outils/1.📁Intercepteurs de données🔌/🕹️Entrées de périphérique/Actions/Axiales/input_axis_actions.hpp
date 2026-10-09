@@ -54,6 +54,7 @@ class InputAxisAction : public InputAction
     double last_emitted = 0.0;
     double last_emitted_velocity = 0.0;
 
+    /// Calcule la vitesse, enregistre la valeur et émet les évènements au-delà de dirty_threshold.
     void _process(double p_value, double p_delta);
 };
 

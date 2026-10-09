@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FloatingDock" inherits="Container" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🛟 Conteneur à grossissement façon dock macOS : les éléments proches du pointeur grossissent et s'écartent, à la souris comme au clavier ou à la manette.
 	</brief_description>
 	<description>
+		Conteneur qui aligne ses enfants [Control] visibles sur une rangée (ou une colonne avec [member vertical]), à la taille [member item_size]. Quand la souris passe au-dessus, chaque élément grossit selon sa distance au pointeur le long du dock (jusqu'à [member magnification] sous le pointeur, plus rien à [member influence_radius]), et s'entoure d'un espace [member hover_spacing] : la rangée s'élargit des deux côtés et ses voisins s'écartent. L'animation est lissée par [member smoothing].
+		Sans souris, l'élément qui a le focus (ou dont un descendant l'a) joue le rôle du pointeur ([member follow_focus]) : le dock reste vivant au clavier et à la manette.
+		La taille minimale du dock est celle du repos : les éléments agrandis [b]débordent[/b] du dock du côté opposé à [member item_anchor] (vers le haut pour un dock collé en bas de l'écran), sans pousser le reste de l'interface. Dans l'éditeur, seul l'agencement au repos est affiché.
+		[codeblock]
+		# FloatingDock ancré en bas de l'écran, avec des TextureButton en enfants
+		func _ready() -> void:
+			$Dock.hovered_item_changed.connect(_on_survol)
+
+		func _on_survol(element: Control) -> void:
+			$Etiquette.text = element.name if element else ""
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,58 +22,78 @@
 		<method name="get_hovered_item" qualifiers="const">
 			<return type="Control" />
 			<description>
+				Renvoie l'élément le plus proche du pointeur (ou de l'élément qui a le focus), dans la limite de [member influence_radius] ; [code]null[/code] si le dock n'est pas survolé. Ce n'est pas forcément l'élément exactement sous la souris (entre deux éléments, dans la marge [member hover_margin]).
 			</description>
 		</method>
 		<method name="get_item_influence" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="index" type="int" />
 			<description>
+				Renvoie le grossissement actuel de l'élément d'indice [param index] : 0 à la taille normale, 1 au grossissement maximal. L'indice compte uniquement les enfants [Control] visibles (pas l'indice d'enfant). Renvoie 0 pour un indice hors limites.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="follow_focus" type="bool" setter="set_follow_focus" getter="get_follow_focus" default="true">
+			Si [code]true[/code] et que la souris n'est pas sur le dock, l'élément qui a le focus clavier / manette (ou contient le focus) est grossi comme s'il était survolé.
 		</member>
 		<member name="hover_lift" type="float" setter="set_hover_lift" getter="get_hover_lift" default="0.0">
+			Décalage en pixels des éléments influencés, en s'éloignant de leur bord d'ancrage (ils « sautent » vers le haut dans un dock du bas). Sans effet avec [constant ANCHOR_CENTER].
 		</member>
 		<member name="hover_margin" type="float" setter="set_hover_margin" getter="get_hover_margin" default="16.0">
+			Marge en pixels autour du dock et des éléments agrandis dans laquelle la souris compte encore comme au-dessus du dock : évite que le grossissement s'arrête au moindre écart.
 		</member>
 		<member name="hover_spacing" type="float" setter="set_hover_spacing" getter="get_hover_spacing" default="12.0">
+			Espace en pixels ajouté de chaque côté d'un élément, proportionnellement à son grossissement : écarte les voisins de l'élément survolé.
 		</member>
 		<member name="influence_radius" type="float" setter="set_influence_radius" getter="get_influence_radius" default="160.0">
+			Distance en pixels (le long du dock, mesurée sur l'agencement au repos) à partir de laquelle le pointeur n'agrandit plus un élément. Atténuation en cosinus entre les deux.
 		</member>
 		<member name="item_anchor" type="int" setter="set_item_anchor" getter="get_item_anchor" enum="FloatingDock.ItemAnchor" default="2">
+			Bord auquel les éléments sont collés, et donc sens dans lequel ils grossissent : [constant ANCHOR_END] (bas ou droite, grossit vers le haut ou la gauche), [constant ANCHOR_BEGIN] (haut ou gauche), [constant ANCHOR_CENTER] (des deux côtés).
 		</member>
 		<member name="item_size" type="Vector2" setter="set_item_size" getter="get_item_size" default="Vector2(64, 64)">
+			Taille de chaque élément au repos, en pixels. (0, 0) : la taille minimale propre de chaque élément.
 		</member>
 		<member name="magnification" type="float" setter="set_magnification" getter="get_magnification" default="1.8">
+			Échelle de l'élément exactement sous le pointeur ([code]1.8[/code] : 80 % plus grand). 1 : pas de grossissement.
 		</member>
 		<member name="resize_mode" type="int" setter="set_resize_mode" getter="get_resize_mode" enum="FloatingDock.ResizeMode" default="0">
+			Comment un élément est agrandi : en changeant sa taille ([constant RESIZE_SIZE], pour des icônes [TextureRect] en expand, des boutons) ou son échelle ([constant RESIZE_SCALE], tout le contenu est mis à l'échelle, texte compris).
 		</member>
 		<member name="separation" type="float" setter="set_separation" getter="get_separation" default="8.0">
+			Espace en pixels entre deux éléments au repos.
 		</member>
 		<member name="smoothing" type="float" setter="set_smoothing" getter="get_smoothing" default="12.0">
+			Rapidité de l'animation du grossissement. Plus elle est grande, plus le dock réagit vite ; 0 : immédiat.
 		</member>
 		<member name="vertical" type="bool" setter="set_vertical" getter="is_vertical" default="false">
+			Si [code]true[/code], les éléments sont empilés en colonne (dock sur un bord latéral).
 		</member>
 	</members>
 	<signals>
 		<signal name="hovered_item_changed">
 			<param index="0" name="item" type="Control" />
 			<description>
+				Émis quand l'élément le plus proche du pointeur change, avec ce nouvel élément, ou [code]null[/code] quand le pointeur quitte le dock : pour afficher le nom de l'élément survolé, jouer un son.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="ANCHOR_BEGIN" value="0" enum="Anchor">
+			Éléments collés au bord haut (ou gauche en vertical) : ils grossissent vers le bas (ou la droite).
 		</constant>
 		<constant name="ANCHOR_CENTER" value="1" enum="ItemAnchor">
+			Éléments centrés : ils grossissent des deux côtés.
 		</constant>
 		<constant name="ANCHOR_END" value="2" enum="Anchor">
+			Éléments collés au bord bas (ou droit en vertical) : ils grossissent vers le haut (ou la gauche). Valeur par défaut, pour un dock en bas de l'écran.
 		</constant>
 		<constant name="RESIZE_SIZE" value="0" enum="ResizeMode">
+			Agrandit la taille des éléments ([method Container.fit_child_in_rect]) : leur contenu se redispose à la nouvelle taille.
 		</constant>
 		<constant name="RESIZE_SCALE" value="1" enum="ResizeMode">
+			Agrandit l'échelle des éléments : leur taille reste celle du repos et tout le rendu est mis à l'échelle.
 		</constant>
 	</constants>
 </class>

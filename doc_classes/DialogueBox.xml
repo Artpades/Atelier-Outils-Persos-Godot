@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueBox" inherits="PanelContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Boîte de dialogue prête à l'emploi pour un [DialogueSystem] : orateur, portrait, texte écrit lettre par lettre, boutons de choix.
 	</brief_description>
 	<description>
+		Se branche toute seule sur [member dialogue_system_path], ou à défaut sur le premier [DialogueSystem] de la scène ([method DialogueSystem.get_main]). Elle affiche les répliques, crée un bouton par option, et fait avancer le dialogue avec [member advance_action] : un premier appui termine l'écriture du texte, le suivant passe à la réplique suivante.
+		Ses enfants (portrait, nom, texte, choix, indicateur « ▼ ») sont internes et créés par code : on la positionne, la dimensionne et la thème comme un [PanelContainer].
+		[codeblock]
+		# Scène : CanvasLayer
+		#   ├ DialogueSystem
+		#   └ DialogueBox (ancrée en bas de l'écran)
+		func _ready() -&gt; void:
+			$DialogueBox.characters_per_second = 60.0
+			$DialogueSystem.start(preload("res://dialogues/intro.tres"))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,59 +21,72 @@
 		<method name="get_choice_count" qualifiers="const">
 			<return type="int" />
 			<description>
+				Nombre de boutons de choix affichés.
 			</description>
 		</method>
 		<method name="get_dialogue_system" qualifiers="const">
 			<return type="DialogueSystem" />
 			<description>
+				Renvoie le [DialogueSystem] affiché, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_displayed_text" qualifiers="const">
 			<return type="String" />
 			<description>
+				Texte actuellement visible, sans BBCode (tronqué pendant l'écriture).
 			</description>
 		</method>
 		<method name="get_speaker_text" qualifiers="const">
 			<return type="String" />
 			<description>
+				Nom de l'orateur affiché.
 			</description>
 		</method>
 		<method name="is_typing" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant l'écriture lettre par lettre.
 			</description>
 		</method>
 		<method name="press_advance">
 			<return type="void" />
 			<description>
+				Même effet qu'un appui sur [member advance_action] : termine l'écriture si elle est en cours, sinon passe à la réplique suivante. Pratique pour un bouton tactile « Suivant ».
 			</description>
 		</method>
 		<method name="set_dialogue_system">
 			<return type="void" />
 			<param index="0" name="system" type="DialogueSystem" />
 			<description>
+				Branche la boîte sur [param system] (débranche le précédent). [code]null[/code] : la débrancher.
 			</description>
 		</method>
 		<method name="skip_typing">
 			<return type="void" />
 			<description>
+				Affiche immédiatement tout le texte et émet [signal typing_finished]. Sans effet si l'écriture est déjà terminée.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="advance_action" type="StringName" setter="set_advance_action" getter="get_advance_action" default="&amp;&quot;ui_accept&quot;">
+			Action d'entrée qui fait avancer le dialogue (écoutée dans [method Node._unhandled_input], l'événement est alors consommé). Pendant un choix, elle est laissée aux boutons. Vide : aucune touche, appeler [method press_advance] soi-même.
 		</member>
 		<member name="characters_per_second" type="float" setter="set_characters_per_second" getter="get_characters_per_second" default="40.0">
+			Vitesse d'écriture du texte. [code]0[/code] : texte affiché d'un coup.
 		</member>
 		<member name="custom_minimum_size" type="Vector2" setter="set_custom_minimum_size" getter="get_custom_minimum_size" overrides="Control" default="Vector2(0, 150)" />
 		<member name="dialogue_system_path" type="NodePath" setter="set_dialogue_system_path" getter="get_dialogue_system_path" default="NodePath(&quot;&quot;)">
+			Chemin du [DialogueSystem] à afficher. Vide : le premier [DialogueSystem] de la scène, cherché au [code]_ready[/code] (il doit donc déjà être dans l'arbre).
 		</member>
 		<member name="hide_when_idle" type="bool" setter="set_hide_when_idle" getter="get_hide_when_idle" default="true">
+			Si [code]true[/code], la boîte est masquée quand aucun dialogue n'est en cours et réapparaît à la première réplique.
 		</member>
 	</members>
 	<signals>
 		<signal name="typing_finished">
 			<description>
+				Le texte est entièrement affiché (écriture terminée ou passée). Non émis quand [member characters_per_second] vaut [code]0[/code].
 			</description>
 		</signal>
 	</signals>

@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TextureProgressWidgetSettings" inherits="RangeWidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages d'une barre de progression texturée : bornes de RangeWidgetSettings + textures.
 	</brief_description>
 	<description>
+		Pour [constant DataEntry.WIDGET_TEXTURE_PROGRESS_BAR]. Sans [member progress_texture], une [ProgressBar] simple est affichée.
+		[codeblock]
+		var barre := TextureProgressWidgetSettings.new()
+		barre.progress_texture = preload("res://ui/jauge_pleine.png")
+		barre.under_texture = preload("res://ui/jauge_vide.png")
+		var entree := registre.find(&amp;"mana")
+		entree.widget_choice = DataEntry.WIDGET_TEXTURE_PROGRESS_BAR
+		entree.settings = barre
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="progress_texture" type="Texture2D" setter="set_progress_texture" getter="get_progress_texture">
+			Texture de la partie remplie.
 		</member>
 		<member name="under_texture" type="Texture2D" setter="set_under_texture" getter="get_under_texture">
+			Texture de fond, sous la progression.
 		</member>
 	</members>
 </class>

@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ManagerBuilder" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		⚙️ Registre de singletons : garantit une seule instance par gestionnaire, créée à la demande et conservée d'une scène à l'autre.
 	</brief_description>
 	<description>
+		Classe purement statique qui tient un registre global « nom → nœud ». Elle répond à deux besoins :
+		- [b]Obtenir un gestionnaire sans le déclarer en autoload[/b] : [method make_getter] renvoie l'instance enregistrée, ou crée le nœud (classe native enregistrée dans [ClassDB]) et l'ajoute sous la racine de l'arbre, où il survit aux changements de scène.
+		- [b]Empêcher les doublons[/b] : un gestionnaire placé dans plusieurs scènes appelle [method init_instance] en entrant dans l'arbre ; seul le premier est conservé, les suivants sont détruits.
+		Le registre stocke des identifiants d'objet, pas des pointeurs : un gestionnaire libéré sans avoir été désenregistré est simplement oublié au prochain accès.
+		[codeblock]
+		# Gestionnaire écrit en GDScript, présent dans plusieurs scènes.
+		extends Node
+
+		func _enter_tree() -> void:
+			if ManagerBuilder.init_instance(&amp;"Inventaire", self) != self:
+				return # doublon : ce nœud va être détruit
+
+		func _exit_tree() -> void:
+			ManagerBuilder.unregister_instance(&amp;"Inventaire", self)
+
+		# Ailleurs : récupérer l'instance enregistrée (null si aucune).
+		var inventaire = ManagerBuilder.make_getter(&amp;"Inventaire")
+		[/codeblock]
+		[b]Note :[/b] [method make_getter] ne peut [i]créer[/i] que des classes natives (moteur ou GDExtension). Une classe GDScript ([code]class_name[/code]) n'est pas dans [ClassDB] : elle doit s'enregistrer elle-même avec [method init_instance], après quoi [method make_getter] la retrouve.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,12 +32,19 @@
 			<param index="0" name="class_name" type="StringName" />
 			<param index="1" name="caller" type="Node" />
 			<description>
+				Déclare [param caller] comme instance unique de [param class_name], à appeler dans [method Node._enter_tree] ou [method Node._ready] du gestionnaire.
+				- Si aucune instance valide n'est enregistrée sous ce nom (ou si c'est déjà [param caller]), [param caller] est enregistré et renvoyé.
+				- Si une autre instance valide existe, [param caller] est détruit ([method Node.queue_free]) et l'instance existante est renvoyée.
+				Comparer le résultat à [code]self[/code] pour savoir si le nœud doit poursuivre son initialisation. [param class_name] est une simple clé : elle n'a pas besoin d'exister dans [ClassDB]. Renvoie [code]null[/code] si [param caller] est nul.
 			</description>
 		</method>
 		<method name="make_getter" qualifiers="static">
 			<return type="Node" />
 			<param index="0" name="class_name" type="StringName" />
 			<description>
+				Renvoie l'instance enregistrée sous [param class_name]. S'il n'y en a pas, instancie la classe native [param class_name] via [ClassDB], la nomme [code]"&lt;class_name&gt; (Singleton)"[/code], l'enregistre et l'ajoute [b]en différé[/b] ([method Object.call_deferred]) sous la racine de l'arbre de scène : le nœud renvoyé n'est donc dans l'arbre (et son [method Node._ready] n'est appelé) qu'à la fin de la frame.
+				Renvoie [code]null[/code], avec un message d'erreur en console, s'il n'y a pas d'arbre de scène actif, si la classe n'existe pas dans [ClassDB] ou n'est pas instanciable (classe GDScript, classe abstraite), ou si elle ne dérive pas de [Node].
+				[b]Attention :[/b] passer le nom d'une classe [RefCounted] ([Resource]...) fait planter le moteur ; n'utiliser que des noms de classes dérivées de [Node].
 			</description>
 		</method>
 		<method name="unregister_instance" qualifiers="static">
@@ -25,6 +52,7 @@
 			<param index="0" name="class_name" type="StringName" />
 			<param index="1" name="caller" type="Node" />
 			<description>
+				Retire [param class_name] du registre, seulement si l'instance enregistrée est bien [param caller] (un doublon qui se désenregistre n'efface pas l'instance canonique). À appeler dans [method Node._exit_tree] : un prochain [method make_getter] créera alors une nouvelle instance au lieu de renvoyer un nœud sorti de l'arbre.
 			</description>
 		</method>
 	</methods>

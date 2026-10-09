@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SaveFileAccess" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💾 Accès bas niveau aux fichiers de sauvegarde : écriture, lecture et suppression, avec chiffrement AES-256-CBC optionnel.
 	</brief_description>
 	<description>
+		Classe utilitaire statique (non instanciable) utilisée par [SaveManager]. Le contenu est d'abord converti en JSON par [SaveSerializer], puis éventuellement chiffré.
+		Chiffrement : AES-256 en mode CBC, clé = [method SaveData.get_encryption_key] tronquée ou complétée à 32 octets, bourrage par des zéros. Le vecteur d'initialisation est [b]dérivé de la clé[/b] (ses 16 premiers octets) et écrit en tête du fichier : ce format reste lisible par l'ancienne version C# du système, mais il expose en clair le début de la clé et donne le même fichier pour les mêmes données. Aucune signature ne détecte une modification. Ce chiffrement décourage la lecture du fichier à l'œil nu, il ne protège pas contre un joueur déterminé.
+		[codeblock]
+		var donnees := SaveData.new()
+		donnees.set_system_id("succes")
+		donnees.set_is_encrypted(false)
+		donnees.set_data({"premier_boss": true})
+		var erreur := SaveFileAccess.write(donnees, donnees.get_file_config())
+		if erreur != OK:
+			push_error("Écriture impossible : %s" % error_string(erreur))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -13,6 +25,7 @@
 			<param index="1" name="config" type="SaveConfig" />
 			<param index="2" name="encrypted" type="bool" default="false" />
 			<description>
+				Supprime le fichier [code]&lt;save_directory&gt;&lt;system_id&gt;&lt;extension&gt;[/code] s'il existe ; [param encrypted] choisit l'extension. Ne fait rien si le fichier est absent.
 			</description>
 		</method>
 		<method name="read" qualifiers="static">
@@ -22,6 +35,7 @@
 			<param index="2" name="encrypted" type="bool" default="false" />
 			<param index="3" name="encryption_key" type="String" default="&quot;&quot;" />
 			<description>
+				Lit le fichier de [param system_id] (extension choisie par [param encrypted]), le déchiffre avec [param encryption_key] si [param encrypted] est vrai, puis le convertit en [SaveData]. Renvoie [code]null[/code] si le fichier n'existe pas, ne s'ouvre pas, est corrompu, ou si la clé est mauvaise (une erreur d'analyse JSON est alors affichée). Le [SaveData] renvoyé ne contient que l'identifiant et les données : ses réglages de chiffrement et sa [SaveConfig] sont ceux par défaut.
 			</description>
 		</method>
 		<method name="write" qualifiers="static">
@@ -29,6 +43,7 @@
 			<param index="0" name="save_data" type="SaveData" />
 			<param index="1" name="config" type="SaveConfig" />
 			<description>
+				Écrit [param save_data] dans le dossier de [param config] (créé si besoin), chiffré si [method SaveData.get_is_encrypted] est vrai. Remplace le fichier existant. Renvoie [constant OK], [constant ERR_INVALID_PARAMETER] si un argument est nul, ou l'erreur d'ouverture du fichier.
 			</description>
 		</method>
 	</methods>

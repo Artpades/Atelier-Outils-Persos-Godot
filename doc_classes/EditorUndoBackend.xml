@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="EditorUndoBackend" inherits="UndoBackend" api_type="editor_extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Annulation dans l'éditeur : les modifications rejoignent l'historique de l'éditeur Godot (EditorUndoRedoManager).
 	</brief_description>
 	<description>
+		Disponible dans l'éditeur uniquement. L'éditeur choisit l'historique selon l'objet (scène éditée ou global) et marque la scène comme modifiée. [code]EditorUndoRedoManager[/code] n'exposant pas d'annulation, [method UndoBackend.undo] et [method UndoBackend.redo] simulent Ctrl+Z / Ctrl+Maj+Z sur la fenêtre principale de l'éditeur (raccourcis par défaut).
+		[codeblock]
+		@tool
+		extends EditorScript
+
+		func _run() -&gt; void:
+			ObjectEditorWindow.open_for(get_scene(), EditorUndoBackend.new())
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

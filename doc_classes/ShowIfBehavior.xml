@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ShowIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement « Montrer si » : les cibles ne sont visibles que si la condition est vraie.
 	</brief_description>
 	<description>
+		Une cible visée par un « Montrer si » inactif est masquée. Pour un groupe en onglets, c'est l'onglet qui est masqué. Attention : sans condition réglée, la condition vaut faux et la cible est masquée.
+		[codeblock]
+		var montrer := ShowIfBehavior.new()
+		montrer.get_condition().property_path = ^"a_un_bouclier"
+		montrer.targets = PackedStringArray(["bouclier_pv"])
+		registre.behaviors.append(montrer)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
-	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
-	</members>
 </class>

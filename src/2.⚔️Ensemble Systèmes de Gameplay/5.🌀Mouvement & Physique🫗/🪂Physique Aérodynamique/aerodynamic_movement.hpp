@@ -24,6 +24,7 @@ struct AeroSettings
     double lift_coefficient = 0.0;
     double flutter_frequency = 0.0;
 
+    /// Battements restants (rechargés seulement par _on_activated) et temps écoulé (oscillation de la portance).
     int flaps_left = 0;
     double time = 0.0;
 };
@@ -70,6 +71,7 @@ class AerodynamicMovement2D : public MovementComponent
     GDCLASS(AerodynamicMovement2D, MovementComponent)
 
   public:
+    /// Plané (gravité réduite, battements) ou vol libre (sans gravité).
     enum Mode
     {
         MODE_GLIDE,
@@ -80,6 +82,7 @@ class AerodynamicMovement2D : public MovementComponent
 
   protected:
     static void _bind_methods();
+    /// Corps rigide : traînée et portance appliquées à chaque image physique, même composant inactif.
     void _notification(int p_what);
     void _physics_step(double p_delta) override;
     String _debug_text() const override;
@@ -96,6 +99,7 @@ class AerodynamicMovement3D : public MovementComponent
     GDCLASS(AerodynamicMovement3D, MovementComponent)
 
   public:
+    /// Plané (gravité réduite, battements) ou vol libre (sans gravité).
     enum Mode
     {
         MODE_GLIDE,
@@ -109,6 +113,7 @@ class AerodynamicMovement3D : public MovementComponent
 
   protected:
     static void _bind_methods();
+    /// Corps rigide : traînée et portance appliquées à chaque image physique, même composant inactif.
     void _notification(int p_what);
     void _physics_step(double p_delta) override;
     String _debug_text() const override;

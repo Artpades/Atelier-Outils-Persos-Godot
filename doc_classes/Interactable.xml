@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Interactable" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤝 Rend son nœud parent interactif (PNJ, coffre, porte, levier...) : le joueur interagit avec le plus proche à portée.
 	</brief_description>
 	<description>
+		À placer comme enfant d'un [Node2D] ou d'un [Node3D] : la portée est mesurée depuis la position globale de ce parent. Le [PlayerController] désigne à chaque image l'[Interactable] activé le plus proche à portée ([signal PlayerController.focus_changed]) et appelle [method interact] quand l'action d'interaction est pressée : le signal [signal interacted] est alors émis.
+		[codeblock]
+		# Coffre : Node2D &gt; Sprite2D + Interactable
+		func _ready() -&gt; void:
+			$Interactable.prompt = "Ouvrir"
+			$Interactable.one_shot = true   # ne s'ouvre qu'une fois
+			$Interactable.interacted.connect(_ouvrir)
+
+		func _ouvrir(par: Node) -&gt; void:
+			$Sprite2D.frame = 1
+			print(par.name, " ouvre le coffre")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,40 +24,49 @@
 			<return type="Interactable" />
 			<param index="0" name="from" type="Node" />
 			<description>
+				Renvoie l'[Interactable] activé le plus proche de [param from] et à sa portée, en excluant celui dont [param from] est le parent ; [code]null[/code] sinon. Seuls les [Interactable] présents dans l'arbre (en jeu) sont considérés.
 			</description>
 		</method>
 		<method name="get_world_position" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie la position globale du parent en [Vector3] ([code](x, y, 0)[/code] en 2D ; zéro si le parent n'est ni [Node2D] ni [Node3D]).
 			</description>
 		</method>
 		<method name="interact">
 			<return type="bool" />
 			<param index="0" name="by" type="Node" />
 			<description>
+				Déclenche l'interaction par [param by] : émet [signal interacted] et renvoie [code]true[/code], ou [code]false[/code] si l'objet est désactivé. La portée n'est pas vérifiée.
 			</description>
 		</method>
 		<method name="is_in_range_of" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="node" type="Node" />
 			<description>
+				Renvoie [code]true[/code] si [param node] est à [member interaction_range] ou moins et n'est pas le parent de cet objet.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], l'objet est ignoré par [method find_nearest] et [method interact] échoue.
 		</member>
 		<member name="interaction_range" type="float" setter="set_interaction_range" getter="get_interaction_range" default="64.0">
+			Portée d'interaction (pixels en 2D, mètres en 3D), mesurée entre le parent et le personnage, hauteur comprise.
 		</member>
 		<member name="one_shot" type="bool" setter="set_one_shot" getter="is_one_shot" default="false">
+			Si [code]true[/code], la première interaction désactive l'objet ([member enabled] passe à [code]false[/code]).
 		</member>
 		<member name="prompt" type="String" setter="set_prompt" getter="get_prompt" default="&quot;Interagir&quot;">
+			Texte d'invite (« Ouvrir », « Parler »...). Le module ne l'affiche pas : lisez-le depuis [signal PlayerController.focus_changed].
 		</member>
 	</members>
 	<signals>
 		<signal name="interacted">
 			<param index="0" name="by" type="Object" />
 			<description>
+				Émis à chaque interaction, avec le nœud qui interagit ([param by] : le personnage du joueur pour le [PlayerController]).
 			</description>
 		</signal>
 	</signals>

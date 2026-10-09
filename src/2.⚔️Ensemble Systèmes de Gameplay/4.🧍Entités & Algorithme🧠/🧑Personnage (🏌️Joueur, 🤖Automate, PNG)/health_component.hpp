@@ -28,14 +28,19 @@ class HealthComponent : public Node
     void set_ability_system_path(const NodePath &p_path) { ability_system_path = p_path; }
     NodePath get_ability_system_path() const { return ability_system_path; }
 
+    /// Retire de la vie (ignoré si mort, invulnérable ou p_amount ≤ 0) ; renvoie les dégâts appliqués. Signaux : health_changed, died éventuel, puis damaged.
     double take_damage(double p_amount, Object *p_source = nullptr);
+    /// Rend de la vie sans dépasser le maximum ; renvoie la vie réellement rendue.
     double heal(double p_amount);
+    /// Tue sans toucher à la vie (émet died une seule fois).
     void kill();
+    /// Ressuscite avec p_health PV (< 0 : maximum).
     void revive(double p_health = -1.0);
     bool is_alive() const { return alive; }
     bool is_invulnerable() const { return invulnerable_remaining > 0.0; }
     double get_health_ratio() const;
     AbilitySystem *get_ability_system() const;
+    /// Vrai si la vie est l'attribut health_attribute d'un AbilitySystem (mode attribut).
     bool uses_attribute() const;
 
   protected:
@@ -46,12 +51,14 @@ class HealthComponent : public Node
     double max_health = 100.0;
     double health = 100.0;
     double invulnerability_time = 0.0;
+    /// Temps d'invulnérabilité restant, décompté à chaque image physique.
     double invulnerable_remaining = 0.0;
     bool alive = true;
     StringName health_attribute = "health";
     StringName max_health_attribute = "max_health";
     NodePath ability_system_path;
 
+    /// Relaie attribute_changed de l'AbilitySystem (health_changed, mort).
     void _on_attribute_changed(const StringName &p_name, double p_old, double p_new);
 };
 } // namespace godot

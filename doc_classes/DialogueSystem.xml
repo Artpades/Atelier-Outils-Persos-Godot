@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueSystem" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Exécuteur de dialogues : parcourt un [DialogueResource], tient les variables, et émet par signaux ce qu'il faut afficher.
 	</brief_description>
 	<description>
+		Déroulement : [method start] → [signal line_shown] → [method advance] → ... → [signal choices_shown] → [method choose] → ... → [signal dialogue_ended]. Les embranchements et actions sont traités aussitôt, sans attendre le joueur. Tous les signaux sont émis [b]pendant[/b] l'appel qui les provoque (synchrones).
+		Les variables (conditions, « {nom} » dans les textes, affectations) sont dans le [Blackboard] [member variables], conservé d'un dialogue à l'autre. L'interlocuteur passé à [method start] est l'« agent » des expressions : ses propriétés et méthodes y sont accessibles ([code]agent.humeur[/code], [code]a_la_cle()[/code]).
+		Ce nœud n'a aucun affichage : une [DialogueBox] (ou votre propre interface) écoute ses signaux et appelle [method advance] / [method choose]. Les PNJ du module Personnage trouvent le premier [DialogueSystem] de la scène avec [method get_main].
+		[codeblock]
+		@onready var dialogues: DialogueSystem = $DialogueSystem
+
+		func _ready() -&gt; void:
+			dialogues.variables.set_value("nom", "Ada")
+			dialogues.dialogue_event.connect(_sur_evenement)
+			dialogues.start(preload("res://dialogues/meunier.tres"), &amp;"", $Meunier)
+
+		func _sur_evenement(evenement: StringName, arguments: Array) -&gt; void:
+			if evenement == &amp;"ouvrir_boutique":
+				$Boutique.show()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,85 +26,101 @@
 		<method name="advance">
 			<return type="void" />
 			<description>
+				Passe à la suite de la réplique affichée. Sans effet si aucune réplique n'est en attente (pendant un choix notamment). Appelé par la [DialogueBox] quand le joueur appuie sur [member DialogueBox.advance_action].
 			</description>
 		</method>
 		<method name="choose">
 			<return type="void" />
 			<param index="0" name="index" type="int" />
 			<description>
+				Choisit l'option n° [param index] de [method get_available_options] (index dans la liste [b]filtrée[/b], pas dans [member DialogueChoice.options]). Émet [signal option_chosen] puis continue vers la suite de l'option. Sans effet si aucun choix n'est en attente ou si l'index est hors limites.
 			</description>
 		</method>
 		<method name="clear_seen_options">
 			<return type="void" />
 			<description>
+				Oublie les options [member DialogueOption.once_only] déjà choisies : elles seront de nouveau proposées.
 			</description>
 		</method>
 		<method name="evaluate_condition">
 			<return type="bool" />
 			<param index="0" name="condition" type="String" />
 			<description>
+				Évalue [param condition] comme une [Expression] : les variables sont accessibles par leur nom, ainsi que [code]agent[/code] (l'interlocuteur) et [code]blackboard[/code] ; les méthodes de l'interlocuteur s'appellent directement. Une condition vide est vraie ; une condition invalide ou en échec est fausse (avertissement dans la console, une fois par erreur).
 			</description>
 		</method>
 		<method name="execute_assignment">
 			<return type="bool" />
 			<param index="0" name="assignment" type="String" />
 			<description>
+				Exécute une affectation [code]nom = expression[/code], [code]nom += expression[/code] ou [code]nom -= expression[/code] sur [member variables]. Une variable absente vaut [code]0[/code] pour [code]+=[/code] / [code]-=[/code]. Renvoie [code]false[/code] (avec un avertissement) si le nom n'est pas un identifiant valide, est un mot réservé ([code]and[/code], [code]true[/code], [code]PI[/code]...) ou si l'expression échoue.
 			</description>
 		</method>
 		<method name="get_available_options" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Options proposées par le choix en cours : tableau de [Dictionary] [code]{ "index", "option_index", "text", "option" }[/code]. [code]index[/code] est à passer à [method choose], [code]option_index[/code] est le rang dans [member DialogueChoice.options], [code]text[/code] le texte avec variables remplacées.
 			</description>
 		</method>
 		<method name="get_current_id" qualifiers="const">
 			<return type="StringName" />
 			<description>
+				Identifiant du nœud actuel. Vide quand aucun dialogue n'est en cours.
 			</description>
 		</method>
 		<method name="get_current_node" qualifiers="const">
 			<return type="DialogueNode" />
 			<description>
+				Nœud actuellement affiché (réplique ou choix), ou [code]null[/code] si aucun dialogue n'est en cours.
 			</description>
 		</method>
 		<method name="get_debug_snapshot" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Instantané du dialogue en cours pour [BehaviorGraphView] (nœud actif, nœuds déjà parcourus, 8 dernières entrées de l'historique). Appelé par la vue en graphe et par le débogueur de l'éditeur.
 			</description>
 		</method>
 		<method name="get_dialogue" qualifiers="const">
 			<return type="DialogueResource" />
 			<description>
+				Dernier dialogue lancé. Reste renseigné après la fin du dialogue.
 			</description>
 		</method>
 		<method name="get_history" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Dernières répliques ([code]« Orateur : texte »[/code]) et options choisies ([code]« → texte »[/code]), de la plus ancienne à la plus récente, tous dialogues confondus.
 			</description>
 		</method>
 		<method name="get_interlocutor" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Nœud passé comme interlocuteur au dernier [method start], ou [code]null[/code] (aucun, ou libéré depuis).
 			</description>
 		</method>
 		<method name="get_main" qualifiers="static">
 			<return type="DialogueSystem" />
 			<description>
+				Renvoie le premier [DialogueSystem] présent dans l'arbre de scène (ordre d'entrée dans l'arbre), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_wait_state" qualifiers="const">
 			<return type="int" enum="DialogueSystem.WaitState" />
 			<description>
+				Ce que le système attend : rien ([constant WAIT_NONE]), [method advance] ([constant WAIT_LINE]) ou [method choose] ([constant WAIT_CHOICE]).
 			</description>
 		</method>
 		<method name="interpolate">
 			<return type="String" />
 			<param index="0" name="text" type="String" />
 			<description>
+				Remplace chaque « {nom} » de [param text] par la valeur de la variable [code]nom[/code] (format de [method String.format]). Les « {...} » sans variable correspondante sont laissés tels quels.
 			</description>
 		</method>
 		<method name="is_running" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] entre [method start] et la fin du dialogue.
 			</description>
 		</method>
 		<method name="start">
@@ -97,20 +129,25 @@
 			<param index="1" name="start_id" type="StringName" default="&amp;&quot;&quot;" />
 			<param index="2" name="interlocutor" type="Node" default="null" />
 			<description>
+				Lance [param dialogue] (ou [member default_dialogue] s'il est nul) à partir du nœud [param start_id] (ou du nœud de départ du dialogue). [param interlocutor] devient l'agent des expressions. Un dialogue déjà en cours est d'abord arrêté (avec [signal dialogue_ended]). Émet [signal dialogue_started] puis traite immédiatement les premiers nœuds. Renvoie [code]false[/code] (avec une erreur) seulement si aucun dialogue n'est disponible ; un dialogue vide démarre et se termine aussitôt.
 			</description>
 		</method>
 		<method name="stop">
 			<return type="void" />
 			<description>
+				Termine le dialogue en cours et émet [signal dialogue_ended]. Sans effet si aucun dialogue n'est en cours.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="default_dialogue" type="DialogueResource" setter="set_default_dialogue" getter="get_default_dialogue">
+			Dialogue lancé par [method start] quand aucun n'est passé en argument. C'est aussi celui qu'ouvre le bouton « 💬 Éditeur de dialogue » de l'inspecteur.
 		</member>
 		<member name="history_size" type="int" setter="set_history_size" getter="get_history_size" default="50">
+			Nombre maximal d'entrées gardées par [method get_history]. [code]0[/code] : aucun historique.
 		</member>
 		<member name="variables" type="Blackboard" setter="set_variables" getter="get_variables">
+			Tableau noir des variables du dialogue. Créé vide à la première lecture s'il n'est pas renseigné. Il n'est jamais remis à zéro par [method start] : les variables (et donc l'avancée des quêtes) persistent entre les dialogues. Le partager avec une [StateMachine] ou un [BehaviorTree] permet au dialogue de lire et d'écrire l'état du PNJ.
 		</member>
 	</members>
 	<signals>
@@ -119,22 +156,26 @@
 			<param index="1" name="options" type="Array" />
 			<param index="2" name="choice" type="DialogueChoice" />
 			<description>
+				Des options sont à proposer. [param options] a le format de [method get_available_options] ; [param prompt] a ses variables remplacées. Le système attend ensuite [method choose].
 			</description>
 		</signal>
 		<signal name="dialogue_ended">
 			<param index="0" name="dialogue" type="DialogueResource" />
 			<description>
+				Le dialogue est terminé (fin atteinte, lien vide, nœud introuvable, boucle détectée, ou [method stop]).
 			</description>
 		</signal>
 		<signal name="dialogue_event">
 			<param index="0" name="event" type="StringName" />
 			<param index="1" name="arguments" type="Array" />
 			<description>
+				Émis par un [DialogueAction] ayant un [member DialogueAction.event], avec ses [member DialogueAction.event_arguments].
 			</description>
 		</signal>
 		<signal name="dialogue_started">
 			<param index="0" name="dialogue" type="DialogueResource" />
 			<description>
+				Émis au début de [method start], avant le traitement du premier nœud.
 			</description>
 		</signal>
 		<signal name="line_shown">
@@ -142,21 +183,26 @@
 			<param index="1" name="text" type="String" />
 			<param index="2" name="line" type="DialogueLine" />
 			<description>
+				Une réplique est à afficher. [param text] a déjà ses variables remplacées ; [param line] donne accès au portrait, à la voix... Le système attend ensuite [method advance].
 			</description>
 		</signal>
 		<signal name="option_chosen">
 			<param index="0" name="index" type="int" />
 			<param index="1" name="text" type="String" />
 			<description>
+				Le joueur a choisi l'option [param index] (index dans la liste filtrée) de texte [param text]. Émis avant de passer à la suite.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="WAIT_NONE" value="0" enum="WaitState">
+			Aucune attente : pas de dialogue en cours (ou traitement en cours).
 		</constant>
 		<constant name="WAIT_LINE" value="1" enum="WaitState">
+			Une réplique est affichée : attente de [method advance].
 		</constant>
 		<constant name="WAIT_CHOICE" value="2" enum="WaitState">
+			Des options sont proposées : attente de [method choose].
 		</constant>
 	</constants>
 </class>

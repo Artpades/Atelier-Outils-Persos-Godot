@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="CursorChanger" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		👆 Remplace le curseur de la souris par un [CursorStyle] (fixe ou animé), en permanence, au survol d'un nœud ou à la demande.
 	</brief_description>
 	<description>
+		Nœud qui applique [member style] au curseur de la souris (et [member pressed_style] tant que [member pressed_button] est enfoncé). Selon [member activation_mode], il s'active :
+		- [constant ACTIVATION_ALWAYS] : tant qu'il est dans l'arbre (curseur global du jeu) ;
+		- [constant ACTIVATION_HOVER] : quand la souris survole [member target] (ou à défaut le parent), qui doit être un [Control] ou un [CollisionObject2D] / [CollisionObject3D] avec la détection de la souris activée ;
+		- [constant ACTIVATION_MANUAL] : uniquement par [method activate] et [method deactivate].
+		Plusieurs [CursorChanger] peuvent être actifs : ils forment une pile, le dernier activé dessine le curseur, et à sa désactivation le précédent reprend la main. On combine ainsi un curseur global et des curseurs de survol sans code.
+		Classe « runtime » : elle n'agit pas dans l'éditeur.
+		[codeblock]
+		# Main
+		# ├─ CursorChanger (ALWAYS, style : épée)            curseur du jeu
+		# └─ Coffre (Area2D, input_pickable)
+		#    └─ CursorChanger (HOVER, style : main ouverte)   au survol du coffre
+		# Rien à scripter : en quittant le coffre, l'épée revient.
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,42 +24,54 @@
 		<method name="activate">
 			<return type="void" />
 			<description>
+				Active ce [CursorChanger] et le place au sommet de la pile : son style est affiché immédiatement. S'il était déjà actif, il repasse au premier plan et son animation repart de la première image.
 			</description>
 		</method>
 		<method name="deactivate">
 			<return type="void" />
 			<description>
+				Retire ce [CursorChanger] de la pile. S'il dessinait le curseur, le [CursorChanger] actif précédent reprend la main, ou à défaut le curseur du système revient. Appelée automatiquement à la sortie de l'arbre.
 			</description>
 		</method>
 		<method name="is_active" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si ce [CursorChanger] est dans la pile des curseurs actifs, même s'il est masqué par un autre activé après lui.
 			</description>
 		</method>
 		<method name="is_current" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si ce [CursorChanger] est celui qui dessine le curseur actuellement (sommet de la pile).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="activation_mode" type="int" setter="set_activation_mode" getter="get_activation_mode" enum="CursorChanger.ActivationMode" default="0">
+			Quand le curseur est appliqué : en permanence, au survol de la cible ou manuellement. Changer de mode en cours de jeu désactive le [CursorChanger] puis applique le nouveau mode.
 		</member>
 		<member name="pressed_button" type="int" setter="set_pressed_button" getter="get_pressed_button" enum="MouseButton" default="1">
+			Bouton de la souris (gauche, droit ou milieu) qui affiche [member pressed_style] tant qu'il est enfoncé.
 		</member>
 		<member name="pressed_style" type="CursorStyle" setter="set_pressed_style" getter="get_pressed_style">
+			Style affiché tant que [member pressed_button] est enfoncé (main qui se ferme, viseur qui se resserre). Vide : [member style] reste affiché.
 		</member>
 		<member name="style" type="CursorStyle" setter="set_style" getter="get_style">
+			Style du curseur. Vide (ou sans image) : le curseur du système est affiché tant que ce [CursorChanger] est au sommet de la pile.
 		</member>
 		<member name="target" type="Node" setter="set_target" getter="get_target">
+			Nœud dont le survol active le curseur en mode [constant ACTIVATION_HOVER]. Vide : le parent du [CursorChanger]. Doit émettre [code]mouse_entered[/code] / [code]mouse_exited[/code], sinon un avertissement est affiché.
 		</member>
 	</members>
 	<constants>
 		<constant name="ACTIVATION_ALWAYS" value="0" enum="ActivationMode">
+			Actif dès l'entrée dans l'arbre, jusqu'à la sortie.
 		</constant>
 		<constant name="ACTIVATION_HOVER" value="1" enum="ActivationMode">
+			Actif pendant le survol de [member target] (ou du parent) par la souris.
 		</constant>
 		<constant name="ACTIVATION_MANUAL" value="2" enum="ActivationMode">
+			Actif seulement entre [method activate] et [method deactivate].
 		</constant>
 	</constants>
 </class>

@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PoolSpawner" inherits="Spawner" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🏭 [Spawner] à réserve d'objets : les instances sont créées à l'avance puis recyclées au lieu d'être détruites (projectiles, particules, ennemis nombreux).
 	</brief_description>
 	<description>
+		Au [code]_ready[/code], chaque scène des entrées [SpawnPoolEntry] est pré-instanciée [member SpawnPoolEntry.initial_pool_size_per_scene] fois, ajoutée (à la fin de l'image) au parent de spawn, puis désactivée. [method spawn] réutilise une instance inactive ; si la réserve est vide, une nouvelle instance est créée (avec un avertissement).
+		- [b]Instance inactive[/b] : [member Node.process_mode] à [constant Node.PROCESS_MODE_DISABLED] et masquée ([member Node3D.visible] / [member CanvasItem.visible]). Elle reste dans l'arbre, à sa dernière position.
+		- [b]Réactivation[/b] : [member Node.process_mode] repasse à [constant Node.PROCESS_MODE_INHERIT], l'instance est affichée, placée, puis sa méthode [code]on_spawn_from_pool()[/code] est appelée si elle existe (remettre les points de vie, la vitesse, relancer un timer...).
+		- [b]Recyclage[/b] : appeler [method despawn] au lieu de [method Node.queue_free].
+		[codeblock]
+		# balle.gd (scène instanciée par le PoolSpawner)
+		var pool: PoolSpawner
+		var vitesse := Vector2.ZERO
+
+		func on_spawn_from_pool() -&gt; void:
+			vitesse = Vector2.RIGHT.rotated(global_rotation) * 900.0
+			$DureeDeVie.start(2.0)
+
+		func _physics_process(delta: float) -&gt; void:
+			position += vitesse * delta
+
+		func _on_duree_de_vie_timeout() -&gt; void:
+			pool.despawn(self) # au lieu de queue_free()
+		[/codeblock]
+		Une [SpawnEntry] simple (pas [SpawnPoolEntry]) ne pré-alloue rien : ses instances sont créées à la demande, puis recyclées normalement.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,12 +32,14 @@
 			<return type="void" />
 			<param index="0" name="instance" type="Node" />
 			<description>
+				Remet [param instance] dans la réserve de sa scène : elle est désactivée et masquée, puis [signal despawned] est émis. Sa position, son parent et son état interne ne sont pas modifiés. Si [param instance] n'a pas été créée par ce PoolSpawner, elle est détruite ([method Node.queue_free]) avec un avertissement ; si elle est déjà dans la réserve, un avertissement est écrit et rien ne change.
 			</description>
 		</method>
 		<method name="get_available_count" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="scene" type="PackedScene" />
 			<description>
+				Nombre d'instances inactives de [param scene] prêtes à être réutilisées (0 pour une scène inconnue). Les instances libérées entre-temps par [method Node.queue_free] sont encore comptées jusqu'à leur prochaine demande.
 			</description>
 		</method>
 	</methods>
@@ -24,6 +47,7 @@
 		<signal name="despawned">
 			<param index="0" name="instance" type="Object" />
 			<description>
+				Émis quand [param instance] vient d'être remise dans la réserve par [method despawn].
 			</description>
 		</signal>
 	</signals>

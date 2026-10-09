@@ -9,11 +9,11 @@
 
 namespace godot
 {
-// Éditeur d'un GizmoRegistry (éditeur, port de GizmoListEditor C#) : une ligne par entrée (activée,
-// fonction du catalogue, visibilité, redessin, ordre, suppression) puis, par paramètre (sauf un RID, fourni par
-// l'hôte), sa source : constante (éditée par un ProceduralEditor avec le widget du type du paramètre),
-// propriété ou fonction d'un objet (liste des membres compatibles de l'objet de contexte, ou saisie libre).
-// Toute modification est une action d'annulation de l'éditeur.
+/// Éditeur d'un GizmoRegistry (éditeur, port de GizmoListEditor C#) : une ligne par entrée (activée,
+/// fonction du catalogue, visibilité, redessin, ordre, suppression) puis, par paramètre (sauf un RID, fourni par
+/// l'hôte), sa source : constante (éditée par un ProceduralEditor avec le widget du type du paramètre),
+/// propriété ou fonction d'un objet (liste des membres compatibles de l'objet de contexte, ou saisie libre).
+/// Toute modification est une action d'annulation de l'éditeur.
 class GizmoListEditor : public VBoxContainer
 {
     GDCLASS(GizmoListEditor, VBoxContainer)
@@ -24,8 +24,8 @@ class GizmoListEditor : public VBoxContainer
     VBoxContainer *list = nullptr; // enfant possédé
     bool refresh_queued = false;
     Array watched; // ressources dont on écoute "changed" (registre + entrées)
-    // Objet dont on liste les membres compatibles (sources Propriété / Fonction) : objet réel s'il est donné,
-    // sinon instance d'exemple de context_type, créée le temps d'une reconstruction.
+    /// Objet dont on liste les membres compatibles (sources Propriété / Fonction) : objet réel s'il est donné,
+    /// sinon instance d'exemple de context_type, créée le temps d'une reconstruction.
     ObjectID context_id;
     String context_type;
 

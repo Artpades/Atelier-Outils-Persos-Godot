@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TypeLayout" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Interface d'un type d'objet : données affichées, groupes, gizmos et style.
 	</brief_description>
 	<description>
+		Entrée d'une [LayoutDatabase]. [member type_name] est une classe native ([code]CharacterBody3D[/code]) ou un [code]class_name[/code] de script. Assignée à la métadonnée [code]object_editor_layout[/code] d'un objet, elle remplace l'interface de son type pour cet objet seulement.
+		[codeblock]
+		var interface := TypeLayout.new()
+		interface.type_name = "Coffre"
+		interface.ensure_registries()
+		$CoffreSpecial.set_meta("object_editor_layout", interface) # surcharge d'instance
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,21 +18,31 @@
 		<method name="ensure_registries">
 			<return type="void" />
 			<description>
+				Crée les registres absents : ensuite [member data_registry], [member group_registry] et [member gizmo_registry] existent tous.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="data_registry" type="DataRegistry" setter="set_data_registry" getter="get_data_registry">
+			Données affichées et leurs widgets, comportements et liens de signaux.
 		</member>
 		<member name="gizmo_registry" type="GizmoRegistry" setter="set_gizmo_registry" getter="get_gizmo_registry">
+			Dessins automatiques (gizmos) affichés pour un objet de ce type.
 		</member>
 		<member name="group_registry" type="GroupRegistry" setter="set_group_registry" getter="get_group_registry">
+			Regroupement des données.
 		</member>
 		<member name="include_subclasses" type="bool" setter="set_include_subclasses" getter="get_include_subclasses" default="true">
+			Si [code]true[/code], l'interface s'applique aussi aux classes dérivées de [member type_name] (quand aucune interface plus spécifique n'existe).
 		</member>
 		<member name="priority" type="int" setter="set_priority" getter="get_priority" default="0">
+			Départage deux interfaces de même spécificité : la plus grande l'emporte.
+		</member>
+		<member name="style" type="InterfaceStyle" setter="set_style" getter="get_style">
+			Style global de l'interface de ce type (utilisé si le [ProceduralEditor] n'a pas son propre [member ProceduralEditor.style]).
 		</member>
 		<member name="type_name" type="String" setter="set_type_name" getter="get_type_name" default="&quot;&quot;">
+			Classe native ou [code]class_name[/code] de script concerné.
 		</member>
 	</members>
 </class>

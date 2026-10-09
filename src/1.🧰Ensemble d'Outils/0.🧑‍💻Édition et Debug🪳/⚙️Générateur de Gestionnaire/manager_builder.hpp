@@ -10,7 +10,7 @@
 namespace godot
 {
 
-// ManagerBuilder
+/// ⚙️ ManagerBuilder : registre statique de singletons (une instance par nom), exposé à GDScript.
 //
 // Portage C++/GDExtension du ManagerBuilder GDScript/C#, adapté sur deux points
 // suite aux décisions prises avec l'utilisateur (voir échange) :
@@ -49,7 +49,9 @@ class ManagerBuilder : public RefCounted
     ManagerBuilder();
     ~ManagerBuilder();
 
-    // Retourne le singleton existant pour p_class_name, ou en crée un nouveau via
+    // ATTENTION : une classe RefCounted (Resource...) fait planter le moteur : l'objet est libéré par le
+    // Variant temporaire renvoyé par instantiate() avant le memdelete (vérifié en headless).
+    /// Retourne le singleton existant pour p_class_name, ou en crée un nouveau via
     // ClassDB::instantiate(p_class_name) si aucune instance valide n'est enregistrée.
     // p_class_name doit être une classe native dérivant de Node, enregistrée dans ClassDB
     // (moteur, ce module ou un autre module GDExtension). Les classes GDScript `class_name`
@@ -60,7 +62,7 @@ class ManagerBuilder : public RefCounted
     // ou classe existante mais ne dérivant pas de Node.
     static Node *make_getter(const StringName &p_class_name);
 
-    // À appeler dans _enter_tree() ou _ready() du manager concerné, avec son propre nom
+    /// À appeler dans _enter_tree() ou _ready() du manager concerné, avec son propre nom
     // de classe et lui-même comme p_caller.
     // - Si aucune instance n'est encore enregistrée pour p_class_name : p_caller devient
     //   l'instance canonique (enregistrée dans le registre) et est retourné.
@@ -68,7 +70,7 @@ class ManagerBuilder : public RefCounted
     //   détruit (queue_free) et l'instance existante est retournée.
     static Node *init_instance(const StringName &p_class_name, Node *p_caller);
 
-    // À appeler dans _exit_tree() du manager (ou avant sa destruction explicite) si son
+    /// À appeler dans _exit_tree() du manager (ou avant sa destruction explicite) si son
     // cycle de vie ne se termine pas par la destruction naturelle du nœud, afin d'éviter
     // qu'une future résolution retombe sur une entrée périmée avant sa purge automatique.
     // Ne retire l'entrée que si elle correspond bien à p_caller (pas d'écrasement d'un

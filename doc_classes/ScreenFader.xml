@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ScreenFader" inherits="CanvasLayer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌈 Calque qui couvre et découvre l'écran entier avec une couleur ou une texture (transitions de scène, mort du joueur, fondu au noir...).
 	</brief_description>
 	<description>
+		Le recouvrement est piloté par [member progress], de [code]0[/code] (écran visible) à [code]1[/code] (écran couvert). [method fade_out] couvre l'écran, [method fade_in] le découvre, [method fade_to] vise un recouvrement partiel.
+		Le voile est une couleur unie ([member color]) ou une [member texture] teintée par [member color]. Avec un [member mask] (texture en niveaux de gris), l'écran se couvre progressivement des zones sombres du masque vers les zones claires : volet, iris, dissolution...
+		Par défaut, le fondu ignore la pause et [member Engine.time_scale] ([member always_process]) et l'écran couvert bloque les clics ([member block_input]).
+		[codeblock]
+		# Transition vers une autre scène, avec fondu au noir.
+		# « Fondu » est un autoload dont la racine est un ScreenFader : il survit au changement de scène.
+		func changer_de_scene(chemin: String) -> void:
+			Fondu.fade_out(0.4)
+			await Fondu.faded_out
+			get_tree().change_scene_to_file(chemin)
+			Fondu.fade_in(0.4)
+		[/codeblock]
+		[b]Note :[/b] donnez au [ScreenFader] une [member CanvasLayer.layer] élevée pour qu'il passe au-dessus de l'interface.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,12 +25,14 @@
 			<return type="void" />
 			<param index="0" name="duration" type="float" default="-1.0" />
 			<description>
+				Découvre l'écran : anime [member progress] jusqu'à [code]0[/code] en [param duration] secondes ([member duration] si [param duration] est négatif). Émet [signal fade_finished] puis [signal faded_in] à la fin.
 			</description>
 		</method>
 		<method name="fade_out">
 			<return type="void" />
 			<param index="0" name="duration" type="float" default="-1.0" />
 			<description>
+				Couvre l'écran : anime [member progress] jusqu'à [code]1[/code] en [param duration] secondes ([member duration] si [param duration] est négatif). Émet [signal fade_finished] puis [signal faded_out] à la fin.
 			</description>
 		</method>
 		<method name="fade_to">
@@ -24,53 +40,69 @@
 			<param index="0" name="progress" type="float" />
 			<param index="1" name="duration" type="float" default="-1.0" />
 			<description>
+				Anime [member progress] jusqu'à [param progress] (borné entre 0 et 1) en [param duration] secondes ([member duration] si [param duration] est négatif). Un fondu en cours est interrompu et repart de la valeur actuelle. Si la durée est nulle ou que le nœud n'est pas dans l'arbre, la valeur est appliquée immédiatement et les signaux de fin sont émis tout de suite.
 			</description>
 		</method>
 		<method name="is_covered" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'écran est entièrement couvert ([member progress] à [code]1[/code]).
 			</description>
 		</method>
 		<method name="is_fading" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si un fondu est en cours.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="always_process" type="bool" setter="set_always_process" getter="get_always_process" default="true">
+			Si [code]true[/code], les fondus continuent pendant la pause du jeu et ignorent [member Engine.time_scale] (utile pour un fondu lancé pendant un ralenti ou un menu de pause). Pris en compte au lancement du fondu suivant.
 		</member>
 		<member name="block_input" type="bool" setter="set_block_input" getter="get_block_input" default="true">
+			Si [code]true[/code], le voile intercepte les clics et le survol de la souris dès que l'écran est couvert, même partiellement. Empêche d'interagir avec l'interface pendant une transition.
 		</member>
 		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0, 0, 0, 1)">
+			Couleur du voile, ou teinte appliquée à [member texture] si elle est définie. Son canal alpha limite l'opacité maximale du voile.
 		</member>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+			Durée par défaut des fondus, en secondes (utilisée quand [method fade_in], [method fade_out] ou [method fade_to] reçoivent une durée négative).
 		</member>
 		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="2">
+			Accélération de la courbe de [member transition] (début, fin, ou les deux).
 		</member>
 		<member name="mask" type="Texture2D" setter="set_mask" getter="get_mask">
+			Texture en niveaux de gris qui donne sa forme à la transition : les pixels sombres sont couverts en premier, les clairs en dernier. Sans masque, tout l'écran se couvre uniformément.
 		</member>
 		<member name="mask_smoothness" type="float" setter="set_mask_smoothness" getter="get_mask_smoothness" default="0.1">
+			Douceur du bord de la transition avec [member mask] : petite valeur = bord net, grande valeur = bord flou. Sans effet sans masque.
 		</member>
 		<member name="progress" type="float" setter="set_progress" getter="get_progress" default="0.0">
+			Recouvrement actuel de l'écran, de [code]0[/code] (visible) à [code]1[/code] (couvert). Peut être modifié directement ou animé (AnimationPlayer) ; le voile est masqué, donc sans coût, à [code]0[/code].
 		</member>
 		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+			Image affichée à la place de la couleur unie (logo, motif...), étirée sur tout l'écran et teintée par [member color].
 		</member>
 		<member name="transition" type="int" setter="set_transition" getter="get_transition" enum="Tween.TransitionType" default="1">
+			Courbe d'interpolation des fondus (linéaire, sinus, rebond...).
 		</member>
 	</members>
 	<signals>
 		<signal name="fade_finished">
 			<param index="0" name="progress" type="float" />
 			<description>
+				Émis à la fin de chaque fondu, avec le recouvrement atteint. Émis avant [signal faded_out] ou [signal faded_in].
 			</description>
 		</signal>
 		<signal name="faded_in">
 			<description>
+				Émis à la fin d'un fondu qui a entièrement découvert l'écran ([member progress] à [code]0[/code]).
 			</description>
 		</signal>
 		<signal name="faded_out">
 			<description>
+				Émis à la fin d'un fondu qui a entièrement couvert l'écran ([member progress] à [code]1[/code]).
 			</description>
 		</signal>
 	</signals>

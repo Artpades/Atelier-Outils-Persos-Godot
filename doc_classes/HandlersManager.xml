@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="HandlersManager" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+<class name="HandlersManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		✋ Poignées (handles) 2D et 3D que l'on survole et déplace à la souris, signalées par des signaux. [b]Classe actuellement non enregistrée : inaccessible depuis Godot.[/b]
 	</brief_description>
 	<description>
+		Gestionnaire unique (obtenu par [method ManagerBuilder.make_getter]) qui teste chaque frame, pour chaque poignée enregistrée sous un identifiant, si la souris la survole et si elle est glissée avec le bouton gauche. Une poignée 2D est un [Rect2] dans les coordonnées de son [Viewport] ; une poignée 3D est un [AABB] en coordonnées globales, testé par un rayon lancé depuis la caméra. Chaque poignée est dessinée par un gizmo ([Gizmos2D] / [Gizmos3D]) et change de couleur au survol.
+		Le déplacement n'est pas appliqué à un objet : le gestionnaire émet [code]handle_2d_moved[/code] / [code]handle_3d_moved[/code] et laisse l'écouteur modifier ce qu'il veut.
+		[b]État actuel :[/b] la classe est compilée dans la bibliothèque [code]tool_editor[/code] mais son enregistrement ([code]GDREGISTER_CLASS(HandlersManager)[/code]) est absent de [code]tool_editor_register.cpp[/code] : [code]ClassDB.class_exists("HandlersManager")[/code] renvoie [code]false[/code] et ses méthodes et signaux ne sont pas utilisables. Ce fichier ne liste donc aucune méthode ; l'API prévue est décrite sur la page du module.
 	</description>
 	<tutorials>
 	</tutorials>

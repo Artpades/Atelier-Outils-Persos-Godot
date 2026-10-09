@@ -21,6 +21,7 @@ class Knockback2D : public Node
     GDCLASS(Knockback2D, Node)
 
   public:
+    /// Corps rigide : impulsion instantanée ou force continue pendant duration.
     enum RigidMode
     {
         RIGID_IMPULSE,
@@ -70,6 +71,7 @@ class Knockback2D : public Node
     bool add_torque = true;
     double torque_factor = 0.02;
 
+    /// Temps de verrouillage restant (> 0 : is_knocked) et vitesse visée en mode continu.
     double lock_remaining = 0.0;
     Vector2 continuous_velocity;
 
@@ -83,6 +85,7 @@ class Knockback3D : public Node
     GDCLASS(Knockback3D, Node)
 
   public:
+    /// Corps rigide : impulsion instantanée ou force continue pendant duration.
     enum RigidMode
     {
         RIGID_IMPULSE,
@@ -130,6 +133,7 @@ class Knockback3D : public Node
     bool add_torque = true;
     double torque_factor = 0.5;
 
+    /// Temps de verrouillage restant (> 0 : is_knocked) et vitesse visée en mode continu.
     double lock_remaining = 0.0;
     Vector3 continuous_velocity;
 

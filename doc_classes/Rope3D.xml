@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Rope3D" inherits="Node3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🪢 Corde 3D simulée (Verlet) entre deux ancrages, avec collisions facultatives et corps accrochables.
 	</brief_description>
 	<description>
+		Même simulation qu'en 2D, en 3D. La corde est rendue par une ligne d'un pixel ([ImmediateMesh] dans un [MeshInstance3D] interne, couleur [member color]) ; pour une corde épaisse, masquer cette ligne et dessiner son propre visuel à partir de [method get_points].
+		[codeblock]
+		# Pont de singe : une corde tendue entre deux poteaux.
+		$Corde.start_anchor_path = NodePath("../PoteauA")
+		$Corde.end_anchor_path = NodePath("../PoteauB")
+		$Corde.rope_length = 6.0
+		$Corde.reset_points()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,6 +21,7 @@
 			<param index="0" name="position" type="float" />
 			<param index="1" name="velocity" type="Vector3" />
 			<description>
+				Ajoute la vitesse [param velocity] aux deux points encadrant [param position] (index fractionnaire), au prorata de la distance : pour balancer ou secouer la corde.
 			</description>
 		</method>
 		<method name="attach_body">
@@ -19,63 +29,74 @@
 			<param index="0" name="body" type="Node" />
 			<param index="1" name="position" type="float" />
 			<description>
+				Accroche [param body] à la corde à l'index fractionnaire [param position] (borné à la corde). Le corps est ensuite [b]téléporté[/b] à cette position à chaque image physique (et sa vitesse, pour un personnage, est celle de la corde). Sans effet s'il est déjà accroché. Émet [signal body_attached].
 			</description>
 		</method>
 		<method name="detach_body">
 			<return type="void" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Décroche [param body] et émet [signal body_detached] (rien si le corps n'est pas accroché).
 			</description>
 		</method>
 		<method name="find_rope_of" qualifiers="static">
 			<return type="Rope3D" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la [Rope3D] à laquelle [param body] est accroché, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_attached_position" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie l'index fractionnaire où [param body] est accroché, ou [code]-1[/code] s'il ne l'est pas.
 			</description>
 		</method>
 		<method name="get_closest_position" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="point" type="Vector3" />
 			<description>
+				Renvoie l'index fractionnaire du point de la corde le plus proche de [param point] (global).
 			</description>
 		</method>
 		<method name="get_points" qualifiers="const">
 			<return type="PackedVector3Array" />
 			<description>
+				Renvoie les positions globales des points de la corde.
 			</description>
 		</method>
 		<method name="get_position_at" qualifiers="const">
 			<return type="Vector3" />
 			<param index="0" name="position" type="float" />
 			<description>
+				Renvoie la position globale le long de la corde à l'index fractionnaire [param position] (0 = premier point, [code]point_count - 1[/code] = dernier ; 2,5 = à mi-chemin entre les points 2 et 3).
 			</description>
 		</method>
 		<method name="get_segment_length" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la longueur d'un segment : [member rope_length] / ([member point_count] - 1).
 			</description>
 		</method>
 		<method name="get_velocity_at" qualifiers="const">
 			<return type="Vector3" />
 			<param index="0" name="position" type="float" />
 			<description>
+				Renvoie la vitesse de la corde à l'index fractionnaire [param position], déduite du déplacement depuis l'image précédente.
 			</description>
 		</method>
 		<method name="has_body" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie [code]true[/code] si [param body] est accroché à cette corde.
 			</description>
 		</method>
 		<method name="reset_points">
 			<return type="void" />
 			<description>
+				Remet tous les points en ligne droite (vers l'ancrage d'arrivée, sinon dans le sens de [member gravity]), au repos.
 			</description>
 		</method>
 		<method name="set_attached_position">
@@ -83,42 +104,59 @@
 			<param index="0" name="body" type="Node" />
 			<param index="1" name="position" type="float" />
 			<description>
+				Déplace l'accroche de [param body] à l'index fractionnaire [param position] (borné) : pour grimper ou descendre.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="attached_weight" type="float" setter="set_attached_weight" getter="get_attached_weight" default="1.5">
+			Poids d'un corps accroché : la gravité des points voisins de l'accroche est multipliée par (1 + cette valeur). La corde se tend et se courbe sous le corps.
 		</member>
 		<member name="collide" type="bool" setter="set_collide" getter="get_collide" default="false">
+			Si [code]true[/code], chaque point de la corde (sauf le premier) est arrêté par les corps physiques de [member collision_mask] (un rayon par point et par image, entre sa position précédente et la nouvelle). Les corps accrochés sont exclus.
 		</member>
 		<member name="collision_mask" type="int" setter="set_collision_mask" getter="get_collision_mask" default="1">
+			Couches physiques avec lesquelles la corde entre en collision si [member collide] est actif.
 		</member>
 		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0.8, 0.65, 0.4, 1)">
+			Couleur de la ligne de la corde (matériau non éclairé).
 		</member>
 		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.01">
+			Amortissement par image (0 = aucune perte, la corde oscille longtemps ; 1 = aucun élan conservé).
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu les points de la corde, l'origine et un texte (longueur, nombre de points).
 		</member>
 		<member name="end_anchor_path" type="NodePath" setter="set_end_anchor_path" getter="get_end_anchor_path" default="NodePath(&quot;&quot;)">
+			Nœud auquel est fixé le dernier point (pont, câble tendu entre deux objets). Vide : l'extrémité pend librement.
 		</member>
 		<member name="gravity" type="Vector3" setter="set_gravity" getter="get_gravity" default="Vector3(0, -9.8, 0)">
+			Gravité propre à la corde, en m/s² (indépendante de la gravité du projet).
 		</member>
 		<member name="iterations" type="int" setter="set_iterations" getter="get_iterations" default="12">
+			Nombre de passes de correction des longueurs par image (1 à 100). Plus il y en a, moins la corde s'étire, au prix de calculs supplémentaires.
 		</member>
 		<member name="point_count" type="int" setter="set_point_count" getter="get_point_count" default="16">
+			Nombre de points simulés (2 à 128). Changer cette valeur en jeu redresse la corde (positions réinitialisées).
 		</member>
 		<member name="rope_length" type="float" setter="set_rope_length" getter="get_rope_length" default="4.0">
+			Longueur au repos de la corde, en m, répartie également entre les segments.
 		</member>
 		<member name="start_anchor_path" type="NodePath" setter="set_start_anchor_path" getter="get_start_anchor_path" default="NodePath(&quot;&quot;)">
+			Nœud auquel est fixé le premier point, suivi à chaque image. Vide : la corde part de ce nœud.
 		</member>
 	</members>
 	<signals>
 		<signal name="body_attached">
 			<param index="0" name="body" type="Object" />
 			<description>
+				Émis quand un corps est accroché.
 			</description>
 		</signal>
 		<signal name="body_detached">
 			<param index="0" name="body" type="Object" />
 			<description>
+				Émis quand un corps est décroché (par [method detach_body], ou quand l'un d'eux quitte l'arbre : dans ce cas il est retiré sans signal).
 			</description>
 		</signal>
 	</signals>

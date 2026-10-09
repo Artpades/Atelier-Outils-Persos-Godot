@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="AutomateController" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤖 Contrôleur d'IA du personnage parent : aller à un point, suivre un nœud, patrouiller ou errer, avec ou sans navigation.
 	</brief_description>
 	<description>
+		À placer comme enfant direct d'un [Character2D] ou d'un [Character3D]. À chaque image physique, il calcule l'entrée de déplacement du personnage selon son mode : [method move_to], [method follow], [method patrol], [method wander] ou [method stop].
+		- [b]Navigation[/b] : si [member use_navigation] et que le personnage a un [NavigationAgent2D] / [NavigationAgent3D] enfant, le chemin de l'agent est suivi ; sinon, ligne droite.
+		- [b]Freinage[/b] : si le composant de déplacement actif expose [code]max_speed[/code], [code]acceleration[/code] et [code]deceleration[/code] ([code]GroundMovement2D[/code]...), l'entrée est réduite à l'approche du but pour ne pas le dépasser.
+		- [b]Course[/b] : le personnage court tant que le but est plus loin que [member run_distance].
+		Conçu pour être piloté par une [StateMachine], un [BehaviorTree] ([BTMoveTo]) ou un script.
+		[codeblock]
+		# Un garde qui patrouille, puis poursuit le joueur quand il le voit.
+		@onready var ia: AutomateController = $Garde/AutomateController
+
+		func _ready() -&gt; void:
+			ia.patrol([Vector2(0, 0), Vector2(300, 0), Vector2(300, 200)])
+
+		func _on_vision_body_entered(corps: Node2D) -&gt; void:
+			if corps == CharacterRegister.get_first_player():
+				ia.run_distance = 150.0
+				ia.follow(corps, 40.0)   # reste à 40 px du joueur
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,121 +30,152 @@
 			<param index="0" name="target" type="Node" />
 			<param index="1" name="distance" type="float" default="-1.0" />
 			<description>
+				Suit [param target] (sa position est relue à chaque image) jusqu'à [member follow_distance] ; [param distance] ≥ 0 remplace [member follow_distance]. Si la cible est libérée ou quitte l'arbre, l'automate s'arrête et émet [signal target_lost]. Avec [code]null[/code], équivaut à [method stop].
 			</description>
 		</method>
 		<method name="get_character" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie le nœud parent (le personnage piloté).
 			</description>
 		</method>
 		<method name="get_destination" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie le but courant (position de la cible en suivi), en [Vector3] ([code](x, y, 0)[/code] en 2D).
 			</description>
 		</method>
 		<method name="get_effective_arrive_distance" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie [member arrive_distance], ou, si elle est négative, 0,3 pour un personnage 3D et 8 sinon.
 			</description>
 		</method>
 		<method name="get_follow_target" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie le nœud suivi, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_home" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie le centre de l'errance : la position du personnage à la première image physique (ou au [code]_ready[/code] avec [member start_mode] = [constant MODE_WANDER]), sauf si [method set_home] l'a changé.
 			</description>
 		</method>
 		<method name="get_mode" qualifiers="const">
 			<return type="int" enum="AutomateController.Mode" />
 			<description>
+				Renvoie le mode en cours.
 			</description>
 		</method>
 		<method name="is_moving" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'entrée de déplacement du personnage n'est pas nulle (y compris une entrée donnée par un autre script).
 			</description>
 		</method>
 		<method name="move_to">
 			<return type="void" />
 			<param index="0" name="point" type="Variant" />
 			<description>
+				Va vers [param point] : un [Vector2], un [Vector2i], un [Vector3] ou un nœud (sa position [b]au moment de l'appel[/b] ; pour un nœud qui bouge, utiliser [method follow]). À l'arrivée, émet [signal destination_reached] et passe en [constant MODE_IDLE].
 			</description>
 		</method>
 		<method name="patrol">
 			<return type="void" />
 			<param index="0" name="points" type="Array" default="[]" />
 			<description>
+				Patrouille sur [param points] (qui remplace [member patrol_points]) ou, sans argument, sur [member patrol_points], en partant du premier point. Émet [signal patrol_point_reached] à chaque point puis attend [member wait_time]. Sans aucun point, équivaut à [method stop].
 			</description>
 		</method>
 		<method name="set_home">
 			<return type="void" />
 			<param index="0" name="home" type="Vector3" />
 			<description>
+				Change le centre de l'errance.
 			</description>
 		</method>
 		<method name="stop">
 			<return type="void" />
 			<description>
+				Passe en [constant MODE_IDLE], oublie la cible suivie et arrête le personnage (entrée nulle, course coupée).
 			</description>
 		</method>
 		<method name="wander">
 			<return type="void" />
 			<param index="0" name="radius" type="float" default="-1.0" />
 			<description>
+				Erre autour de [method get_home] : va vers un point tiré au hasard dans le rayon, attend [member wait_time], recommence. [param radius] ≥ 0 remplace [member wander_radius].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="arrive_distance" type="float" setter="set_arrive_distance" getter="get_arrive_distance" default="-1.0">
+			Distance à laquelle un but est atteint. Négative (par défaut) : 8 pixels pour un personnage 2D, 0,3 mètre en 3D (voir [method get_effective_arrive_distance]).
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], l'automate garde son mode mais [b]remet l'entrée de déplacement du personnage à zéro à chaque image[/b].
 		</member>
 		<member name="follow_distance" type="float" setter="set_follow_distance" getter="get_follow_distance" default="0.0">
+			Distance à garder avec la cible en mode suivi (si elle dépasse la distance d'arrivée). Remplacée par le second argument de [method follow].
 		</member>
 		<member name="patrol_loop" type="bool" setter="set_patrol_loop" getter="get_patrol_loop" default="true">
+			Si [code]true[/code], la patrouille reprend au premier point après le dernier ; sinon elle fait demi-tour (aller-retour).
 		</member>
 		<member name="patrol_points" type="Array" setter="set_patrol_points" getter="get_patrol_points" default="[]">
+			Points de patrouille : [Vector2], [Vector3] ou nœuds ([Node2D] / [Node3D], dont la position est lue quand le point devient la destination). Les [NodePath] ne sont pas résolus : ils valent l'origine.
 		</member>
 		<member name="process_physics_priority" type="int" setter="set_physics_process_priority" getter="get_physics_process_priority" overrides="Node" default="-10" />
 		<member name="run_distance" type="float" setter="set_run_distance" getter="get_run_distance" default="0.0">
+			Le personnage court tant que le but est plus loin que cette distance. [code]0[/code] : jamais.
 		</member>
 		<member name="start_mode" type="int" setter="set_start_mode" getter="get_start_mode" enum="AutomateController.Mode" default="0">
+			Mode lancé au [code]_ready[/code]. Seuls [constant MODE_PATROL] (sur [member patrol_points]) et [constant MODE_WANDER] (autour de la position de départ) ont un effet : [constant MODE_MOVE_TO] et [constant MODE_FOLLOW] n'ont alors aucune destination et laissent l'automate à l'arrêt.
 		</member>
 		<member name="use_navigation" type="bool" setter="set_use_navigation" getter="get_use_navigation" default="true">
+			Si [code]true[/code] et que le personnage a un [NavigationAgent2D] ou [NavigationAgent3D] enfant, sa [code]target_position[/code] est réglée à chaque image et son chemin suivi. Sinon, ligne droite.
 		</member>
 		<member name="wait_time" type="float" setter="set_wait_time" getter="get_wait_time" default="0.5">
+			Pause, en secondes, à chaque point de patrouille ou d'errance atteint.
 		</member>
 		<member name="wander_radius" type="float" setter="set_wander_radius" getter="get_wander_radius" default="200.0">
+			Rayon d'errance autour de [method get_home].
 		</member>
 	</members>
 	<signals>
 		<signal name="destination_reached">
 			<description>
+				Émis quand le but de [method move_to] est atteint, et à chaque point d'errance atteint.
 			</description>
 		</signal>
 		<signal name="patrol_point_reached">
 			<param index="0" name="index" type="int" />
 			<description>
+				Émis à chaque point de patrouille atteint, avec son indice [param index] dans [member patrol_points].
 			</description>
 		</signal>
 		<signal name="target_lost">
 			<description>
+				Émis en mode suivi quand la cible est libérée ou quitte l'arbre de scène ; l'automate est alors arrêté.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="MODE_IDLE" value="0" enum="Mode">
+			À l'arrêt.
 		</constant>
 		<constant name="MODE_MOVE_TO" value="1" enum="Mode">
+			Se rend à un point ([method move_to]).
 		</constant>
 		<constant name="MODE_FOLLOW" value="2" enum="Mode">
+			Suit un nœud ([method follow]).
 		</constant>
 		<constant name="MODE_PATROL" value="3" enum="Mode">
+			Patrouille entre des points ([method patrol]).
 		</constant>
 		<constant name="MODE_WANDER" value="4" enum="Mode">
+			Erre au hasard autour de sa position de départ ([method wander]).
 		</constant>
 	</constants>
 </class>

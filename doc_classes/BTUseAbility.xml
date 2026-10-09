@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTUseAbility" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌟 Feuille d'arbre de comportement : active une capacité de l'[AbilitySystem] de l'agent, éventuellement sur la cible du tableau noir.
 	</brief_description>
 	<description>
+		L'[AbilitySystem] est cherché par [method AbilitySystem.find_on] sur l'agent. Renvoie [code]FAILURE[/code] sans AbilitySystem ou si [method AbilitySystem.activate] refuse (recharge, coût, tags...) ; sinon [code]SUCCESS[/code] aussitôt, ou, avec [member wait_until_end], [code]RUNNING[/code] tant que la capacité est active.
+		[codeblock]
+		var tir := BTUseAbility.new()
+		tir.ability_id = &amp;"boule_de_feu"
+		tir.target_key = "cible"      # nœud écrit par BTFindTarget
+		tir.wait_until_end = true     # attend la fin de l'incantation et de la durée active
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="ability_id" type="StringName" setter="set_ability_id" getter="get_ability_id" default="&amp;&quot;&quot;">
+			Identifiant de la capacité à activer ([method Ability.get_effective_id]).
 		</member>
 		<member name="target_key" type="String" setter="set_target_key" getter="get_target_key" default="&quot;&quot;">
+			Clé du tableau noir contenant le nœud cible. Vide, ou valeur qui n'est pas un nœud : activation sans cible.
 		</member>
 		<member name="wait_until_end" type="bool" setter="set_wait_until_end" getter="get_wait_until_end" default="false">
+			Si [code]true[/code], reste [code]RUNNING[/code] tant que la capacité est active ([method AbilitySystem.is_ability_active]) au lieu de réussir dès l'activation.
 		</member>
 	</members>
 </class>

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Déplacement au sol · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🦶 Déplacement au sol (GroundMovement2D, GroundMovement3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/deplacement-au-sol.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🦶</div>
+    <div>
+      <h1>🦶_MovementSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Déplacement au sol</strong> : marche, course et saut « qui répond bien » (sauts multiples, temps de grâce, hauteur variable), en plateforme 2D, en vue de dessus ou en 3D.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : GroundMovement2D · GroundMovement3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Le script de déplacement par défaut de Godot fait avancer et sauter, mais un saut agréable demande bien plus : accélération et freinage, contrôle réduit en l'air, double saut, saut accepté juste après avoir quitté un rebord (<em>coyote time</em>) ou juste avant d'atterrir, saut plus court quand on relâche tôt. <strong>Ce module fournit tout cela en un composant réglable dans l'inspecteur.</strong></p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🟦 <code>GroundMovement2D</code></h4>
+      <p>Deux modes : <strong>plateforme</strong> (vue de côté, gravité, sauts) et <strong>vue de dessus</strong> (déplacement libre en x / y). Retourne le sprite selon la direction.</p>
+    </div>
+    <div class="card">
+      <h4>🧊 <code>GroundMovement3D</code></h4>
+      <p>Marche dans le plan XZ, relative à la caméra (joueur) ou au monde (IA), sauts selon Y ; le personnage se tourne vers sa direction de marche.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Toute personne qui a besoin d'un personnage marcheur (joueur ou PNJ) sans réécrire un contrôleur ; les game designers peuvent régler le « ressenti » du saut sans code.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un composant de mur, de nage ou de vol</strong> : voir <a href="deplacement-mural.html">🧗 Mural</a>, <a href="deplacement-aquatique.html">🌊 Aquatique</a>, <a href="physique-aerodynamique.html">🪂 Aérodynamique</a>, à combiner via l'<a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a>.</li>
+      <li><strong>Pas un pathfinding</strong> : une IA doit calculer elle-même sa direction (par exemple avec un <code>NavigationAgent</code>) puis appeler <code>move()</code>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF d'un personnage 2D qui court, fait un double saut, saute juste après avoir quitté une plateforme (coyote time) et fait un petit saut en relâchant tôt ; debug_mode activé (texte « en l'air · sauts 2/2 »).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Contient ces classes et leur base <code>MovementComponent</code> (voir <a href="socle-mouvement.html#installation">installation du socle</a>).</td></tr>
+        <tr><td>Un <code>CharacterBody2D/3D</code> (ou <code>RigidBody2D/3D</code>) parent</td><td><strong>Obligatoire</strong></td><td>Le composant déplace son parent ; sur un autre type de nœud, il ne fait rien.</td></tr>
+        <tr><td><a href="recul.html">🌬️ Recul</a>, <a href="zone-de-force.html">🧲 Zone de force</a></td><td>Optionnelles</td><td>Pris en compte automatiquement s'ils sont présents (commandes verrouillées pendant un recul, vent ajouté à la vitesse).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Installer la bibliothèque</strong> comme décrit sur la page du <a href="socle-mouvement.html#mise-en-place">🧩 Socle du mouvement</a>.
+      <div class="why">tous les composants de mouvement sont dans la même bibliothèque.</div>
+    </li>
+    <li>
+      <strong>Pour un corps rigide uniquement</strong> : activer <code>contact_monitor</code> et mettre <code>max_contacts_reported</code> à 1 ou plus.
+      <div class="why">le saut d'un corps rigide n'est autorisé que s'il signale au moins un contact ; sans ces réglages, Godot n'en signale aucun et le saut ne part jamais (vérifié).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-2d">A. Personnage de plateforme 2D</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer un <code>CharacterBody2D</code></strong> avec une <code>CollisionShape2D</code> et un <code>Sprite2D</code>, au-dessus d'un sol.
+      <div class="why">le composant utilise <code>move_and_slide</code> et la détection de sol du <code>CharacterBody2D</code>.</div>
+    </li>
+    <li>
+      <strong>Ajouter un enfant <code>GroundMovement2D</code></strong>, régler <code>visual_path</code> sur <code>../Sprite2D</code>.
+      <div class="why">le sprite sera retourné (<code>flip_h</code>) quand le personnage va à gauche.</div>
+    </li>
+    <li>
+      <strong>Régler le saut</strong> : <code>jump_velocity</code> = 420, <code>max_jumps</code> = 2 pour un double saut.
+      <div class="why">les valeurs sont en pixels par seconde ; la gravité est celle du projet (980 par défaut), multipliée par <code>gravity_scale</code>.</div>
+    </li>
+    <li>
+      <strong>Envoyer les commandes</strong> depuis le script du corps :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	var g: GroundMovement2D = $GroundMovement2D
+	g.move(Vector2(Input.get_axis("ui_left", "ui_right"), 0))
+	if Input.is_action_just_pressed("ui_accept"):
+		g.jump()
+	elif Input.is_action_just_released("ui_accept"):
+		g.release_jump()</code></pre>
+      <div class="why"><code>release_jump()</code> active la hauteur variable : relâcher pendant la montée multiplie la vitesse par <code>jump_cut</code>.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-3d">B. Personnage 3D à la troisième personne</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer un <code>CharacterBody3D</code></strong> avec sa forme, un modèle (<code>Modele</code>) et une <code>Camera3D</code> active dans la scène.
+      <div class="why">la caméra courante sert de repère pour « avant » quand <code>camera_relative</code> est actif.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>GroundMovement3D</code></strong> : cocher <code>camera_relative</code>, <code>visual_path</code> = <code>../Modele</code>.
+      <div class="why">seul le modèle tourne vers la direction de marche : la caméra éventuellement attachée au corps ne tourne pas avec lui.</div>
+    </li>
+    <li>
+      <strong>Envoyer les commandes</strong> :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	var g: GroundMovement3D = $GroundMovement3D
+	g.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))  # haut = avant
+	if Input.is_action_just_pressed("ui_accept"):
+		g.jump()</code></pre>
+      <div class="why">en 3D, <code>move.y</code> négatif signifie « vers l'avant » (de la caméra ou de l'axe -Z du monde).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/GroundMovement2D.xml</code> et <code>doc_classes/GroundMovement3D.xml</code>. Les deux classes partagent les réglages de déplacement et de saut (mêmes noms, unités en pixels en 2D, en mètres en 3D) ; différences : <code>mode</code> n'existe qu'en 2D, <code>camera_relative</code>, <code>rotate_toward_movement</code>, <code>turn_speed</code> et <code>get_world_input()</code> qu'en 3D. Éléments internes, non exposés :</p>
+  <ul>
+    <li>La structure C++ <code>GroundSettings</code> (réglages partagés et état : temps de grâce restant, sauts utilisés, coupure de saut faite, sol à l'image précédente) et sa méthode <code>try_jump</code>.</li>
+    <li>La macro <code>GROUND_ACCESSORS</code> et le retournement du visuel (<code>_update_visual</code>).</li>
+    <li>Les membres hérités (<code>move</code>, <code>jump</code>, <code>active</code>, <code>debug_mode</code>…) sont documentés sur la page du <a href="socle-mouvement.html">🧩 Socle du mouvement</a> ; cocher « membres hérités » pour les afficher ici.</li>
+  </ul>
+  <div data-api="GroundMovement2D GroundMovement3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-topdown">Comment je fais un jeu en vue de dessus ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$GroundMovement2D.mode = GroundMovement2D.MODE_TOP_DOWN
+	$GroundMovement2D.max_speed = 150.0
+
+func _physics_process(_delta: float) -> void:
+	$GroundMovement2D.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
+	$GroundMovement2D.set_running(Input.is_key_pressed(KEY_SHIFT))</code></pre>
+
+  <h3 id="ex-glace">Comment je fais un sol glissant (glace) ?</h3>
+  <p>Accélération et freinage faibles : le personnage met du temps à démarrer et à s'arrêter. Avec une <code>Area2D</code> sur la zone gelée :</p>
+  <pre><code class="gdscript">func _on_glace_body_entered(corps: Node2D) -> void:
+	var g := corps.get_node_or_null("GroundMovement2D") as GroundMovement2D
+	if g:
+		g.acceleration = 300.0
+		g.deceleration = 150.0
+
+func _on_glace_body_exited(corps: Node2D) -> void:
+	var g := corps.get_node_or_null("GroundMovement2D") as GroundMovement2D
+	if g:
+		g.acceleration = 1500.0
+		g.deceleration = 2000.0</code></pre>
+
+  <h3 id="ex-effets">Comment je joue un son et une poussière au saut et à l'atterrissage ?</h3>
+  <p>À combiner avec le module <em>✨ Effets spéciaux</em> (un <code>PlayerFX</code> par effet) :</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$GroundMovement2D.jumped.connect($SonSaut.play)
+	$GroundMovement2D.landed.connect(func():
+		$Poussiere.restart()
+		$Jiggle2D.impulse(Vector2(0, 300)))   # le chapeau s'écrase (🫨 Trémousse)</code></pre>
+
+  <h3 id="ex-ia3d">Comment je fais suivre un chemin à un PNJ 3D ?</h3>
+  <p>Avec <code>camera_relative</code> désactivé, <code>move(Vector2(x, z))</code> est une direction du monde : il suffit de la donner depuis un <code>NavigationAgent3D</code>.</p>
+  <pre><code class="gdscript">@onready var agent: NavigationAgent3D = $NavigationAgent3D
+
+func _physics_process(_delta: float) -> void:
+	if agent.is_navigation_finished():
+		$GroundMovement3D.move(Vector2.ZERO)
+		return
+	var vers := agent.get_next_path_position() - global_position
+	$GroundMovement3D.move(Vector2(vers.x, vers.z).normalized())</code></pre>
+
+  <h3 id="ex-gravite">Comment j'inverse la gravité ?</h3>
+  <p><code>gravity_scale</code> négatif fait « tomber » vers le haut. Attention : la direction du saut, la vitesse de chute maximale et la détection du sol restent pensées pour une gravité vers le bas ; il faut aussi changer <code>up_direction</code> du <code>CharacterBody2D</code>.</p>
+  <pre><code class="gdscript">func inverser() -> void:
+	$GroundMovement2D.gravity_scale *= -1.0
+	up_direction = -up_direction
+	$Sprite2D.flip_v = not $Sprite2D.flip_v</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Corps rigides : support minimal.</strong> Seule la vitesse est pilotée : pas de sauts multiples, de temps de grâce, de hauteur variable, de vitesse de chute maximale ni de signal <code>landed</code> ; le recul et les zones de force ne passent pas par le composant (les zones agissent directement sur le corps). Le saut exige <code>contact_monitor</code> (voir installation) et part dès qu'un contact quelconque existe, y compris contre un mur.</li>
+    <li><strong>Le vent horizontal est presque annulé au sol.</strong> L'accélération des zones de force est ajoutée <em>après</em> le rapprochement vers la vitesse commandée : tant que <code>acceleration</code> / <code>deceleration</code> (× <code>air_control</code> en l'air) dépassent l'intensité du vent, celui-ci ne décale la vitesse que d'une image. Mesuré : vent de 600 px/s² sur un personnage immobile → 10 px/s ; vent de 5000 → 1550 px parcourus en 1 s. Les forces verticales (ascenseur d'air) fonctionnent normalement.</li>
+    <li><strong>Plateforme 2D : appuyer seulement vers le haut ou le bas tourne le personnage vers la droite</strong> (le regard est recalculé dès que la commande n'est pas nulle, avec <code>x = 0</code>) (vérifié).</li>
+    <li><strong><code>landed</code> est émis au démarrage</strong>, à la première image où le corps est posé (vérifié). L'ignorer si besoin pendant la première seconde.</li>
+    <li><strong>Hauteur de saut variable seulement après un saut du composant</strong> : un ressort ou un recul vers le haut n'est jamais coupé, c'est voulu. À l'inverse, un appui très bref (relâché avant l'image physique suivante) coupe immédiatement le saut.</li>
+    <li><strong>Gravité vers le bas supposée</strong> : <code>max_fall_speed</code> borne la composante Y (vers +Y en 2D, -Y en 3D), et le saut part toujours vers le haut de l'écran / du monde.</li>
+    <li><strong>3D sans <code>visual_path</code> : c'est le corps qui tourne</strong>, avec tous ses enfants (caméra comprise). Prévoir un nœud visuel séparé.</li>
+    <li><strong><code>camera_relative</code> utilise la caméra courante du viewport</strong> : en écran partagé, chaque joueur doit avoir son propre <code>SubViewport</code>.</li>
+    <li><strong>Pas de gestion des pentes, marches ou plateformes mobiles au-delà de ce que fait <code>move_and_slide</code></strong> (régler <code>floor_max_angle</code>, <code>floor_snap_length</code> du corps).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>GroundMovement2D</code> / <code>GroundMovement3D</code></strong> héritent de <code>MovementComponent</code> et implémentent son étape native <code>_physics_step</code>. Chaque image physique (si actif) : lecture du recul (<code>Knockback2D::active_on</code>) et du vent (<code>external_acceleration_2d</code>), calcul de la vitesse, saut, <code>move_and_slide</code>, puis signal <code>landed</code> et orientation du visuel.</li>
+    <li>Les réglages communs vivent dans la structure C++ <code>GroundSettings</code>, partagée par les deux classes ; les valeurs par défaut 3D sont converties en mètres dans le constructeur de <code>GroundMovement3D</code>.</li>
+    <li>Ordre de calcul du saut : temps de grâce et compteur remis à zéro au sol → demande de saut mémorisée (<code>has_jump_request</code>) → <code>try_jump</code> (sol, temps de grâce, ou saut en l'air restant) → coupure de hauteur si le saut est relâché pendant la montée.</li>
+  </ul>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Schéma (ou capture debug_mode 3D) montrant les flèches : intention convertie en monde (jaune), direction du regard (rose), normale du sol (rouge), vitesse (vert).</div>
+  </div>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépend du <a href="socle-mouvement.html">🧩 Socle</a> (héritage), de <code>Knockback2D/3D</code> (verrouillage des commandes, friction) et, via le socle, de <code>ForceZone2D/3D</code>.</li>
+    <li>Ne connaît ni l'orchestrateur ni les autres composants : il fonctionne seul.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Tomber d'un rebord sans sauter consomme le premier saut (après le temps de grâce)</td><td>Évite qu'un personnage à double saut en obtienne trois en se laissant tomber ; c'est la convention de la plupart des jeux de plateforme.</td></tr>
+        <tr><td>Hauteur variable par coupure unique de la vitesse (<code>jump_cut</code>)</td><td>Plus prévisible qu'une gravité augmentée tant que le bouton est relâché, et un seul réglage à comprendre.</td></tr>
+        <tr><td>Gravité via <code>get_gravity()</code> du corps</td><td>Les <code>Area2D/3D</code> qui modifient la gravité (planète, zone inversée) s'appliquent sans code supplémentaire.</td></tr>
+        <tr><td>Corps rigide : seule la vitesse est pilotée</td><td>Garder la simulation du moteur (rebonds, poussées, gravité) pour des objets physiques qu'on dirige grossièrement (balle, caisse vivante).</td></tr>
+        <tr><td>Retournement 2D par <code>flip_h</code> si disponible, sinon <code>scale.x</code></td><td><code>flip_h</code> ne retourne pas les enfants ni les formes ; <code>scale.x</code> négatif fonctionne sur n'importe quel <code>Node2D</code> (squelette, groupe de sprites).</td></tr>
+        <tr><td>Rotation 3D par <code>lerp_angle</code> sur Y seulement</td><td>Rotation douce sans faire pencher le personnage ; le tangage reste libre pour l'animation.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des deux classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Gizmos de débogage : direction du regard, normale du sol, état (au sol / en l'air, sauts utilisés, course).</li>
+    </ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>GroundMovement2D</code> (plateforme, vue de dessus) et <code>GroundMovement3D</code> : sauts multiples, temps de grâce, hauteur variable, course, recul et zones de force.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🦶 Déplacement au sol · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🦶Déplacement au sol d'objet/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API (réglages communs aux classes 2D et 3D)
+window.GTK_USAGES = {};
+(function () {
+  const commun = {
+    "acceleration": "Démarrage nerveux (valeur haute) ou lourd, sol glissant (valeur basse).",
+    "air_control": "1 pour un plateformer arcade très maniable, 0,3 pour un saut « engagé » réaliste.",
+    "coyote_time": "Rendre les sauts en bord de plateforme tolérants (0,08–0,15 s).",
+    "deceleration": "Arrêt net (haute) ou glissade à l'arrêt (basse, glace).",
+    "gravity_scale": "Personnage plus lourd, niveau lunaire, gravité inversée.",
+    "jump_cut": "Petit saut en tapotant, grand saut en maintenant : 0,4–0,5 ; 1 pour une hauteur fixe.",
+    "jump_velocity": "Hauteur du saut ; augmenter temporairement pour un bonus de super-saut.",
+    "max_fall_speed": "Éviter les chutes trop rapides qui traversent les plateformes fines.",
+    "max_jumps": "2 pour un double saut débloqué en cours de jeu, 0 pour interdire le saut (personnage blessé).",
+    "max_speed": "Vitesse de marche ; à réduire dans une zone de boue ou quand le personnage porte un objet.",
+    "run_multiplier": "Rapport course / marche ; 1 pour désactiver la course.",
+    "visual_path": "Désigner le sprite ou le modèle à retourner / tourner, sans toucher au corps.",
+    "get_facing": "Direction de tir, côté d'apparition d'une attaque, sens du regard d'un PNJ.",
+    "is_on_floor": "Autoriser une attaque au sol, jouer la course ou l'animation de chute.",
+    "jumped": "Son et animation de saut, poussière au décollage.",
+    "landed": "Son d'atterrissage, secousse de caméra, trémoussement des accessoires."
+  };
+  ["GroundMovement2D", "GroundMovement3D"].forEach(function (c) {
+    Object.keys(commun).forEach(function (k) { window.GTK_USAGES[c + "." + k] = commun[k]; });
+  });
+  Object.assign(window.GTK_USAGES, {
+    "GroundMovement2D.mode": "Plateforme pour un jeu vu de côté, vue de dessus pour un RPG ou un twin-stick.",
+    "GroundMovement2D.MODE_PLATFORMER": "Jeux de plateforme vus de côté.",
+    "GroundMovement2D.MODE_TOP_DOWN": "RPG, jeux d'exploration ou de tir vus de dessus.",
+    "GroundMovement3D.camera_relative": "Joueur à la troisième personne (activé) ; PNJ guidé par la navigation (désactivé).",
+    "GroundMovement3D.rotate_toward_movement": "Désactiver pour un personnage qui vise (déplacement latéral en regardant ailleurs).",
+    "GroundMovement3D.turn_speed": "Rotation vive pour un personnage nerveux, lente pour un véhicule ou un animal lourd.",
+    "GroundMovement3D.get_world_input": "Orienter une attaque ou une roulade dans la direction poussée par le joueur."
+  });
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

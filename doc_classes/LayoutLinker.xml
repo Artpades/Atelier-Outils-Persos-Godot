@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="LayoutLinker" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Singleton de jeu qui applique automatiquement les liens de signaux des interfaces par type à chaque nœud ajouté à l'arbre.
 	</brief_description>
 	<description>
+		Créé au chargement du module (jamais dans l'éditeur, où aucun lien ne doit se déclencher), il se branche sur [signal SceneTree.node_added] à la première image et parcourt l'arbre déjà chargé. Pour chaque nœud qui a une interface dans la base du projet, les liens en mode ressource ([member DataEntry.links]) de son [DataRegistry] sont connectés, sans qu'aucun [ProceduralEditor] ne soit ouvert.
+		Les ressources n'ont pas d'équivalent de [code]node_added[/code] : leurs liens ne s'appliquent que via un [ProceduralEditor] (ou [method ObjectEditorWindow.open_for]).
+		[codeblock]
+		var lieur := LayoutLinker.get_singleton()
+		if lieur and lieur.is_started():
+			print(lieur.get_applied_count(), " nœuds reliés")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,16 +18,19 @@
 		<method name="get_applied_count" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie le nombre de nœuds auxquels des liens ont été appliqués depuis le démarrage (diagnostic, tests).
 			</description>
 		</method>
 		<method name="get_singleton" qualifiers="static">
 			<return type="LayoutLinker" />
 			<description>
+				Renvoie l'instance unique, ou [code]null[/code] dans l'éditeur.
 			</description>
 		</method>
 		<method name="is_started" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] une fois branché sur l'arbre de scène (dès la première image). Sans base de projet, il est démarré mais ne fait rien.
 			</description>
 		</method>
 	</methods>

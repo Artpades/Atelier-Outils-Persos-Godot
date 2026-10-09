@@ -9,14 +9,14 @@
 
 namespace godot
 {
-// Éditeur d'un InterfaceStyle (éditeur) posé sur une propriété d'un objet propriétaire (TypeLayout.style,
-// GroupEntry.style, WidgetSettings.style, ProceduralEditor.style) :
-// - le style lui-même : créer, charger, partager, retirer (EditorResourcePicker) ;
-// - thème, fond (StyleBox), matériau (ShaderMaterial...) : sélecteurs de ressources ; variation, propagation et
-//   teintes : ProceduralEditor ;
-// - uniforms du shader : par uniform, « Valeur du matériau » (non lié) ou une source comme pour les gizmos
-//   (valeur manuelle, propriété, fonction) avec la liste des membres compatibles de l'objet de contexte.
-// Toute modification est une action d'annulation de l'éditeur ; « style_changed » est émis après chacune.
+/// Éditeur d'un InterfaceStyle (éditeur) posé sur une propriété d'un objet propriétaire (TypeLayout.style,
+/// GroupEntry.style, WidgetSettings.style, ProceduralEditor.style) :
+/// - le style lui-même : créer, charger, partager, retirer (EditorResourcePicker) ;
+/// - thème, fond (StyleBox), matériau (ShaderMaterial...) : sélecteurs de ressources ; variation, propagation et
+///   teintes : ProceduralEditor ;
+/// - uniforms du shader : par uniform, « Valeur du matériau » (non lié) ou une source comme pour les gizmos
+///   (valeur manuelle, propriété, fonction) avec la liste des membres compatibles de l'objet de contexte.
+/// Toute modification est une action d'annulation de l'éditeur ; « style_changed » est émis après chacune.
 class InterfaceStyleEditor : public VBoxContainer
 {
     GDCLASS(InterfaceStyleEditor, VBoxContainer)
@@ -53,7 +53,7 @@ class InterfaceStyleEditor : public VBoxContainer
   public:
     InterfaceStyleEditor();
 
-    // Style édité : p_owner.get(p_property).
+    /// Style édité : p_owner.get(p_property).
     void set_owner(Object *p_owner, const StringName &p_property);
     void set_context_object(Object *p_object);
     void set_context_type(const String &p_type);

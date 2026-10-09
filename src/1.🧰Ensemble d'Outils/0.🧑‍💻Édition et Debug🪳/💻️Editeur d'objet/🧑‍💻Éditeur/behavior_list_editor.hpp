@@ -9,12 +9,12 @@
 
 namespace godot
 {
-// Onglet « Comportements » (éditeur) : liste des WidgetBehavior d'un DataRegistry. Par comportement :
-// activé, type, inversion, ordre, suppression ; condition (propriété ou fonction booléenne : liste des membres
-// compatibles de l'objet de contexte, ou saisie libre) ; cibles (données et groupes) ; réglages propres
-// (style, infobulle BBCode, icône ; propriétés exportées d'un comportement de script).
-// « + Comportement » propose les comportements fournis et les class_name qui héritent de WidgetBehavior.
-// Toute modification est une action d'annulation de l'éditeur ; émet "registry_changed".
+/// Onglet « Comportements » (éditeur) : liste des WidgetBehavior d'un DataRegistry. Par comportement :
+/// activé, type, inversion, ordre, suppression ; condition (propriété ou fonction booléenne : liste des membres
+/// compatibles de l'objet de contexte, ou saisie libre) ; cibles (données et groupes) ; réglages propres
+/// (style, infobulle BBCode, icône ; propriétés exportées d'un comportement de script).
+/// « + Comportement » propose les comportements fournis et les class_name qui héritent de WidgetBehavior.
+/// Toute modification est une action d'annulation de l'éditeur ; émet "registry_changed".
 class BehaviorListEditor : public VBoxContainer
 {
     GDCLASS(BehaviorListEditor, VBoxContainer)
@@ -51,7 +51,7 @@ class BehaviorListEditor : public VBoxContainer
 
   public:
     BehaviorListEditor();
-    // Comportements fournis : nom de classe -> nom affiché.
+    /// Comportements fournis : nom de classe -> nom affiché.
     static Dictionary builtin_types();
     void set_registries(const Ref<DataRegistry> &p_registry, const Ref<GroupRegistry> &p_groups);
     void set_context_object(Object *p_object);

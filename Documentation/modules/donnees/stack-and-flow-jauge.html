@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stack And Flow (Jauge) · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🌡️ Stack And Flow (Gauge) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/donnees/stack-and-flow-jauge.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🌡️</div>
+    <div>
+      <h1>🌡️_GaugeSystem - Intercepteurs de données - Documentation</h1>
+      <p class="subtitle">Module <strong>Stack And Flow (Jauge)</strong> : une valeur bornée entre un minimum et un maximum, qui prévient quand elle change, se vide, se remplit ou franchit un seuil.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/stack_and_flow</code></span>
+        <span class="badge">1 classe : Gauge</span>
+        <span class="badge">Ressource · 2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Points de vie, mana, endurance, munitions, jauge de colère, barre de progression d'une quête… Chaque fois, le même code revient : borner la valeur, mettre à jour la barre, déclencher la mort à 0, faire clignoter l'écran sous 25 %. Et chaque fois, une petite erreur s'y glisse (vie négative, signal « mort » émis deux fois, seuil sauté lors d'un gros coup). <strong>Ce module fournit cette valeur bornée une fois pour toutes</strong>, avec des signaux fiables : on la crée dans l'inspecteur, on y branche l'interface et le gameplay.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📊 <code>Gauge</code> — une ressource</h4>
+      <p>Une valeur courante toujours comprise entre <code>min_value</code> et <code>max_value</code>, des seuils en pourcentage, et des signaux pour chaque changement réel.</p>
+    </div>
+    <div class="card">
+      <h4>🔔 Des signaux, pas de sondage</h4>
+      <p>La barre de vie, le son d'alerte et la mort du personnage écoutent la jauge : aucun d'eux n'a besoin de la lire à chaque image.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui gèrent des ressources de personnage, et les game designers qui règlent bornes et seuils dans l'inspecteur (la jauge est une ressource <code>.tres</code> réutilisable).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un widget d'interface</strong> : <code>Gauge</code> ne dessine rien. On l'affiche avec une <code>ProgressBar</code>, un <code>TextureProgressBar</code>… reliés à ses signaux.</li>
+      <li><strong>Pas un « flux » automatique</strong> : malgré le nom du module, la jauge ne se régénère pas et ne se vide pas toute seule avec le temps. Une régénération s'écrit en appelant <code>add()</code> dans <code>_process</code> (voir <a href="#ex-regen">exemple</a>).</li>
+      <li><strong>Pas un système de dégâts</strong> : résistances, invincibilité, effets dans le temps relèvent du <em>🌟 Système de Capacité</em> ou de votre code.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la scène « Démo Jauge » (<code>🧪Démos de modules/1.📁🔌/🌡️Stack And Flow/</code>) : la barre de vie orange sous 50 %, et le journal montrant <code>threshold_crossed_down(50 %)</code> puis <code>depleted</code>.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/stack_and_flow/</code> (<code>gameplaytoolkit_stack_and_flow.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient <code>Gauge</code>. Aucune autre classe du toolkit n'est nécessaire.</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/💾🔐/Gauge Icon.png</code></td><td>Optionnelle</td><td>Seulement pour l'icône de la ressource dans l'éditeur. Sans elle, Godot affiche l'icône par défaut.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons stack_and_flow</code></pre>
+      <div class="why">compile uniquement cette bibliothèque (son registre est <code>stack_and_flow_register.cpp</code>) et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/stack_and_flow/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/stack_and_flow/</code>.
+      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/stack_and_flow/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; les recompilations suivantes sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : clic droit dans le FileSystem › <kbd>Nouvelle ressource…</kbd> doit proposer <code>Gauge</code>. Au lancement, la console affiche « 🌡️Module Stack And Flow chargé avec succès ! ».
+      <div class="why">si la classe est absente, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload, nœud ni réglage de projet n'est requis.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : une barre de vie qui se met à jour seule et un personnage qui meurt à 0 PV.</p>
+  <ol class="steps">
+    <li>
+      <strong>Dans le script du personnage, exporter une jauge</strong> :
+      <pre><code class="gdscript">@export var vie: Gauge</code></pre>
+      <div class="why">la jauge est une ressource : elle se règle dans l'inspecteur du personnage et peut être enregistrée en <code>.tres</code>.</div>
+    </li>
+    <li>
+      <strong>Dans l'inspecteur, choisir <kbd>Nouveau Gauge</kbd></strong>, puis régler <code>max_value</code> = <code>100</code>, <code>current_value</code> = <code>100</code>, et cocher <em>Local to Scene</em> (section <em>Resource</em>).
+      <div class="why">les bornes viennent avant la valeur (sinon une valeur supérieure au maximum par défaut serait rognée). <em>Local to Scene</em> donne à chaque instance du personnage sa propre jauge : sans lui, tous les ennemis partageraient les mêmes PV.</div>
+    </li>
+    <li>
+      <strong>Relier la barre et la mort</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	$Barre.max_value = vie.max_value
+	$Barre.value = vie.current_value
+	vie.current_value_changed.connect(func(nouvelle, _ancienne): $Barre.value = nouvelle)
+	vie.depleted.connect(mourir)
+
+func mourir() -> void:
+	queue_free()</code></pre>
+      <div class="why">la barre ne lit plus la vie à chaque image : elle est prévenue. <code>depleted</code> n'est émis que si la valeur <em>change</em> et atteint le minimum : pas de double mort.</div>
+    </li>
+    <li>
+      <strong>Infliger des dégâts</strong> :
+      <pre><code class="gdscript">func recevoir_degats(montant: float) -> void:
+	vie.add(-montant) # bornée : jamais sous 0</code></pre>
+      <div class="why"><code>add</code> renvoie la variation réellement appliquée, utile pour afficher « -10 » même quand le coup en valait 30.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Gauge.xml</code>. Sont internes et peuvent changer sans préavis : la valeur précédente stockée (<code>previous_value</code>, lisible par <code>get_previous_value()</code>), la conversion d'un seuil en valeur (<code>_threshold_to_value</code>), la détection des franchissements (<code>_check_thresholds</code>) et le curseur borné de l'inspecteur (<code>_validate_property</code>). Les accesseurs <code>get_/set_</code> des propriétés ne sont pas répétés dans les méthodes.</p>
+  <div data-api="Gauge"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="demo">Aperçu interactif de la jauge</h3>
+  <p>Reproduction dans le navigateur de la logique de <code>Gauge</code> (bornage, signaux, seuils à 25 % et 50 %, ordre des émissions). Le journal montre les signaux émis.</p>
+  <div class="card demo" id="gauge-demo">
+    <canvas width="384" height="64" aria-label="Barre de la jauge"></canvas>
+    <div class="controls">
+      <div class="row">
+        <button type="button" data-a="hit">add(-15)</button>
+        <button type="button" data-a="big">add(-60)</button>
+        <button type="button" data-a="heal">add(+10)</button>
+      </div>
+      <div class="row">
+        <button type="button" data-a="fill">fill()</button>
+        <button type="button" data-a="deplete">deplete()</button>
+      </div>
+      <label>Maximum (<code>max_value</code>) <output data-o="max">100</output>
+        <input type="range" data-k="max" min="10" max="200" step="10" value="100">
+      </label>
+      <output data-o="log">Signal : —</output>
+    </div>
+  </div>
+
+  <h3 id="ex-seuils">Comment je déclenche une alerte sous 25 % de vie ?</h3>
+  <p>Les seuils sont exprimés en pourcentage de la plage : ils restent valables si le maximum change. Un gros coup qui traverse plusieurs seuils les signale tous, dans l'ordre du franchissement.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	vie.thresholds = PackedFloat32Array([25.0])
+	vie.threshold_crossed_down.connect(func(_seuil): $Alerte.play())
+	vie.threshold_crossed_up.connect(func(_seuil): $Alerte.stop())</code></pre>
+
+  <h3 id="ex-regen">Comment je fais régénérer l'endurance avec le temps ?</h3>
+  <p>La jauge n'a pas de mise à jour propre : on l'alimente depuis <code>_process</code>. Les signaux ne partent que si la valeur change, donc rien n'est émis une fois la jauge pleine.</p>
+  <pre><code class="gdscript">@export var endurance: Gauge
+@export var regeneration := 15.0 # par seconde
+
+func _process(delta: float) -> void:
+	if not $Sprint.is_pressed():
+		endurance.add(regeneration * delta)
+
+func sprinter(delta: float) -> bool:
+	return endurance.add(-30.0 * delta) &lt; 0.0 # faux si la jauge est vide</code></pre>
+
+  <h3 id="ex-max">Comment j'augmente la vie maximale (montée de niveau) ?</h3>
+  <p>Changer <code>max_value</code> ne remplit pas la jauge : la valeur courante reste la même (le pourcentage baisse). Conserver le pourcentage ou remplir, selon le design :</p>
+  <pre><code class="gdscript">func monter_de_niveau() -> void:
+	var ratio := vie.get_ratio()
+	vie.max_value += 20.0
+	vie.set_ratio(ratio) # même pourcentage qu'avant
+	# ou : vie.fill()</code></pre>
+
+  <h3 id="ex-partage">Comment je donne une jauge différente à chaque ennemi créé par code ?</h3>
+  <p>Une ressource est partagée par référence. Pour des ennemis instanciés depuis la même scène, cocher <em>Local to Scene</em> suffit ; pour une jauge modèle chargée par code, la dupliquer.</p>
+  <pre><code class="gdscript">const VIE_GOBELIN := preload("res://donnees/vie_gobelin.tres")
+
+func creer_gobelin() -> Node:
+	var gobelin := preload("res://gobelin.tscn").instantiate()
+	gobelin.vie = VIE_GOBELIN.duplicate() # sinon tous les gobelins partagent leurs PV
+	return gobelin</code></pre>
+
+  <h3 id="ex-sauvegarde">Comment je sauvegarde la jauge ?</h3>
+  <p>Avec le module <em>💾 Système de Sauvegarde</em>, un <code>SaveDataBinder</code> peut viser la ressource et suivre ses propriétés numériques. Les bornes sont listées avant la valeur pour qu'elle ne soit pas rognée au rechargement.</p>
+  <pre><code class="gdscript">$SaveDataBinder.resource_target = vie
+$SaveDataBinder.tracked_properties = PackedStringArray(["min_value", "max_value", "current_value"])
+$SaveDataBinder.save()</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Ressource partagée = valeur partagée.</strong> Une même instance de <code>Gauge</code> assignée à plusieurs nœuds (même <code>.tres</code>, même <code>preload</code>) donne les mêmes PV à tous. Cocher <em>Local to Scene</em> ou appeler <code>duplicate()</code> (voir <a href="#ex-partage">exemple</a>).</li>
+    <li><strong>Changer une borne ne déclenche pas de seuil.</strong> Augmenter <code>max_value</code> fait baisser le pourcentage sans émettre <code>threshold_crossed_down</code> : les seuils ne sont évalués que lorsque <code>current_value</code> change.</li>
+    <li><strong>Changer <code>max_value</code> ne remplit pas la jauge.</strong> Par défaut, <code>current_value</code> vaut 100 : <code>max_value = 200</code> donne une jauge à moitié pleine. Appeler <code>fill()</code> ensuite si besoin.</li>
+    <li><strong>Ordre des signaux lors d'un changement de borne :</strong> si la valeur courante est rognée, <code>current_value_changed</code> (et éventuellement <code>depleted</code> / <code>filled</code>) part <em>avant</em> <code>min_value_changed</code> / <code>max_value_changed</code>. Si le minimum dépasse le maximum, ce dernier est déplacé (et inversement), avec son propre signal.</li>
+    <li><strong>Précision 32 bits.</strong> Les valeurs sont stockées en <code>float</code> simple précision : <code>0.1</code> est relu <code>0.10000000149</code>. Comparer avec <code>is_equal_approx</code>, ou utiliser des valeurs entières.</li>
+    <li><strong>Plage nulle.</strong> Avec <code>min_value == max_value</code>, <code>get_ratio()</code> renvoie 0 et aucune valeur ne peut changer : aucun signal n'est émis.</li>
+    <li><strong>Pas de garde contre la réentrance.</strong> Modifier la jauge dans un récepteur de ses propres signaux (ex. <code>fill()</code> dans <code>depleted</code> pour une résurrection) émet une nouvelle série de signaux pendant la première ; les récepteurs suivants de <code>depleted</code> voient alors une jauge pleine.</li>
+    <li><strong>Seuils hors de 0–100 %</strong> : ils sont ramenés aux bornes (un seuil de 120 % se comporte comme 100 %).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>Gauge</code></strong> est une <code>Resource</code> autonome, sans nœud ni mise à jour par image. Toute modification passe par <code>set_current_value</code> (directement, ou via <code>add</code>, <code>fill</code>, <code>deplete</code>, <code>set_ratio</code>, ou un changement de borne qui reborne la valeur).</li>
+    <li>À chaque changement réel, dans cet ordre : <code>current_value_changed</code>, les seuils franchis (triés dans le sens du mouvement), puis <code>filled</code> ou <code>depleted</code>, enfin <code>changed</code> (signal de <code>Resource</code>, utilisé par l'inspecteur et la démo).</li>
+    <li>Communication sortante uniquement par <strong>signaux</strong> : la jauge ne connaît ni la barre, ni le personnage.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Aucune dépendance vers une autre classe du toolkit. D'autres modules (personnage, capacités, HUD) peuvent l'utiliser par son nom de classe ou par <code>ClassDB.instantiate("Gauge")</code>, sans inclure son <code>.hpp</code>.</li>
+    <li>Bibliothèque propre : <code>stack_and_flow_register.cpp</code> → <code>bin/stack_and_flow/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td><code>Gauge</code> est une ressource, pas un nœud</td><td>Elle se règle et se partage en <code>.tres</code> (« vie du gobelin »), se range dans un tableau de statistiques, et n'ajoute aucun nœud à l'arbre ni coût par image.</td></tr>
+        <tr><td>Signaux émis seulement si la valeur change <em>après bornage</em></td><td>Frapper un ennemi déjà mort ne réémet pas <code>depleted</code> ; soigner un personnage plein ne réémet pas <code>filled</code>.</td></tr>
+        <tr><td>Seuils en pourcentage de la plage</td><td>Un seuil « 25 % » reste juste quand la vie maximale augmente ; 0 % et 100 % tombent exactement sur les bornes (pas d'erreur d'arrondi qui empêcherait de les atteindre).</td></tr>
+        <tr><td>Seuils triés dans le sens du mouvement</td><td>Un coup de 100 % à 10 % signale 50 % puis 25 %, comme si la valeur avait glissé : un effet « palier » enchaîne correctement.</td></tr>
+        <tr><td>Propriétés déclarées dans l'ordre <code>min_value</code>, <code>max_value</code>, <code>current_value</code></td><td>Au chargement d'un <code>.tres</code>, les bornes sont posées avant la valeur : une valeur de 150 avec un maximum de 200 n'est pas rognée à 100 (maximum par défaut).</td></tr>
+        <tr><td><code>add()</code> renvoie la variation appliquée</td><td>Permet d'afficher les dégâts réellement subis ou de rendre le surplus d'un soin, sans recalculer le bornage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : page de module ; exemple de <code>Gauge.xml</code> corrigé (<code>fill()</code> ajouté : changer le maximum ne remplit pas la jauge). Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>Gauge</code> : valeur bornée, seuils en pourcentage, signaux de changement, de remplissage et de vidage (commit « Ajout jauge »).</li>
+    </ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-04</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Squelette du module (fichiers <code>gauge.hpp</code> / <code>gauge.cpp</code> vides, commit « Modifs »).</li>
+    </ul>
+  </div>
+
+  <footer>Module 🌡️ Stack And Flow (Jauge) · sources : <code>src/1.🧰Ensemble d'Outils/1.📁Intercepteurs de données🔌/🌡️Stack And Flow/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "Gauge.current_value": "PV, mana ou munitions actuels : lire pour l'affichage, écrire pour une valeur absolue (respawn à 50 PV).",
+  "Gauge.max_value": "Vie maximale qui augmente avec le niveau, chargeur agrandi par une amélioration.",
+  "Gauge.min_value": "Minimum non nul : jauge de température de -20 à 40, jauge de réputation de -100 à 100.",
+  "Gauge.thresholds": "Paliers de gameplay : alerte sous 25 %, rage au-dessus de 75 %, changement de phase d'un boss à 50 %.",
+  "Gauge.add": "Dégâts (négatif) et soins (positif) ; la valeur renvoyée sert à afficher les dégâts réellement subis.",
+  "Gauge.deplete": "Mort instantanée, chargeur vidé, endurance remise à zéro par un piège.",
+  "Gauge.fill": "Respawn, potion complète, rechargement, passage de niveau.",
+  "Gauge.get_percent": "Texte « 42 % » dans le HUD.",
+  "Gauge.get_previous_value": "Effet de « traînée » d'une barre de vie (partie perdue affichée en rouge qui se résorbe).",
+  "Gauge.get_ratio": "Remplir une barre normalisée, choisir la couleur selon le niveau, conserver le pourcentage avant de changer le maximum.",
+  "Gauge.is_empty": "Interdire de tirer sans munitions, de sprinter sans endurance.",
+  "Gauge.is_full": "Refuser une potion inutile, déclencher une attaque spéciale quand la jauge de rage est pleine.",
+  "Gauge.set_ratio": "Restaurer un pourcentage (après une montée de niveau), réanimer à 30 %.",
+  "Gauge.current_value_changed": "Mettre à jour la barre, afficher un nombre flottant de dégâts, jouer un son de coup.",
+  "Gauge.depleted": "Mort du personnage, arme vide, véhicule en panne sèche.",
+  "Gauge.filled": "Jauge de super-attaque prête, quête terminée, son de recharge complète.",
+  "Gauge.max_value_changed": "Redimensionner la barre de vie (plus longue quand le maximum augmente).",
+  "Gauge.min_value_changed": "Mettre à jour une barre bornée des deux côtés (réputation, température).",
+  "Gauge.threshold_crossed_down": "Alerte « vie faible », écran rougi, changement de phase d'un boss.",
+  "Gauge.threshold_crossed_up": "Arrêter l'alerte après un soin, débloquer une capacité à 75 % de rage."
+};
+
+// 🎮 Aperçu interactif : reproduit la logique de Gauge (gauge.cpp)
+(function () {
+  const root = document.getElementById("gauge-demo");
+  const ctx = root.querySelector("canvas").getContext("2d");
+  const q = (s) => root.querySelector(s);
+  const g = { min: 0, max: 100, cur: 100, prev: 100, th: [25, 50] };
+  let log = [];
+  const emit = (s) => log.push(s);
+  const thValue = (p) => (p <= 0 ? g.min : p >= 100 ? g.max : g.min + (p / 100) * (g.max - g.min));
+  function setCurrent(v) {
+    const c = Math.min(g.max, Math.max(g.min, v));
+    if (c === g.cur) return;
+    g.prev = g.cur; g.cur = c;
+    emit("current_value_changed(" + g.cur.toFixed(0) + ", " + g.prev.toFixed(0) + ")");
+    const up = g.cur > g.prev;
+    [...g.th].sort((a, b) => (up ? a - b : b - a)).forEach((p) => {
+      const t = thValue(p);
+      if (up && g.prev < t && g.cur >= t) emit("threshold_crossed_up(" + p + ")");
+      else if (!up && g.prev > t && g.cur <= t) emit("threshold_crossed_down(" + p + ")");
+    });
+    if (g.cur >= g.max) emit("filled");
+    else if (g.cur <= g.min) emit("depleted");
+  }
+  function setMax(v) {
+    if (v === g.max) return;
+    g.max = v;
+    if (g.max < g.min) { g.min = g.max; emit("min_value_changed(" + g.min + ")"); }
+    setCurrent(g.cur);
+    emit("max_value_changed(" + g.max + ")");
+  }
+  function render() {
+    const W = 384, H = 64, r = g.max > g.min ? (g.cur - g.min) / (g.max - g.min) : 0;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#33333355"; ctx.fillRect(8, 16, W - 16, 32);
+    ctx.fillStyle = r <= 0.25 ? "#c0392b" : r <= 0.5 ? "#e67e22" : "#2e8b57";
+    ctx.fillRect(8, 16, (W - 16) * r, 32);
+    ctx.strokeStyle = "#888"; ctx.setLineDash([4, 3]);
+    g.th.forEach((p) => { const x = 8 + (W - 16) * p / 100; ctx.beginPath(); ctx.moveTo(x, 10); ctx.lineTo(x, 54); ctx.stroke(); });
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#fff"; ctx.font = "14px Inter, sans-serif";
+    ctx.fillText(g.cur.toFixed(0) + " / " + g.max + "  (" + (r * 100).toFixed(0) + " %)", 16, 37);
+    q('[data-o="log"]').textContent = "Signaux : " + (log.length ? log.join(" → ") : "aucun (valeur inchangée)");
+    q('[data-o="max"]').textContent = g.max;
+  }
+  root.addEventListener("click", (e) => {
+    const a = e.target.dataset.a;
+    if (!a) return;
+    log = [];
+    if (a === "hit") setCurrent(g.cur - 15);
+    if (a === "big") setCurrent(g.cur - 60);
+    if (a === "heal") setCurrent(g.cur + 10);
+    if (a === "fill") setCurrent(g.max);
+    if (a === "deplete") setCurrent(g.min);
+    render();
+  });
+  root.addEventListener("input", (e) => {
+    if (e.target.dataset.k !== "max") return;
+    log = []; setMax(+e.target.value); render();
+  });
+  render();
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

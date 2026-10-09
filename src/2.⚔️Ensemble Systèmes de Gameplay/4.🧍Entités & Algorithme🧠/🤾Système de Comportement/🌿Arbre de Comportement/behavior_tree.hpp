@@ -64,9 +64,12 @@ class BehaviorTree : public Node
     int last_status = -1;
     uint64_t tick_count = 0;
     double elapsed_time = 0.0;
+    /// Temps cumulé depuis le dernier tick (tick_interval > 0).
     double interval_accumulator = 0.0;
 
+    /// Active _process ou _physics_process selon active et process_callback (jamais dans l'éditeur).
     void _update_processing();
+    /// Appelé chaque image : tick immédiat, ou différé jusqu'à tick_interval avec le delta cumulé.
     void _advance(double p_delta);
 };
 } // namespace godot

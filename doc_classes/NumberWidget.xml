@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="NumberWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un nombre : SpinBox, HSlider, VSlider (éditables), ProgressBar, TextureProgressBar (lecture seule).
 	</brief_description>
 	<description>
+		Bornes : [RangeWidgetSettings] &gt; indice [code]@export_range[/code] ([code]"min,max[,step][,or_greater][,or_less][,suffix:x]"[/code]) &gt; défauts (illimité pour un SpinBox, 0-100 pour les autres). Un entier reste un entier (valeur arrondie). Pendant un glissement de curseur, la valeur est appliquée en direct et validée au relâchement.
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

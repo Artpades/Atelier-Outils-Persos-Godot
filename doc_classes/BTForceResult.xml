@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTForceResult" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Résultat forcé : renvoie toujours [member result] une fois l'enfant terminé ([constant BTNode.RUNNING] inchangé).
 	</brief_description>
 	<description>
+		Rend une étape facultative dans une séquence (« ramasser l'objet s'il y en a un, puis continuer quoi qu'il arrive »). Sans enfant, renvoie directement [member result].
+		[codeblock]
+		var facultatif := BTForceResult.new()
+		facultatif.result = BTNode.SUCCESS
+		facultatif.add_child(action_ramasser)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="result" type="int" setter="set_result" getter="get_result" enum="BTNode.Status" default="0">
+			Statut renvoyé : [constant BTNode.SUCCESS] ou [constant BTNode.FAILURE]. [constant BTNode.RUNNING] est refusé et remplacé par [constant BTNode.SUCCESS].
 		</member>
 	</members>
 </class>

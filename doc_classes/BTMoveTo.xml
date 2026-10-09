@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTMoveTo" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🚶 Feuille d'arbre de comportement : déplace l'agent vers une cible du tableau noir grâce à son [AutomateController].
 	</brief_description>
 	<description>
+		La valeur de [member target_key] peut être un nœud (sa position est relue à chaque tick : poursuite), un [Vector2] ou un [Vector3]. Renvoie [code]RUNNING[/code] en chemin, [code]SUCCESS[/code] une fois à [member arrive_distance] (l'agent est alors arrêté), [code]FAILURE[/code] si l'agent n'est pas un personnage, n'a pas d'[AutomateController] enfant, si la clé est absente ou si le nœud a été libéré. Interrompue, elle arrête l'agent s'il était encore en [constant AutomateController.MODE_MOVE_TO].
+		[codeblock]
+		# Fuir vers un refuge mémorisé dans le tableau noir.
+		$BehaviorTree.blackboard.set_value("refuge", Vector2(640, 120))
+		var fuir := BTMoveTo.new()
+		fuir.target_key = "refuge"
+		fuir.arrive_distance = 16.0
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="arrive_distance" type="float" setter="set_arrive_distance" getter="get_arrive_distance" default="-1.0">
+			Distance d'arrivée ; négative : celle du contrôleur ([method AutomateController.get_effective_arrive_distance]).
 		</member>
 		<member name="run" type="bool" setter="set_run" getter="get_run" default="false">
+			Si [code]true[/code], demande la course à chaque tick. L'[AutomateController] réapplique sa propre règle ([member AutomateController.run_distance]) à chaque image physique : les deux se contredisent si elle ne demande pas aussi la course.
 		</member>
 		<member name="target_key" type="String" setter="set_target_key" getter="get_target_key" default="&quot;cible&quot;">
+			Clé du tableau noir qui contient la cible (nœud, [Vector2] ou [Vector3]).
 		</member>
 	</members>
 </class>

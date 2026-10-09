@@ -82,7 +82,9 @@ class AttributeModifier : public Resource
     double magnitude = 0.0;
     double magnitude_per_level = 0.0;
     String magnitude_expression;
+    /// Expression analysée une seule fois (remise à zéro par set_magnitude_expression).
     Ref<Expression> expression; // cache d'analyse
+    /// Erreur d'analyse de magnitude_expression (la valeur vaut alors 0).
     String error;
 };
 
@@ -97,12 +99,14 @@ class GameplayEffect : public Resource
     GDCLASS(GameplayEffect, Resource)
 
   public:
+    /// Instantané (base modifiée une fois), à durée limitée, ou sans fin.
     enum DurationPolicy
     {
         DURATION_INSTANT,
         DURATION_TIMED,
         DURATION_INFINITE,
     };
+    /// Réaction à une nouvelle application de la même ressource déjà active.
     enum StackingPolicy
     {
         STACKING_SEPARATE, // chaque application est une instance indépendante
@@ -138,6 +142,7 @@ class GameplayEffect : public Resource
     bool is_periodic() const { return duration_policy != DURATION_INSTANT && period > 0.0; }
 
     // Appels des scripts (par AbilitySystem)
+    /// Appellent les méthodes virtuelles de script _on_applied / _on_removed / _on_period.
     void notify_applied(AbilitySystem *p_system, Object *p_source);
     void notify_removed(AbilitySystem *p_system);
     void notify_period(AbilitySystem *p_system);
@@ -219,6 +224,7 @@ class Ability : public Resource
     PackedStringArray get_cancel_abilities_with_tags() const { return cancel_abilities_with_tags; }
 
     // Appels des scripts (par AbilitySystem)
+    /// _can_activate du script (vrai sans surcharge), puis notifications _on_activate, _on_commit, _on_tick, _on_end.
     bool script_can_activate(AbilitySystem *p_system, Node *p_target);
     void notify_activate(AbilitySystem *p_system, Node *p_target);
     void notify_commit(AbilitySystem *p_system, Node *p_target);

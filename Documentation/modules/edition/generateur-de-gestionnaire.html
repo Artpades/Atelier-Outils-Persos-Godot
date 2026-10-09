@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Générateur de Gestionnaire · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module ⚙️ Générateur de Gestionnaire (ManagerBuilder) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/edition/generateur-de-gestionnaire.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">⚙️</div>
+    <div>
+      <h1>⚙️_ManagerBuilder - Édition et Debug - Documentation</h1>
+      <p class="subtitle">Module <strong>Générateur de Gestionnaire</strong> : un gestionnaire unique par type, créé à la demande et conservé d'une scène à l'autre, sans autoload.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/tool_editor</code></span>
+        <span class="badge">1 classe : ManagerBuilder</span>
+        <span class="badge">GDScript &amp; C++</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un gestionnaire de caméras, de scènes ou d'inventaire doit exister <strong>une seule fois</strong>. Avec un autoload, il faut le déclarer dans chaque projet ; en le plaçant dans les scènes, on se retrouve avec un doublon à chaque scène chargée. <strong>Ce module garantit l'unicité</strong> : le gestionnaire est créé la première fois qu'on le demande, ou adopté s'il est déjà dans la scène, et toute copie supplémentaire est détruite.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🏭 Créer à la demande</h4>
+      <p><code>make_getter("CameraManager")</code> renvoie le gestionnaire existant ou le crée sous la racine de l'arbre, où il survit aux changements de scène.</p>
+    </div>
+    <div class="card">
+      <h4>🛡️ Éliminer les doublons</h4>
+      <p><code>init_instance(nom, self)</code>, appelé par le gestionnaire à son entrée dans l'arbre, garde le premier et détruit les suivants.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui écrivent des gestionnaires : en C++ dans les autres modules du toolkit (<code>CameraManager</code>, <code>SceneManager</code> l'utilisent déjà), ou en GDScript.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un conteneur d'injection de dépendances</strong> : un nom = un nœud, sans interface, sans portée ni durée de vie configurables.</li>
+      <li><strong>Pas un chargeur de scènes ou de scripts</strong> : seules les classes natives (moteur ou GDExtension) peuvent être <em>créées</em> ; un gestionnaire GDScript doit s'enregistrer lui-même.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'onglet <em>Distant</em> de l'arbre de scène en cours de jeu, montrant sous <code>root</code> un nœud « CameraManager (Singleton) » à côté de la scène courante, avant et après un changement de scène.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code> dans le <code>.gdextension</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code></td><td><strong>Obligatoire</strong></td><td>Elle enregistre <code>ManagerBuilder</code> et contient le registre global (avec tous les autres outils d'édition).</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/🧰🧑‍💻/ManagerBase icon.png</code></td><td>Optionnelle</td><td>Icône de la classe dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Les modules C++ qui l'utilisent (caméras, scènes) passent par <code>manager_builder_access.hpp</code> : <strong>sans <code>bin/tool_editor/</code>, ils fonctionnent encore</strong>, mais leur gestionnaire n'est plus créé à la demande (seule une instance placée dans la scène est retrouvée).</p>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler la bibliothèque</strong> si nécessaire :
+      <pre><code class="language-shell">scons tool_editor</code></pre>
+      <div class="why">compile la bibliothèque des outils d'édition et régénère son <code>.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code>, puis <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/tool_editor/…</code> codés dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload à déclarer : c'est précisément ce que le module remplace.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Écrire un gestionnaire GDScript unique, présent dans plusieurs scènes :</p>
+  <ol class="steps">
+    <li>
+      <strong>S'enregistrer à l'entrée dans l'arbre</strong> et s'arrêter si l'on est un doublon :
+      <pre><code class="gdscript">extends Node  # script « inventaire.gd », nœud placé dans chaque niveau
+
+var objets: Array[String] = []
+
+func _enter_tree() -> void:
+	if ManagerBuilder.init_instance(&"Inventaire", self) != self:
+		return  # une instance existe déjà : celle-ci va être détruite</code></pre>
+      <div class="why">le premier inventaire devient l'instance de référence ; les suivants sont détruits par <code>queue_free</code> et ne doivent rien initialiser.</div>
+    </li>
+    <li>
+      <strong>Se désenregistrer en sortant de l'arbre</strong> :
+      <pre><code class="gdscript">func _exit_tree() -> void:
+	ManagerBuilder.unregister_instance(&"Inventaire", self)</code></pre>
+      <div class="why">sans cela, un nœud sorti de l'arbre mais pas encore libéré resterait renvoyé par <code>make_getter</code>. Un doublon qui se désenregistre n'efface pas l'instance de référence.</div>
+    </li>
+    <li>
+      <strong>Le récupérer depuis n'importe quel script</strong> :
+      <pre><code class="gdscript">var inventaire = ManagerBuilder.make_getter(&"Inventaire")
+if inventaire:
+	inventaire.objets.append("Clé")</code></pre>
+      <div class="why"><code>make_getter</code> consulte d'abord le registre : il retrouve le gestionnaire GDScript enregistré. S'il n'y en a pas, il renvoie <code>null</code> (une classe GDScript ne peut pas être créée par le module).</div>
+    </li>
+    <li>
+      <strong>Persister d'une scène à l'autre</strong> (facultatif) : déplacer le nœud sous la racine à la première initialisation.
+      <pre><code class="gdscript">func _ready() -> void:
+	if is_queued_for_deletion():
+		return  # doublon (son _ready est quand même appelé)
+	if get_parent() != get_tree().root:
+		reparent.call_deferred(get_tree().root)</code></pre>
+      <div class="why">un nœud placé dans une scène est détruit avec elle ; sous la racine, il survit à <code>change_scene_to_file</code>. Les nœuds créés par <code>make_getter</code> y sont placés d'office.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/ManagerBuilder.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li>Le registre <code>_get_registry()</code> (table statique <code>StringName → ObjectID</code>) et <code>_resolve()</code>, qui purge les entrées dont l'objet a été libéré.</li>
+    <li>Les fonctions C++ <code>manager_builder::get / init / release / is_available</code> de <code>manager_builder_access.hpp</code>, destinées aux autres modules C++ (voir <a href="#ex-cpp">exemple</a>).</li>
+  </ul>
+  <div data-api="ManagerBuilder"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-natif">Comment je récupère un gestionnaire du toolkit sans l'avoir mis dans la scène ?</h3>
+  <p>Les gestionnaires natifs sont créés à la demande. Attention : le nœud est ajouté à l'arbre <strong>en différé</strong>, son <code>_ready</code> n'a pas encore été appelé au retour.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var cameras = ManagerBuilder.make_getter(&"CameraManager")
+	await get_tree().process_frame   # laisser le temps au nœud d'entrer dans l'arbre
+	print(cameras.name)              # « CameraManager (Singleton) »</code></pre>
+
+  <h3 id="ex-moteur">Comment je partage un nœud du moteur entre toutes les scènes ?</h3>
+  <p>N'importe quelle classe native dérivée de <code>Node</code> convient, par exemple un lecteur de musique d'ambiance unique :</p>
+  <pre><code class="gdscript">func jouer_ambiance(flux: AudioStream) -> void:
+	var lecteur: AudioStreamPlayer = ManagerBuilder.make_getter(&"AudioStreamPlayer")
+	lecteur.stream = flux
+	lecteur.play.call_deferred()  # le nœud n'est dans l'arbre qu'à la fin de la frame</code></pre>
+  <p>La clé du registre est le nom de classe : un seul <code>AudioStreamPlayer</code> peut être géré ainsi. Pour plusieurs, enregistrer ses propres nœuds sous des clés différentes avec <code>init_instance</code>.</p>
+
+  <h3 id="ex-reset">Comment je recrée un gestionnaire (nouvelle partie) ?</h3>
+  <pre><code class="gdscript">func nouvelle_partie() -> void:
+	var ancien = ManagerBuilder.make_getter(&"Inventaire")
+	if ancien:
+		ManagerBuilder.unregister_instance(&"Inventaire", ancien)
+		ancien.queue_free()
+	# le prochain inventaire qui entre dans l'arbre deviendra l'instance de référence</code></pre>
+
+  <h3 id="ex-cpp">Comment j'en fais profiter un gestionnaire C++ d'un autre module ?</h3>
+  <p>Un autre module GDExtension ne peut pas appeler directement le code de <code>tool_editor</code> : il inclut <code>manager_builder_access.hpp</code>, qui passe par <code>ClassDB</code> (modèle de <code>CameraManager</code> et <code>SceneManager</code>).</p>
+  <pre><code class="language-cpp">#include "1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/manager_builder_access.hpp"
+
+static ObjectID instance_id;
+MonManager *MonManager::get_instance() { return manager_builder::get&lt;MonManager&gt;(instance_id); }
+void MonManager::_enter_tree() { if (!manager_builder::init(instance_id, this)) return; /* ... */ }
+void MonManager::_exit_tree() { manager_builder::release(instance_id, this); }</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Plantage avec une classe <code>RefCounted</code>.</strong> <code>make_getter(&amp;"Resource")</code> (ou toute classe dérivée de <code>RefCounted</code>) fait planter le moteur (vérifié en headless) : l'objet créé est libéré par le moteur avant d'être détruit une seconde fois par le module. Ne passer que des noms de classes dérivées de <code>Node</code>. Une classe <code>Object</code> simple est, elle, correctement refusée.</li>
+    <li><strong>Création réservée aux classes natives.</strong> Un <code>class_name</code> GDScript n'est pas dans <code>ClassDB</code> : <code>make_getter</code> ne peut que le <em>retrouver</em> une fois enregistré par <code>init_instance</code> (vérifié).</li>
+    <li><strong>Ajout à l'arbre différé.</strong> Le nœud renvoyé par une création n'est pas encore dans l'arbre : pas de <code>_ready</code>, pas de <code>get_tree()</code> avant la fin de la frame (vérifié).</li>
+    <li><strong>Le doublon n'est détruit qu'en fin de frame</strong> (<code>queue_free</code>) et son <code>_enter_tree</code> continue : c'est au script de s'arrêter (<code>return</code>) quand <code>init_instance</code> ne le renvoie pas.</li>
+    <li><strong>Un nom = une instance, pour tout le projet.</strong> Le registre est global et n'est jamais vidé par un changement de scène ; deux systèmes qui utilisent la même clé se partagent le même nœud.</li>
+    <li><strong>Un gestionnaire placé dans une scène n'est pas déplacé sous la racine</strong> : il est détruit avec sa scène (le registre l'oublie alors automatiquement), à moins de le reparenter soi-même.</li>
+    <li><strong>Pas de garde-fou de type.</strong> <code>init_instance(&amp;"CameraManager", un_label)</code> est accepté : la clé n'est pas comparée à la classe du nœud.</li>
+    <li><strong>Non sûr entre threads</strong> : le registre est une table statique sans verrou ; n'appeler les méthodes que depuis le thread principal.</li>
+    <li><strong>Erreurs signalées en console seulement</strong> (texte rouge), avec un retour <code>null</code> : tester le résultat.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 230" role="img" aria-label="Schéma d'architecture du Générateur de Gestionnaire">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="20" width="170" height="54" rx="8"/>
+    <text x="105" y="44" text-anchor="middle">Script GDScript</text>
+    <text x="105" y="62" text-anchor="middle" class="small">make_getter / init_instance</text>
+    <rect class="box" x="20" y="150" width="170" height="54" rx="8"/>
+    <text x="105" y="174" text-anchor="middle">Module C++ (caméras…)</text>
+    <text x="105" y="192" text-anchor="middle" class="small">manager_builder_access.hpp</text>
+    <rect class="box main" x="300" y="80" width="190" height="64" rx="8"/>
+    <text x="395" y="106" text-anchor="middle">ManagerBuilder</text>
+    <text x="395" y="126" text-anchor="middle" class="small">registre StringName → ObjectID</text>
+    <rect class="box" x="600" y="20" width="230" height="54" rx="8"/>
+    <text x="715" y="44" text-anchor="middle">ClassDB</text>
+    <text x="715" y="62" text-anchor="middle" class="small">instantiate(classe native)</text>
+    <rect class="box" x="600" y="150" width="230" height="54" rx="8"/>
+    <text x="715" y="174" text-anchor="middle">SceneTree.root</text>
+    <text x="715" y="192" text-anchor="middle" class="small">« X (Singleton) » ajouté en différé</text>
+    <path class="arrow" d="M190 47 Q250 60 298 100" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M190 177 Q250 160 298 125" marker-end="url(#arr)"/>
+    <text x="244" y="186" text-anchor="middle" class="small">ClassDB.class_call_static</text>
+    <path class="arrow" d="M490 100 Q545 60 598 47" marker-end="url(#arr)"/>
+    <path class="arrow" d="M490 125 Q545 165 598 177" marker-end="url(#arr)"/>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>ManagerBuilder</code></strong> n'a que des méthodes statiques, appelées directement. Son registre est une <code>HashMap&lt;StringName, ObjectID&gt;</code> statique propre à la bibliothèque <code>tool_editor</code>, donc unique dans le projet.</li>
+    <li>Chaque lecture résout l'<code>ObjectID</code> par <code>instance_from_id</code> : un nœud libéré donne <code>null</code>, et l'entrée est alors retirée.</li>
+    <li><code>make_getter</code> crée via <code>ClassDBSingleton::instantiate</code>, nomme le nœud <code>"X (Singleton)"</code>, l'enregistre <em>avant</em> de l'ajouter (<code>call_deferred("add_child")</code> sur la racine). Quand le nœud entre dans l'arbre et appelle <code>init_instance</code>, il se trouve déjà enregistré et reste l'instance de référence.</li>
+    <li>Les autres modules C++ passent par <code>manager_builder_access.hpp</code> (<code>class_call_static</code>), avec un cache <code>ObjectID</code> local qui prend le relais si <code>tool_editor</code> est absente.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Ne dépend d'aucune autre classe du toolkit.</li>
+    <li>Utilisé par <em>🎞️ Gestion de Caméras</em> (<code>CameraManager</code>), <em>🎬 Gestionnaire de scènes</em> (<code>SceneManager</code>) et, dans la même bibliothèque, par <a href="systeme-de-handles.html">✋ Système de Handles</a>. Le couplage va de ces modules vers <code>ManagerBuilder</code>, et seulement via <code>ClassDB</code> pour les modules extérieurs.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Registre plutôt que recherche par nom dans l'arbre (<code>find_child</code>)</td><td>La version GDScript d'origine cherchait « X » alors que le nœud s'appelait « X (Singleton) » : elle ne retrouvait jamais l'instance. Le registre est la seule source de vérité.</td></tr>
+        <tr><td><code>ObjectID</code> plutôt que pointeur</td><td>Un gestionnaire libéré sans désenregistrement laisserait un pointeur invalide ; l'<code>ObjectID</code> se résout en <code>null</code> sans risque.</td></tr>
+        <tr><td>Classes natives uniquement pour la création</td><td>Le module gère les singletons natifs du framework, pas des scripts chargés dynamiquement (pas de <code>Script</code> ni de <code>PackedScene</code>).</td></tr>
+        <tr><td>Ajout différé à la racine</td><td>Évite de modifier l'arbre pendant une transition de scène ou un parcours en cours (erreur « parent busy »).</td></tr>
+        <tr><td>Accès par <code>ClassDB</code> depuis les autres modules</td><td>Chaque module est une bibliothèque séparée : inclure <code>manager_builder.hpp</code> ailleurs ne serait pas lié. Passer par <code>ClassDB</code> évite aussi une dépendance dure à <code>tool_editor</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>ManagerBuilder</code>, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>manager_builder_access.hpp</code> : accès depuis les autres modules GDExtension (conversion des modules caméras, scènes…).</li>
+    </ul>
+    <h3 id="v0-1">0.1 <span class="date">2026-09-08</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>ManagerBuilder</code> : <code>make_getter</code>, <code>init_instance</code>, <code>unregister_instance</code>, portage C++ du ManagerBuilder GDScript / C#.</li>
+    </ul>
+  </div>
+
+  <footer>Module ⚙️ Générateur de Gestionnaire · sources : <code>src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/⚙️Générateur de Gestionnaire/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "ManagerBuilder.make_getter": "Obtenir le gestionnaire de caméras ou de scènes depuis n'importe quel script, sans autoload ; retrouver un gestionnaire GDScript enregistré.",
+  "ManagerBuilder.init_instance": "Dans <code>_enter_tree</code> d'un gestionnaire placé dans plusieurs niveaux : garder le premier, détruire les copies.",
+  "ManagerBuilder.unregister_instance": "Dans <code>_exit_tree</code> du gestionnaire, ou pour le remplacer par un neuf (nouvelle partie)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

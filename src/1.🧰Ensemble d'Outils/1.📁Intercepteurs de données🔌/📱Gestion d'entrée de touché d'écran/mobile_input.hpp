@@ -20,6 +20,7 @@ class MobileInput : public Node
     GDCLASS(MobileInput, Node)
 
   public:
+    /// Direction d'un swipe : axe dominant du déplacement entre l'appui et le relâchement.
     enum SwipeDirection
     {
         SWIPE_NONE,
@@ -29,6 +30,7 @@ class MobileInput : public Node
         SWIPE_DOWN,
     };
 
+    /// Capteurs lus à chaque image (indices de `sensors` et des propriétés use_* / *_sensitivity).
     enum Sensor
     {
         SENSOR_GYROSCOPE,

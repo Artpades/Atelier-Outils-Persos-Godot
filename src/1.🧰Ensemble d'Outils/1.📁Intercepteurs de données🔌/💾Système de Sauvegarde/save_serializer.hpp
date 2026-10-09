@@ -16,6 +16,7 @@ class SaveSerializer : public Object
     static void _bind_methods();
 
   public:
+    /// JSON sur une ligne : { "system_id": ..., "data": ... }. Les types non JSON (Vector2, Color...) deviennent du texte.
     static String serialize(const Ref<SaveData> &p_save_data);
     /// Retourne un SaveData nul si le JSON est invalide ou n'est pas un dictionnaire.
     static Ref<SaveData> deserialize(const String &p_json);

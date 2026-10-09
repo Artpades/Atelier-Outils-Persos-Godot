@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SignalLink" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Lien « signal → méthode » enregistré dans un registre (mode ressource), avec une source libre pour chaque paramètre.
 	</brief_description>
 	<description>
+		Stocké dans [member DataEntry.links] d'une entrée de signal. [method connect_to] le connecte à un émetteur ; à chaque émission, la méthode [member method] de la cible est appelée avec un argument par [ArgumentBinding] de [member arguments], résolu avec l'émetteur comme contexte.
+		Les connexions ne sont pas enregistrées ([code]CONNECT_PERSIST[/code] non utilisé) : elles sont refaites en jeu par le [LayoutLinker] ou un [ProceduralEditor]. Un appel récursif (la méthode réémet le signal qui la déclenche) est ignoré avec un avertissement.
+		[codeblock]
+		var lien := SignalLink.new()
+		lien.target_path = ^"../Interface"
+		lien.method = &amp;"afficher_degats"
+		var degats := ArgumentBinding.new()
+		degats.source = ArgumentBinding.SOURCE_SIGNAL_ARG
+		degats.signal_index = 0
+		lien.arguments = [degats]
+		lien.connect_to($Joueur, &amp;"touche")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,37 +25,46 @@
 			<param index="0" name="source" type="Object" />
 			<param index="1" name="signal" type="StringName" />
 			<description>
+				Connecte le lien au signal [param signal] de [param source]. Idempotent (déconnecte d'abord l'éventuelle connexion existante). Rien n'est connecté si le lien est désactivé, sans méthode, ou si le signal n'existe pas.
 			</description>
 		</method>
 		<method name="disconnect_from">
 			<return type="void" />
 			<param index="0" name="source" type="Object" />
 			<description>
+				Retire la connexion de ce lien sur [param source], s'il y en a une.
 			</description>
 		</method>
 		<method name="is_connected_to" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="source" type="Object" />
 			<description>
+				Renvoie [code]true[/code] si le lien est actuellement connecté à [param source].
 			</description>
 		</method>
 		<method name="resolve_target" qualifiers="const">
 			<return type="Object" />
 			<param index="0" name="source" type="Object" />
 			<description>
+				Renvoie l'objet appelé : [member target_resource], sinon le nœud à [member target_path] relatif à [param source] (vide : [param source] lui-même).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="arguments" type="ArgumentBinding[]" setter="set_arguments" getter="get_arguments" default="[]">
+			Une source par paramètre de la méthode, dans l'ordre.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="get_enabled" default="true">
+			Si [code]false[/code], le lien n'est pas connecté et n'appelle rien.
 		</member>
 		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+			Méthode appelée sur la cible. Si elle est introuvable à l'émission, un avertissement est écrit.
 		</member>
 		<member name="target_path" type="NodePath" setter="set_target_path" getter="get_target_path" default="NodePath(&quot;&quot;)">
+			Nœud appelé, relatif à l'émetteur. Vide : l'émetteur lui-même.
 		</member>
 		<member name="target_resource" type="Resource" setter="set_target_resource" getter="get_target_resource">
+			Ressource appelée, prioritaire sur [member target_path].
 		</member>
 	</members>
 </class>

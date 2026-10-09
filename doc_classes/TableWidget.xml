@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TableWidget" inherits="CollectionWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un Array d'objets ou de dictionnaires présenté en tableau : une ligne par élément, une colonne par propriété ou clé.
 	</brief_description>
 	<description>
+		Chaque cellule est un widget normal (édition, annulation) sans libellé. Les éléments qui ne sont ni objets ni dictionnaires sont affichés dans une colonne « @valeur ». Réglages : [TableWidgetSettings] (colonnes, transposition).
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Model3DPreview" inherits="PreviewWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Aperçu d'un modèle 3D (Mesh, PackedScene 3D ou copie d'un Node3D) dans une scène isolée.
 	</brief_description>
 	<description>
+		Le modèle est placé dans un [PreviewStage3D] cadré sur sa boîte englobante : glisser pour tourner, molette pour zoomer.
+		[b]Note :[/b] classe d'aperçu fournie, choisie par [member PreviewSettings.preview_class].
 	</description>
 	<tutorials>
 	</tutorials>

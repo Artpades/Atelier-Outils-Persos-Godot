@@ -21,9 +21,12 @@ class FXFade : public Effect
     GDCLASS(FXFade, Effect)
 
   public:
+    /// Ce qui est animé sur la cible.
     enum FadeMode
     {
+        /// La propriété couleur color_property, jusqu'à color.
         FADE_COLOR,
+        /// La propriété texture texture_property, jusqu'à texture (fondu enchaîné).
         FADE_TEXTURE,
     };
 
@@ -49,18 +52,26 @@ class FXFade : public Effect
   protected:
     static void _bind_methods();
 
+    /// Capture l'état d'origine (sauf si l'effet est relancé), puis lance le fondu vers color / texture.
     void _play(Node *p_target) override;
+    /// Fondu inverse vers l'état d'origine si revert_on_stop.
     void _stop(Node *p_target) override;
 
   private:
     FadeMode mode = FADE_COLOR;
+    /// Couleur visée en mode couleur (par défaut : blanc transparent, la cible disparaît).
     Color color = Color(1, 1, 1, 0);
+    /// Chemin de la propriété Color animée (sous-propriétés acceptées : "material_override:albedo_color").
     String color_property = "modulate";
+    /// Texture visée en mode texture.
     Ref<Texture2D> texture;
+    /// Chemin de la propriété Texture2D remplacée.
     String texture_property = "texture";
+    /// Durée du fondu en secondes (0 : changement immédiat).
     float duration = 0.5f;
     Tween::TransitionType transition = Tween::TRANS_SINE;
     Tween::EaseType ease_type = Tween::EASE_IN_OUT;
+    /// À l'arrêt, revenir à la couleur / texture d'origine.
     bool revert_on_stop = true;
 
     // État du fondu
@@ -73,10 +84,13 @@ class FXFade : public Effect
     Ref<Texture2D> pending_texture;
     ObjectID crossfade_target_id;
 
+    /// Anime color_property de la cible jusqu'à p_color (immédiat sans Tween possible).
     void _fade_color_to(Node *p_target, const Color &p_color);
+    /// Fondu enchaîné vers p_texture : shader sur un CanvasItem, effacement / réapparition sinon.
     void _fade_texture_to(Node *p_target, const Ref<Texture2D> &p_texture);
     /// Termine le fondu enchaîné en cours : texture finale posée, matériau d'origine rendu.
     void _finish_crossfade();
+    /// Tue l'animation précédente et en crée une nouvelle sur la cible (nulle si duration <= 0 ou hors de l'arbre).
     Ref<Tween> _new_tween(Node *p_target);
 };
 } // namespace godot

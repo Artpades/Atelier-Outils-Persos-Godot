@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTTimeLimit" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Limite de temps : interrompt l'enfant et échoue s'il reste en cours plus de [member duration] secondes.
 	</brief_description>
 	<description>
+		Évite qu'une action bloquée (chemin impossible, cible inatteignable) ne monopolise l'arbre. Le temps compté est celui de l'exécution en cours du décorateur ([method BTNode.get_running_time]). Sans enfant, échoue.
+		[codeblock]
+		var limite := BTTimeLimit.new()
+		limite.duration = 3.0
+		limite.add_child(action_aller_vers_cible)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="5.0">
+			Temps maximal d'exécution, en secondes. L'interruption a lieu au premier tick où ce temps est atteint.
 		</member>
 	</members>
 </class>

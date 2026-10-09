@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Effect" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		✨ Classe de base des effets spéciaux : ressource jouée sur un nœud cible par un [PlayerFX], qui peut entraîner d'autres effets à son jeu et à son arrêt.
 	</brief_description>
 	<description>
+		Un effet est une [Resource] : on le règle dans l'inspecteur, on l'enregistre en [code].tres[/code] et on le réutilise. Il ne fait rien seul : un [PlayerFX] l'appelle sur une cible ([method play_fx], puis [method process_fx] et [method physics_process_fx] à chaque frame, puis [method stop_fx]). Il peut aussi être piloté directement par script.
+		- [b]Cycle de vie[/b] : [method play_fx] active l'effet et émet [signal fx_played] ; tant qu'il est actif, les mises à jour sont transmises ; [method stop_fx] le désactive et émet [signal fx_stopped]. Un effet inactif ignore les mises à jour et l'arrêt.
+		- [b]Enchaînement[/b] : [member effects_on_play_fx] sont joués, mis à jour et arrêtés avec lui ; [member effects_on_stop_fx] sont seulement joués à son arrêt (sans mise à jour ensuite). Un effet qui s'enchaîne lui-même ne provoque pas de boucle infinie.
+		- [b]Effet personnalisé[/b] : un script qui hérite de [Effect] surcharge [method _play_fx], [method _process_fx], [method _physics_process_fx] et [method _stop_fx].
+		L'état d'un effet (position d'origine, minuteur...) est stocké dans la ressource : [member Resource.resource_local_to_scene] est actif par défaut pour que chaque instance de scène ait sa propre copie. Une même instance d'effet ne doit donc pas être jouée sur deux cibles à la fois.
+		[codeblock]
+		# Effet personnalisé : fait tourner la cible tant qu'il est actif.
+		extends Effect
+
+		@export var vitesse := 4.0
+
+		func _process_fx(delta: float, target: Node) -> void:
+			if target is Node2D:
+				target.rotation += vitesse * delta
+
+		func _stop_fx(target: Node) -> void:
+			if target is Node2D:
+				target.rotation = 0.0
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,12 +32,14 @@
 			<param index="0" name="delta" type="float" />
 			<param index="1" name="target" type="Node" />
 			<description>
+				À surcharger dans un script : appelée à chaque frame physique tant que l'effet est actif, avec la durée [param delta] de la frame et la cible [param target].
 			</description>
 		</method>
 		<method name="_play_fx" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="target" type="Node" />
 			<description>
+				À surcharger dans un script : appelée au jeu de l'effet, avant l'émission de [signal fx_played]. Également appelée si l'effet est relancé alors qu'il est déjà actif.
 			</description>
 		</method>
 		<method name="_process_fx" qualifiers="virtual">
@@ -25,22 +47,26 @@
 			<param index="0" name="delta" type="float" />
 			<param index="1" name="target" type="Node" />
 			<description>
+				À surcharger dans un script : appelée à chaque frame de rendu tant que l'effet est actif, avec la durée [param delta] de la frame et la cible [param target].
 			</description>
 		</method>
 		<method name="_stop_fx" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="target" type="Node" />
 			<description>
+				À surcharger dans un script : appelée à l'arrêt de l'effet, pour remettre la cible dans son état d'origine. N'est pas appelée si l'effet n'était pas actif.
 			</description>
 		</method>
 		<method name="get_player_fx" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie le [PlayerFX] qui joue l'effet (nul si l'effet n'a jamais été confié à un [PlayerFX], ou s'il a été libéré). Les chemins [NodePath] des effets ([member FXFollower.targets]...) sont relatifs à ce nœud.
 			</description>
 		</method>
 		<method name="is_activated" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] entre [method play_fx] et [method stop_fx].
 			</description>
 		</method>
 		<method name="physics_process_fx">
@@ -48,12 +74,14 @@
 			<param index="0" name="delta" type="float" />
 			<param index="1" name="target" type="Node" default="null" />
 			<description>
+				Met à jour l'effet et ses [member effects_on_play_fx] pour une frame physique. Sans effet si l'effet n'est pas actif. Appelée automatiquement par le [PlayerFX].
 			</description>
 		</method>
 		<method name="play_fx">
 			<return type="void" />
 			<param index="0" name="target" type="Node" default="null" />
 			<description>
+				Joue l'effet sur [param target] : appelle [method _play_fx], émet [signal fx_played], puis joue les [member effects_on_play_fx] sur la même cible. Rejouer un effet déjà actif le relance (le minuteur repart) en conservant l'état d'origine capturé au premier jeu.
 			</description>
 		</method>
 		<method name="process_fx">
@@ -61,35 +89,42 @@
 			<param index="0" name="delta" type="float" />
 			<param index="1" name="target" type="Node" default="null" />
 			<description>
+				Met à jour l'effet et ses [member effects_on_play_fx] pour une frame de rendu. Sans effet si l'effet n'est pas actif. Appelée automatiquement par le [PlayerFX].
 			</description>
 		</method>
 		<method name="set_player_fx">
 			<return type="void" />
 			<param index="0" name="player" type="Node" />
 			<description>
+				Désigne le [PlayerFX] de l'effet, et le transmet à tous ses effets enchaînés. Fait automatiquement par [method PlayerFX.play] et [member PlayerFX.special_effects] ; à appeler soi-même seulement pour un effet joué par script sans [PlayerFX] qui utilise des chemins de nœuds.
 			</description>
 		</method>
 		<method name="stop_fx">
 			<return type="void" />
 			<param index="0" name="target" type="Node" default="null" />
 			<description>
+				Arrête l'effet : appelle [method _stop_fx], arrête les [member effects_on_play_fx], joue les [member effects_on_stop_fx], puis émet [signal fx_stopped]. Sans effet si l'effet n'est pas actif.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="effects_on_play_fx" type="Effect[]" setter="set_effects_on_play_fx" getter="get_effects_on_play_fx" default="[]">
+			Effets joués en même temps que celui-ci, sur la même cible : ils sont mis à jour et arrêtés avec lui.
 		</member>
 		<member name="effects_on_stop_fx" type="Effect[]" setter="set_effects_on_stop_fx" getter="get_effects_on_stop_fx" default="[]">
+			Effets joués à l'arrêt de celui-ci, sur la même cible. Ils ne reçoivent [b]aucune mise à jour par frame[/b] et ne sont jamais arrêtés : seuls les effets qui agissent dès leur jeu ([FXAudio], [FXPop], [FXFade], [FXChangeSize]) y ont un résultat visible. Un [FXShake] ou un [FXFollower] placé ici ne fait rien.
 		</member>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="true" />
 	</members>
 	<signals>
 		<signal name="fx_played">
 			<description>
+				Émis au jeu de l'effet (y compris s'il est relancé), juste après [method _play_fx] et avant le jeu des [member effects_on_play_fx]. Émis au [i]début[/i] de l'effet, pas à sa fin.
 			</description>
 		</signal>
 		<signal name="fx_stopped">
 			<description>
+				Émis à l'arrêt de l'effet, une fois la cible restaurée et les effets enchaînés traités. Émis aussi quand un effet à durée limitée ([FXShake]) s'arrête seul.
 			</description>
 		</signal>
 	</signals>

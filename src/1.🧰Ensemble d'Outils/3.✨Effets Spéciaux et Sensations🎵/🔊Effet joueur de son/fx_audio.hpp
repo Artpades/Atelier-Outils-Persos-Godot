@@ -57,7 +57,7 @@ class FXAudio : public Effect
     float min_pitch = 0.9f;
     float max_pitch = 1.1f;
 
-    ObjectID audio_player_id;
+    ObjectID audio_player_id; // lecteur interne créé sous la dernière cible
 
     /// Lecteur existant sous p_target, sinon créé.
     Node *_get_or_create_player(Node *p_target);

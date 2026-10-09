@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="EnableIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement « Activer si » : les widgets des cibles passent en lecture seule tant que la condition est fausse.
 	</brief_description>
 	<description>
+		Les contrôles sont désactivés et le widget est atténué ; aucune valeur n'est écrite tant qu'il est verrouillé ([method PropertyWidget.set_locked]).
+		[codeblock]
+		var activer := EnableIfBehavior.new()
+		activer.get_condition().property_path = ^"utilise_physique"
+		activer.targets = PackedStringArray(["masse", "friction"])
+		registre.behaviors.append(activer)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
-	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
-	</members>
 </class>

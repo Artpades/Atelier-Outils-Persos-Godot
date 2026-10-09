@@ -1,17 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTFindTarget" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎯 Feuille d'arbre de comportement : cherche le personnage le plus proche de l'agent et le range dans le tableau noir.
 	</brief_description>
 	<description>
+		Utilise [method CharacterRegister.get_nearest] depuis l'agent du [BehaviorTree] (personnages vivants uniquement). Renvoie [code]SUCCESS[/code] et écrit le nœud trouvé sous [member key] ; sinon [code]FAILURE[/code] et efface [member key]. Se termine en un tick.
+		[codeblock]
+		# Séquence : trouver un ennemi, s'en approcher, le mordre.
+		var sequence := BTSequence.new()
+		var chercher := BTFindTarget.new()
+		chercher.max_distance = 300.0
+		var approcher := BTMoveTo.new()      # lit la même clé « cible »
+		var mordre := BTUseAbility.new()
+		mordre.ability_id = &amp;"morsure"
+		mordre.target_key = "cible"
+		for feuille in [chercher, approcher, mordre]:
+			sequence.add_child(feuille)
+		$BehaviorTree.add_child(sequence)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="hostile_only" type="bool" setter="set_hostile_only" getter="get_hostile_only" default="true">
+			Si [code]true[/code], seuls les personnages hostiles à l'agent sont retenus ([method Character2D.is_hostile_to]) ; l'agent doit alors être un personnage.
 		</member>
 		<member name="key" type="String" setter="set_key" getter="get_key" default="&quot;cible&quot;">
+			Clé du tableau noir où la cible (le nœud) est écrite.
 		</member>
 		<member name="max_distance" type="float" setter="set_max_distance" getter="get_max_distance" default="-1.0">
+			Distance de recherche maximale ; négative : sans limite.
 		</member>
 	</members>
 </class>

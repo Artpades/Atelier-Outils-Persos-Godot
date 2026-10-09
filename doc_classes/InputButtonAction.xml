@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputButtonAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action bouton : touche, bouton de souris, bouton ou gâchette de manette, ou action de l'InputMap ; appui, relâchement, maintien, appuis multiples.
 	</brief_description>
 	<description>
+		Enfoncée dès que l'une de ses entrées l'est : [member key], [member mouse_button], [member joy_button], [member joy_axis] poussé au-delà de [member InputAction.dead_zone], ou l'action [member input_map_action] de l'InputMap de Godot.
+		Signaux : [signal pressed], [signal released], [signal toggled] (pratique pour [code]set_course(actif)[/code]), [signal held] après [member held_delay] secondes de maintien, [signal multi_pressed] après [member multi_press_count] appuis rapprochés.
+		[codeblock]
+		var tir := InputButtonAction.new()
+		tir.action_name = &amp;"tir"
+		tir.key = KEY_SPACE
+		tir.mouse_button = MOUSE_BUTTON_LEFT
+		tir.joy_axis = JOY_AXIS_TRIGGER_RIGHT # gâchette droite
+		tir.held.connect(func(): print("Tir chargé !"))
+		tir.multi_pressed.connect(func(n): print("Rafale de ", n))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,74 +22,95 @@
 		<method name="get_held_time" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie depuis combien de secondes le bouton est enfoncé (somme des [code]delta[/code] des mises à jour), 0 s'il est relâché.
 			</description>
 		</method>
 		<method name="is_just_pressed" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] seulement lors de la mise à jour où le bouton a été enfoncé.
 			</description>
 		</method>
 		<method name="is_just_released" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] seulement lors de la mise à jour où le bouton a été relâché.
 			</description>
 		</method>
 		<method name="is_pressed" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] tant que le bouton est enfoncé.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="held_delay" type="float" setter="set_held_delay" getter="get_held_delay" default="0.4">
+			Durée de maintien (secondes) avant [signal held]. Émis une fois par appui.
 		</member>
 		<member name="input_map_action" type="StringName" setter="set_input_map_action" getter="get_input_map_action" default="&amp;&quot;&quot;">
+			Action de l'InputMap du projet lue en plus des autres entrées (ex. [code]ui_accept[/code]). Ignorée si l'action n'existe pas. Elle n'est pas concernée par la réassignation ni par les filtres de périphériques.
 		</member>
 		<member name="joy_axis" type="int" setter="set_joy_axis" getter="get_joy_axis" default="-1">
+			Axe de manette qui enfonce le bouton (gâchette, stick), [code]-1[/code] pour aucun. Seuil : [member InputAction.dead_zone].
 		</member>
 		<member name="joy_axis_direction" type="int" setter="set_joy_axis_direction" getter="get_joy_axis_direction" enum="InputButtonAction.AxisDirection" default="1">
+			Sens de [member joy_axis] qui enfonce le bouton : positif, négatif ou les deux.
 		</member>
 		<member name="joy_button" type="int" setter="set_joy_button" getter="get_joy_button" default="-1">
+			Bouton de manette ([enum JoyButton]), [code]-1[/code] pour aucun.
 		</member>
 		<member name="key" type="int" setter="set_key" getter="get_key" default="0">
+			Touche du clavier ([enum Key]), [code]0[/code] pour aucune. Lue par position physique si [member InputAction.physical_keys] est vrai.
 		</member>
 		<member name="mouse_button" type="int" setter="set_mouse_button" getter="get_mouse_button" default="0">
+			Bouton de souris ([enum MouseButton]), [code]0[/code] pour aucun. La molette n'est pas lisible ainsi (elle n'est jamais « maintenue ») : utiliser [InputMouseAction].
 		</member>
 		<member name="multi_press_count" type="int" setter="set_multi_press_count" getter="get_multi_press_count" default="2">
+			Nombre d'appuis rapprochés pour [signal multi_pressed] (2 = double appui). Le compteur repart à zéro après l'émission.
 		</member>
 		<member name="multi_press_delay" type="float" setter="set_multi_press_delay" getter="get_multi_press_delay" default="0.3">
+			Délai maximal (secondes) entre deux appuis pour qu'ils comptent dans le même appui multiple.
 		</member>
 	</members>
 	<signals>
 		<signal name="held">
 			<description>
+				Émis une fois quand le bouton est maintenu [member held_delay] secondes.
 			</description>
 		</signal>
 		<signal name="multi_pressed">
 			<param index="0" name="count" type="int" />
 			<description>
+				Émis au [param count]-ième appui rapproché (voir [member multi_press_count]). Chaque appui émet aussi [signal pressed].
 			</description>
 		</signal>
 		<signal name="pressed">
 			<description>
+				Émis quand le bouton est enfoncé.
 			</description>
 		</signal>
 		<signal name="released">
 			<description>
+				Émis quand le bouton est relâché, y compris quand l'action ou son contexte est désactivé pendant l'appui.
 			</description>
 		</signal>
 		<signal name="toggled">
 			<param index="0" name="pressed" type="bool" />
 			<description>
+				Émis à chaque appui ([param pressed] vrai) et relâchement ([param pressed] faux).
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="AXIS_BOTH" value="0" enum="AxisDirection">
+			Les deux sens de l'axe enfoncent le bouton.
 		</constant>
 		<constant name="AXIS_POSITIVE" value="1" enum="AxisDirection">
+			Seul le sens positif (gâchette, stick vers la droite / le bas).
 		</constant>
 		<constant name="AXIS_NEGATIVE" value="2" enum="AxisDirection">
+			Seul le sens négatif (stick vers la gauche / le haut).
 		</constant>
 	</constants>
 </class>

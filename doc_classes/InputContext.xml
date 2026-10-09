@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputContext" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Contexte d'entrée : groupe d'actions actives ensemble (« Exploration », « Menu », « Véhicule »), avec priorité et exclusivité.
 	</brief_description>
 	<description>
+		Ressource listant des [InputAction]. Un [PlayerInput] met à jour, à chaque image, les actions de ses contextes actifs, du plus prioritaire ([member priority]) au moins prioritaire. Un contexte [member exclusive] actif bloque tous ceux de priorité inférieure (un menu au-dessus du jeu) ; les actions d'un contexte inactif ou bloqué sont relâchées ([code]released[/code], valeur nulle).
+		En jeu, le [PlayerInput] travaille sur une copie du contexte ([member PlayerInput.runtime_copies]) : modifier la ressource d'origine après le démarrage n'a pas d'effet ; utiliser [method PlayerInput.get_context].
+		[codeblock]
+		var menu := InputContext.new()
+		menu.context_name = &amp;"menu"
+		menu.priority = 10
+		menu.exclusive = true
+		menu.enabled = false
+		var retour := InputButtonAction.new()
+		retour.action_name = &amp;"retour"
+		retour.key = KEY_ESCAPE
+		menu.add_action(retour)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,49 +25,61 @@
 			<return type="void" />
 			<param index="0" name="action" type="InputAction" />
 			<description>
+				Ajoute [param action] à la fin de la liste (sans doublon) et émet [signal Resource.changed].
 			</description>
 		</method>
 		<method name="get_action" qualifiers="const">
 			<return type="InputAction" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie la première action nommée [param name], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_action_names" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les noms de toutes les actions, dans l'ordre.
 			</description>
 		</method>
 		<method name="has_action" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si une action s'appelle [param name].
 			</description>
 		</method>
 		<method name="make_runtime_copy" qualifiers="const">
 			<return type="InputContext" />
 			<description>
+				Renvoie une copie indépendante du contexte, de ses actions et de leurs liaisons (utilisée par [PlayerInput]).
 			</description>
 		</method>
 		<method name="remove_action">
 			<return type="void" />
 			<param index="0" name="action" type="InputAction" />
 			<description>
+				Retire [param action] de la liste.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="actions" type="InputAction[]" setter="set_actions" getter="get_actions" default="[]">
+			Actions du contexte. Leurs noms doivent être uniques dans le contexte.
 		</member>
 		<member name="context_name" type="StringName" setter="set_context_name" getter="get_context_name" default="&amp;&quot;contexte&quot;">
+			Nom du contexte, utilisé par [method PlayerInput.set_context_enabled], [method PlayerInput.push_context] et dans la sauvegarde des contrôles ([code]contexte/action[/code]). Doit être unique dans le [PlayerInput].
 		</member>
 		<member name="description" type="String" setter="set_description" getter="get_description" default="&quot;&quot;">
+			Texte libre (éditeur d'entrées).
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Contexte activé. Un contexte activé peut tout de même être inactif s'il est bloqué par un contexte exclusif ou empilé plus prioritaire.
 		</member>
 		<member name="exclusive" type="bool" setter="set_exclusive" getter="is_exclusive" default="false">
+			Si [code]true[/code] et actif, les contextes de priorité inférieure sont bloqués.
 		</member>
 		<member name="priority" type="int" setter="set_priority" getter="get_priority" default="0">
+			Ordre de mise à jour et de blocage : le plus grand d'abord. À priorité égale, l'ordre de [member PlayerInput.contexts] est conservé.
 		</member>
 	</members>
 </class>

@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PlayerInput" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Gestionnaire des entrées d'un joueur : met à jour les actions de ses contextes et exécute leurs liaisons, sur un périphérique donné.
 	</brief_description>
 	<description>
+		Nœud central du module. À chaque image (ou image physique, [member process_in_physics]), il met à jour les actions de ses [member contexts] actifs, lues sur la manette [member device] et/ou le clavier-souris ([member device_filter]), et exécute leurs [InputBinding]. Chaque évènement d'action est aussi signalé par [signal action_triggered].
+		- [b]Contextes[/b] : [method set_context_enabled], [method enable_only], ou pile [method push_context] / [method pop_context] (le contexte empilé passe devant tous les autres et les bloque).
+		- [b]Lecture directe[/b] : [method is_pressed], [method is_just_pressed], [method get_axis], [method get_vector]...
+		- [b]Contrôles[/b] : [method save_bindings] / [method load_bindings] (fichier [ConfigFile]), [method reset_bindings] ; voir [InputRebinder] et [PlayerInputUI].
+		- [b]Plusieurs joueurs[/b] : un [PlayerInput] par joueur, avec un [member device] différent. Grâce à [member runtime_copies], ils peuvent partager les mêmes ressources de contexte.
+		Le bouton « 🕹️ Éditeur d'entrées » de l'inspecteur ouvre une fenêtre pour créer contextes, actions et liaisons, et observer ou simuler les actions d'un jeu lancé depuis l'éditeur.
+		[codeblock]
+		@onready var entrees: PlayerInput = $PlayerInput
+
+		func _physics_process(_delta: float) -&gt; void:
+			velocity = entrees.get_vector(&amp;"marche") * 300.0
+			if entrees.is_just_pressed(&amp;"saut") and is_on_floor():
+				velocity.y = -500.0
+			move_and_slide()
+
+		func ouvrir_inventaire() -&gt; void:
+			entrees.push_context(&amp;"menu") # bloque « jeu » jusqu'au pop_context()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,193 +30,228 @@
 			<return type="void" />
 			<param index="0" name="state" type="Dictionary" />
 			<description>
+				Applique un état de contrôles ([method get_bindings_state]) aux actions de jeu correspondantes (clé [code]contexte/action[/code]), puis émet [signal bindings_changed].
 			</description>
 		</method>
 		<method name="clear_event_log">
 			<return type="void" />
 			<description>
+				Vide le journal des évènements ([method get_event_log]).
 			</description>
 		</method>
 		<method name="enable_only">
 			<return type="void" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Active le contexte [param name] et désactive tous les autres.
 			</description>
 		</method>
 		<method name="get_action" qualifiers="const">
 			<return type="InputAction" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie l'action de jeu nommée [param name] : celle du contexte actif le plus prioritaire, sinon la première trouvée dans un contexte inactif, sinon [code]null[/code].
 			</description>
 		</method>
 		<method name="get_active_contexts" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les noms des contextes actifs lors de la dernière mise à jour, du plus prioritaire au moins prioritaire.
 			</description>
 		</method>
 		<method name="get_all_actions" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Renvoie toutes les actions de jeu : [code][[contexte, action], ...][/code].
 			</description>
 		</method>
 		<method name="get_axis" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie la valeur de [param action] comme un nombre : la valeur d'un axe, 1 / 0 pour un bouton, [code]x[/code] pour un [Vector2], 0 sinon.
 			</description>
 		</method>
 		<method name="get_bindings_state" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie les contrôles de toutes les actions : [code]{ "contexte/action": { propriété: valeur } }[/code] (voir [method InputAction.get_device_state]).
 			</description>
 		</method>
 		<method name="get_configuration_issues" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les problèmes de configuration : aucun contexte, contexte vide, noms de contextes ou d'actions en double, cible de liaison introuvable. Affichés en avertissement dans l'arbre de scène.
 			</description>
 		</method>
 		<method name="get_context" qualifiers="const">
 			<return type="InputContext" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie le contexte de jeu (la copie, une fois [method setup] fait) nommé [param name], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_context_stack" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie la pile des contextes empilés par [method push_context], le dernier en fin de tableau.
 			</description>
 		</method>
 		<method name="get_debug_snapshot" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie un instantané pour le débogage : périphérique, pile, et pour chaque contexte son état et la valeur, l'activité et le dernier évènement de chaque action, plus le journal.
 			</description>
 		</method>
 		<method name="get_event_log" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Renvoie les 60 derniers évènements d'actions : [code]{ msec, action, event, arguments, calls }[/code], [code]calls[/code] décrivant les liaisons exécutées.
 			</description>
 		</method>
 		<method name="get_joy_guid" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie le GUID de la manette [member device].
 			</description>
 		</method>
 		<method name="get_joy_info" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie les informations système de la manette [member device], ou un dictionnaire vide si elle n'est pas connectée.
 			</description>
 		</method>
 		<method name="get_joy_name" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie le nom de la manette [member device] (vide si absente).
 			</description>
 		</method>
 		<method name="get_last_device_type" qualifiers="const">
 			<return type="int" enum="InputAction.DeviceFilter" />
 			<description>
+				Renvoie le type du dernier périphérique utilisé : [constant InputAction.DEVICE_KEYBOARD_MOUSE] ou [constant InputAction.DEVICE_GAMEPAD].
 			</description>
 		</method>
 		<method name="get_runtime_contexts" qualifiers="const">
 			<return type="InputContext[]" />
 			<description>
+				Renvoie les contextes de jeu (copies si [member runtime_copies]), ou [member contexts] avant [method setup].
 			</description>
 		</method>
 		<method name="get_value" qualifiers="const">
 			<return type="Variant" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie la valeur de l'action [param action] ([method InputAction.get_value]), ou [code]null[/code] si elle n'existe pas.
 			</description>
 		</method>
 		<method name="get_vector" qualifiers="const">
 			<return type="Vector2" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie la valeur de [param action] comme un [Vector2] ; pour un [Vector3], renvoie [code](x, z)[/code]. Vecteur nul pour un autre type.
 			</description>
 		</method>
 		<method name="get_vector3" qualifiers="const">
 			<return type="Vector3" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie la valeur de [param action] comme un [Vector3] ; pour un [Vector2], renvoie [code](x, 0, y)[/code] (déplacement au sol en 3D).
 			</description>
 		</method>
 		<method name="handle_input_event">
 			<return type="void" />
 			<param index="0" name="event" type="InputEvent" />
 			<description>
+				Traite un évènement brut : détection du type de périphérique utilisé, puis transmission aux actions des contextes actifs (mouvement et molette de [InputMouseAction]). Appelée automatiquement par [method Node._input] ; utile pour relayer des évènements ou dans des tests.
 			</description>
 		</method>
 		<method name="is_context_active" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si le contexte [param name] était actif (activé et non bloqué) lors de la dernière mise à jour.
 			</description>
 		</method>
 		<method name="is_context_enabled" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si le contexte [param name] est activé (même s'il est bloqué).
 			</description>
 		</method>
 		<method name="is_device_connected" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la manette [member device] est connectée.
 			</description>
 		</method>
 		<method name="is_just_pressed" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] lors de la mise à jour où le bouton [param action] a été enfoncé. Toujours faux pour une action qui n'est pas un [InputButtonAction].
 			</description>
 		</method>
 		<method name="is_just_released" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] lors de la mise à jour où le bouton [param action] a été relâché.
 			</description>
 		</method>
 		<method name="is_pressed" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Renvoie [code]true[/code] si l'action [param action] est active : bouton enfoncé, axe ou direction non nul.
 			</description>
 		</method>
 		<method name="is_setup" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] une fois les contextes de jeu préparés ([method setup]).
 			</description>
 		</method>
 		<method name="load_bindings">
 			<return type="int" enum="Error" />
 			<param index="0" name="path" type="String" />
 			<description>
+				Lit les contrôles du fichier [param path] (section [code]controles[/code]) et les applique. Renvoie l'erreur de lecture du fichier, sinon [constant OK].
 			</description>
 		</method>
 		<method name="poll">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Met à jour toutes les actions avec la durée [param delta]. Appelée à chaque image ; à appeler soi-même seulement hors de l'arbre ou dans des tests.
 			</description>
 		</method>
 		<method name="pop_context">
 			<return type="StringName" />
 			<description>
+				Retire le dernier contexte empilé, lui rend son état « activé » d'avant [method push_context], et renvoie son nom (vide si la pile est vide).
 			</description>
 		</method>
 		<method name="push_context">
 			<return type="void" />
 			<param index="0" name="name" type="StringName" />
 			<description>
+				Active le contexte [param name] et le place en tête : il passe devant tous les autres et les bloque jusqu'à [method pop_context]. S'il est déjà empilé, il remonte en tête.
 			</description>
 		</method>
 		<method name="reset_bindings">
 			<return type="void" />
 			<description>
+				Rétablit les contrôles d'origine (ceux présents au moment de [method setup]) et émet [signal bindings_changed].
 			</description>
 		</method>
 		<method name="save_bindings" qualifiers="const">
 			<return type="int" enum="Error" />
 			<param index="0" name="path" type="String" />
 			<description>
+				Écrit les contrôles de toutes les actions dans le fichier [ConfigFile] [param path] (section [code]controles[/code]). Renvoie l'erreur d'écriture.
 			</description>
 		</method>
 		<method name="set_context_enabled">
@@ -205,11 +259,13 @@
 			<param index="0" name="name" type="StringName" />
 			<param index="1" name="enabled" type="bool" />
 			<description>
+				Active ou désactive le contexte [param name]. Erreur si le contexte n'existe pas.
 			</description>
 		</method>
 		<method name="setup">
 			<return type="void" />
 			<description>
+				Prépare les contextes de jeu (copies si [member runtime_copies]), vide la pile et mémorise les contrôles d'origine. Appelée automatiquement à [code]_ready[/code] ou à la première utilisation ; la rappeler remet tout à zéro.
 			</description>
 		</method>
 		<method name="simulate">
@@ -217,6 +273,7 @@
 			<param index="0" name="action" type="StringName" />
 			<param index="1" name="value" type="Variant" />
 			<description>
+				Simule une valeur pour l'action [param action] (voir [method InputAction.simulate]) : tests automatisés, démonstrations, IA qui pilote le même code que le joueur.
 			</description>
 		</method>
 		<method name="start_vibration">
@@ -225,41 +282,53 @@
 			<param index="1" name="strong_magnitude" type="float" default="1.0" />
 			<param index="2" name="duration" type="float" default="0.0" />
 			<description>
+				Fait vibrer la manette [member device] : moteurs faible et fort de 0 à 1, pendant [param duration] secondes (0 = jusqu'à [method stop_vibration]).
 			</description>
 		</method>
 		<method name="stop_all_simulations">
 			<return type="void" />
 			<description>
+				Arrête la simulation de toutes les actions.
 			</description>
 		</method>
 		<method name="stop_simulation">
 			<return type="void" />
 			<param index="0" name="action" type="StringName" />
 			<description>
+				Arrête la simulation de l'action [param action].
 			</description>
 		</method>
 		<method name="stop_vibration">
 			<return type="void" />
 			<description>
+				Arrête la vibration de la manette [member device].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="auto_switch_device" type="bool" setter="set_auto_switch_device" getter="get_auto_switch_device" default="false">
+			Si [code]true[/code], [member device_filter] suit le dernier périphérique utilisé (clavier-souris ou manette) : un seul type est lu à la fois, ce qui évite qu'un stick mal centré perturbe le clavier.
 		</member>
 		<member name="contexts" type="InputContext[]" setter="set_contexts" getter="get_contexts" default="[]">
+			Contextes d'entrée du joueur (ressources). Les remplacer en jeu recrée les copies de jeu.
 		</member>
 		<member name="device" type="int" setter="set_device" getter="get_device" default="0">
+			Indice de la manette lue (0 = première). Le clavier et la souris sont communs à tous les [PlayerInput].
 		</member>
 		<member name="device_filter" type="int" setter="set_device_filter" getter="get_device_filter" enum="InputAction.DeviceFilter" default="1">
+			Périphériques lus : tous, clavier et souris, ou manette. [constant InputAction.DEVICE_INHERIT] est converti en [constant InputAction.DEVICE_ALL].
 		</member>
 		<member name="dispatch_bindings" type="bool" setter="set_dispatch_bindings" getter="get_dispatch_bindings" default="true">
+			Si [code]false[/code], les liaisons ne sont pas appelées, seulement décrites dans le journal (essai à blanc).
 		</member>
 		<member name="joy_threshold" type="float" setter="set_joy_threshold" getter="get_joy_threshold" default="0.3">
+			Seuil d'un axe de manette pour considérer que la manette est utilisée ([signal device_type_changed]).
 		</member>
 		<member name="process_in_physics" type="bool" setter="set_process_in_physics" getter="get_process_in_physics" default="false">
+			Si [code]true[/code], les actions sont mises à jour pendant l'image physique (avec un personnage déplacé dans [code]_physics_process[/code]).
 		</member>
 		<member name="runtime_copies" type="bool" setter="set_runtime_copies" getter="get_runtime_copies" default="true">
+			Si [code]true[/code] (recommandé), le joueur travaille sur des copies de ses contextes : deux [PlayerInput] partageant les mêmes ressources ne se mélangent pas. Si [code]false[/code], les ressources d'origine sont modifiées (simulation, réassignation, état).
 		</member>
 	</members>
 	<signals>
@@ -268,6 +337,7 @@
 			<param index="1" name="event" type="StringName" />
 			<param index="2" name="arguments" type="Array" />
 			<description>
+				Émis pour chaque évènement d'une action de jeu ([param event], ex. [code]pressed[/code]), après l'exécution de ses liaisons.
 			</description>
 		</signal>
 		<signal name="binding_failed">
@@ -275,21 +345,25 @@
 			<param index="1" name="binding" type="InputBinding" />
 			<param index="2" name="reason" type="String" />
 			<description>
+				Émis quand une liaison ne peut pas être exécutée (cible ou méthode introuvable). [param reason] décrit le problème.
 			</description>
 		</signal>
 		<signal name="bindings_changed">
 			<description>
+				Émis quand des contrôles sont appliqués : [method apply_bindings_state], [method load_bindings], [method reset_bindings].
 			</description>
 		</signal>
 		<signal name="context_changed">
 			<param index="0" name="context" type="StringName" />
 			<param index="1" name="active" type="bool" />
 			<description>
+				Émis quand un contexte devient actif ou inactif (activation, blocage par un contexte exclusif ou empilé).
 			</description>
 		</signal>
 		<signal name="device_type_changed">
 			<param index="0" name="device_type" type="int" />
 			<description>
+				Émis quand le joueur passe du clavier-souris à la manette ou inversement ([param device_type] : [constant InputAction.DEVICE_KEYBOARD_MOUSE] ou [constant InputAction.DEVICE_GAMEPAD]). Pratique pour changer les icônes de touches affichées.
 			</description>
 		</signal>
 	</signals>

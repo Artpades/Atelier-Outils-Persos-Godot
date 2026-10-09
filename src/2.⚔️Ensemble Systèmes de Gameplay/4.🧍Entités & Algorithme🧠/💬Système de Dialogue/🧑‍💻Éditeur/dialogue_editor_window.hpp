@@ -64,12 +64,15 @@ class DialogueEditorWindow : public Window
     LineEdit *rename_edit = nullptr;
 
     String context_id;
+    /// Identifiant d'élément de menu -> [action, argument].
     Dictionary menu_actions;
     int next_menu_id = 0;
+    /// DialogueSystem du jeu affiché ("" : le dialogue édité).
     String remote_path;
     String remote_signature;
     bool showing_remote = false;
     double poll_accumulator = 0.0;
+    /// Instantané précédent sérialisé : le graphe n'est redessiné que s'il change.
     String last_signature;
 
     void _build_ui();

@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Système de Handles · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module ✋ Système de Handles (HandlersManager) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/edition/systeme-de-handles.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">✋</div>
+    <div>
+      <h1>✋_HandleSystem - Édition et Debug - Documentation</h1>
+      <p class="subtitle">Module <strong>Système de Handles</strong> : des poignées 2D et 3D que l'on survole et fait glisser à la souris, pour éditer des valeurs directement dans la vue.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/tool_editor</code></span>
+        <span class="badge">1 classe : HandlersManager</span>
+        <span class="badge">⚠️ Non enregistré</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-title">⚠️ Module inactif dans la version actuelle</div>
+    <p>Le code de <code>HandlersManager</code> est compilé dans <code>bin/tool_editor/</code>, mais la classe <strong>n'est enregistrée nulle part</strong> : aucun <code>GDREGISTER_CLASS(HandlersManager)</code> dans <code>tool_editor_register.cpp</code> (la ligne de l'ancien <code>register.cpp</code> est commentée). Depuis Godot, <code>ClassDB.class_exists("HandlersManager")</code> renvoie <code>false</code> (vérifié en headless) : aucune méthode ni aucun signal ci-dessous n'est utilisable tant que l'enregistrement n'est pas ajouté. Cette page décrit le comportement du code tel qu'il est écrit.</p>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Régler une position, un rayon ou un point de passage se fait d'ordinaire en tapant des nombres dans l'inspecteur. Il est bien plus naturel de <strong>saisir une poignée et de la faire glisser</strong> dans la vue. Ce module détecte, pour des zones rectangulaires (2D) ou des boîtes (3D), le survol de la souris et le glissement au bouton gauche, les dessine, et <strong>annonce chaque déplacement par un signal</strong> : votre code décide quoi modifier.</p>
+
+  <p><strong>Pour qui ?</strong> Les développeurs d'outils d'édition (fenêtres d'édition, plugins, éditeurs en jeu) qui veulent des manipulateurs visuels, dans le viewport du jeu, un viewport de l'éditeur ou une <a href="fenetre-d-edition.html">🪟 Fenêtre d'édition</a>.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de sélection ou de glisser-déposer de jeu</strong> : pour déplacer des objets du jeu par le joueur, voir <em>✊ Glisser-Déposer d'objet</em>.</li>
+      <li><strong>Pas les poignées natives de l'éditeur</strong> (<code>EditorNode3DGizmo</code>) : ces poignées ne sont pas intégrées à l'annulation de l'éditeur ni à la sélection.</li>
+      <li><strong>Pas un dessinateur</strong> : le dessin des poignées est délégué à <a href="gizmos.html">🐛 Gizmos</a>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF (une fois le module enregistré) : un carré blanc plein dans une vue 2D qui devient jaune au survol puis suit la souris pendant le glissement ; à côté, un cube fil de fer en 3D déplacé dans le plan face à la caméra.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code> dans le <code>.gdextension</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>HandlersManager</code> et ses deux dépendances internes, <a href="generateur-de-gestionnaire.html">⚙️ ManagerBuilder</a> (instance unique) et <a href="gizmos.html">🐛 Gizmos</a> (dessin).</td></tr>
+        <tr><td>Enregistrement de la classe dans <code>tool_editor_register.cpp</code></td><td><strong>Obligatoire</strong> (absent aujourd'hui)</td><td>Sans lui, la classe n'existe pas pour Godot ; <code>get_singleton()</code> lui-même passe par <code>ClassDB</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Activer la classe</strong> (modification de code, à faire par le mainteneur) : dans <code>tool_editor_register.cpp</code>, inclure <code>"✋Système de Handles/handlers_manager.hpp"</code> et ajouter <code>GDREGISTER_CLASS(HandlersManager);</code> au niveau <code>SCENE</code>, après <code>ManagerBuilder</code>.
+      <div class="why">c'est l'étape qui manque aujourd'hui : l'enregistrement rend la classe, ses méthodes et ses signaux visibles de Godot et permet à <code>ManagerBuilder</code> de l'instancier.</div>
+    </li>
+    <li>
+      <strong>Compiler</strong> : <pre><code class="language-shell">scons tool_editor</code></pre>
+      <div class="why">reconstruit la bibliothèque ; le Sconstruct génère alors <code>doc_classes/HandlersManager.xml</code> à jour (méthodes et signaux), ce qui remplira la section API de cette page.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code> et redémarrer l'éditeur.
+      <div class="why">chemins <code>res://bin/tool_editor/…</code> dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload : le gestionnaire est créé à la demande sous la racine de l'arbre par <code>HandlersManager.get_singleton()</code>.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Une fois la classe enregistrée, déplacer un <code>Sprite2D</code> en tirant une poignée :</p>
+  <ol class="steps">
+    <li>
+      <strong>Récupérer le gestionnaire</strong> et écouter son signal de déplacement :
+      <pre><code class="gdscript">extends Sprite2D
+
+var handles
+
+func _ready() -> void:
+	handles = HandlersManager.get_singleton()
+	handles.handle_2d_moved.connect(_on_handle_moved)</code></pre>
+      <div class="why">un seul gestionnaire existe pour tout le projet ; il est créé au premier appel et ajouté à l'arbre à la fin de la frame.</div>
+    </li>
+    <li>
+      <strong>Enregistrer une poignée</strong> sous un identifiant unique :
+      <pre><code class="gdscript">	var zone := Rect2(position - Vector2(8, 8), Vector2(16, 16))
+	handles.register_handle_2d(&"sprite_pos", zone, get_viewport())</code></pre>
+      <div class="why">le rectangle est la zone sensible, en coordonnées du viewport ; le viewport indique où dessiner la poignée et où lire la souris.</div>
+    </li>
+    <li>
+      <strong>Appliquer le déplacement</strong> reçu :
+      <pre><code class="gdscript">func _on_handle_moved(id: StringName, coin: Vector2) -> void:
+	if id == &"sprite_pos":
+		position = coin + Vector2(8, 8)  # le signal donne le coin supérieur gauche</code></pre>
+      <div class="why">le gestionnaire ne modifie aucun objet lui-même : c'est l'écouteur qui décide de ce que représente la poignée.</div>
+    </li>
+    <li>
+      <strong>Retirer la poignée</strong> en quittant l'arbre :
+      <pre><code class="gdscript">func _exit_tree() -> void:
+	handles.unregister_handle_2d(&"sprite_pos")</code></pre>
+      <div class="why">libère le gizmo de la poignée ; sinon elle reste affichée et testée.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Le fichier <code>doc_classes/HandlersManager.xml</code> ne contient que la description de la classe : tant qu'elle n'est pas enregistrée, Godot ne peut pas générer la liste de ses membres. L'API <strong>prévue</strong>, lue dans <code>_bind_methods</code>, est résumée dans le tableau suivant. Éléments internes : les structures <code>Handle2D</code> / <code>Handle3D</code>, les tables <code>_handles_2d</code> / <code>_handles_3d</code>, <code>_process_2d_handles</code>, <code>_process_3d_handles</code>, <code>_redraw_handle_*</code> et <code>_is_viewport_effectively_visible</code>.</p>
+  <div data-api="HandlersManager"></div>
+
+  <h3 id="api-prevue">API prévue (non chargée)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Membre</th><th>Description</th><th>🎓 Dans quel cas je peux l'utiliser</th></tr></thead>
+      <tbody>
+        <tr><td><code>get_singleton() → HandlersManager</code> <em>statique</em></td><td>Renvoie l'instance unique, créée par <code>ManagerBuilder.make_getter</code> au premier appel (ajoutée à l'arbre en fin de frame).</td><td>Point d'entrée de tout outil qui pose des poignées.</td></tr>
+        <tr><td><code>register_handle_2d(id, rect, viewport, default_color = blanc, hover_color = jaune)</code></td><td>Crée (ou remplace) la poignée <code>id</code> : zone <code>rect</code> en coordonnées du viewport, dessinée en rectangle plein, jaune au survol. Viewport nul : erreur, rien n'est créé.</td><td>Poser un manipulateur de position, de taille ou de point de passage.</td></tr>
+        <tr><td><code>unregister_handle_2d(id)</code></td><td>Retire la poignée et libère son dessin.</td><td>À la fermeture de l'outil ou dans <code>_exit_tree</code>.</td></tr>
+        <tr><td><code>set_handle_2d_rect(id, rect)</code></td><td>Remplace la zone de la poignée.</td><td>Suivre un objet qui bouge pour une autre raison que le glissement.</td></tr>
+        <tr><td><code>is_handle_2d_registered / is_handle_2d_hovered / is_handle_2d_dragging(id) → bool</code></td><td>État de la poignée (<code>false</code> si l'identifiant est inconnu).</td><td>Changer le curseur, bloquer une autre action pendant un glissement.</td></tr>
+        <tr><td><code>get_handle_2d_rect(id) → Rect2</code></td><td>Zone actuelle (vide si inconnue).</td><td>Lire la position finale après un glissement.</td></tr>
+        <tr><td><code>register_handle_3d(id, aabb_world, viewport, camera = null, default_color, hover_color)</code></td><td>Crée la poignée 3D : boîte en coordonnées globales, dessinée en cube fil de fer, testée par un rayon depuis <code>camera</code> (ou la caméra active du viewport à chaque frame).</td><td>Manipuler une position ou un point de contrôle dans une scène 3D.</td></tr>
+        <tr><td><code>unregister_handle_3d(id)</code>, <code>set_handle_3d_aabb(id, aabb)</code>, <code>is_handle_3d_registered / hovered / dragging(id)</code>, <code>get_handle_3d_aabb(id)</code></td><td>Équivalents 3D des méthodes ci-dessus.</td><td>Idem en 3D.</td></tr>
+        <tr><td>Signaux <code>handle_2d_hover_entered(id)</code>, <code>handle_2d_hover_exited(id)</code>, <code>handle_3d_hover_entered(id)</code>, <code>handle_3d_hover_exited(id)</code></td><td>Émis quand la souris entre sur la poignée ou la quitte.</td><td>Afficher une info-bulle, changer le curseur.</td></tr>
+        <tr><td>Signal <code>handle_2d_moved(id, position: Vector2)</code></td><td>Émis à chaque frame de glissement ; <code>position</code> = nouveau coin supérieur gauche du rectangle.</td><td>Appliquer la nouvelle position à l'objet édité.</td></tr>
+        <tr><td>Signal <code>handle_3d_moved(id, position: Vector3)</code></td><td>Émis à chaque frame de glissement ; <code>position</code> = point visé sur le plan de glissement (nouveau centre de la boîte).</td><td>Idem en 3D.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+  <p>Ces exemples supposent la classe enregistrée (voir <a href="#mise-en-place">Mise en place</a>).</p>
+
+  <h3 id="ex-3d">Comment je déplace un point de passage 3D à la souris ?</h3>
+  <pre><code class="gdscript">extends Marker3D
+
+const ID := &"waypoint_1"
+var handles
+
+func _ready() -> void:
+	handles = HandlersManager.get_singleton()
+	var boite := AABB(global_position - Vector3.ONE * 0.25, Vector3.ONE * 0.5)
+	handles.register_handle_3d(ID, boite, get_viewport())
+	handles.handle_3d_moved.connect(func(id, centre):
+		if id == ID:
+			global_position = centre)
+
+func _exit_tree() -> void:
+	handles.unregister_handle_3d(ID)</code></pre>
+  <p>Le glissement se fait dans le plan perpendiculaire à la direction de la caméra au moment du clic : pour changer la profondeur, tourner la caméra.</p>
+
+  <h3 id="ex-fenetre">Comment je pose des poignées dans une fenêtre d'édition ?</h3>
+  <p>Combinaison avec <a href="fenetre-d-edition.html">🪟 Fenêtre d'édition</a> : le viewport à fournir est la <code>Window</code> elle-même. Tant qu'elle est masquée, ses poignées ne sont ni testées ni redessinées.</p>
+  <pre><code class="gdscript">var fenetre := WindowEditor.new()
+
+func _ready() -> void:
+	fenetre.open_window()
+	var fond := ColorRect.new()
+	fond.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fond.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fenetre.add_control_to_window(fond)
+	HandlersManager.get_singleton().register_handle_2d(&"curseur", Rect2(100, 100, 20, 20), fond.get_window())</code></pre>
+
+  <h3 id="ex-suivi">Comment je fais suivre une poignée à un objet animé ?</h3>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	if not handles.is_handle_2d_dragging(&"cible"):
+		handles.set_handle_2d_rect(&"cible", Rect2($Cible.position - Vector2(8, 8), Vector2(16, 16)))</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Inutilisable en l'état</strong> : classe non enregistrée (vérifié en headless). Tout ce qui suit est tiré de la lecture du code, non testé en conditions réelles.</li>
+    <li><strong>Coordonnées 2D incohérentes avec une caméra.</strong> La souris est lue en coordonnées du viewport (<code>get_mouse_position</code>) mais la poignée est dessinée dans le canvas du monde 2D, qui suit la <code>Camera2D</code>. Avec une caméra déplacée ou zoomée, le dessin et la zone sensible ne coïncident plus.</li>
+    <li><strong>Pas de détection de clic, seulement de bouton enfoncé.</strong> Appuyer à côté puis glisser sur une poignée la saisit ; plusieurs poignées superposées sont saisies ensemble. Le clic n'est pas consommé : il atteint aussi le jeu ou l'éditeur en dessous.</li>
+    <li><strong>Signal de déplacement à chaque frame</strong> pendant le glissement, même si la souris ne bouge pas.</li>
+    <li><strong>Pas de lien avec l'annulation</strong> (Ctrl+Z) de l'éditeur : c'est à l'écouteur d'enregistrer ses actions.</li>
+    <li><strong>Boîte 3D toujours alignée sur les axes</strong> et glissement limité au plan face à la caméra ; pas de contrainte d'axe. Sans caméra (ni explicite, ni active), la poignée 3D est ignorée.</li>
+    <li><strong>Un identifiant ré-enregistré remplace la poignée sans libérer l'ancien dessin</strong> : le gizmo précédent reste affiché. Appeler <code>unregister_*</code> avant.</li>
+    <li><strong>Visibilité d'un <code>SubViewport</code></strong> : déduite du premier <code>Control</code> parent ; sans <code>Control</code> au-dessus, le viewport est toujours considéré comme visible.</li>
+    <li><strong>Doublon mal détruit</strong> : un second <code>HandlersManager</code> placé dans une scène est mis en file de destruction par <code>ManagerBuilder</code> mais active quand même son traitement pour la frame en cours.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 230" role="img" aria-label="Schéma d'architecture du Système de Handles">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="88" width="160" height="54" rx="8"/>
+    <text x="100" y="112" text-anchor="middle">Votre outil</text>
+    <text x="100" y="130" text-anchor="middle" class="small">register_handle_*</text>
+    <rect class="box main" x="300" y="88" width="190" height="54" rx="8"/>
+    <text x="395" y="112" text-anchor="middle">HandlersManager</text>
+    <text x="395" y="130" text-anchor="middle" class="small">Node · _process</text>
+    <rect class="box" x="300" y="10" width="190" height="50" rx="8"/>
+    <text x="395" y="32" text-anchor="middle">ManagerBuilder</text>
+    <text x="395" y="49" text-anchor="middle" class="small">instance unique</text>
+    <rect class="box" x="620" y="20" width="220" height="54" rx="8"/>
+    <text x="730" y="44" text-anchor="middle">Viewport / Camera3D</text>
+    <text x="730" y="62" text-anchor="middle" class="small">souris, rayon</text>
+    <rect class="box" x="620" y="150" width="220" height="54" rx="8"/>
+    <text x="730" y="174" text-anchor="middle">Gizmos</text>
+    <text x="730" y="192" text-anchor="middle" class="small">rectangle plein / cube fil de fer</text>
+    <path class="arrow" d="M180 115 H298" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M395 88 V62" marker-end="url(#arr)"/>
+    <path class="arrow" d="M490 105 Q560 60 618 50" marker-end="url(#arr)"/>
+    <path class="arrow" d="M490 125 Q560 170 618 177" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M300 135 Q240 200 120 144" marker-end="url(#arr)"/>
+    <text x="215" y="205" text-anchor="middle" class="small">signaux hover / moved</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>HandlersManager</code></strong> (<code>Node</code>) s'enregistre auprès de <code>ManagerBuilder</code> à son entrée dans l'arbre et parcourt ses poignées à chaque <code>_process</code>.</li>
+    <li>Chaque poignée mémorise son viewport (et sa caméra) par <code>ObjectID</code> : si le viewport est détruit ou masqué, la poignée est simplement ignorée.</li>
+    <li>Le gizmo de dessin est créé paresseusement au premier traitement (le viewport n'est pas forcément dans l'arbre au moment de l'enregistrement), redessiné au changement de survol et pendant le glissement.</li>
+    <li>La communication vers l'extérieur se fait uniquement par <strong>signaux</strong> : le gestionnaire ne connaît pas l'objet édité.</li>
+    <li>À la sortie de l'arbre, tous les gizmos sont libérés et le gestionnaire se désenregistre.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépend de <a href="generateur-de-gestionnaire.html">⚙️ Générateur de Gestionnaire</a> et de <a href="gizmos.html">🐛 Gizmos</a>, appelés directement en C++ (même bibliothèque).</li>
+    <li>Aucun module ne dépend de lui aujourd'hui.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Viewport fourni explicitement à l'enregistrement</td><td>Une poignée peut vivre dans le jeu, dans un viewport de l'éditeur ou dans une fenêtre d'édition : le gestionnaire ne devine pas son origine.</td></tr>
+        <tr><td>Signaux plutôt que <code>Callable</code> ou propriété modifiée directement</td><td>Pas de couplage : n'importe quel objet décide de ce que la poignée représente.</td></tr>
+        <tr><td>Plan de glissement 3D figé au clic</td><td>Recalculer le plan à chaque frame ferait dériver la poignée en profondeur.</td></tr>
+        <tr><td>Viewport masqué = poignée ignorée</td><td>Une fenêtre d'édition fermée ne doit pas capter les clics du jeu.</td></tr>
+        <tr><td>Viewport sans <code>Control</code> parent considéré visible</td><td>Mieux vaut une poignée active de trop qu'un cas d'usage bloqué sans explication.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : description XML de <code>HandlersManager</code> (classe d'héritage corrigée : <code>Node</code>), commentaires du header, page de module. Aucun changement de comportement ; la classe reste non enregistrée.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Adaptation aux changements des gizmos (ressources partagées) ; recompilation.</li>
+    </ul>
+    <h3 id="v0-2">0.2 <span class="date">2026-10-03 → 05</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Dossier renommé <code>✋Handlers</code> → <code>✋Système de Handles</code> et intégré à la bibliothèque <code>tool_editor</code> ; utilise les gizmos C++ natifs.</li>
+      <li><span class="tag remove">Retiré</span>Enregistrement de la classe (ligne commentée dans <code>register.cpp</code>, non reprise dans <code>tool_editor_register.cpp</code>).</li>
+    </ul>
+    <h3 id="v0-1">0.1 <span class="date">2026-09-08 → 10</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Poignées 2D et 3D : survol, glissement, signaux.</li>
+    </ul>
+  </div>
+
+  <footer>Module ✋ Système de Handles · sources : <code>src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/✋Système de Handles/</code> (anciennement <code>✋Handlers/</code>, qui ne contient plus que des fichiers objets) · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API (aucun membre exposé tant que la classe n'est pas enregistrée)
+window.GTK_USAGES = {};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

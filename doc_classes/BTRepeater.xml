@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTRepeater" inherits="BTDecorator" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Répéteur : relance son enfant à chaque fin d'exécution, un nombre de fois donné ou jusqu'à une réussite / un échec.
 	</brief_description>
 	<description>
+		L'enfant est relancé au tick suivant (au plus une exécution complète par tick). Tant qu'il répète, le répéteur renvoie [constant BTNode.RUNNING]. Sans enfant, échoue.
+		[codeblock]
+		# Tirer 3 fois de suite.
+		var rafale := BTRepeater.new()
+		rafale.count = 3
+		rafale.add_child(action_tirer)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,21 +18,27 @@
 		<method name="get_iteration" qualifiers="const">
 			<return type="int" />
 			<description>
+				Nombre d'exécutions terminées de l'enfant depuis le début de l'exécution en cours du répéteur.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="count" type="int" setter="set_count" getter="get_count" default="0">
+			Nombre maximal d'exécutions. [code]0[/code] : sans fin (le répéteur reste alors [constant BTNode.RUNNING] tant que [member mode] ne l'arrête pas).
 		</member>
 		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="BTRepeater.RepeatMode" default="0">
+			Condition d'arrêt : [constant REPEAT_ALWAYS], [constant REPEAT_UNTIL_SUCCESS] ou [constant REPEAT_UNTIL_FAILURE].
 		</member>
 	</members>
 	<constants>
 		<constant name="REPEAT_ALWAYS" value="0" enum="RepeatMode">
+			Répète quel que soit le résultat ; réussit après [member count] exécutions (jamais si [member count] vaut 0).
 		</constant>
 		<constant name="REPEAT_UNTIL_SUCCESS" value="1" enum="RepeatMode">
+			Réussit dès que l'enfant réussit ; échoue si [member count] exécutions échouent d'abord (« réessayer jusqu'à y arriver »).
 		</constant>
 		<constant name="REPEAT_UNTIL_FAILURE" value="2" enum="RepeatMode">
+			Réussit dès que l'enfant échoue ; échoue si [member count] exécutions réussissent d'abord (« continuer tant que c'est possible »).
 		</constant>
 	</constants>
 </class>

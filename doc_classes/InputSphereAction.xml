@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputSphereAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action directionnelle 3D (Vector3, longueur ≤ 1) : 3 axes de manette, 6 touches, 6 boutons.
 	</brief_description>
 	<description>
+		Valeur [Vector3] de longueur au plus 1, dans la convention de Godot : avant = -Z, haut = +Y, droite = +X. Les axes de manette (zone morte radiale) sont prioritaires dès qu'ils sortent de la zone morte ; sinon, touches et boutons sont additionnés puis normalisés.
+		Par défaut : W / S (avant / arrière), A / D, E / Q (haut / bas), stick gauche sur X et Z ; aucun axe Y ni bouton.
+		Signaux : [signal value_changed], [signal velocity_changed], [signal orientation_changed] (tangage et lacet).
+		[codeblock]
+		var vol := InputSphereAction.new()
+		vol.action_name = &amp;"vol"
+		vol.joy_axis_y = JOY_AXIS_RIGHT_Y # monter / descendre au stick droit
+		vol.value_changed.connect(func(v: Vector3): $Drone.velocity = $Drone.basis * v * 8.0)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,67 +20,89 @@
 		<method name="get_orientation" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie l'orientation de la dernière direction non nulle : [code]x[/code] = tangage (élévation), [code]y[/code] = lacet (angle qui tourne -Z vers la direction), en radians ; [code]z[/code] vaut 0.
 			</description>
 		</method>
 		<method name="get_vector" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie la direction courante (longueur ≤ 1).
 			</description>
 		</method>
 		<method name="get_velocity" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie la variation de la direction par seconde lors de la dernière mise à jour.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="backward_key" type="int" setter="set_backward_key" getter="get_backward_key" default="83">
+			Touche « arrière » (+Z).
 		</member>
 		<member name="down_key" type="int" setter="set_down_key" getter="get_down_key" default="81">
+			Touche « bas » (-Y).
 		</member>
 		<member name="dpad_backward" type="int" setter="set_dpad_backward" getter="get_dpad_backward" default="-1">
+			Bouton de manette « arrière » ([code]-1[/code] = aucun).
 		</member>
 		<member name="dpad_down" type="int" setter="set_dpad_down" getter="get_dpad_down" default="-1">
+			Bouton de manette « bas ».
 		</member>
 		<member name="dpad_forward" type="int" setter="set_dpad_forward" getter="get_dpad_forward" default="-1">
+			Bouton de manette « avant ».
 		</member>
 		<member name="dpad_left" type="int" setter="set_dpad_left" getter="get_dpad_left" default="-1">
+			Bouton de manette « gauche ».
 		</member>
 		<member name="dpad_right" type="int" setter="set_dpad_right" getter="get_dpad_right" default="-1">
+			Bouton de manette « droite ».
 		</member>
 		<member name="dpad_up" type="int" setter="set_dpad_up" getter="get_dpad_up" default="-1">
+			Bouton de manette « haut ».
 		</member>
 		<member name="forward_key" type="int" setter="set_forward_key" getter="get_forward_key" default="87">
+			Touche « avant » (-Z).
 		</member>
 		<member name="invert_y" type="bool" setter="set_invert_y" getter="get_invert_y" default="false">
+			Inverse l'axe vertical.
 		</member>
 		<member name="joy_axis_x" type="int" setter="set_joy_axis_x" getter="get_joy_axis_x" default="0">
+			Axe de manette pour X (droite positive), [code]-1[/code] = aucun.
 		</member>
 		<member name="joy_axis_y" type="int" setter="set_joy_axis_y" getter="get_joy_axis_y" default="-1">
+			Axe de manette pour Y (haut positif), [code]-1[/code] = aucun (par défaut).
 		</member>
 		<member name="joy_axis_z" type="int" setter="set_joy_axis_z" getter="get_joy_axis_z" default="1">
+			Axe de manette pour Z : stick vers le bas = arrière (+Z).
 		</member>
 		<member name="left_key" type="int" setter="set_left_key" getter="get_left_key" default="65">
+			Touche « gauche » (-X).
 		</member>
 		<member name="right_key" type="int" setter="set_right_key" getter="get_right_key" default="68">
+			Touche « droite » (+X).
 		</member>
 		<member name="up_key" type="int" setter="set_up_key" getter="get_up_key" default="69">
+			Touche « haut » (+Y).
 		</member>
 	</members>
 	<signals>
 		<signal name="orientation_changed">
 			<param index="0" name="orientation" type="Vector3" />
 			<description>
+				Émis quand l'orientation (tangage, lacet, en radians) change d'au moins [member InputAction.dirty_threshold].
 			</description>
 		</signal>
 		<signal name="value_changed">
 			<param index="0" name="value" type="Vector3" />
 			<description>
+				Émis quand la direction varie d'au moins [member InputAction.dirty_threshold], ou revient exactement à zéro.
 			</description>
 		</signal>
 		<signal name="velocity_changed">
 			<param index="0" name="velocity" type="Vector3" />
 			<description>
+				Émis quand la vitesse de variation de la direction change d'au moins [member InputAction.dirty_threshold].
 			</description>
 		</signal>
 	</signals>

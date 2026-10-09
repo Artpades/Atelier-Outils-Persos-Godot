@@ -14,7 +14,7 @@
 
 namespace godot
 {
-// État calculé d'un élément ciblé (donnée ou groupe) à partir de tous les comportements qui le visent.
+/// État calculé d'un élément ciblé (donnée ou groupe) à partir de tous les comportements qui le visent.
 struct BehaviorState
 {
     bool visible = true;
@@ -24,12 +24,12 @@ struct BehaviorState
     Ref<Texture2D> icon;                // icône de remplacement (la dernière active l'emporte)
 };
 
-// Comportement conditionnel d'éléments de l'interface (registre des données, liste « behaviors ») :
-// condition = propriété booléenne ou fonction qui renvoie un booléen (ArgumentBinding, source Propriété ou
-// Fonction), éventuellement inversée ; cibles = noms de données ou de groupes.
-// Les comportements fournis contribuent à un BehaviorState combiné (visible = aucun « Cacher si » actif et
-// aucun « Montrer si » inactif...). Un comportement de script surcharge _apply(cible, actif), appelé quand
-// l'état de sa condition change (et à chaque reconstruction de l'interface).
+/// Comportement conditionnel d'éléments de l'interface (registre des données, liste « behaviors ») :
+/// condition = propriété booléenne ou fonction qui renvoie un booléen (ArgumentBinding, source Propriété ou
+/// Fonction), éventuellement inversée ; cibles = noms de données ou de groupes.
+/// Les comportements fournis contribuent à un BehaviorState combiné (visible = aucun « Cacher si » actif et
+/// aucun « Montrer si » inactif...). Un comportement de script surcharge _apply(cible, actif), appelé quand
+/// l'état de sa condition change (et à chaque reconstruction de l'interface).
 class WidgetBehavior : public Resource
 {
     GDCLASS(WidgetBehavior, Resource)
@@ -46,8 +46,8 @@ class WidgetBehavior : public Resource
     GDVIRTUAL2(_apply, Control *, bool)
 
   public:
-    // Remplace {chemin} par la valeur get_indexed(chemin) et {fonction()} par le retour de la fonction
-    // (sans argument) de p_context. {{ et }} donnent des accolades.
+    /// Remplace {chemin} par la valeur get_indexed(chemin) et {fonction()} par le retour de la fonction
+    /// (sans argument) de p_context. {{ et }} donnent des accolades.
     static String format_text(const String &p_template, Object *p_context);
 
     void set_enabled(bool p_enabled);
@@ -60,17 +60,18 @@ class WidgetBehavior : public Resource
     void set_targets(const PackedStringArray &p_targets);
     PackedStringArray get_targets() const;
 
-    // Condition évaluée sur p_context (cible de l'éditeur), inversion comprise.
+    /// Condition évaluée sur p_context (cible de l'éditeur), inversion comprise.
     bool evaluate(Object *p_context);
-    // Contribution d'un comportement fourni (ne fait rien pour un comportement de script).
+    /// Contribution d'un comportement fourni (ne fait rien pour un comportement de script).
     virtual void contribute(BehaviorState &r_state, bool p_active) const;
-    // Comportement de script : _apply surchargé.
+    /// Comportement de script : _apply surchargé.
     bool has_script_apply() const;
     void apply_script(Control *p_target, bool p_active);
-    // Nom affiché dans l'éditeur (« Montrer si »...).
+    /// Nom affiché dans l'éditeur (« Montrer si »...).
     virtual String get_display_name() const;
 };
 
+/// Montrer si : la cible n'est visible que si la condition est vraie (une condition non réglée vaut faux).
 class ShowIfBehavior : public WidgetBehavior
 {
     GDCLASS(ShowIfBehavior, WidgetBehavior)
@@ -83,6 +84,7 @@ class ShowIfBehavior : public WidgetBehavior
     String get_display_name() const override;
 };
 
+/// Cacher si : la cible est masquée tant que la condition est vraie.
 class HideIfBehavior : public WidgetBehavior
 {
     GDCLASS(HideIfBehavior, WidgetBehavior)
@@ -95,7 +97,7 @@ class HideIfBehavior : public WidgetBehavior
     String get_display_name() const override;
 };
 
-// Activer si : condition fausse = widgets en lecture seule.
+/// Activer si : condition fausse = widgets en lecture seule.
 class EnableIfBehavior : public WidgetBehavior
 {
     GDCLASS(EnableIfBehavior, WidgetBehavior)
@@ -108,7 +110,7 @@ class EnableIfBehavior : public WidgetBehavior
     String get_display_name() const override;
 };
 
-// Style si : thème / shader / teintes appliqués tant que la condition est vraie.
+/// Style si : thème / shader / teintes appliqués tant que la condition est vraie.
 class StyleIfBehavior : public WidgetBehavior
 {
     GDCLASS(StyleIfBehavior, WidgetBehavior)
@@ -126,8 +128,8 @@ class StyleIfBehavior : public WidgetBehavior
     String get_display_name() const override;
 };
 
-// Infobulle si : infobulle (BBCode, modèle dynamique) ajoutée tant que la condition est vraie. Plusieurs
-// comportements peuvent viser le même widget : leurs infobulles actives s'ajoutent à celle de la donnée.
+/// Infobulle si : infobulle (BBCode, modèle dynamique) ajoutée tant que la condition est vraie. Plusieurs
+/// comportements peuvent viser le même widget : leurs infobulles actives s'ajoutent à celle de la donnée.
 class TooltipIfBehavior : public WidgetBehavior
 {
     GDCLASS(TooltipIfBehavior, WidgetBehavior)
@@ -145,7 +147,7 @@ class TooltipIfBehavior : public WidgetBehavior
     String get_display_name() const override;
 };
 
-// Icône si : icône du widget remplacée tant que la condition est vraie.
+/// Icône si : icône du widget remplacée tant que la condition est vraie.
 class IconIfBehavior : public WidgetBehavior
 {
     GDCLASS(IconIfBehavior, WidgetBehavior)

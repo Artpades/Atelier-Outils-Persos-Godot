@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="StateMachine" inherits="State" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Machine à états hiérarchique (HFSM) : racine d'un arbre de [State], qui gère les entrées, sorties, mises à jour et transitions.
 	</brief_description>
 	<description>
+		La machine est elle-même un état composé, toujours actif pendant son exécution : son chemin actif va d'elle jusqu'à un état feuille ([method get_active_path]).
+		À chaque mise à jour : 1. [method State._on_update] de chaque état actif, de la racine vers la feuille ; 2. vérification des transitions automatiques (sans événement), de la feuille vers la racine : la première remplie est franchie (une seule par mise à jour).
+		[method send_event] : chaque état actif, de la feuille vers la racine, peut consommer l'événement ([method State._on_event]) ; sinon ses transitions portant cet événement sont essayées.
+		Les transitions sont externes : une transition vers soi-même ou vers un sous-état sort de l'état source puis y rentre. Une transition demandée pendant une autre (dans [method State._on_enter] par exemple) est mise en file et franchie juste après (16 en chaîne au maximum).
+		Placée sous un autre [State], une [StateMachine] n'est qu'un état composé de la machine parente : ses propres réglages d'exécution, d'agent et de tableau noir sont ignorés.
+		[codeblock]
+		# Garde
+		# └ StateMachine
+		#   ├ Patrouille   (transition auto « distance &lt; 120 » → ../Alerte)
+		#   └ Alerte       (transition ⚡etourdir → ../Etourdi)
+		func _ready() -&gt; void:
+			$StateMachine.state_changed.connect(func(de, vers): print(de, " → ", vers))
+
+		func _on_coup_recu() -&gt; void:
+			$StateMachine.send_event(&amp;"etourdir")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,57 +27,68 @@
 		<method name="clear_history">
 			<return type="void" />
 			<description>
+				Vide l'historique des transitions.
 			</description>
 		</method>
 		<method name="get_active_path" qualifiers="const">
 			<return type="State[]" />
 			<description>
+				Renvoie le chemin actif, de la machine jusqu'à l'état feuille (vide si elle est arrêtée).
 			</description>
 		</method>
 		<method name="get_active_state" qualifiers="const">
 			<return type="State" />
 			<description>
+				Renvoie l'état feuille actif (la machine elle-même si elle n'a aucun sous-état), ou [code]null[/code] si elle est arrêtée.
 			</description>
 		</method>
 		<method name="get_agent_node" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie l'agent : le nœud de [member agent_path], ou à défaut le parent de la machine (l'agent de la machine racine pour une machine imbriquée).
 			</description>
 		</method>
 		<method name="get_debug_snapshot" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Description de la machine (états, état actif, transitions, 8 dernières transitions) pour [BehaviorGraphView]. Appelée par la vue en graphe et par le débogueur de l'éditeur.
 			</description>
 		</method>
 		<method name="get_elapsed_time" qualifiers="const">
 			<return type="float" />
 			<description>
+				Temps cumulé des mises à jour depuis le dernier [method start], en secondes.
 			</description>
 		</method>
 		<method name="get_history" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Dernières transitions : tableau de [Dictionary] [code]{ "from", "to", "source", "event", "time" }[/code] ([code]from[/code] / [code]to[/code] : chemins des feuilles avant / après, [code]source[/code] : état qui portait la transition, [code]time[/code] : [method get_elapsed_time] au moment du franchissement).
 			</description>
 		</method>
 		<method name="is_root_machine" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la machine n'a pas de [State] parent (elle s'exécute alors elle-même).
 			</description>
 		</method>
 		<method name="is_running" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] entre [method start] et [method stop].
 			</description>
 		</method>
 		<method name="physics_update">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Mode [constant PROCESS_MANUAL] : appelle [method State._on_physics_update] des états actifs. Ne vérifie [b]pas[/b] les transitions.
 			</description>
 		</method>
 		<method name="restart">
 			<return type="void" />
 			<description>
+				Arrête la machine, oublie les sous-états mémorisés ([member State.remember_last_substate]), puis la redémarre depuis les états initiaux.
 			</description>
 		</method>
 		<method name="send_event">
@@ -68,41 +96,51 @@
 			<param index="0" name="event" type="StringName" />
 			<param index="1" name="data" type="Variant" default="null" />
 			<description>
+				Envoie [param event] (avec [param data] facultatif) aux états actifs, de la feuille vers la racine. Renvoie [code]true[/code] si un état l'a consommé ou si une transition a été franchie. Émet [signal event_received]. Sans effet (renvoie [code]false[/code]) si la machine ne tourne pas. Sur une machine imbriquée, transmis à la machine racine.
 			</description>
 		</method>
 		<method name="start">
 			<return type="void" />
 			<description>
+				Démarre la machine : entre dans la machine puis dans la chaîne des sous-états initiaux, émet [signal started] puis [signal state_changed] (de [code]null[/code] vers l'état feuille). Sans effet si elle tourne déjà ; erreur sur une machine imbriquée (c'est sa machine parente qui la démarre).
 			</description>
 		</method>
 		<method name="stop">
 			<return type="void" />
 			<description>
+				Arrête la machine : appelle [method State._on_exit] de la feuille jusqu'à la machine, vide la file des transitions et émet [signal stopped].
 			</description>
 		</method>
 		<method name="transition_to">
 			<return type="bool" />
 			<param index="0" name="target" type="Variant" />
 			<description>
+				Force une transition vers [param target] (un [State] de cette machine, ou un chemin relatif à la machine), depuis l'état feuille actif, sans tenir compte des conditions. Renvoie [code]false[/code] si la cible est invalide, hors de la machine, la machine elle-même, ou si la machine ne tourne pas. Pendant une autre transition, la demande est mise en file (et renvoie quand même [code]true[/code]).
 			</description>
 		</method>
 		<method name="update">
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Mode [constant PROCESS_MANUAL] : met à jour les états actifs puis vérifie les transitions automatiques.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="agent_path" type="NodePath" setter="set_agent_path" getter="get_agent_path" default="NodePath(&quot;..&quot;)">
+			Chemin de l'agent, relatif à la machine. Vide ou introuvable : le parent de la machine.
 		</member>
 		<member name="autostart" type="bool" setter="set_autostart" getter="get_autostart" default="true">
+			Si [code]true[/code], la machine démarre toute seule (de façon différée, après le [code]_ready[/code] de l'agent). Sinon, appeler [method start].
 		</member>
 		<member name="blackboard" type="Blackboard" setter="set_blackboard" getter="get_blackboard">
+			Tableau noir partagé par tous les états (et utilisé par les conditions des transitions). Créé vide au démarrage s'il n'est pas assigné. Une machine imbriquée utilise celui de la machine racine.
 		</member>
 		<member name="history_size" type="int" setter="set_history_size" getter="get_history_size" default="32">
+			Nombre maximal de transitions gardées par [method get_history]. [code]0[/code] : aucun historique.
 		</member>
 		<member name="process_callback" type="int" setter="set_process_callback" getter="get_process_callback" enum="StateMachine.ProcessCallback" default="0">
+			Où sont vérifiées les transitions automatiques : dans [method Node._process] ([constant PROCESS_IDLE]), dans [method Node._physics_process] ([constant PROCESS_PHYSICS]) ou seulement par [method update] ([constant PROCESS_MANUAL]). Dans les deux premiers modes, [method State._on_update] est appelé à chaque image et [method State._on_physics_update] à chaque image physique.
 		</member>
 	</members>
 	<signals>
@@ -110,20 +148,24 @@
 			<param index="0" name="event" type="StringName" />
 			<param index="1" name="data" type="Variant" />
 			<description>
+				Émis au début de [method send_event], avant que les états ne traitent l'événement.
 			</description>
 		</signal>
 		<signal name="started">
 			<description>
+				Émis par [method start], une fois la chaîne des états initiaux entrée.
 			</description>
 		</signal>
 		<signal name="state_changed">
 			<param index="0" name="from" type="Object" />
 			<param index="1" name="to" type="Object" />
 			<description>
+				L'état feuille actif a changé, de [param from] vers [param to] ([param from] vaut [code]null[/code] au démarrage). Non émis pour une transition qui sort et rentre dans la même feuille.
 			</description>
 		</signal>
 		<signal name="stopped">
 			<description>
+				Émis par [method stop].
 			</description>
 		</signal>
 		<signal name="transitioned">
@@ -131,15 +173,19 @@
 			<param index="1" name="target" type="Object" />
 			<param index="2" name="event" type="StringName" />
 			<description>
+				Une transition a été franchie de [param source] (l'état qui la porte) vers [param target], via [param event] (vide pour une transition automatique ou forcée). Émis pour toute transition, même vers la même feuille.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="PROCESS_IDLE" value="0" enum="ProcessCallback">
+			Mises à jour et transitions automatiques dans [method Node._process].
 		</constant>
 		<constant name="PROCESS_PHYSICS" value="1" enum="ProcessCallback">
+			Mises à jour des scripts à chaque image, transitions automatiques dans [method Node._physics_process] (conseillé quand les conditions dépendent de la physique).
 		</constant>
 		<constant name="PROCESS_MANUAL" value="2" enum="ProcessCallback">
+			Rien d'automatique : appeler [method update] (et [method physics_update]) soi-même.
 		</constant>
 	</constants>
 </class>

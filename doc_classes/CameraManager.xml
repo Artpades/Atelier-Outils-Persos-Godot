@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="CameraManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎞️ Gestionnaire global qui change la caméra courante d'un Viewport, instantanément ou par une transition fluide (2D et 3D).
 	</brief_description>
 	<description>
+		[method switch_2d_camera] et [method switch_3d_camera] rendent une caméra courante. Avec transition, une caméra transitoire interne part de l'état de la caméra courante et rejoint celui de la nouvelle caméra (transformation globale ; zoom et offset en 2D ; fov, size, near et far en 3D), puis la nouvelle caméra devient courante et [signal current_camera_2d_switched] / [signal current_camera_3d_switched] est émis.
+		Une transition peut être interrompue par un nouvel appel : la suivante repart de l'état atteint, sans saut.
+		Singleton : [method get_instance] renvoie l'instance existante (autoload ou nœud placé en scène) ou en crée une sous la racine de l'arbre, si la bibliothèque [code]tool_editor[/code] (ManagerBuilder) est chargée. Une deuxième instance placée en scène est détruite.
+		[codeblock]
+		# Plan de coupe vers la caméra du coffre, puis retour au joueur.
+		func ouvrir_coffre() -&gt; void:
+			var cameras := CameraManager.get_instance()
+			cameras.switch_3d_camera($CameraCoffre, true, 0.8)
+			await cameras.current_camera_3d_switched
+			$Coffre.ouvrir()
+			await get_tree().create_timer(1.5).timeout
+			cameras.switch_3d_camera($Joueur/Camera3D, true, 0.5, Tween.TRANS_SINE, Tween.EASE_OUT)
+		[/codeblock]
+		[b]Note :[/b] classe d'exécution uniquement (aucun effet dans l'éditeur).
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,27 +26,32 @@
 			<return type="Camera2D" />
 			<param index="0" name="viewport" type="Viewport" />
 			<description>
+				Caméra 2D courante de [param viewport] (la caméra transitoire interne pendant une transition), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_current_camera_3d" qualifiers="static">
 			<return type="Camera3D" />
 			<param index="0" name="viewport" type="Viewport" />
 			<description>
+				Caméra 3D courante de [param viewport] (la caméra transitoire interne pendant une transition), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_instance" qualifiers="static">
 			<return type="CameraManager" />
 			<description>
+				Instance unique du gestionnaire. Si aucune n'existe et que ManagerBuilder est disponible, une instance est créée et ajoutée à la racine de l'arbre à la fin de l'image (elle est déjà utilisable). Sans ManagerBuilder, renvoie l'instance placée en scène ou en autoload, sinon [code]null[/code].
 			</description>
 		</method>
 		<method name="is_transitioning_2d" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant une transition 2D.
 			</description>
 		</method>
 		<method name="is_transitioning_3d" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant une transition 3D.
 			</description>
 		</method>
 		<method name="switch_2d_camera">
@@ -42,6 +62,9 @@
 			<param index="3" name="transition_type" type="int" enum="Tween.TransitionType" default="7" />
 			<param index="4" name="ease_type" type="int" enum="Tween.EaseType" default="2" />
 			<description>
+				Rend [param new_camera] courante dans son Viewport. Toutes les autres [Camera2D] de ce Viewport (y compris celles des [SubViewport] qu'il contient) sont désactivées.
+				Avec [param ease_transition], la vue glisse de la caméra courante vers [param new_camera] en [param duration] secondes ([member transition_duration_2d] si négatif), selon [param transition_type] et [param ease_type]. Sans caméra courante, ou si [param ease_transition] vaut [code]false[/code], le changement est instantané et le signal est émis pendant l'appel. Si [param new_camera] est déjà courante, le signal est émis immédiatement sans rien animer.
+				La cible de la transition est l'état de [param new_camera] au moment de l'appel : si elle bouge pendant la transition, la vue « saute » à la fin.
 			</description>
 		</method>
 		<method name="switch_3d_camera">
@@ -52,24 +75,29 @@
 			<param index="3" name="transition_type" type="int" enum="Tween.TransitionType" default="7" />
 			<param index="4" name="ease_type" type="int" enum="Tween.EaseType" default="2" />
 			<description>
+				Comme [method switch_2d_camera], pour les [Camera3D] : la transition interpole la transformation globale (rotation par le plus court chemin), [member Camera3D.fov], [member Camera3D.size], [member Camera3D.near] et [member Camera3D.far]. La projection de [param new_camera] (perspective / orthogonale) est appliquée dès le début.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="transition_duration_2d" type="float" setter="set_transition_duration_2d" getter="get_transition_duration_2d" default="1.0">
+			Durée par défaut (secondes) des transitions 2D, utilisée quand [method switch_2d_camera] reçoit une durée négative.
 		</member>
 		<member name="transition_duration_3d" type="float" setter="set_transition_duration_3d" getter="get_transition_duration_3d" default="1.0">
+			Durée par défaut (secondes) des transitions 3D, utilisée quand [method switch_3d_camera] reçoit une durée négative.
 		</member>
 	</members>
 	<signals>
 		<signal name="current_camera_2d_switched">
 			<param index="0" name="camera_2d" type="Object" />
 			<description>
+				Émis quand [param camera_2d] est devenue la caméra courante (fin de transition, changement instantané, ou caméra déjà courante). Non émis si la caméra a été libérée pendant la transition, ni pour une transition interrompue.
 			</description>
 		</signal>
 		<signal name="current_camera_3d_switched">
 			<param index="0" name="camera_3d" type="Object" />
 			<description>
+				Émis quand [param camera_3d] est devenue la caméra courante (fin de transition, changement instantané, ou caméra déjà courante). Non émis si la caméra a été libérée pendant la transition, ni pour une transition interrompue.
 			</description>
 		</signal>
 	</signals>

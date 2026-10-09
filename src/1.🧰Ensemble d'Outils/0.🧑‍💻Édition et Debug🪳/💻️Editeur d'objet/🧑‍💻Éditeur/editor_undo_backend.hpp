@@ -5,12 +5,12 @@
 
 namespace godot
 {
-// Annulation dans l'éditeur : EditorUndoRedoManager (enregistré au niveau EDITOR).
-// L'éditeur choisit l'historique selon l'objet (scène éditée ou historique global) et marque la scène
-// comme modifiée.
-// undo()/redo() : EditorUndoRedoManager n'expose pas d'annulation (vérifié dans extension_api.json) ;
-// le raccourci est donc transmis à la fenêtre principale de l'éditeur, qui exécute son propre
-// « Annuler » / « Refaire » (raccourcis par défaut Ctrl+Z / Ctrl+Maj+Z).
+/// Annulation dans l'éditeur : EditorUndoRedoManager (enregistré au niveau EDITOR).
+/// L'éditeur choisit l'historique selon l'objet (scène éditée ou historique global) et marque la scène
+/// comme modifiée.
+/// undo()/redo() : EditorUndoRedoManager n'expose pas d'annulation (vérifié dans extension_api.json) ;
+/// le raccourci est donc transmis à la fenêtre principale de l'éditeur, qui exécute son propre
+/// « Annuler » / « Refaire » (raccourcis par défaut Ctrl+Z / Ctrl+Maj+Z).
 class EditorUndoBackend : public UndoBackend
 {
     GDCLASS(EditorUndoBackend, UndoBackend)

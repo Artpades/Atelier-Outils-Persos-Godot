@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ObjectWidget" inherits="ContainerWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un objet (ou d'un NodePath déplié) : affiche les propriétés du sous-objet.
 	</brief_description>
 	<description>
+		Le sous-objet prend l'interface de son type (base des interfaces), sinon un registre automatique. Un objet déjà déplié plus haut n'est pas redéplié (référence circulaire). Objet [code]null[/code] : liste des classes instanciables compatibles (natives et [code]class_name[/code], hors nœuds) et bouton « Nouveau ». « Effacer » remet la valeur à [code]null[/code]. La liste des propriétés est reconstruite quand l'objet émet [signal Object.property_list_changed].
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

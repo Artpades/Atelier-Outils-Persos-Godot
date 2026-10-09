@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueNode" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Classe de base d'un nœud de dialogue (non instanciable seule) : un identifiant unique et des liens vers d'autres nœuds par leur identifiant.
 	</brief_description>
 	<description>
+		Un [DialogueResource] est une liste de nœuds qui se désignent les uns les autres par leur [member node_id] (propriétés [code]next[/code], [code]next_if_true[/code]...). Le [DialogueSystem] parcourt ces liens.
+		Utiliser une sous-classe : [DialogueLine] (réplique), [DialogueChoice] (choix du joueur), [DialogueBranch] (embranchement sur condition), [DialogueAction] (modification de variables / événement) ou [DialogueEnd] (fin).
+		Les méthodes [method get_links], [method set_link], [method get_graph_kind] et [method get_summary] servent à l'éditeur de dialogue et à [BehaviorGraphView]. Elles ne sont pas virtuelles côté script : les redéfinir en GDScript n'a aucun effet sur le [DialogueSystem], qui ne reconnaît que les cinq sous-classes natives.
+		[codeblock]
+		var ligne := DialogueLine.new()
+		ligne.node_id = &amp;"accueil"
+		ligne.speaker = "Garde"
+		ligne.text = "Halte !"
+		print(ligne.get_links()) # [] tant que next est vide
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,16 +21,19 @@
 		<method name="get_graph_kind" qualifiers="const">
 			<return type="String" />
 			<description>
+				Catégorie utilisée par le graphe pour colorer le nœud : [code]"state"[/code] (réplique), [code]"composite"[/code] (choix), [code]"condition"[/code] (embranchement), [code]"action"[/code] (action, et classe de base), [code]"machine"[/code] (fin).
 			</description>
 		</method>
 		<method name="get_links" qualifiers="const">
 			<return type="Array" />
 			<description>
+				Liens sortants du nœud : tableau de [Dictionary] [code]{ "to": id, "label": texte, "slot": n° }[/code]. Les liens vides ne sont pas listés. [code]slot[/code] identifie le lien à modifier avec [method set_link] ([code]-1[/code] pour le repli d'un [DialogueChoice]).
 			</description>
 		</method>
 		<method name="get_summary" qualifiers="const">
 			<return type="String" />
 			<description>
+				Texte court affiché dans le graphe : « orateur : texte » tronqué pour une réplique, question et nombre d'options pour un choix, condition pour un embranchement, affectations et événement pour une action, « fin » pour une fin. Vide sur la classe de base.
 			</description>
 		</method>
 		<method name="set_link">
@@ -27,13 +41,16 @@
 			<param index="0" name="slot" type="int" />
 			<param index="1" name="to" type="StringName" />
 			<description>
+				Remplace la cible du lien n° [param slot] par [param to]. Pour une réplique ou une action, [param slot] est ignoré ([code]next[/code]) ; pour un embranchement, [code]1[/code] = faux, sinon vrai ; pour un choix, l'option n° [param slot], ou [member DialogueChoice.fallback_next] si [param slot] est négatif. Ne fait rien sur la classe de base et sur [DialogueEnd].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="comment" type="String" setter="set_comment" getter="get_comment" default="&quot;&quot;">
+			Note libre pour l'auteur du dialogue. N'est jamais affichée en jeu ; l'éditeur la montre dans le détail du nœud.
 		</member>
 		<member name="node_id" type="StringName" setter="set_node_id" getter="get_node_id" default="&amp;&quot;&quot;">
+			Identifiant unique du nœud dans son [DialogueResource]. Les autres nœuds y font référence ; le renommer à la main casse ces liens (l'éditeur de dialogue, lui, met les liens à jour).
 		</member>
 	</members>
 </class>

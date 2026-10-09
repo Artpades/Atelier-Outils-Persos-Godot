@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Personnage · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🧑 Personnage (Joueur, Automate, PNJ) du GameplayToolkit : Character2D, Character3D, contrôleurs, vie, interaction, registre.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/entites/personnage-joueur-automate-pnj.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🧑</div>
+    <div>
+      <h1>🧑_CharacterSystem - Entités &amp; Algorithme - Documentation</h1>
+      <p class="subtitle">Module <strong>Personnage (Joueur, Automate, PNJ)</strong> : des personnages 2D et 3D faits de composants, pilotés par le joueur, par une IA ou par un dialogue.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/entity_algorithm</code></span>
+        <span class="badge">11 classes</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Dans la plupart des jeux, le joueur, les ennemis et les PNJ finissent par partager le même code recopié : lire la manette, avoir des points de vie, savoir qui est ennemi de qui, aller à un point, patrouiller, parler quand on s'approche… et chaque copie diverge. <strong>Ce module fournit un personnage unique, assemblé à partir de composants</strong> : on lui ajoute un contrôleur de joueur, d'IA ou de PNJ, un composant de vie, de quoi interagir, et il se comporte comme on le souhaite sans une ligne de code pour les cas courants.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🧑 <code>Character2D</code> / <code>Character3D</code></h4>
+      <p>Le <strong>corps</strong> : identité, faction, hostilités. Il transmet son intention de déplacement aux composants de mouvement et la coupe s'il est mort ou étourdi.</p>
+    </div>
+    <div class="card">
+      <h4>🏌️ 🤖 🧑‍🌾 Contrôleurs</h4>
+      <p>Le <strong>cerveau</strong> : <code>PlayerController</code> (InputMap), <code>AutomateController</code> (aller à, suivre, patrouiller, errer), <code>NPCController</code> (un automate qui parle).</p>
+    </div>
+    <div class="card">
+      <h4>❤️ 🤝 📇 Services</h4>
+      <p><code>HealthComponent</code> (vie, mort, invulnérabilité), <code>Interactable</code> (« appuyez sur E »), <code>CharacterRegister</code> (qui est où, qui est ennemi).</p>
+    </div>
+    <div class="card">
+      <h4>🌿 Feuilles d'arbre de comportement</h4>
+      <p><code>BTFindTarget</code>, <code>BTMoveTo</code>, <code>BTUseAbility</code> : chercher une cible, s'en approcher, l'attaquer, dans un <code>BehaviorTree</code>.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui veulent un joueur jouable et des ennemis crédibles en quelques minutes, et les game designers qui règlent factions, portées, patrouilles et dialogues depuis l'inspecteur (les propriétés de tous les composants sont éditables depuis le personnage lui-même).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un moteur de déplacement</strong> : le personnage ne fait pas lui-même <code>move_and_slide()</code>. La physique (marche, saut, nage…) vient des composants du module <a href="../mouvement/socle-mouvement.html">🌀 Mouvement &amp; Physique</a>. Sans eux, le personnage reste immobile.</li>
+      <li><strong>Pas un système de capacités</strong> : attributs, effets et compétences sont dans <a href="systeme-de-capacite.html">🌟 Système de Capacité</a>, que ce module utilise s'il est présent (vie en attribut, étourdissement, capacités du joueur).</li>
+      <li><strong>Pas un moteur de dialogue ni d'IA complexe</strong> : <code>NPCController</code> lance un dialogue du module <a href="systeme-de-dialogue.html">💬 Système de Dialogue</a> ; les décisions élaborées se construisent avec le module 🤾 Système de Comportement (machine à états, arbre de comportement).</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF d'une scène 2D vue de dessus : le joueur (PlayerController) s'approche d'un PNJ, l'invite « Parler » apparaît, la bulle de dialogue s'ouvre ; en fond, un garde (AutomateController) patrouille entre trois points puis se met à poursuivre le joueur.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/entity_algorithm/</code> (<code>gameplaytoolkit_entity_algorithm.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient ce module, mais aussi le Système de Capacité, le Système de Dialogue et le Système de Comportement, dont il dépend directement (<code>AbilitySystem</code>, <code>DialogueSystem</code>, <code>BTNode</code>) : les quatre sont livrés ensemble.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code> (module 🌀 Mouvement &amp; Physique)</td><td><strong>Optionnelle, mais nécessaire pour bouger</strong></td><td>Fournit <code>MovementDirector</code>, <code>GroundMovement2D</code>/<code>3D</code>… Le personnage les trouve <em>par nom de classe</em> : sans cette bibliothèque tout se charge, mais rien ne se déplace.</td></tr>
+        <tr><td><code>NavigationAgent2D</code> / <code>3D</code> + région de navigation</td><td>Optionnelle</td><td>Pour qu'un <code>AutomateController</code> contourne les obstacles ; sinon il va en ligne droite.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧍🧠/</code></td><td>Optionnelle</td><td>Seulement pour les icônes des nœuds dans l'arbre de scène.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt, ainsi que le mouvement :
+      <pre><code class="language-shell">scons entity_algorithm
+scons movement_physics</code></pre>
+      <div class="why">chaque bibliothèque est compilée séparément et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+    </li>
+    <li>
+      <strong>Copier les dossiers <code>bin/entity_algorithm/</code> et <code>bin/movement_physics/</code></strong> dans le projet Godot, au même emplacement (<code>res://bin/…</code>).
+      <div class="why">les fichiers <code>.gdextension</code> référencent leurs binaires par des chemins <code>res://bin/…</code> absolus ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; les recompilations suivantes sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>Character2D</code>, <code>PlayerController</code>, <code>HealthComponent</code>… et le panneau <em>Sortie</em> afficher « 🧍Module Entités &amp; Algorithme … chargé avec succès ».
+      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : le message d'erreur de chargement est dans ce même panneau.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload n'est requis. Les actions de l'InputMap du joueur (<code>move_left</code>, <code>jump</code>…) sont créées automatiquement au lancement si elles manquent (<code>PlayerController.create_missing_actions</code>).</p>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture du FileSystem montrant <code>res://bin/entity_algorithm/</code> et <code>res://bin/movement_physics/</code>, puis de la boîte « Ajouter un nœud » filtrée sur « Character ».</div>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-joueur">A. Un joueur jouable en 2D</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer une scène dont la racine est un <code>Character2D</code></strong>, avec un <code>Sprite2D</code> et un <code>CollisionShape2D</code> comme pour tout <code>CharacterBody2D</code>. Régler sa <code>faction</code> sur <code>joueur</code>.
+      <div class="why">le personnage est un vrai corps physique ; la faction servira à savoir qui est ennemi du joueur.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>GroundMovement2D</code> enfant</strong> (module Mouvement &amp; Physique) et choisir son mode (plateforme ou vue de dessus).
+      <div class="why">c'est lui qui déplace réellement le corps ; le personnage se contente de lui transmettre l'intention.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>PlayerController</code> enfant.</strong>
+      <div class="why">il lit le clavier et la manette à chaque image physique. Les actions manquantes sont créées au lancement : ZQSD / WASD et flèches, Espace pour sauter, Maj pour courir, E pour interagir.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>HealthComponent</code> enfant</strong> et régler <code>max_health</code> depuis l'inspecteur du personnage (groupe « 🧩 HealthComponent »).
+      <div class="why">sans composant de vie, le personnage est immortel ; avec lui, il peut subir des dégâts et sa mort coupe automatiquement ses déplacements.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène</strong> : le personnage se déplace, saute et court.
+      <div class="why">si rien ne bouge, vérifier que le composant de mouvement est bien un enfant <em>direct</em> du personnage.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-pnj">B. Un PNJ qui parle quand on l'approche</h3>
+  <ol class="steps">
+    <li>
+      <strong>Dupliquer la scène du personnage</strong>, retirer le <code>PlayerController</code> et ajouter à la place un <code>NPCController</code>.
+      <div class="why">le PNJ est un personnage comme les autres, seul son « cerveau » change.</div>
+    </li>
+    <li>
+      <strong>Assigner sa propriété <code>dialogue</code></strong> (un <code>DialogueResource</code>) et placer un <code>DialogueSystem</code> + <code>DialogueBox</code> dans la scène.
+      <div class="why">le PNJ lance ce dialogue sur le <code>DialogueSystem</code> principal ; pendant la conversation, le <code>PlayerController</code> du joueur est automatiquement mis en pause.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène et s'approcher à moins de 64 px</strong>, puis appuyer sur <kbd>E</kbd>.
+      <div class="why">au démarrage, le PNJ a créé tout seul un <code>Interactable</code> (invite « Parler », portée 64 px) ; le joueur interagit toujours avec le plus proche à portée.</div>
+    </li>
+    <li>
+      <strong>Afficher l'invite</strong> en écoutant le joueur :
+      <pre><code class="gdscript">func _ready() -> void:
+	$Joueur/PlayerController.focus_changed.connect(func(objet: Interactable):
+		$Interface/Invite.visible = objet != null
+		if objet:
+			$Interface/Invite.text = "[E] " + objet.prompt)</code></pre>
+      <div class="why">le module ne dessine aucune interface : il indique seulement l'objet visé.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-garde">C. Un garde qui patrouille</h3>
+  <ol class="steps">
+    <li>
+      <strong>Sur un troisième personnage (faction <code>monstres</code>, <code>hostile_factions</code> = <code>["joueur"]</code>), ajouter un <code>AutomateController</code>.</strong>
+      <div class="why">l'automate calcule l'entrée de déplacement que le joueur donnerait au clavier.</div>
+    </li>
+    <li>
+      <strong>Remplir <code>patrol_points</code></strong> avec des <code>Vector2</code> (positions globales) et régler <code>start_mode</code> sur <em>Patrol</em>.
+      <div class="why">le garde part dès le lancement, marque une pause de <code>wait_time</code> à chaque point et boucle (<code>patrol_loop</code>).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/*.xml</code> des onze classes. Seuls les éléments <strong>exposés à Godot</strong> figurent ici ; le reste est interne et peut changer sans préavis :</p>
+  <ul>
+    <li><code>CharacterAPI</code> et <code>CharacterCore</code> (C++ uniquement) : l'interface commune et l'état partagé de <code>Character2D</code>/<code>Character3D</code> (intention transmise, dernier envoi, regard).</li>
+    <li>Les propriétés dynamiques <code>components/&lt;nom&gt;/&lt;propriété&gt;</code> du personnage (<code>expose_components</code>) : elles ne sont pas listées dans les tableaux mais sont accessibles par <code>get()</code> / <code>set()</code>.</li>
+    <li>Les méthodes héritées de <code>BTNode</code> (<code>get_agent</code>, <code>get_blackboard</code>, <code>_tick</code>…) sont documentées avec le module 🤾 Système de Comportement.</li>
+    <li>Les propriétés héritées surchargées (<code>process_physics_priority</code> : −30 pour les personnages, −10 pour les contrôleurs) ne sont pas listées.</li>
+  </ul>
+  <div data-api="Character2D Character3D PlayerController AutomateController NPCController HealthComponent Interactable CharacterRegister BTFindTarget BTMoveTo BTUseAbility"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-degats">Comment j'inflige des dégâts à un personnage touché ?</h3>
+  <p><code>take_damage</code> existe sur le personnage lui-même : pas besoin de chercher son <code>HealthComponent</code>. Il renvoie les dégâts réellement appliqués (0 si la cible est morte, invulnérable ou sans composant de vie).</p>
+  <pre><code class="gdscript"># Épée : Area2D enfant du joueur
+func _on_body_entered(corps: Node2D) -> void:
+	if corps is Character2D and owner.is_hostile_to(corps):
+		var inflige: float = corps.take_damage(20.0, owner)
+		if inflige > 0.0:
+			$Impact.play()</code></pre>
+
+  <h3 id="ex-mort">Comment je réagis à la mort, puis fais réapparaître le joueur ?</h3>
+  <p>Un personnage mort ne transmet plus aucune intention de déplacement. <code>revive()</code> le remet sur pied avec toute sa vie.</p>
+  <pre><code class="gdscript">@onready var vie: HealthComponent = $Joueur.get_health_component()
+
+func _ready() -> void:
+	vie.died.connect(_on_mort)
+
+func _on_mort() -> void:
+	await get_tree().create_timer(2.0).timeout
+	$Joueur.global_position = $PointDeDepart.global_position
+	vie.revive()</code></pre>
+
+  <h3 id="ex-ia">Comment je fais poursuivre le joueur par un ennemi, puis le fais revenir ?</h3>
+  <pre><code class="gdscript">@onready var ia: AutomateController = $Loup/AutomateController
+
+func _physics_process(_delta: float) -> void:
+	var proie := CharacterRegister.get_nearest($Loup, 250.0, true)   # ennemi vivant le plus proche
+	if proie and ia.get_mode() != AutomateController.MODE_FOLLOW:
+		ia.run_distance = 120.0          # sprinte quand la proie est loin
+		ia.follow(proie, 24.0)
+	elif not proie and ia.get_mode() == AutomateController.MODE_FOLLOW:
+		ia.move_to(ia.get_home())        # retour à la tanière</code></pre>
+
+  <h3 id="ex-bt">Comment je combine avec un arbre de comportement ?</h3>
+  <p>Les feuilles <code>BTFindTarget</code>, <code>BTMoveTo</code> et <code>BTUseAbility</code> se partagent la clé <code>cible</code> du tableau noir. L'agent doit avoir un <code>AutomateController</code> (pour se déplacer) et un <code>AbilitySystem</code> (pour attaquer) — voir <a href="systeme-de-capacite.html">🌟 Système de Capacité</a>.</p>
+  <pre><code class="gdscript"># Loup : Character2D > AutomateController + AbilitySystem + GroundMovement2D + BehaviorTree
+func _ready() -> void:
+	var chasse := BTSequence.new()
+	var flairer := BTFindTarget.new()
+	flairer.max_distance = 300.0
+	var approcher := BTMoveTo.new()
+	approcher.arrive_distance = 20.0
+	var mordre := BTUseAbility.new()
+	mordre.ability_id = &"morsure"
+	mordre.target_key = "cible"
+	for feuille in [flairer, approcher, mordre]:
+		chasse.add_child(feuille)
+	$Loup/BehaviorTree.add_child(chasse)</code></pre>
+
+  <h3 id="ex-etourdi">Comment j'étourdis un personnage pendant 2 secondes ?</h3>
+  <p>Tout tag de <code>movement_blocking_tags</code> (par défaut <code>etat.etourdi</code> et <code>etat.immobile</code>) porté par l'<code>AbilitySystem</code> du personnage coupe déplacement et saut. Un effet de jeu à durée qui accorde ce tag suffit :</p>
+  <pre><code class="gdscript">var etourdi := GameplayEffect.new()
+etourdi.duration_policy = GameplayEffect.DURATION_TIMED
+etourdi.duration = 2.0
+etourdi.granted_tags = PackedStringArray(["etat.etourdi"])
+cible.get_ability_system().apply_effect(etourdi)   # cible : Character2D avec un AbilitySystem</code></pre>
+
+  <h3 id="ex-levier">Comment je rends un objet quelconque interactif (levier, porte) ?</h3>
+  <pre><code class="gdscript"># Levier : Node2D > Sprite2D + Interactable
+func _ready() -> void:
+	$Interactable.prompt = "Actionner"
+	$Interactable.interaction_range = 40.0
+	$Interactable.interacted.connect(func(par: Node):
+		$Sprite2D.flip_h = not $Sprite2D.flip_h
+		$"../Porte".queue_free())</code></pre>
+
+  <h3 id="ex-3d">Comment je fais un joueur 3D relatif à la caméra ?</h3>
+  <p>En 3D, <code>PlayerController.camera_relative</code> (actif par défaut) fait avancer « haut » dans la direction de la caméra courante. Rien à coder : <code>Character3D</code> + <code>GroundMovement3D</code> + <code>PlayerController</code>, et une <code>Camera3D</code> active dans la scène. Pour tourner un PNJ 3D vers le joueur :</p>
+  <pre><code class="gdscript">$Garde3D.face_toward(CharacterRegister.get_first_player().get_world_position())</code></pre>
+
+  <h3 id="ex-capacites">Comment je déclenche des capacités au clavier, avec visée automatique ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	InputMap.add_action("attaque")   # les actions de capacités ne sont pas créées automatiquement
+	var clic := InputEventMouseButton.new()
+	clic.button_index = MOUSE_BUTTON_LEFT
+	InputMap.action_add_event("attaque", clic)
+	$Joueur/PlayerController.ability_actions = {&"attaque": &"coup_epee"}
+	$Joueur/PlayerController.auto_target_range = 80.0   # cible = ennemi vivant le plus proche dans 80 px</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-personnage">Personnages</h3>
+  <ul>
+    <li><strong>Immobile sans composant de mouvement.</strong> Le personnage ne déplace jamais son corps lui-même : sans <code>MovementDirector</code> ni <code>MovementComponent</code> <em>enfant direct</em>, <code>set_move_input</code> est mémorisé mais n'a aucun effet visible.</li>
+    <li><strong>Un seul « cerveau » à la fois.</strong> <code>PlayerController</code> et <code>AutomateController</code> réécrivent l'entrée du personnage à <em>chaque</em> image physique, y compris désactivés (<code>enabled = false</code>) ou à l'arrêt (mode <em>Idle</em>) : ils mettent alors l'entrée à zéro. Un script qui appelle <code>set_move_input</code> sur un personnage portant l'un d'eux est donc écrasé à l'image suivante. Retirer le contrôleur (ou le mettre en <code>process_mode = DISABLED</code>) pour piloter à la main.</li>
+    <li><strong>En 2D, <code>face_toward</code> ne retourne pas le sprite.</strong> Il met seulement à jour <code>get_facing()</code> ; c'est à vous d'appliquer <code>flip_h</code>. En 3D, il fait bien tourner le corps.</li>
+    <li><strong>Hostilité toujours réciproque.</strong> Il suffit qu'un des deux personnages déclare la faction de l'autre dans <code>hostile_factions</code> : impossible d'avoir un personnage qui en attaque un autre sans que l'inverse soit vrai pour les recherches « hostiles ».</li>
+    <li><strong>Composants = enfants directs non spatiaux.</strong> Un <code>HealthComponent</code> rangé sous un nœud intermédiaire, ou un composant dérivé de <code>Node2D</code>, n'est pas trouvé.</li>
+    <li><strong>Le blocage par tags demande un <code>AbilitySystem</code></strong> enfant du personnage ; sans lui, seule la mort bloque le déplacement.</li>
+    <li><strong><code>view_mode = Auto</code> sans <code>GroundMovement2D</code> = vue de dessus</strong> : une IA de jeu de plateforme sans ce composant (nage, déplacement maison) doit forcer <em>Side</em>, sinon elle tentera d'avancer en y.</li>
+  </ul>
+
+  <h3 id="limites-controleurs">Contrôleurs</h3>
+  <ul>
+    <li><strong><code>start_mode</code> <em>Move To</em> et <em>Follow</em> sont sans effet</strong> : aucune destination n'existe au lancement, l'automate reste à l'arrêt. Seuls <em>Patrol</em> et <em>Wander</em> démarrent seuls.</li>
+    <li><strong><code>patrol_points</code> n'accepte pas de <code>NodePath</code></strong> : dans l'inspecteur, seuls des <code>Vector2</code>/<code>Vector3</code> sont utilisables (un <code>NodePath</code> vaut l'origine du monde). Pour suivre des marqueurs, passer les nœuds par code (<code>patrol([$P1, $P2])</code>) ; leur position est lue quand ils deviennent la destination.</li>
+    <li><strong><code>move_to(noeud)</code> fige la position</strong> au moment de l'appel ; pour une cible mobile, <code>follow()</code>.</li>
+    <li><strong>Pas d'évitement entre agents</strong> : la navigation suit le chemin de l'agent de navigation, mais l'évitement (<code>avoidance</code>) et sa vitesse sûre ne sont pas utilisés. Sans <code>NavigationAgent</code>, ligne droite, murs compris.</li>
+    <li><strong>Freinage à l'approche uniquement avec un composant qui expose <code>max_speed</code>, <code>acceleration</code>, <code>deceleration</code></strong> (déplacement au sol). Avec un autre déplacement, l'automate arrive à pleine vitesse et peut dépasser légèrement le but.</li>
+    <li><strong><code>BTMoveTo.run</code> entre en conflit avec <code>AutomateController.run_distance</code></strong> : l'automate remet sa propre règle de course à chaque image avant que la feuille ne redemande la course. Préférer régler <code>run_distance</code>.</li>
+    <li><strong>Touches par défaut doublées</strong> : les touches physiques A et Q vont toutes deux à gauche, W et Z vers le haut (pour couvrir AZERTY et QWERTY). Une action de jeu sur l'une de ces touches entrera en conflit ; désactiver <code>create_missing_actions</code> et déclarer ses propres actions.</li>
+    <li><strong><code>PlayerController</code> en dialogue</strong> : il ne surveille que le <code>DialogueSystem</code> <em>principal</em> (<code>DialogueSystem.get_main()</code>). Un dialogue lancé sur un autre système ne bloque pas le joueur.</li>
+    <li><strong><code>NPCController</code> exige sa propriété <code>dialogue</code></strong> (le <code>default_dialogue</code> du système n'est pas utilisé), et son <code>Interactable</code> automatique n'existe qu'à l'image suivant son <code>_ready</code> ; <code>interaction_prompt</code> modifié ensuite n'est pas répercuté.</li>
+  </ul>
+
+  <h3 id="limites-services">Vie, interaction, registre</h3>
+  <ul>
+    <li><strong>Ordre des signaux d'un coup fatal</strong> : <code>health_changed</code>, puis <code>died</code>, puis <code>damaged</code>. Un écouteur de <code>damaged</code> qui suppose la cible vivante se trompe.</li>
+    <li><strong>Mode attribut</strong> : la vie n'utilise l'attribut de l'<code>AbilitySystem</code> qu'une fois celui-ci initialisé (son <code>_ready</code>). Écrire <code>max_health</code> ne modifie alors que la valeur interne, ignorée tant que l'attribut <code>max_health</code> existe.</li>
+    <li><strong>Invulnérabilité décomptée en images physiques</strong> : elle suit la pause et <code>Engine.time_scale</code>.</li>
+    <li><strong>Distances 3D complètes</strong> pour <code>Interactable</code> et <code>CharacterRegister</code> : un personnage à l'étage au-dessus peut être « à portée » ou « le plus proche ».</li>
+    <li><strong>Recherche linéaire</strong> : <code>get_nearest</code>, <code>get_in_radius</code> et <code>Interactable.find_nearest</code> parcourent tous les personnages / objets à chaque appel (le <code>PlayerController</code> le fait à chaque image). Sans souci pour quelques centaines d'entités ; pour des milliers, passer par des zones physiques.</li>
+    <li><strong><code>get_in_radius(..., hostile_only = true)</code> depuis un nœud qui n'est pas un personnage renvoie toujours un tableau vide.</strong></li>
+    <li><strong>Rien n'est enregistré dans l'éditeur</strong> : le registre et la liste des <code>Interactable</code> sont vides dans un script <code>@tool</code>.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 340" role="img" aria-label="Schéma d'architecture du module Personnage">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <!-- Cerveaux -->
+    <text x="20" y="22" class="small">Cerveaux (enfants du personnage)</text>
+    <rect class="box" x="20" y="34" width="170" height="50" rx="8"/>
+    <text x="105" y="56" text-anchor="middle">PlayerController</text>
+    <text x="105" y="73" text-anchor="middle" class="small">InputMap</text>
+    <rect class="box" x="20" y="98" width="170" height="50" rx="8"/>
+    <text x="105" y="120" text-anchor="middle">AutomateController</text>
+    <text x="105" y="137" text-anchor="middle" class="small">← NPCController</text>
+    <rect class="box" x="20" y="162" width="170" height="50" rx="8"/>
+    <text x="105" y="184" text-anchor="middle">BTMoveTo / BTUseAbility</text>
+    <text x="105" y="201" text-anchor="middle" class="small">BehaviorTree</text>
+    <!-- Personnage -->
+    <rect class="box main" x="300" y="80" width="200" height="80" rx="8"/>
+    <text x="400" y="108" text-anchor="middle">Character2D / 3D</text>
+    <text x="400" y="126" text-anchor="middle" class="small">CharacterAPI · faction</text>
+    <text x="400" y="143" text-anchor="middle" class="small">intention de déplacement</text>
+    <!-- Composants -->
+    <rect class="box" x="620" y="34" width="220" height="50" rx="8"/>
+    <text x="730" y="56" text-anchor="middle">MovementDirector / Component</text>
+    <text x="730" y="73" text-anchor="middle" class="small">bin/movement_physics (par nom)</text>
+    <rect class="box" x="620" y="98" width="220" height="50" rx="8"/>
+    <text x="730" y="120" text-anchor="middle">HealthComponent</text>
+    <text x="730" y="137" text-anchor="middle" class="small">vie interne ou attribut</text>
+    <rect class="box" x="620" y="162" width="220" height="50" rx="8"/>
+    <text x="730" y="184" text-anchor="middle">AbilitySystem</text>
+    <text x="730" y="201" text-anchor="middle" class="small">tags bloquants · capacités</text>
+    <!-- Services -->
+    <rect class="box" x="300" y="260" width="200" height="50" rx="8"/>
+    <text x="400" y="282" text-anchor="middle">CharacterRegister</text>
+    <text x="400" y="299" text-anchor="middle" class="small">statique · ObjectID</text>
+    <rect class="box" x="20" y="260" width="170" height="50" rx="8"/>
+    <text x="105" y="282" text-anchor="middle">Interactable</text>
+    <text x="105" y="299" text-anchor="middle" class="small">liste statique</text>
+    <rect class="box" x="620" y="260" width="220" height="50" rx="8"/>
+    <text x="730" y="282" text-anchor="middle">DialogueSystem</text>
+    <text x="730" y="299" text-anchor="middle" class="small">get_main()</text>
+    <!-- Flèches -->
+    <path class="arrow" d="M190 59 Q250 70 298 100" marker-end="url(#arr)"/>
+    <path class="arrow" d="M190 123 H298" marker-end="url(#arr)"/>
+    <path class="arrow" d="M190 187 Q250 175 298 145" marker-end="url(#arr)"/>
+    <text x="244" y="116" text-anchor="middle" class="small">set_move_input</text>
+    <path class="arrow" d="M500 100 Q560 70 618 62" marker-end="url(#arr)"/>
+    <text x="560" y="72" text-anchor="middle" class="small">call("move")</text>
+    <path class="arrow dashed" d="M618 123 H502" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M618 187 Q560 175 502 145" marker-end="url(#arr)"/>
+    <text x="560" y="116" text-anchor="middle" class="small">vivant ? bloqué ?</text>
+    <path class="arrow dashed" d="M400 160 V258" marker-end="url(#arr)"/>
+    <text x="410" y="215" class="small">inscription (entrée / sortie d'arbre)</text>
+    <path class="arrow dashed" d="M105 212 V258" marker-end="url(#arr)"/>
+    <text x="115" y="240" class="small">find_nearest</text>
+    <path class="arrow dashed" d="M190 285 Q420 330 618 290" marker-end="url(#arr)"/>
+    <text x="560" y="250" text-anchor="middle" class="small">NPCController : interacted → start()</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Personnage</strong> : <code>Character2D</code> et <code>Character3D</code> héritent des corps physiques de Godot et d'une interface C++ commune, <code>CharacterAPI</code>, implémentée une seule fois par une macro et une structure partagée (<code>CharacterCore</code>). Les contrôleurs, les feuilles d'arbre et <code>Interactable</code> passent par cette interface et ignorent si le personnage est en 2D ou en 3D (positions en <code>Vector3</code>, entrée en <code>Vector2</code>).</li>
+    <li><strong>Contrôleurs → personnage</strong> : appel direct (<code>set_move_input</code>, <code>request_jump</code>, <code>set_running</code>) à chaque image physique. Ordre : personnage (priorité −30), puis contrôleurs (−10).</li>
+    <li><strong>Personnage → mouvement</strong> : appels dynamiques (<code>call("move")</code>, <code>call("jump")</code>…) au <code>MovementDirector</code> enfant, sinon à chaque <code>MovementComponent</code>. L'intention n'est renvoyée que si elle a changé, pour ne pas écraser une intention donnée directement au directeur par un autre système.</li>
+    <li><strong>Personnage → vie / capacités</strong> : lecture directe du <code>HealthComponent</code> (vivant ?) et de l'<code>AbilitySystem</code> (tags bloquants ?) trouvés parmi ses enfants.</li>
+    <li><strong>Registres</strong> : <code>CharacterRegister</code> et <code>Interactable</code> tiennent des listes statiques d'<code>ObjectID</code>, remplies aux notifications d'entrée / sortie d'arbre. Un objet libéré est simplement ignoré à la lecture.</li>
+    <li><strong>Signaux</strong> vers l'extérieur : <code>focus_changed</code>, <code>destination_reached</code>, <code>died</code>, <code>interacted</code>… ; <code>NPCController</code> écoute <code>interacted</code> de son <code>Interactable</code> et <code>dialogue_ended</code> du <code>DialogueSystem</code>.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Fort, mais interne à la bibliothèque <code>entity_algorithm</code> : <code>AbilitySystem</code> (blocage, capacités du joueur, mode attribut de la vie), <code>DialogueSystem</code> (PNJ, blocage du joueur), <code>BTNode</code>/<code>Blackboard</code> (feuilles d'arbre).</li>
+    <li>Faible vers <code>movement_physics</code> : aucune inclusion de code, seulement des noms de classes (<code>MovementDirector</code>, <code>MovementComponent</code>, <code>GroundMovement2D</code>) et de méthodes / propriétés (<code>move</code>, <code>jump</code>, <code>max_speed</code>, <code>active</code>, <code>mode</code>…). Renommer l'une d'elles casse silencieusement le lien.</li>
+    <li>Les autres modules doivent passer par Godot (<code>ClassDB</code>, <code>call</code>) et non inclure ces <code>.hpp</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Le personnage est un <strong>conteneur de composants</strong> sans physique propre</td><td>Un même personnage peut marcher, nager, grimper ou voler selon le composant actif ; joueur, ennemi et PNJ ne diffèrent que par leur contrôleur.</td></tr>
+        <tr><td>Lien avec le mouvement <strong>par nom</strong> de classe et de méthode</td><td>Les deux bibliothèques restent compilables et livrables séparément ; un projet sans déplacement (jeu de cartes, tour par tour) n'embarque pas la physique.</td></tr>
+        <tr><td>Intention transmise <strong>seulement si elle change</strong></td><td>Un <code>PlayerInput</code> ou un script qui pilote directement le <code>MovementDirector</code> n'est pas écrasé chaque image par une intention nulle.</td></tr>
+        <tr><td>Intention <strong>réappliquée à chaque image</strong> et blocage calculé à ce moment</td><td>Une mort ou un étourdissement survenus entre deux entrées coupent le mouvement immédiatement, sans attendre une nouvelle entrée.</td></tr>
+        <tr><td>Priorités physiques −30 (personnage) / −10 (contrôleurs)</td><td>Le blocage est appliqué avant que le <code>MovementDirector</code> (−20) et les composants calculent leur vitesse.</td></tr>
+        <tr><td>Hostilité réciproque</td><td>Évite les combats à sens unique par oubli de configuration : déclarer « les monstres sont hostiles au joueur » suffit pour que les deux camps se ciblent.</td></tr>
+        <tr><td>Registres statiques d'<code>ObjectID</code> plutôt que des groupes</td><td>Pas de nom de groupe à maintenir ni de risque de pointeur pendant : un personnage libéré disparaît des résultats sans désinscription explicite.</td></tr>
+        <tr><td>Propriétés des composants exposées sur le personnage, enregistrées par le composant</td><td>Réglage centralisé dans l'inspecteur sans dupliquer les valeurs dans la scène (une seule source de vérité).</td></tr>
+        <tr><td><code>HealthComponent</code> peut lire un attribut d'<code>AbilitySystem</code></td><td>Les effets de jeu (poison, soin, bonus de vie max) agissent sur la vie sans code de liaison, et un jeu sans capacités garde une vie simple.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des onze classes (structure régénérée pour <code>Character2D</code>/<code>Character3D</code>, qui décrivait une ancienne version), commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06 → 2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>Character2D</code>, <code>Character3D</code> : personnages à composants, factions, transmission de l'intention au module Mouvement &amp; Physique.</li>
+      <li><span class="tag add">Ajouté</span><code>PlayerController</code>, <code>AutomateController</code>, <code>NPCController</code>, <code>HealthComponent</code>, <code>Interactable</code>, <code>CharacterRegister</code>, feuilles <code>BTFindTarget</code>, <code>BTMoveTo</code>, <code>BTUseAbility</code>.</li>
+      <li><span class="tag fix">Corrigé</span>(2026-10-07) L'intention de déplacement n'est plus renvoyée au <code>MovementDirector</code> que lorsqu'elle change : une intention donnée directement au directeur n'est plus écrasée.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🧑 Personnage (Joueur, Automate, PNJ) · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/4.🧍Entités &amp; Algorithme🧠/🧑Personnage (🏌️Joueur, 🤖Automate, PNG)/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  // 🧑 Character2D (recopié pour Character3D plus bas)
+  "Character2D.direction_input_to": "IA maison : <code>set_move_input(direction_input_to(cible))</code> pour foncer vers un point sans <code>AutomateController</code>.",
+  "Character2D.face_toward": "Tourner un PNJ vers le joueur qui lui parle, orienter un tir vers une cible.",
+  "Character2D.get_ability_system": "Appliquer un effet (poison, étourdissement) au personnage touché.",
+  "Character2D.get_active_movement": "Lire l'état du déplacement en cours (au sol, à la nage…) pour choisir l'animation.",
+  "Character2D.get_component": "Récupérer un composant maison par son <code>class_name</code> (<code>get_component(&amp;\"Inventaire\")</code>).",
+  "Character2D.get_components": "Outil de débogage : lister ce dont un personnage est fait.",
+  "Character2D.get_facing": "Choisir <code>flip_h</code> du sprite ou la direction d'une attaque.",
+  "Character2D.get_health": "Afficher les PV au-dessus d'un ennemi.",
+  "Character2D.get_health_component": "Se brancher sur <code>died</code> / <code>damaged</code> d'un personnage.",
+  "Character2D.get_max_health": "Calculer le remplissage d'une barre de vie.",
+  "Character2D.get_move_input": "Animation de marche : jouer « courir » quand l'entrée n'est pas nulle.",
+  "Character2D.get_movement_director": "Forcer un mode de déplacement (nage, escalade) via l'orchestrateur.",
+  "Character2D.get_world_position": "Comparer des positions sans se soucier de 2D / 3D (code partagé).",
+  "Character2D.heal": "Potion, point de sauvegarde, sort de soin.",
+  "Character2D.is_alive": "Ignorer les cadavres dans une attaque de zone ou une IA.",
+  "Character2D.is_hostile_to": "Hitbox qui ne blesse que les ennemis ; pas de tir allié.",
+  "Character2D.is_movement_blocked": "Griser les commandes à l'écran, jouer l'animation « étourdi ».",
+  "Character2D.is_running": "Animation de course, consommation d'endurance.",
+  "Character2D.is_side_view": "Code d'IA commun aux niveaux vus de côté et de dessus.",
+  "Character2D.planar_distance_to": "« À portée de mêlée ? » en ignorant la hauteur en plateforme.",
+  "Character2D.release_jump": "Saut à hauteur variable piloté par un script ou un écran tactile.",
+  "Character2D.request_jump": "Faire sauter une IA par-dessus un obstacle, ou un joueur via une touche tactile.",
+  "Character2D.set_move_input": "Piloter un personnage par script, réseau ou rejeu (sans contrôleur).",
+  "Character2D.set_running": "Faire courir une IA qui fuit, ou le joueur via un bouton tactile.",
+  "Character2D.take_damage": "Hitbox, projectile, piège, chute.",
+  "Character2D.display_name": "Nom dans la bulle de dialogue, le tableau des scores, la barre de vie du boss.",
+  "Character2D.expose_components": "Désactiver sur un personnage très chargé pour alléger l'inspecteur.",
+  "Character2D.faction": "<code>joueur</code>, <code>monstres</code>, <code>villageois</code>, <code>bandits</code>…",
+  "Character2D.hostile_factions": "Monstres hostiles au joueur ; bandits hostiles aux villageois.",
+  "Character2D.movement_blocking_tags": "Ajouter <code>etat.gele</code> ou <code>etat.dialogue</code> à vos propres états d'immobilisation.",
+  "Character2D.view_mode": "Forcer <em>Side</em> pour une IA de plateforme sans <code>GroundMovement2D</code>.",
+  "Character2D.VIEW_AUTO": "Cas général : suit le mode du déplacement au sol.",
+  "Character2D.VIEW_SIDE": "Jeu de plateforme.",
+  "Character2D.VIEW_TOP_DOWN": "RPG ou jeu d'action vu de dessus.",
+
+  // 🏌️ PlayerController
+  "PlayerController.create_default_actions": "Recréer les actions après un <code>InputMap.load_from_project_settings()</code>.",
+  "PlayerController.get_character": "Accéder au joueur depuis un script attaché au contrôleur.",
+  "PlayerController.get_focused_interactable": "Afficher l'invite de l'objet visé sans écouter le signal.",
+  "PlayerController.interact": "Bouton tactile « Interagir » sur mobile.",
+  "PlayerController.use_ability": "Barre de raccourcis cliquable, bouton tactile de compétence.",
+  "PlayerController.ability_actions": "Lier « attaque », « sort_1 »… aux capacités du héros.",
+  "PlayerController.action_down": "Renommer les actions pour un second joueur (<code>p2_down</code>).",
+  "PlayerController.action_interact": "Utiliser une action existante (<code>ui_accept</code>) pour parler.",
+  "PlayerController.action_jump": "Saut sur une autre touche, ou sur une action partagée avec l'interface.",
+  "PlayerController.action_left": "Écran partagé : actions distinctes par joueur.",
+  "PlayerController.action_right": "Écran partagé : actions distinctes par joueur.",
+  "PlayerController.action_run": "Course sur la gâchette ou sur une touche dédiée.",
+  "PlayerController.action_up": "Écran partagé : actions distinctes par joueur.",
+  "PlayerController.auto_target_range": "Jeu d'action où l'attaque vise toute seule l'ennemi le plus proche.",
+  "PlayerController.block_during_dialogue": "Désactiver pour des dialogues « en marchant » (bulles d'ambiance).",
+  "PlayerController.camera_relative": "Désactiver pour une caméra fixe isométrique où « haut » doit rester -Z.",
+  "PlayerController.create_missing_actions": "Désactiver dans un projet qui définit toutes ses actions dans les paramètres.",
+  "PlayerController.enabled": "Cinématique, menu, mort du joueur : figer les commandes.",
+  "PlayerController.focus_changed": "Afficher « [E] Parler » au-dessus de l'objet visé.",
+
+  // 🤖 AutomateController
+  "AutomateController.follow": "Compagnon qui suit le héros, ennemi qui poursuit.",
+  "AutomateController.get_character": "Script d'IA attaché au contrôleur.",
+  "AutomateController.get_destination": "Dessiner le but de l'IA pour déboguer.",
+  "AutomateController.get_effective_arrive_distance": "Savoir à quelle distance l'IA se considère arrivée.",
+  "AutomateController.get_follow_target": "Vérifier qui l'ennemi poursuit.",
+  "AutomateController.get_home": "Faire revenir un ennemi à son poste après une poursuite.",
+  "AutomateController.get_mode": "Machine à états : ne relancer une patrouille que si l'IA est à l'arrêt.",
+  "AutomateController.is_moving": "Jouer l'animation de marche d'une IA.",
+  "AutomateController.move_to": "Envoyer un villageois à sa maison, un soldat à un point de ralliement.",
+  "AutomateController.patrol": "Garde, sentinelle, véhicule sur un circuit.",
+  "AutomateController.set_home": "Déplacer le territoire d'un animal qui erre.",
+  "AutomateController.stop": "Figer un ennemi pendant une attaque ou un dialogue.",
+  "AutomateController.wander": "Animaux, villageois, foule d'ambiance.",
+  "AutomateController.arrive_distance": "Augmenter pour un gros personnage qui ne doit pas « toucher » son but.",
+  "AutomateController.enabled": "Suspendre l'IA pendant une cinématique sans perdre son mode.",
+  "AutomateController.follow_distance": "Compagnon qui reste à quelques pas, archer qui garde ses distances.",
+  "AutomateController.patrol_loop": "Désactiver pour une ronde en aller-retour sur un rempart.",
+  "AutomateController.patrol_points": "Ronde d'un garde, réglée dans l'inspecteur.",
+  "AutomateController.run_distance": "Poursuite : sprinter quand la proie est loin, marcher à l'approche.",
+  "AutomateController.start_mode": "Garde qui patrouille ou animal qui erre dès le chargement du niveau.",
+  "AutomateController.use_navigation": "Désactiver pour un oiseau ou un fantôme qui traverse les murs.",
+  "AutomateController.wait_time": "Pause du garde qui regarde autour de lui à chaque point.",
+  "AutomateController.wander_radius": "Taille du territoire d'un animal, d'un pêcheur sur son ponton.",
+  "AutomateController.destination_reached": "Enchaîner l'action suivante (ouvrir la porte, s'asseoir).",
+  "AutomateController.patrol_point_reached": "Jouer une animation « regarder » à certains points précis.",
+  "AutomateController.target_lost": "Retour à la patrouille quand la cible disparaît (mort, changement de zone).",
+  "AutomateController.MODE_IDLE": "Valeur de <code>get_mode()</code> à l'arrêt.",
+  "AutomateController.MODE_MOVE_TO": "Valeur de <code>get_mode()</code> pendant un <code>move_to</code>.",
+  "AutomateController.MODE_FOLLOW": "Valeur de <code>get_mode()</code> pendant une poursuite.",
+  "AutomateController.MODE_PATROL": "<code>start_mode</code> d'un garde.",
+  "AutomateController.MODE_WANDER": "<code>start_mode</code> d'un animal ou d'un passant.",
+
+  // 🧑‍🌾 NPCController
+  "NPCController.get_interactable": "Changer l'invite ou la portée du PNJ par code.",
+  "NPCController.is_talking": "Ignorer les attaques ou les bruits pendant une conversation.",
+  "NPCController.talk": "Faire parler un PNJ de lui-même (il interpelle le joueur qui passe).",
+  "NPCController.dialogue": "Le dialogue du marchand, du garde, de l'aubergiste.",
+  "NPCController.dialogue_start_id": "Commencer à une autre réplique selon la progression de la quête.",
+  "NPCController.dialogue_system_path": "Dialogues secondaires dans une boîte différente (bulles d'ambiance).",
+  "NPCController.face_interlocutor": "Désactiver pour un PNJ assis ou un panneau parlant.",
+  "NPCController.interaction_prompt": "« Acheter », « Écouter », « Questionner ».",
+  "NPCController.stop_while_talking": "Désactiver pour un guide qui parle en marchant.",
+  "NPCController.talk_ended": "Ouvrir la boutique, donner la récompense, faire repartir le PNJ.",
+  "NPCController.talk_started": "Jouer une animation de salut, mettre la musique en sourdine.",
+
+  // ❤️ HealthComponent
+  "HealthComponent.get_ability_system": "Vérifier quel système fournit l'attribut de vie.",
+  "HealthComponent.get_health_ratio": "Valeur d'une <code>ProgressBar</code> de 0 à 1, effet visuel en dessous de 25 %.",
+  "HealthComponent.heal": "Potion, régénération maison, soin d'un allié.",
+  "HealthComponent.is_alive": "Ne plus viser, ne plus compter un ennemi.",
+  "HealthComponent.is_invulnerable": "Faire clignoter le sprite pendant l'invulnérabilité.",
+  "HealthComponent.kill": "Chute dans le vide, mort scénarisée, commande de débogage.",
+  "HealthComponent.revive": "Réapparition au point de sauvegarde, sort de résurrection.",
+  "HealthComponent.take_damage": "Caisse destructible, tourelle, ennemi sans <code>Character2D</code>.",
+  "HealthComponent.uses_attribute": "Savoir si un bonus de vie max passe par un effet de jeu.",
+  "HealthComponent.ability_system_path": "Vie fournie par un <code>AbilitySystem</code> rangé ailleurs que parmi les frères.",
+  "HealthComponent.health": "Commencer un niveau blessé, restaurer une sauvegarde.",
+  "HealthComponent.health_attribute": "Utiliser un nom d'attribut francisé (<code>pv</code>).",
+  "HealthComponent.invulnerability_time": "Clignotement après un coup (0,5–1,5 s) dans un jeu de plateforme.",
+  "HealthComponent.max_health": "Vie d'un ennemi, d'une caisse, du boss.",
+  "HealthComponent.max_health_attribute": "Nom de l'attribut de vie max (<code>pv_max</code>).",
+  "HealthComponent.damaged": "Son d'impact, nombre de dégâts flottant, recul.",
+  "HealthComponent.died": "Animation de mort, butin, écran de fin de partie.",
+  "HealthComponent.healed": "Effet de particules vertes, son de soin.",
+  "HealthComponent.health_changed": "Mettre à jour la barre de vie, dans tous les cas (dégâts, soin, effet).",
+  "HealthComponent.revived": "Rejouer l'animation d'apparition, réactiver l'IA.",
+
+  // 🤝 Interactable
+  "Interactable.find_nearest": "Trouver l'objet interactif le plus proche d'un compagnon IA.",
+  "Interactable.get_world_position": "Placer l'invite au-dessus de l'objet visé.",
+  "Interactable.interact": "Déclencher l'interaction par code (cinématique, IA qui ouvre une porte).",
+  "Interactable.is_in_range_of": "Afficher une icône sur un objet tant que le joueur est assez près.",
+  "Interactable.enabled": "Porte verrouillée tant que la clé n'est pas trouvée.",
+  "Interactable.interaction_range": "Grande portée pour un PNJ, petite pour un interrupteur.",
+  "Interactable.one_shot": "Coffre, objet ramassable, levier à usage unique.",
+  "Interactable.prompt": "« Ouvrir », « Ramasser », « Lire », « Parler ».",
+  "Interactable.interacted": "Ouvrir le coffre, ramasser l'objet, lancer le dialogue.",
+
+  // 📇 CharacterRegister
+  "CharacterRegister.get_characters": "Sauvegarder tous les personnages, ou les compter.",
+  "CharacterRegister.get_faction_members": "Alerter tous les gardes quand l'un d'eux repère le joueur.",
+  "CharacterRegister.get_first_player": "Donner une cible au boss, à la caméra, à un compagnon (jeu solo).",
+  "CharacterRegister.get_in_radius": "Explosion, aura de soin, cri qui effraie les ennemis proches.",
+  "CharacterRegister.get_nearest": "Visée automatique, tourelle, ennemi qui repère sa proie.",
+  "CharacterRegister.get_players": "Multijoueur local : caméra qui cadre tous les joueurs.",
+
+  // 🌿 Feuilles d'arbre
+  "BTFindTarget.hostile_only": "Désactiver pour un PNJ qui cherche le personnage le plus proche pour le saluer.",
+  "BTFindTarget.key": "Plusieurs cibles dans le même arbre (<code>proie</code>, <code>allie</code>).",
+  "BTFindTarget.max_distance": "Champ de vision d'un ennemi.",
+  "BTMoveTo.arrive_distance": "Se placer à portée de morsure ou de tir.",
+  "BTMoveTo.run": "Fuite ou charge (voir les limitations).",
+  "BTMoveTo.target_key": "Aller vers une cible, un point de ralliement ou une cachette.",
+  "BTUseAbility.ability_id": "Morsure, tir, sort de soin d'un ennemi.",
+  "BTUseAbility.target_key": "Viser la cible trouvée par <code>BTFindTarget</code>.",
+  "BTUseAbility.wait_until_end": "Ne pas enchaîner l'action suivante avant la fin d'une attaque longue."
+};
+// Character3D partage l'interface de Character2D (sauf ce qui est propre à la vue 2D)
+Object.keys(window.GTK_USAGES).forEach(function (k) {
+  if (k.indexOf("Character2D.") === 0) {
+    var k3 = "Character3D." + k.slice(12);
+    if (!(k3 in window.GTK_USAGES)) window.GTK_USAGES[k3] = window.GTK_USAGES[k];
+  }
+});
+window.GTK_USAGES["Character3D.face_toward"] = "Tourner un PNJ 3D ou une tourelle vers sa cible (rotation autour de Y).";
+window.GTK_USAGES["Character3D.get_facing"] = "Direction horizontale du regard, pour orienter une attaque ou un projectile.";
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

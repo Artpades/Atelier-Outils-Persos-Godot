@@ -15,6 +15,7 @@ class InputButtonAction : public InputAction
     GDCLASS(InputButtonAction, InputAction)
 
   public:
+    /// Sens de joy_axis qui enfonce le bouton.
     enum AxisDirection
     {
         AXIS_BOTH,
@@ -78,7 +79,9 @@ class InputButtonAction : public InputAction
     int press_count = 0;
     double multi_press_timer = 0.0;
 
+    /// Vrai si l'une des entrées (touche, souris, bouton, axe, action de l'InputMap) est enfoncée.
     bool _read() const;
+    /// Fait évoluer l'état (appui, relâchement, maintien, appuis multiples) et émet les évènements.
     void _process(bool p_down, double p_delta);
 };
 } // namespace godot

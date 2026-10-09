@@ -208,8 +208,10 @@ class DialogueResource : public Resource
     void set_start_id(const StringName &p_id) { start_id = p_id; emit_changed(); }
     StringName get_start_id() const { return start_id; }
 
+    /// Nœud d'identifiant p_id (recherche linéaire, premier trouvé), nul si absent ou si p_id est vide.
     Ref<DialogueNode> get_dialogue_node(const StringName &p_id) const;
     bool has_dialogue_node(const StringName &p_id) const { return get_dialogue_node(p_id).is_valid(); }
+    /// Nœud de start_id, ou le premier nœud si start_id est vide.
     Ref<DialogueNode> get_start_node() const;
     /// Identifiant libre de la forme « prefixe_N ».
     StringName generate_id(const String &p_prefix) const;

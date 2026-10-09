@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="EditorIconPicker" inherits="AcceptDialog" api_type="editor_extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Choix d'une icône de l'éditeur Godot, copiée dans le projet pour fonctionner aussi en jeu.
 	</brief_description>
 	<description>
+		Les icônes de l'éditeur n'existent pas dans un jeu exporté : l'icône choisie est copiée dans [code]res://object_editor_icons/&lt;nom&gt;.res[/code] ([ImageTexture]) et c'est cette copie qui est utilisée. Éditeur uniquement, non instanciable.
+		[codeblock]
+		@tool
+		extends EditorScript
+
+		func _run() -&gt; void:
+			var icone := EditorIconPicker.copy_editor_icon("Node3D")
+			print(icone.resource_path) # res://object_editor_icons/Node3D.res
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,6 +21,7 @@
 			<return type="Texture2D" />
 			<param index="0" name="name" type="String" />
 			<description>
+				Copie l'icône [param name] de l'éditeur dans le projet (ou relit la copie si elle existe) et la renvoie ; [code]null[/code] si l'icône n'existe pas. La copie reprend les couleurs du thème courant de l'éditeur.
 			</description>
 		</method>
 	</methods>

@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="CharacterRegister" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		📇 Registre automatique des personnages ([Character2D], [Character3D]) présents dans l'arbre : recherche par faction, distance, hostilité.
 	</brief_description>
 	<description>
+		Classe statique : on ne l'instancie pas, on appelle directement ses méthodes. Chaque personnage s'y inscrit à son entrée dans l'arbre et en sort à sa sortie (en jeu uniquement, pas dans l'éditeur). Les distances sont des distances euclidiennes complètes (hauteur comprise en 3D, y compris en vue de côté en 2D), contrairement à [method Character2D.planar_distance_to].
+		[codeblock]
+		# Tourelle (script sur un Character2D de faction « defense ») : vise l'ennemi vivant le plus proche.
+		extends Character2D
+
+		func _physics_process(_delta: float) -&gt; void:
+			var cible := CharacterRegister.get_nearest(self, 400.0, true)
+			if cible:
+				$Canon.look_at(cible.global_position)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,17 +21,20 @@
 		<method name="get_characters" qualifiers="static">
 			<return type="Array" />
 			<description>
+				Renvoie tous les personnages présents dans l'arbre, dans l'ordre d'inscription.
 			</description>
 		</method>
 		<method name="get_faction_members" qualifiers="static">
 			<return type="Array" />
 			<param index="0" name="faction" type="StringName" />
 			<description>
+				Renvoie les personnages dont la faction vaut [param faction], morts compris.
 			</description>
 		</method>
 		<method name="get_first_player" qualifiers="static">
 			<return type="Node" />
 			<description>
+				Renvoie le premier personnage qui a un [PlayerController] enfant, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_in_radius" qualifiers="static">
@@ -30,6 +44,7 @@
 			<param index="2" name="hostile_only" type="bool" default="false" />
 			<param index="3" name="alive_only" type="bool" default="true" />
 			<description>
+				Renvoie les personnages à [param radius] ou moins de [param from], lui exclu ([param radius] négatif : sans limite). [param from] peut être n'importe quel [Node2D] ou [Node3D] ; mais avec [param hostile_only], il doit être un personnage (sinon le résultat est vide) et seuls ceux avec qui il est hostile sont gardés. [param alive_only] écarte les morts.
 			</description>
 		</method>
 		<method name="get_nearest" qualifiers="static">
@@ -39,11 +54,13 @@
 			<param index="2" name="hostile_only" type="bool" default="false" />
 			<param index="3" name="alive_only" type="bool" default="true" />
 			<description>
+				Renvoie le personnage le plus proche de [param from] (lui exclu), avec les mêmes filtres que [method get_in_radius] ; [code]null[/code] s'il n'y en a aucun.
 			</description>
 		</method>
 		<method name="get_players" qualifiers="static">
 			<return type="Array" />
 			<description>
+				Renvoie les personnages qui ont un [PlayerController] enfant direct.
 			</description>
 		</method>
 	</methods>

@@ -1,16 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ArgumentBinding" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Source d'une valeur : constante, propriété ou fonction d'un objet, ou argument d'un signal. Partagée par les liens de signaux, les gizmos, les comportements, les styles et les aperçus.
 	</brief_description>
 	<description>
+		[method resolve] calcule la valeur selon [member source] :
+		- [constant SOURCE_CONSTANT] : [member constant] (un objet doit être une [Resource] ; un nœud est refusé) ;
+		- [constant SOURCE_PROPERTY] : [code]get_indexed(property_path)[/code] sur l'objet résolu ([member object_resource], sinon le nœud à [member object_path] relatif au contexte, sinon le contexte lui-même). Sans [member property_path], le résultat est [code]null[/code] ;
+		- [constant SOURCE_SIGNAL_ARG] : l'argument [member signal_index] du signal ;
+		- [constant SOURCE_METHOD] : valeur de retour de [member method] appelée sans argument sur le même objet.
+		[codeblock]
+		var source := ArgumentBinding.new()
+		source.source = ArgumentBinding.SOURCE_PROPERTY
+		source.property_path = ^"position:x"
+		print(source.resolve($Joueur, [])) # position.x du joueur
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="compatible_members" qualifiers="static">
+			<return type="Dictionary[]" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="source" type="int" enum="ArgumentBinding.Source" />
+			<param index="2" name="expected" type="Dictionary" />
+			<description>
+				Renvoie les membres de [param object] utilisables comme source [param source] ([constant SOURCE_PROPERTY] ou [constant SOURCE_METHOD]) pour une valeur décrite par [param expected] ([code]type[/code], [code]class_name[/code]) : [code][{name, type, class_name, const}][/code]. Méthodes retenues : publiques, sans argument obligatoire, qui renvoient une valeur compatible. [code]const[/code] n'est connu que pour les méthodes natives.
+			</description>
+		</method>
 		<method name="constant_error" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="value" type="Variant" />
 			<description>
+				Renvoie le message d'erreur si [param value] ne peut pas être une constante (objet qui n'est pas une [Resource]), sinon une chaîne vide.
+			</description>
+		</method>
+		<method name="is_method_const" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="method" type="StringName" />
+			<description>
+				Renvoie [code]true[/code] si [param method] de [param object] est déclarée [code]const[/code] (connu pour les classes natives seulement).
 			</description>
 		</method>
 		<method name="resolve" qualifiers="const">
@@ -18,37 +48,55 @@
 			<param index="0" name="context" type="Object" />
 			<param index="1" name="signal_args" type="Array" />
 			<description>
+				Calcule la valeur pour le contexte [param context] (objet de base des chemins) et les arguments [param signal_args] d'un signal. Renvoie [code]null[/code] si la source est introuvable.
 			</description>
 		</method>
 		<method name="resolve_object" qualifiers="const">
 			<return type="Object" />
 			<param index="0" name="context" type="Object" />
 			<description>
+				Renvoie l'objet utilisé par les sources Propriété et Fonction : [member object_resource], sinon le nœud à [member object_path] (relatif à [param context], ou à la scène courante si le contexte n'est pas un nœud dans l'arbre), sinon [param context].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="constant" type="Variant" setter="set_constant" getter="get_constant" default="null">
+			Valeur de [constant SOURCE_CONSTANT]. Un objet qui n'est pas une [Resource] est refusé (avertissement, valeur remise à [code]null[/code]). Présentée avec le type de [member expected_info] s'il est connu.
 		</member>
 		<member name="expected_info" type="Dictionary" setter="set_expected_info" getter="get_expected_info" default="{}">
+			Description du paramètre alimenté (type, hint, hint_string, class_name) : la constante est éditée avec ce type plutôt qu'en Variant libre. Enregistrée, non affichée dans l'inspecteur.
+		</member>
+		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+			Méthode appelée sans argument pour [constant SOURCE_METHOD].
 		</member>
 		<member name="object_path" type="NodePath" setter="set_object_path" getter="get_object_path" default="NodePath(&quot;&quot;)">
+			Chemin du nœud lu, relatif au contexte. Vide : le contexte lui-même.
 		</member>
 		<member name="object_resource" type="Resource" setter="set_object_resource" getter="get_object_resource">
+			Ressource lue, prioritaire sur [member object_path].
 		</member>
 		<member name="property_path" type="NodePath" setter="set_property_path" getter="get_property_path" default="NodePath(&quot;&quot;)">
+			Propriété lue, sous-chemins acceptés ([code]position:x[/code]).
 		</member>
 		<member name="signal_index" type="int" setter="set_signal_index" getter="get_signal_index" default="0">
+			Index de l'argument du signal pour [constant SOURCE_SIGNAL_ARG] (≥ 0).
 		</member>
 		<member name="source" type="int" setter="set_source" getter="get_source" enum="ArgumentBinding.Source" default="0">
+			Origine de la valeur.
 		</member>
 	</members>
 	<constants>
 		<constant name="SOURCE_CONSTANT" value="0" enum="Source">
+			Valeur fixe ([member constant]).
 		</constant>
 		<constant name="SOURCE_PROPERTY" value="1" enum="Source">
+			Propriété d'un objet ([member property_path]).
 		</constant>
 		<constant name="SOURCE_SIGNAL_ARG" value="2" enum="Source">
+			Argument du signal émis ([member signal_index]).
+		</constant>
+		<constant name="SOURCE_METHOD" value="3" enum="Source">
+			Valeur de retour d'une méthode ([member method]).
 		</constant>
 	</constants>
 </class>

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle du mouvement · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🧩 Socle du mouvement (MovementComponent) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/socle-mouvement.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🧩</div>
+    <div>
+      <h1>🧩_MovementSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Socle du mouvement</strong> : la base commune de tous les composants de déplacement (sol, nage, mur, vol, corde) et la page de référence de la catégorie.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">1 classe : MovementComponent</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un personnage qui marche, nage, glisse le long d'un mur et grimpe à une corde finit souvent avec un unique script de 800 lignes plein de <code>if en_l_eau … elif sur_un_mur …</code>, que personne n'ose plus toucher. <strong>Ce module découpe le déplacement en composants indépendants qui parlent le même langage</strong> : chaque mode de déplacement est un nœud enfant du corps, et tous reçoivent la même intention (« aller par là », « sauter », « courir »).</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🧩 <code>MovementComponent</code> — le contrat</h4>
+      <p>Classe de base abstraite : l'intention (<code>move</code>, <code>jump</code>, <code>set_running</code>, <code>set_vertical_input</code>), la mémoire du saut, l'état actif / inactif, les gizmos de débogage et la méthode virtuelle <code>_movement_step</code> pour écrire ses propres modes en GDScript.</p>
+    </div>
+    <div class="card">
+      <h4>🗺️ La famille de composants</h4>
+      <p>Sol, nage, mur, plané / vol, corde : chacun a sa page (liens plus bas). Un <em>🎬 Orchestrateur</em> facultatif choisit lequel est actif selon la situation.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui assemblent un contrôleur de personnage (joueur ou IA) à partir de briques, et ceux qui veulent ajouter un mode de déplacement maison (échelle, véhicule, grappin) qui s'intègre au reste.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un nœud à ajouter tel quel</strong> : <code>MovementComponent</code> ne s'instancie pas, on ajoute un de ses descendants (<em>🦶 Déplacement au sol</em>, <em>🌊 Aquatique</em>…).</li>
+      <li><strong>Pas une gestion des entrées</strong> : il ne lit ni clavier ni manette. C'est votre script, une IA ou le module d'entrées qui appelle <code>move()</code> / <code>jump()</code>.</li>
+      <li><strong>Pas un choix automatique du mode</strong> : c'est le rôle de l'<em>🎬 Orchestrateur de mouvement</em>. Sans lui, tous les composants d'un corps sont actifs en même temps.</li>
+    </ul>
+  </div>
+
+  <h3 id="famille">Les modules de la catégorie</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Module</th><th>Classes</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur de mouvement</a></td><td><code>MovementDirector</code>, <code>MovementContext</code></td><td>Transmet l'intention et active le bon composant selon le contexte (sol, eau, mur…).</td></tr>
+        <tr><td><a href="deplacement-au-sol.html">🦶 Déplacement au sol</a></td><td><code>GroundMovement2D/3D</code></td><td>Marche, course, sauts (multiples, temps de grâce, hauteur variable), vue de dessus.</td></tr>
+        <tr><td><a href="deplacement-aquatique.html">🌊 Déplacement aquatique</a></td><td><code>SwimMovement2D/3D</code>, <code>WaterArea2D/3D</code></td><td>Eau qui fait flotter les objets, nage des personnages.</td></tr>
+        <tr><td><a href="deplacement-mural.html">🧗 Déplacement mural</a></td><td><code>WallMovement2D/3D</code></td><td>Glissade, saut mural, escalade.</td></tr>
+        <tr><td><a href="physique-aerodynamique.html">🪂 Physique aérodynamique</a></td><td><code>AerodynamicMovement2D/3D</code></td><td>Plané, vol libre ; traînée et portance des objets.</td></tr>
+        <tr><td><a href="physique-de-corde.html">🪢 Physique de corde</a></td><td><code>Rope2D/3D</code>, <code>RopeMovement2D/3D</code></td><td>Corde simulée, s'y accrocher, grimper, se balancer.</td></tr>
+        <tr><td><a href="recul.html">🌬️ Recul</a></td><td><code>Knockback2D/3D</code></td><td>Repousser un corps frappé, verrouiller ses commandes.</td></tr>
+        <tr><td><a href="zone-de-force.html">🧲 Zone de force</a></td><td><code>ForceZone2D/3D</code></td><td>Vent, aimant, tourbillon, freinage.</td></tr>
+        <tr><td><a href="physique-tremousse.html">🫨 Physique trémousse</a></td><td><code>Jiggle2D/3D</code></td><td>Partie visuelle qui traîne et rebondit (ressort amorti).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'arbre de scène d'un personnage 2D complet : <code>CharacterBody2D</code> avec en enfants <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>SwimMovement2D</code>, <code>WallMovement2D</code>, <code>Knockback2D</code>, <code>Sprite2D</code> ; à côté, le jeu en cours avec <code>debug_mode</code> activé (flèches de vitesse et d'intention, texte d'état).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code> (<code>gameplaytoolkit_movement_physics.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient <code>MovementComponent</code> et <strong>toute</strong> la catégorie Mouvement &amp; Physique (25 classes) : les composants ne peuvent pas être installés séparément.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🌀🫗/</code></td><td>Optionnelle</td><td>Icônes des nœuds dans l'arbre de scène. Sans elles, Godot affiche l'icône par défaut.</td></tr>
+        <tr><td>Module <em>🐛 Gizmos</em> (Édition et Debug)</td><td>Aucune à l'exécution</td><td>Les gizmos de <code>debug_mode</code> réutilisent son code, mais il est compilé <em>dans</em> la bibliothèque du mouvement (fichier d'en-tête seul) : rien à installer en plus.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler la bibliothèque</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons movement_physics</code></pre>
+      <div class="why">le fichier <code>movement_physics_register.cpp</code> fait de ce dossier une bibliothèque à part : seule elle est recompilée, et son <code>.gdextension</code> est régénéré.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/movement_physics/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/movement_physics/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/movement_physics/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; ensuite, les recompilations sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> filtré sur « Movement » doit proposer <code>GroundMovement2D</code>, <code>MovementDirector</code>… (<code>MovementComponent</code> apparaît grisé : classe abstraite). Le panneau <em>Sortie</em> affiche « 🌀Module Mouvement &amp; Physique chargé avec succès ! ».
+      <div class="why">si ce message manque, la bibliothèque n'est pas chargée : l'erreur est écrite juste au-dessus dans le panneau Sortie.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet n'est requis.</p>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture du FileSystem montrant <code>res://bin/movement_physics/</code>, puis de la boîte « Ajouter un nœud » filtrée sur « Movement » (MovementComponent grisé, ses descendants disponibles).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-composant">A. Faire marcher un personnage avec un composant</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer un <code>CharacterBody2D</code></strong> avec une <code>CollisionShape2D</code> et un <code>Sprite2D</code>, et un sol (<code>StaticBody2D</code>).
+      <div class="why">les composants déplacent leur <strong>parent</strong> : c'est lui qui doit être un corps physique.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>GroundMovement2D</code> comme enfant direct</strong> du <code>CharacterBody2D</code>.
+      <div class="why">un composant actif (c'est le cas par défaut) déplace le corps à chaque image physique : gravité et <code>move_and_slide</code> sont déjà gérés.</div>
+    </li>
+    <li>
+      <strong>Envoyer l'intention depuis un script</strong> attaché au corps :
+      <pre><code class="gdscript">extends CharacterBody2D
+
+@onready var sol: GroundMovement2D = $GroundMovement2D
+
+func _physics_process(_delta: float) -> void:
+	sol.move(Vector2(Input.get_axis("ui_left", "ui_right"), 0))
+	if Input.is_action_just_pressed("ui_accept"):
+		sol.jump()
+	elif Input.is_action_just_released("ui_accept"):
+		sol.release_jump()   # relâcher tôt = saut plus court</code></pre>
+      <div class="why">le composant ne lit pas les entrées : la même brique sert au joueur, à une IA ou à une cinématique.</div>
+    </li>
+    <li>
+      <strong>Activer <code>debug_mode</code></strong> dans l'inspecteur du composant et lancer le jeu.
+      <div class="why">flèche verte = vitesse, flèche jaune = intention, texte = état (« au sol · sauts 0/1 ») : on voit immédiatement si le composant reçoit bien les commandes.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-script">B. Écrire son propre mode de déplacement (échelle)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer un script qui hérite de <code>MovementComponent</code></strong> et surcharger <code>_movement_step</code> :
+      <pre><code class="gdscript">class_name LadderMovement2D
+extends MovementComponent
+
+@export var vitesse := 120.0
+
+func _movement_step(delta: float) -> void:
+	var corps := get_body() as CharacterBody2D
+	corps.velocity = Vector2(get_move_input().x * 40.0, get_move_input().y * vitesse)
+	if has_jump_request(true):   # true : la demande est consommée
+		corps.velocity.y = -300.0
+		active = false           # quitter l'échelle
+	corps.move_and_slide()</code></pre>
+      <div class="why"><code>_movement_step</code> n'est appelée que si le composant est actif ; l'intention (<code>get_move_input</code>, demande de saut) est déjà stockée par la base.</div>
+    </li>
+    <li>
+      <strong>L'ajouter sous le corps, <code>active</code> décoché</strong>, et l'activer quand le joueur entre dans la zone de l'échelle (en désactivant le composant de sol, ou via un contexte de l'<a href="orchestrateur-de-mouvement.html">🎬 Orchestrateur</a>).
+      <div class="why">deux composants actifs en même temps appellent chacun <code>move_and_slide</code> : le corps bougerait deux fois par image.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/MovementComponent.xml</code>. Seuls les éléments <strong>exposés à Godot</strong> figurent ici ; le reste est interne et peut changer sans préavis :</p>
+  <ul>
+    <li>Les méthodes C++ protégées <code>_physics_step</code>, <code>_on_activated</code>, <code>_on_deactivated</code>, <code>_draw_debug</code>, <code>_debug_text</code> : points d'extension des classes C++ uniquement (en GDScript, utiliser <code>_movement_step</code> et les signaux <code>activated</code> / <code>deactivated</code>).</li>
+    <li><code>is_body_3d()</code>, la mémoire du saut <code>jump_buffer</code>, et la classe C++ <code>DebugGizmos</code> (<code>debug_gizmos.hpp</code>) qui gère les gizmos de débogage de toute la catégorie, ainsi que la macro <code>DEBUG_MODE_DECLARATIONS</code> et les couleurs <code>debug_colors</code>.</li>
+  </ul>
+  <div data-api="MovementComponent"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-ia">Comment je fais déplacer une IA avec les mêmes composants que le joueur ?</h3>
+  <p>L'IA n'a qu'à produire une intention. Ici, un ennemi qui patrouille et saute quand il bute contre un mur.</p>
+  <pre><code class="gdscript">extends CharacterBody2D
+
+var sens := 1.0
+
+func _physics_process(_delta: float) -> void:
+	var sol: GroundMovement2D = $GroundMovement2D
+	if is_on_wall():
+		if sol.is_on_floor() and randf() &lt; 0.5:
+			sol.jump()
+		else:
+			sens = -sens
+	sol.move(Vector2(sens, 0))</code></pre>
+
+  <h3 id="ex-buffer">Comment je rends le saut plus tolérant (appui juste avant l'atterrissage) ?</h3>
+  <p>La demande de saut reste valable <code>jump_buffer_time</code> secondes : un appui 0,2 s avant de toucher le sol déclenche quand même le saut à l'atterrissage.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$GroundMovement2D.jump_buffer_time = 0.2
+	$GroundMovement2D.coyote_time = 0.15   # et 0,15 s de grâce après un rebord</code></pre>
+
+  <h3 id="ex-vent">Comment je fais subir le vent à mon composant GDScript ?</h3>
+  <p>Les composants C++ ajoutent l'accélération des zones de force ; dans un composant maison, il faut le faire soi-même avec la méthode statique.</p>
+  <pre><code class="gdscript">func _movement_step(delta: float) -> void:
+	var corps := get_body() as CharacterBody2D
+	corps.velocity += MovementComponent.external_acceleration_2d(corps) * delta
+	corps.move_and_slide()</code></pre>
+
+  <h3 id="ex-signaux">Comment je change d'animation quand un composant prend la main ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$SwimMovement2D.activated.connect(func(): $AnimationPlayer.play("nage"))
+	$SwimMovement2D.deactivated.connect(func(): $AnimationPlayer.play("marche"))</code></pre>
+
+  <h3 id="ex-input">Comment je relie les composants au module d'entrées ?</h3>
+  <p>Avec un <a href="orchestrateur-de-mouvement.html">🎬 MovementDirector</a>, il suffit de parler au directeur : il relaie à tous les composants. Exemple avec les actions Godot standard :</p>
+  <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	var d: MovementDirector = $MovementDirector
+	d.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
+	d.set_running(Input.is_key_pressed(KEY_SHIFT))
+	if Input.is_action_just_pressed("ui_accept"):
+		d.jump()
+	if Input.is_action_just_released("ui_accept"):
+		d.release_jump()</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Sans orchestrateur, tous les composants sont actifs.</strong> Deux composants actifs sur un même corps le déplacent chacun (deux <code>move_and_slide</code> par image, gravité appliquée deux fois). Il faut soit un <code>MovementDirector</code>, soit gérer <code>active</code> soi-même.</li>
+    <li><strong>Le composant doit être un enfant direct du corps.</strong> <code>get_body()</code> renvoie le parent, et l'orchestrateur, le recul et les zones de force ne cherchent que parmi les enfants directs.</li>
+    <li><strong>L'intention est mémorisée.</strong> <code>move(Vector2(1, 0))</code> fait avancer indéfiniment tant qu'on n'envoie pas <code>Vector2.ZERO</code> : penser à envoyer la commande à chaque image, ou à la remettre à zéro.</li>
+    <li><strong><code>release_jump()</code> n'efface pas la demande de saut</strong> : un appui très bref reste en mémoire <code>jump_buffer_time</code> secondes (c'est voulu, mais un saut peut donc partir après le relâchement).</li>
+    <li><strong>Rien ne tourne dans l'éditeur</strong> : pas de prévisualisation du mouvement sans lancer le jeu.</li>
+    <li><strong><code>debug_mode</code> a un coût</strong> : plusieurs gizmos redessinés à chaque image physique par composant. À réserver au développement.</li>
+    <li><strong>Pas de mise en réseau</strong> : l'état (intention, mémoire du saut) est local ; la synchronisation multijoueur reste à faire de votre côté.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 330" role="img" aria-label="Schéma d'architecture du socle du mouvement">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="20" width="170" height="54" rx="8"/>
+    <text x="105" y="44" text-anchor="middle">Joueur / IA / script</text>
+    <text x="105" y="62" text-anchor="middle" class="small">move · jump · set_running</text>
+    <rect class="box" x="250" y="20" width="170" height="54" rx="8"/>
+    <text x="335" y="44" text-anchor="middle">MovementDirector</text>
+    <text x="335" y="62" text-anchor="middle" class="small">facultatif · active / désactive</text>
+    <rect class="box main" x="480" y="20" width="200" height="54" rx="8"/>
+    <text x="580" y="44" text-anchor="middle">MovementComponent</text>
+    <text x="580" y="62" text-anchor="middle" class="small">intention · active · _movement_step</text>
+    <rect class="box" x="720" y="20" width="120" height="54" rx="8"/>
+    <text x="780" y="44" text-anchor="middle">Corps (parent)</text>
+    <text x="780" y="62" text-anchor="middle" class="small">velocity · move_and_slide</text>
+    <path class="arrow" d="M190 47 H248" marker-end="url(#arr)"/>
+    <path class="arrow" d="M420 47 H478" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M105 74 Q300 110 520 76" marker-end="url(#arr)"/>
+    <text x="300" y="106" text-anchor="middle" class="small">ou directement, sans directeur</text>
+    <path class="arrow" d="M680 47 H718" marker-end="url(#arr)"/>
+    <!-- descendants -->
+    <text x="20" y="160" class="small">Descendants (classes C++ du module)</text>
+    <rect class="box" x="20" y="172" width="150" height="44" rx="8"/><text x="95" y="199" text-anchor="middle">GroundMovement</text>
+    <rect class="box" x="185" y="172" width="150" height="44" rx="8"/><text x="260" y="199" text-anchor="middle">SwimMovement</text>
+    <rect class="box" x="350" y="172" width="150" height="44" rx="8"/><text x="425" y="199" text-anchor="middle">WallMovement</text>
+    <rect class="box" x="515" y="172" width="170" height="44" rx="8"/><text x="600" y="199" text-anchor="middle">AerodynamicMovement</text>
+    <rect class="box" x="700" y="172" width="140" height="44" rx="8"/><text x="770" y="199" text-anchor="middle">RopeMovement</text>
+    <path class="arrow dashed" d="M580 172 L580 76" marker-end="url(#arr)"/>
+    <text x="590" y="130" class="small">héritent (2D et 3D)</text>
+    <!-- services -->
+    <text x="20" y="262" class="small">Lus par les composants (fonctions statiques, registres)</text>
+    <rect class="box" x="20" y="272" width="190" height="44" rx="8"/><text x="115" y="299" text-anchor="middle">ForceZone2D/3D</text>
+    <rect class="box" x="230" y="272" width="190" height="44" rx="8"/><text x="325" y="299" text-anchor="middle">Knockback2D/3D</text>
+    <rect class="box" x="440" y="272" width="190" height="44" rx="8"/><text x="535" y="299" text-anchor="middle">WaterArea / Rope</text>
+    <rect class="box" x="650" y="272" width="190" height="44" rx="8"/><text x="745" y="299" text-anchor="middle">DebugGizmos (interne)</text>
+    <path class="arrow dashed" d="M115 272 Q115 240 95 218" marker-end="url(#arr)"/>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>MovementComponent</code></strong> est un <code>Node</code> enregistré comme classe <em>virtuelle</em> (non instanciable). À <code>NOTIFICATION_READY</code> il active son traitement physique ; à chaque <code>NOTIFICATION_PHYSICS_PROCESS</code>, s'il est actif, il appelle l'étape C++ <code>_physics_step</code> puis la virtuelle GDScript <code>_movement_step</code>, décrémente la mémoire du saut et dessine ses gizmos.</li>
+    <li><strong>Intention</strong> : de simples appels directs (<code>move</code>, <code>jump</code>…) qui stockent des valeurs ; aucun signal. Le <code>MovementDirector</code> les relaie par appel direct à chaque composant.</li>
+    <li><strong>Environnement</strong> : les composants interrogent des fonctions statiques qui parcourent des registres d'instances — <code>ForceZone2D::get_acceleration_on</code> (via <code>external_acceleration_2d</code>), <code>Knockback2D::active_on</code>, <code>WaterArea2D::find_containing</code>, <code>Rope2D::find_rope_of</code>. Pas de singleton ni d'autoload.</li>
+    <li><strong>Signaux</strong> : <code>activated</code> / <code>deactivated</code> à chaque changement d'<code>active</code>, plus les signaux propres à chaque composant (<code>jumped</code>, <code>landed</code>, <code>wall_jumped</code>…).</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>movement_component.cpp</code> inclut <code>force_zone.hpp</code> (pour <code>external_acceleration_*</code>) : la base dépend des zones de force, d'où leur présence dans la même bibliothèque.</li>
+    <li>Les composants dépendent du socle (héritage) et, selon leur rôle, de <code>Knockback</code>, <code>WaterArea</code> ou <code>Rope</code>. Le socle, lui, ne connaît aucun composant concret.</li>
+    <li>Les gizmos réutilisent les fonctions inline de <code>gizmos.hpp</code> (module <em>🐛 Gizmos</em>), compilées dans cette bibliothèque ; leurs ressources sont libérées au déchargement (<code>GizmoResources::destroy()</code>).</li>
+    <li>Toute la catégorie est compilée dans une seule bibliothèque (<code>movement_physics_register.cpp</code> → <code>bin/movement_physics/</code>). Un autre module ne doit pas inclure ses <code>.hpp</code> : il passe par Godot (<code>ClassDB.instantiate("GroundMovement2D")</code>, <code>call("move", …)</code>).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Un composant par mode de déplacement, plutôt qu'un contrôleur unique</td><td>Chaque mode reste court et testable seul ; on compose un personnage dans l'arbre de scène, et un mode maison (GDScript) s'ajoute sans toucher au reste.</td></tr>
+        <tr><td>Intention commune (<code>move</code> / <code>jump</code> / <code>set_running</code> / <code>set_vertical_input</code>)</td><td>Le joueur, une IA ou l'orchestrateur pilotent n'importe quel composant de la même façon ; changer de mode ne change pas le code d'entrée.</td></tr>
+        <tr><td><code>move</code> borne la longueur à 1 au lieu de normaliser</td><td>Conserve les valeurs intermédiaires d'un stick analogique (marcher doucement) tout en empêchant la diagonale clavier d'aller plus vite.</td></tr>
+        <tr><td>Mémoire du saut dans la base (<code>jump_buffer_time</code>)</td><td>Tous les composants bénéficient du même saut « tolérant », et l'orchestrateur n'a rien à gérer.</td></tr>
+        <tr><td>Actif par défaut</td><td>Un composant seul sous un corps fonctionne sans configuration ; l'orchestrateur ne gère que les composants qu'il cite.</td></tr>
+        <tr><td>Registres statiques d'instances (zones, eau, cordes, reculs) plutôt que des signaux <code>body_entered</code></td><td>Le composant interroge l'état au moment où il en a besoin : pas de connexions à gérer ni d'état « entré / sorti » qui pourrait se désynchroniser.</td></tr>
+        <tr><td>Gizmos de débogage dessinés par le serveur de rendu</td><td>Ils n'ajoutent aucun nœud à la scène et disparaissent complètement quand <code>debug_mode</code> est désactivé.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>MovementComponent</code> (structure resynchronisée avec la bibliothèque, ajout de <code>debug_mode</code>), commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>debug_mode</code> : gizmos de débogage (vitesse, intention, état) pour tous les composants.</li>
+    </ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>MovementComponent</code> : intention commune, mémoire du saut, activation, <code>_movement_step</code>, accélération externe des zones de force.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🧩 Socle du mouvement · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🧩Commun/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "MovementComponent.active": "Couper un mode de déplacement à la main (cinématique, dialogue, échelle maison) quand on n'utilise pas d'orchestrateur.",
+  "MovementComponent.debug_mode": "Comprendre pourquoi un personnage ne saute pas ou glisse : voir vitesse, intention et état en jeu.",
+  "MovementComponent.jump_buffer_time": "Rendre le saut tolérant : 0,1–0,2 s pour un jeu de plateforme nerveux, 0 pour un saut strictement à l'appui.",
+  "MovementComponent._movement_step": "Écrire un mode de déplacement maison en GDScript : échelle, véhicule, grappin, tapis volant.",
+  "MovementComponent.external_acceleration_2d": "Faire subir le vent ou un aimant (ForceZone2D) à un composant GDScript.",
+  "MovementComponent.external_acceleration_3d": "Idem en 3D, ou afficher la force du vent sur un HUD.",
+  "MovementComponent.get_body": "Récupérer le CharacterBody à déplacer dans un <code>_movement_step</code>.",
+  "MovementComponent.get_move_input": "Choisir l'animation (marche / course / immobile) selon la commande plutôt que selon la vitesse.",
+  "MovementComponent.get_vertical_input": "Composant maison qui monte / descend (échelle, ascenseur, vol).",
+  "MovementComponent.has_jump_request": "Déclencher l'action de saut d'un composant maison, en consommant la demande (<code>true</code>).",
+  "MovementComponent.is_jump_held": "Saut à hauteur variable ou planeur maison : agir tant que le bouton reste enfoncé.",
+  "MovementComponent.is_running": "Jouer l'animation de course, consommer de l'endurance (module 📊 Jauge).",
+  "MovementComponent.jump": "Bouton de saut du joueur, ou saut décidé par une IA (obstacle, poursuite).",
+  "MovementComponent.move": "Relier un stick, le clavier ou une IA de navigation à n'importe quel composant.",
+  "MovementComponent.release_jump": "Relâchement du bouton : saut plus court, fin du plané.",
+  "MovementComponent.set_running": "Touche de course, sprint d'une IA qui poursuit le joueur.",
+  "MovementComponent.set_vertical_input": "Monter / descendre à la nage, en vol, sur un mur ou une corde en 3D (gâchettes, touches dédiées).",
+  "MovementComponent.activated": "Changer d'animation, de son ou de particules quand un mode prend la main (entrée dans l'eau).",
+  "MovementComponent.deactivated": "Remettre l'animation par défaut, couper un son de nage ou de vent."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

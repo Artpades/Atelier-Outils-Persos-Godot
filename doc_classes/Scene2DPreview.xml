@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Scene2DPreview" inherits="PreviewWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Aperçu d'une scène 2D (PackedScene 2D, copie d'un Node2D, ou Texture2D en sprite) dans une scène isolée.
 	</brief_description>
 	<description>
+		Le contenu est placé dans un [PreviewStage2D] cadré sur les éléments qui ont un [code]get_rect()[/code] (sprites) : glisser pour déplacer, molette pour zoomer.
+		[b]Note :[/b] classe d'aperçu fournie, choisie par [member PreviewSettings.preview_class].
 	</description>
 	<tutorials>
 	</tutorials>

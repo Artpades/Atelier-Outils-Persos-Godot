@@ -9,9 +9,9 @@
 
 namespace godot
 {
-// Source d'un aperçu (éditeur) : « Objet affiché » (ou un nœud au chemin object_path), propriété, fonction ou
-// valeur manuelle. Les membres proposés sont ceux du type attendu par la classe d'aperçu
-// (PreviewWidget::get_source_hint, lu sur une instance temporaire). Annulable ; émet "source_changed".
+/// Source d'un aperçu (éditeur) : « Objet affiché » (ou un nœud au chemin object_path), propriété, fonction ou
+/// valeur manuelle. Les membres proposés sont ceux du type attendu par la classe d'aperçu
+/// (PreviewWidget::get_source_hint, lu sur une instance temporaire). Annulable ; émet "source_changed".
 class PreviewSourceEditor : public VBoxContainer
 {
     GDCLASS(PreviewSourceEditor, VBoxContainer)
@@ -21,8 +21,8 @@ class PreviewSourceEditor : public VBoxContainer
     Ref<UndoBackend> backend;
     ObjectID context_id;
     Dictionary hint;
-    // « Propriété » choisi mais aucune propriété encore sélectionnée : même donnée que « Objet affiché »
-    // (propriété sans chemin), le mode est donc retenu ici pour afficher la liste des membres.
+    /// « Propriété » choisi mais aucune propriété encore sélectionnée : même donnée que « Objet affiché »
+    /// (propriété sans chemin), le mode est donc retenu ici pour afficher la liste des membres.
     bool property_pending = false;
 
     void _commit_set(Object *p_object, const StringName &p_property, const Variant &p_value);
@@ -36,7 +36,7 @@ class PreviewSourceEditor : public VBoxContainer
   public:
     static constexpr int MODE_DISPLAYED = 100; // pas -1 : pour un OptionButton, -1 = identifiant de l'index
 
-    // Type attendu par la classe d'aperçu p_class (instance temporaire) ; vide si inconnu.
+    /// Type attendu par la classe d'aperçu p_class (instance temporaire) ; vide si inconnu.
     static Dictionary source_hint_of(const StringName &p_class);
     PreviewSourceEditor();
     void setup(const Ref<PreviewSettings> &p_settings, Object *p_context);

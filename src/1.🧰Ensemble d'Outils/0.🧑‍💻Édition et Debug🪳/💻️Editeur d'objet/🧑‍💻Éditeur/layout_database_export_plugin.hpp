@@ -6,10 +6,10 @@
 
 namespace godot
 {
-// Plugin d'export (éditeur) : la LayoutDatabase n'est référencée que par un réglage de projet, donc absente
-// d'un export « ressources sélectionnées ». Ce plugin l'ajoute toujours, avec ses dépendances non importées
-// (scripts, ressources externes), telles quelles. Pour éviter un doublon (export « toutes les ressources »),
-// l'export normal de ces mêmes fichiers est ignoré (skip).
+/// Plugin d'export (éditeur) : la LayoutDatabase n'est référencée que par un réglage de projet, donc absente
+/// d'un export « ressources sélectionnées ». Ce plugin l'ajoute toujours, avec ses dépendances non importées
+/// (scripts, ressources externes), telles quelles. Pour éviter un doublon (export « toutes les ressources »),
+/// l'export normal de ces mêmes fichiers est ignoré (skip).
 class LayoutDatabaseExportPlugin : public EditorExportPlugin
 {
     GDCLASS(LayoutDatabaseExportPlugin, EditorExportPlugin)

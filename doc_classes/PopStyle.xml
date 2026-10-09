@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PopStyle" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💥 Réglages d'un pop (mouvement, animation, apparence), partagés par [PopSpawner] et [FXPop].
 	</brief_description>
 	<description>
+		Ressource qui décrit comment un pop jaillit, bouge et disparaît : vitesse et direction de départ, gravité, sol avec rebonds, rotation, grossissement d'apparition, fondu de fin, police et couleurs du texte, taille de l'image.
+		Les distances et vitesses sont en [b]pixels[/b]. En 3D, elles sont converties par l'[code]unit_scale_3d[/code] du [PopSpawner] ou du [FXPop] (0,01 par défaut : 100 px = 1 m) : un même style sert donc en 2D et en 3D. La direction [code]0°[/code] est vers le haut.
+		Sans style, un [PopSpawner] utilise un [PopStyle] neuf (valeurs par défaut : un texte blanc qui jaillit vers le haut et retombe).
+		[codeblock]
+		# Pièces qui jaillissent en gerbe et rebondissent au sol
+		var pieces := PopStyle.new()
+		pieces.spread_degrees = 120.0
+		pieces.speed_min = 200.0
+		pieces.speed_max = 350.0
+		pieces.use_floor = true
+		pieces.floor_offset = 30.0
+		pieces.spin_min = -360.0
+		pieces.spin_max = 360.0
+		pieces.lifetime = 1.5
+		$PopSpawner.style = pieces
+		for i in 5:
+			$PopSpawner.pop_texture(preload("res://piece.png"))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,77 +30,110 @@
 			<return type="float" />
 			<param index="0" name="age" type="float" />
 			<description>
+				Renvoie l'opacité d'un pop âgé de [param age] secondes : 1, puis décroissance linéaire jusqu'à 0 sur les [member fade_out_duration] dernières secondes de [member lifetime].
 			</description>
 		</method>
 		<method name="get_scale_at" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="age" type="float" />
 			<description>
+				Renvoie l'échelle d'un pop âgé de [param age] secondes : [member scale_curve] si elle est définie, sinon l'apparition ([member start_scale] → [member pop_scale] → 1 sur [member pop_in_duration]) suivie de la réduction de fin de vie vers [member end_scale].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="always_on_top_3d" type="bool" setter="set_always_on_top_3d" getter="get_always_on_top_3d" default="true">
+			En 3D, dessine le pop par-dessus le décor (test de profondeur désactivé) : il reste lisible même derrière un mur. Ne s'applique qu'au texte et à l'image, pas à une scène.
 		</member>
 		<member name="bounce" type="float" setter="set_bounce" getter="get_bounce" default="0.5">
+			Restitution au rebond sur le sol ([member use_floor]) : 0, le pop s'arrête net ; 1, il rebondit sans perte. Sous 30 px/s, le pop est considéré comme posé.
 		</member>
 		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.0">
+			Freinage du mouvement, par seconde (amortissement exponentiel de la vitesse). 0 : aucun freinage.
 		</member>
 		<member name="direction_degrees" type="float" setter="set_direction_degrees" getter="get_direction_degrees" default="0.0">
+			Direction de départ en degrés : 0 vers le haut, 90 vers la droite, 180 vers le bas. En 3D, c'est l'inclinaison depuis la verticale, dans une direction horizontale tirée au hasard.
 		</member>
 		<member name="end_scale" type="float" setter="set_end_scale" getter="get_end_scale" default="0.6">
+			Échelle atteinte à la fin de vie (réduction sur [member fade_out_duration], en même temps que le fondu). Ignorée si [member scale_curve] est définie.
 		</member>
 		<member name="fade_out_duration" type="float" setter="set_fade_out_duration" getter="get_fade_out_duration" default="0.3">
+			Durée du fondu et de la réduction de fin de vie, en secondes, comptée depuis la fin de [member lifetime]. 0 : le pop disparaît d'un coup.
 		</member>
 		<member name="floor_friction" type="float" setter="set_floor_friction" getter="get_floor_friction" default="0.6">
+			Fraction de la vitesse horizontale (et de la rotation) conservée à chaque rebond sur le sol.
 		</member>
 		<member name="floor_offset" type="float" setter="set_floor_offset" getter="get_floor_offset" default="40.0">
+			Distance en pixels entre le point d'apparition et le sol, mesurée sous le point d'apparition. Le centre du pop s'y arrête.
 		</member>
 		<member name="font" type="Font" setter="set_font" getter="get_font">
+			Police du texte. Vide : la police par défaut du projet ([member ThemeDB.fallback_font]).
 		</member>
 		<member name="font_size" type="int" setter="set_font_size" getter="get_font_size" default="32">
+			Taille du texte, en pixels (convertie en 3D par [code]unit_scale_3d[/code]).
 		</member>
 		<member name="gravity" type="float" setter="set_gravity" getter="get_gravity" default="600.0">
+			Accélération vers le bas, en px/s². Négative : le pop s'envole de plus en plus vite (bulles, âmes).
 		</member>
 		<member name="icon_size" type="Vector2" setter="set_icon_size" getter="get_icon_size" default="Vector2(32, 32)">
+			Taille d'affichage de l'image, en pixels. En 2D, l'image est étirée à exactement cette taille (proportions non conservées) ; en 3D, seule la hauteur est imposée.
 		</member>
 		<member name="lifetime" type="float" setter="set_lifetime" getter="get_lifetime" default="1.0">
+			Durée de vie du pop en secondes ; il se libère seul ensuite.
 		</member>
 		<member name="negative_color" type="Color" setter="set_negative_color" getter="get_negative_color" default="Color(1, 0.35, 0.3, 1)">
+			Couleur des nombres négatifs affichés par [method PopSpawner.pop_number] (dégâts).
 		</member>
 		<member name="outline_color" type="Color" setter="set_outline_color" getter="get_outline_color" default="Color(0, 0, 0, 1)">
+			Couleur du contour du texte.
 		</member>
 		<member name="outline_size" type="int" setter="set_outline_size" getter="get_outline_size" default="8">
+			Épaisseur du contour du texte, en pixels. 0 : pas de contour.
 		</member>
 		<member name="pop_in_duration" type="float" setter="set_pop_in_duration" getter="get_pop_in_duration" default="0.18">
+			Durée de l'animation d'apparition, en secondes. 0 : le pop apparaît directement à l'échelle 1.
 		</member>
 		<member name="pop_scale" type="float" setter="set_pop_scale" getter="get_pop_scale" default="1.4">
+			Échelle maximale de l'apparition (atteinte à 60 % de [member pop_in_duration]) avant de revenir à 1 : le « pop » qui attire l'œil.
 		</member>
 		<member name="positive_color" type="Color" setter="set_positive_color" getter="get_positive_color" default="Color(0.4, 1, 0.45, 1)">
+			Couleur des nombres positifs et nuls affichés par [method PopSpawner.pop_number] (soins, gains).
 		</member>
 		<member name="scale_curve" type="Curve" setter="set_scale_curve" getter="get_scale_curve">
+			Courbe facultative de l'échelle selon l'âge normalisé (0 : apparition, 1 : fin de [member lifetime]). Si elle est définie, elle remplace l'apparition et la réduction de fin de vie.
 		</member>
 		<member name="spacing" type="float" setter="set_spacing" getter="get_spacing" default="4.0">
+			Espace en pixels entre l'image et le texte quand un pop contient les deux.
 		</member>
 		<member name="spawn_radius" type="float" setter="set_spawn_radius" getter="get_spawn_radius" default="0.0">
+			Rayon en pixels du disque dans lequel le point de départ est tiré au hasard (disque horizontal en 3D). 0 : tous les pops partent du même point.
 		</member>
 		<member name="speed_max" type="float" setter="set_speed_max" getter="get_speed_max" default="250.0">
+			Vitesse de départ maximale, en px/s. La vitesse est tirée entre [member speed_min] et [member speed_max].
 		</member>
 		<member name="speed_min" type="float" setter="set_speed_min" getter="get_speed_min" default="150.0">
+			Vitesse de départ minimale, en px/s.
 		</member>
 		<member name="spin_max" type="float" setter="set_spin_max" getter="get_spin_max" default="0.0">
+			Vitesse de rotation maximale en degrés par seconde. La rotation est tirée entre [member spin_min] et [member spin_max] (0 et 0 : pas de rotation).
 		</member>
 		<member name="spin_min" type="float" setter="set_spin_min" getter="get_spin_min" default="0.0">
+			Vitesse de rotation minimale en degrés par seconde (négative : sens inverse).
 		</member>
 		<member name="spread_degrees" type="float" setter="set_spread_degrees" getter="get_spread_degrees" default="40.0">
+			Dispersion de la direction de départ, en degrés, centrée sur [member direction_degrees]. 0 : toujours la même direction ; 360 : dans toutes les directions.
 		</member>
 		<member name="start_scale" type="float" setter="set_start_scale" getter="get_start_scale" default="0.2">
+			Échelle au tout début de l'apparition.
 		</member>
 		<member name="text_color" type="Color" setter="set_text_color" getter="get_text_color" default="Color(1, 1, 1, 1)">
+			Couleur du texte quand l'appel ne précise pas de couleur (couleur d'alpha nul).
 		</member>
 		<member name="use_floor" type="bool" setter="set_use_floor" getter="get_use_floor" default="false">
+			Active un sol horizontal à [member floor_offset] sous le point d'apparition, sur lequel le pop rebondit et glisse ([member bounce], [member floor_friction]).
 		</member>
 		<member name="z_index" type="int" setter="set_z_index" getter="get_z_index" default="100">
+			Ordre de dessin des pops 2D : par défaut au-dessus du décor. Sans effet en 3D.
 		</member>
 	</members>
 </class>

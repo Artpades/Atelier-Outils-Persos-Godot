@@ -8,9 +8,11 @@
 
 namespace godot
 {
-// Affiche dans la console : [hh:mm:ss] Appelant [icône] : message (BBCode accepté).
-// object_caller : Node (son nom), Object (sa classe) ou String. Optionnel, comme icon_path.
-// Définie dans le header (comme print_line) pour être utilisable depuis tous les modules.
+/// 📰 Affiche dans la console : [hh:mm:ss] Appelant [icône] : message (BBCode accepté, via print_line_rich).
+/// object_caller : Node (son nom), Object (sa classe native) ou String / StringName ; tout autre type est ignoré.
+/// icon_path : chemin res:// d'une image insérée en [img] à sa taille d'origine. Optionnel, comme object_caller.
+/// Définie dans le header (comme print_line) pour être utilisable depuis tous les modules sans lien
+/// avec la bibliothèque tool_editor.
 inline void log_it(const String &message, const Variant &object_caller = Variant(), const String &icon_path = "")
 {
     Time *time = Time::get_singleton();
@@ -70,7 +72,7 @@ inline void log_it(const String &message, const Variant &object_caller = Variant
     print_line_rich(log_message);
 }
 
-// Version exposée à GDScript : L.log_it(...)
+/// 📰 Version exposée à GDScript : L.log_it(...). Classe purement statique (nom court pour des appels concis).
 class L : public Object
 {
     GDCLASS(L, Object);
@@ -79,6 +81,7 @@ class L : public Object
     static void _bind_methods();
 
   public:
+    /// Délègue à godot::log_it ; les valeurs par défaut sont redéclarées dans _bind_methods.
     static void log_it(const String &message, const Variant &object_caller = Variant(), const String &icon_path = "") { godot::log_it(message, object_caller, icon_path); }
 };
 } // namespace godot

@@ -1,27 +1,47 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SpawnEntry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🏭 Une liste de scènes et de positions traitée par un [Spawner] à chaque [method Spawner.spawn].
 	</brief_description>
 	<description>
+		À chaque spawn, l'entrée choisit des scènes dans [member scenes] selon [member scenes_selection_mode], et des positions dans [member positions] selon [member positions_selection_mode]. La i-ème scène choisie est placée sur la (i modulo nombre)-ième position choisie.
+		Exemples de combinaisons :
+		- Scènes [i]Random[/i], positions [i]Sequential[/i] : un ennemi au hasard, à tour de rôle sur chaque point.
+		- Scènes [i]All[/i], positions [i]All[/i] : une scène par position, dans l'ordre (un décor complet).
+		- Scènes [i]All[/i], positions [i]Random[/i] : toutes les scènes sur [b]un seul[/b] point tiré au hasard.
+		[codeblock]
+		var vague := SpawnEntry.new()
+		vague.scenes = [preload("res://ennemis/slime.tscn"), preload("res://ennemis/chauve_souris.tscn")]
+		vague.scenes_selection_mode = SpawnEntry.SELECTION_RANDOM
+		vague.positions = [^"Nord", ^"Sud"] # relatifs au Spawner
+		$Spawner.entries = [vague]
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="positions" type="NodePath[]" setter="set_positions" getter="get_positions" default="[]">
+			Chemins (relatifs au [Spawner]) des nœuds dont la transformation globale est donnée aux instances. Vide : les enfants [Node2D] / [Node3D] du Spawner, dans l'ordre de l'arbre.
 		</member>
 		<member name="positions_selection_mode" type="int" setter="set_positions_selection_mode" getter="get_positions_selection_mode" enum="SpawnEntry.SelectionMode" default="0">
+			Manière de choisir les positions à chaque spawn (voir [enum SelectionMode]).
 		</member>
 		<member name="scenes" type="PackedScene[]" setter="set_scenes" getter="get_scenes" default="[]">
+			Scènes pouvant être instanciées.
 		</member>
 		<member name="scenes_selection_mode" type="int" setter="set_scenes_selection_mode" getter="get_scenes_selection_mode" enum="SpawnEntry.SelectionMode" default="0">
+			Manière de choisir les scènes à chaque spawn ; le nombre de scènes choisies donne le nombre d'instances créées.
 		</member>
 	</members>
 	<constants>
 		<constant name="SELECTION_SEQUENTIAL" value="0" enum="SelectionMode">
+			Un élément par spawn, dans l'ordre de la liste, en boucle. Le rang est gardé par le [Spawner], pour chaque entrée.
 		</constant>
 		<constant name="SELECTION_RANDOM" value="1" enum="SelectionMode">
+			Un élément tiré au hasard à chaque spawn (générateur aléatoire global : [method @GlobalScope.randomize] / [method @GlobalScope.seed] s'appliquent).
 		</constant>
 		<constant name="SELECTION_ALL" value="2" enum="SelectionMode">
+			Tous les éléments à chaque spawn.
 		</constant>
 	</constants>
 </class>

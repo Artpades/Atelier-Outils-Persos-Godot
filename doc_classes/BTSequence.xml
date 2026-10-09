@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTSequence" inherits="BTOrderedComposite" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Séquence : exécute ses enfants dans l'ordre ; échoue dès qu'un enfant échoue, réussit quand tous ont réussi.
 	</brief_description>
 	<description>
+		Le « et » des arbres de comportement : « voir l'ennemi » puis « s'approcher » puis « attaquer ». Une séquence sans enfant réussit.
+		[codeblock]
+		var attaque := BTSequence.new()
+		var voit := BTCondition.new()
+		voit.expression = "cible != null"
+		attaque.add_child(voit)
+		attaque.add_child(preload("res://ia/frapper.gd").new())
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

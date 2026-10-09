@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXAudio" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🔊 Effet qui joue un son au déclenchement, avec une hauteur éventuellement aléatoire et une spatialisation 2D / 3D optionnelle.
 	</brief_description>
 	<description>
+		Au jeu de l'effet, [member stream] est joué par un lecteur audio créé une fois comme enfant [b]interne[/b] de la cible (invisible dans l'arbre de scène, non enregistré), puis réutilisé aux jeux suivants. Le lecteur est un [AudioStreamPlayer], ou un [AudioStreamPlayer2D] / [AudioStreamPlayer3D] si [member positional] est actif et que la cible est un [Node2D] / [Node3D].
+		Les réglages ([member bus], [member volume_db], hauteur) sont réappliqués à chaque jeu. Rejouer l'effet relance le son depuis le début (le son précédent est coupé). Le lecteur appartient à la cible : si elle est libérée, le son s'arrête avec elle.
+		[codeblock]
+		var pas := FXAudio.new()
+		pas.stream = preload("res://sons/pas.ogg")
+		pas.randomize_pitch_scale = true   # chaque pas sonne un peu différemment
+		pas.min_pitch = 0.9
+		pas.max_pitch = 1.15
+		$PlayerFX.special_effects = [pas]
+		$PlayerFX.play()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,27 +22,37 @@
 		<method name="get_audio_player" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie le lecteur audio créé sous la cible ([AudioStreamPlayer], [AudioStreamPlayer2D] ou [AudioStreamPlayer3D]), pour le régler plus finement (atténuation, [code]max_polyphony[/code]...). Nul avant le premier jeu, ou si la cible a été libérée.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="bus" type="StringName" setter="set_bus" getter="get_bus" default="&amp;&quot;Master&quot;">
+			Bus audio du son (ex. [code]"SFX"[/code]), pour régler son volume avec les autres bruitages.
 		</member>
 		<member name="max_pitch" type="float" setter="set_max_pitch" getter="get_max_pitch" default="1.1">
+			Hauteur maximale tirée quand [member randomize_pitch_scale] est actif.
 		</member>
 		<member name="min_pitch" type="float" setter="set_min_pitch" getter="get_min_pitch" default="0.9">
+			Hauteur minimale tirée quand [member randomize_pitch_scale] est actif.
 		</member>
 		<member name="pitch_scale" type="float" setter="set_pitch_scale" getter="get_pitch_scale" default="1.0">
+			Hauteur (et vitesse) de lecture quand [member randomize_pitch_scale] est inactif : [code]2[/code] une octave plus haut, [code]0.5[/code] une octave plus bas.
 		</member>
 		<member name="positional" type="bool" setter="set_positional" getter="get_positional" default="false">
+			Si [code]true[/code], le son est spatialisé à la position de la cible ([AudioStreamPlayer2D] ou [AudioStreamPlayer3D]). Sans effet sur une cible qui n'est ni [Node2D] ni [Node3D]. N'est lu qu'à la création du lecteur : le changer ensuite n'a d'effet que sur une nouvelle cible.
 		</member>
 		<member name="randomize_pitch_scale" type="bool" setter="set_randomize_pitch_scale" getter="get_randomize_pitch_scale" default="false">
+			Si [code]true[/code], la hauteur est tirée au hasard entre [member min_pitch] et [member max_pitch] à chaque jeu, au lieu de [member pitch_scale] : évite la répétition mécanique d'un son fréquent.
 		</member>
 		<member name="stop_sound_on_stop" type="bool" setter="set_stop_sound_on_stop" getter="get_stop_sound_on_stop" default="false">
+			Si [code]true[/code], l'arrêt de l'effet coupe le son en cours ; sinon, le son est joué jusqu'au bout.
 		</member>
 		<member name="stream" type="AudioStream" setter="set_stream" getter="get_stream">
+			Son joué. Si aucun son n'est défini, l'effet ne fait rien.
 		</member>
 		<member name="volume_db" type="float" setter="set_volume_db" getter="get_volume_db" default="0.0">
+			Volume du son en décibels.
 		</member>
 	</members>
 </class>

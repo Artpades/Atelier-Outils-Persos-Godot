@@ -15,6 +15,7 @@ class CharacterRegister : public Object
     GDCLASS(CharacterRegister, Object)
 
   public:
+    /// Appelés par Character2D / Character3D à l'entrée et à la sortie de l'arbre (en jeu).
     static void register_character(Node *p_character);
     static void unregister_character(Node *p_character);
 
@@ -22,6 +23,7 @@ class CharacterRegister : public Object
     static Array get_faction_members(const StringName &p_faction);
     /// Personnage le plus proche de p_from (lui exclu). max_distance < 0 : sans limite.
     static Node *get_nearest(Node *p_from, double p_max_distance = -1.0, bool p_hostile_only = false, bool p_alive_only = true);
+    /// Personnages à p_radius ou moins de p_from (lui exclu ; < 0 : sans limite). p_hostile_only exige que p_from soit un personnage.
     static Array get_in_radius(Node *p_from, double p_radius, bool p_hostile_only = false, bool p_alive_only = true);
     /// Personnages qui ont un PlayerController enfant.
     static Array get_players();
@@ -31,6 +33,7 @@ class CharacterRegister : public Object
     static void _bind_methods();
 
   private:
+    /// Identifiants des personnages inscrits (ObjectID : un personnage libéré est simplement ignoré).
     static LocalVector<ObjectID> characters;
 };
 } // namespace godot

@@ -1,15 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ShaderParameterBinding" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Lie un uniform de shader d'un InterfaceStyle à une valeur de l'objet édité, mise à jour en direct.
 	</brief_description>
 	<description>
+		Élément de [member InterfaceStyle.shader_parameters]. À chaque relecture du [SyncController], [member binding] est résolue sur la cible de l'éditeur et écrite dans l'uniform [member parameter] (une valeur [code]null[/code] n'est pas écrite).
+		[codeblock]
+		var lien := ShaderParameterBinding.new()
+		lien.parameter = &amp;"remplissage"
+		lien.get_binding().source = ArgumentBinding.SOURCE_PROPERTY
+		lien.get_binding().property_path = ^"vie_ratio"
+		style.shader_parameters = [lien]
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
+	<methods>
+		<method name="get_binding">
+			<return type="ArgumentBinding" />
+			<description>
+				Renvoie la source, créée (constante vide) à la première lecture si elle n'existe pas.
+			</description>
+		</method>
+	</methods>
 	<members>
-		<member name="binding" type="ArgumentBinding" setter="set_binding" getter="get_binding">
+		<member name="binding" type="ArgumentBinding" setter="set_binding" getter="get_stored_binding">
+			Source de la valeur (valeur manuelle, propriété ou fonction de l'objet édité).
 		</member>
 		<member name="parameter" type="StringName" setter="set_parameter" getter="get_parameter" default="&amp;&quot;&quot;">
+			Nom de l'uniform du shader. Vide : lien ignoré.
 		</member>
 	</members>
 </class>

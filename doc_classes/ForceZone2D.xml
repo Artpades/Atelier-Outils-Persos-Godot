@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ForceZone2D" inherits="Area2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🧲 Zone de force 2D : vent, aimant, tourbillon ou freinage appliqués aux corps qui la traversent.
 	</brief_description>
 	<description>
+		[Area2D] dont la forme est donnée par une [CollisionShape2D] enfant. À chaque image physique, les [RigidBody2D] présents reçoivent la force (masse × accélération). Les personnages ([CharacterBody2D]) ne la subissent que par leurs composants de mouvement, qui ajoutent [method MovementComponent.external_acceleration_2d] à leur vitesse ([GroundMovement2D], [SwimMovement2D], [WallMovement2D], [AerodynamicMovement2D] avec [member AerodynamicMovement2D.wind_influence]).
+		Le centre de l'attraction, du tourbillon et de l'atténuation est la position de la zone.
+		[codeblock]
+		# Ventilateur : souffle vers le haut, plus fort près de la grille.
+		var vent := ForceZone2D.new()
+		vent.direction = Vector2.UP
+		vent.strength = 1800.0
+		vent.falloff = ForceZone2D.FALLOFF_LINEAR
+		vent.falloff_radius = 300.0
+		vent.turbulence = 0.3
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,53 +24,76 @@
 			<param index="0" name="point" type="Vector2" />
 			<param index="1" name="velocity" type="Vector2" />
 			<description>
+				Renvoie l'accélération que subit un corps situé en [param point] (global) avec la vitesse [param velocity] (utilisée seulement en [constant MODE_DRAG]), atténuation et turbulence comprises. Ne vérifie pas que le point est dans la zone ; renvoie zéro si la zone est désactivée.
 			</description>
 		</method>
 		<method name="get_acceleration_on" qualifiers="static">
 			<return type="Vector2" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la somme des accélérations des zones actives (avec [member affect_characters]) qui chevauchent [param body], calculées à sa position avec sa vitesse s'il s'agit d'un [CharacterBody2D]. C'est ce qu'utilise [method MovementComponent.external_acceleration_2d].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="affect_characters" type="bool" setter="set_affect_characters" getter="get_affect_characters" default="true">
+			Si [code]true[/code], la zone est prise en compte par [method get_acceleration_on], donc par les composants de mouvement des personnages.
 		</member>
 		<member name="affect_rigid_bodies" type="bool" setter="set_affect_rigid_bodies" getter="get_affect_rigid_bodies" default="true">
+			Si [code]true[/code], les [RigidBody2D] présents reçoivent la force (masse × accélération) à chaque image physique.
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu le contour de la forme, une grille de flèches montrant le champ d'accélération, le mode et l'intensité.
 		</member>
 		<member name="direction" type="Vector2" setter="set_direction" getter="get_direction" default="Vector2(1, 0)">
+			Direction de la force en mode [constant MODE_DIRECTIONAL] (normalisée au calcul). Tourne avec la zone si [member local_direction].
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], la zone n'exerce plus aucune force.
 		</member>
 		<member name="falloff" type="int" setter="set_falloff" getter="get_falloff" default="0">
+			Atténuation selon la distance au centre (position de la zone) : [constant FALLOFF_NONE], [constant FALLOFF_LINEAR] ou [constant FALLOFF_INVERSE_SQUARE].
 		</member>
 		<member name="falloff_radius" type="float" setter="set_falloff_radius" getter="get_falloff_radius" default="200.0">
+			Distance de référence de l'atténuation, en px : intensité nulle à cette distance en linéaire, divisée par deux en inverse du carré.
 		</member>
 		<member name="local_direction" type="bool" setter="set_local_direction" getter="get_local_direction" default="true">
+			Si [code]true[/code], [member direction] suit la rotation de la zone (un ventilateur qu'on tourne souffle dans son axe).
 		</member>
 		<member name="mode" type="int" setter="set_mode" getter="get_mode" default="0">
+			Type de force : [constant MODE_DIRECTIONAL], [constant MODE_ATTRACT], [constant MODE_VORTEX] ou [constant MODE_DRAG].
 		</member>
 		<member name="strength" type="float" setter="set_strength" getter="get_strength" default="600.0">
+			Intensité de l'accélération, en px/s² (négative : sens inverse, par exemple répulsion en attraction). En [constant MODE_DRAG], coefficient de freinage par seconde.
 		</member>
 		<member name="turbulence" type="float" setter="set_turbulence" getter="get_turbulence" default="0.0">
+			Variation douce et pseudo-aléatoire de l'intensité, de 0 (constante) à 1 (de 0 à 2 fois l'intensité). Chaque zone a sa propre variation.
 		</member>
 		<member name="turbulence_speed" type="float" setter="set_turbulence_speed" getter="get_turbulence_speed" default="1.5">
+			Vitesse de variation de la turbulence.
 		</member>
 	</members>
 	<constants>
 		<constant name="MODE_DIRECTIONAL" value="0" enum="Mode">
+			Force de direction fixe ([member direction]) : vent, tapis roulant, courant, ascenseur d'air.
 		</constant>
 		<constant name="MODE_ATTRACT" value="1" enum="Mode">
+			Force vers le centre de la zone (vers l'extérieur si [member strength] est négative) : aimant, trou noir, champ répulsif.
 		</constant>
 		<constant name="MODE_VORTEX" value="2" enum="Mode">
+			Force tangentielle autour du centre : tourbillon. Strength positive = sens horaire à l'écran (axe Y vers le bas).
 		</constant>
 		<constant name="MODE_DRAG" value="3" enum="Mode">
+			Force opposée à la vitesse : boue, mélasse, ralentisseur.
 		</constant>
 		<constant name="FALLOFF_NONE" value="0" enum="Falloff">
+			Intensité identique dans toute la zone.
 		</constant>
 		<constant name="FALLOFF_LINEAR" value="1" enum="Falloff">
+			1 au centre, 0 à [member falloff_radius] et au-delà.
 		</constant>
 		<constant name="FALLOFF_INVERSE_SQUARE" value="2" enum="Falloff">
+			1 / (1 + (distance / [member falloff_radius])²) : décroissance douce, jamais nulle.
 		</constant>
 	</constants>
 </class>

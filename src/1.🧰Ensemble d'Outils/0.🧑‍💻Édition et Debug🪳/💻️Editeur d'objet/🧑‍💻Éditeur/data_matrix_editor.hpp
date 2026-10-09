@@ -9,11 +9,11 @@
 
 namespace godot
 {
-// Tableau d'édition d'un DataRegistry (éditeur, port de DataMatrixEditor C#) : une ligne par entrée
-// (ordre, nom, type, widget parmi les choix autorisés, classe Custom, vertical, affiché, suppression des
-// entrées manquantes). Sous le tableau : les réglages (WidgetSettings) de l'entrée sélectionnée,
-// choisis avec un EditorResourcePicker limité à la classe lue par le widget et édités avec un ProceduralEditor.
-// Émet "registry_changed" après chaque modification.
+/// Tableau d'édition d'un DataRegistry (éditeur, port de DataMatrixEditor C#) : une ligne par entrée
+/// (ordre, nom, type, widget parmi les choix autorisés, classe Custom, vertical, affiché, suppression des
+/// entrées manquantes). Sous le tableau : les réglages (WidgetSettings) de l'entrée sélectionnée,
+/// choisis avec un EditorResourcePicker limité à la classe lue par le widget et édités avec un ProceduralEditor.
+/// Émet "registry_changed" après chaque modification.
 class DataMatrixEditor : public VBoxContainer
 {
     GDCLASS(DataMatrixEditor, VBoxContainer)
@@ -22,13 +22,13 @@ class DataMatrixEditor : public VBoxContainer
     Ref<DataRegistry> registry;
     int selected = -1;
 
-    // Enfants créés et possédés par ce tableau.
+    /// Enfants créés et possédés par ce tableau.
     GridContainer *grid = nullptr;
     VBoxContainer *settings_panel = nullptr;
 
-    // Réglages actuellement surveillés (signal "changed"), pour se déconnecter au changement de sélection.
+    /// Réglages actuellement surveillés (signal "changed"), pour se déconnecter au changement de sélection.
     ObjectID watched_settings_id;
-    // Objet dont on liste les membres pour les uniforms liés des styles (objet réel, sinon type d'exemple).
+    /// Objet dont on liste les membres pour les uniforms liés des styles (objet réel, sinon type d'exemple).
     ObjectID context_id;
     String context_type;
 
@@ -68,9 +68,9 @@ class DataMatrixEditor : public VBoxContainer
     Ref<DataRegistry> get_registry() const;
     void set_context_object(Object *p_object);
     void set_context_type(const String &p_type);
-    // Classes d'aperçu proposées : fournies, puis class_name héritant de PreviewWidget.
+    /// Classes d'aperçu proposées : fournies, puis class_name héritant de PreviewWidget.
     static PackedStringArray preview_types();
-    // Reconstruit le tableau depuis le registre.
+    /// Reconstruit le tableau depuis le registre.
     void refresh();
 };
 } // namespace godot

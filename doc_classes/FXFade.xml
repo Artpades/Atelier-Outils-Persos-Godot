@@ -1,35 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXFade" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌈 Effet de fondu progressif d'une couleur ou d'une texture de la cible, joué par un [PlayerFX] (retour à l'état d'origine à l'arrêt).
 	</brief_description>
 	<description>
+		Effet qui anime en douceur l'apparence d'un nœud cible lorsqu'il est joué, puis la restaure à son arrêt si [member revert_on_stop] est actif.
+		- [b]Mode couleur[/b] ([constant FADE_COLOR]) : anime la propriété nommée [member color_property] ([code]modulate[/code], [code]self_modulate[/code], [code]color[/code], [code]light_color[/code], [code]material_override:albedo_color[/code]...) jusqu'à [member color].
+		- [b]Mode texture[/b] ([constant FADE_TEXTURE]) : fondu enchaîné de la propriété [member texture_property] jusqu'à [member texture]. Sur un [CanvasItem] ([Sprite2D], [TextureRect]...), les deux textures sont mélangées par un shader le temps du fondu ; sur un autre nœud doté d'un [code]modulate[/code] ([Sprite3D]...), la cible s'efface, change de texture puis réapparaît.
+		Rejouer l'effet pendant un fondu conserve la couleur / texture d'origine capturée au premier jeu : l'arrêt revient bien à l'état initial.
+		[codeblock]
+		# Fait clignoter un ennemi en rouge pendant 0,2 s quand il est touché.
+		var flash := FXFade.new()
+		flash.color = Color.RED
+		flash.duration = 0.1
+		$PlayerFX.special_effects = [flash]
+		$PlayerFX.play()
+		await get_tree().create_timer(0.2).timeout
+		$PlayerFX.stop() # retour progressif à la couleur d'origine
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(1, 1, 1, 0)">
+			Couleur atteinte à la fin du fondu en mode [constant FADE_COLOR]. La valeur par défaut (blanc transparent) fait disparaître la cible lorsque [member color_property] vaut [code]modulate[/code].
 		</member>
 		<member name="color_property" type="String" setter="set_color_property" getter="get_color_property" default="&quot;modulate&quot;">
+			Chemin de la propriété [Color] animée sur la cible en mode [constant FADE_COLOR]. Accepte les sous-propriétés ([code]material_override:albedo_color[/code]). Si la cible n'a pas de propriété [Color] à ce chemin, un avertissement est affiché et l'effet ne fait rien.
 		</member>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+			Durée du fondu, en secondes (à l'aller comme au retour). À [code]0[/code], ou si la cible n'est pas dans l'arbre de scène, le changement est immédiat.
 		</member>
 		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="2">
+			Accélération de la courbe de [member transition] (début, fin, ou les deux).
 		</member>
 		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="FXFade.FadeMode" default="0">
+			Ce qui est animé : une couleur ([constant FADE_COLOR]) ou une texture ([constant FADE_TEXTURE]).
 		</member>
 		<member name="revert_on_stop" type="bool" setter="set_revert_on_stop" getter="get_revert_on_stop" default="true">
+			Si [code]true[/code], l'arrêt de l'effet ([method Effect.stop_fx]) refait un fondu inverse vers la couleur ou la texture d'origine. Si [code]false[/code], la cible garde son nouvel aspect.
 		</member>
 		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
+			Texture atteinte à la fin du fondu en mode [constant FADE_TEXTURE]. Si elle est nulle, ou si la cible n'a pas encore de texture, le changement est immédiat (rien à mélanger).
 		</member>
 		<member name="texture_property" type="String" setter="set_texture_property" getter="get_texture_property" default="&quot;texture&quot;">
+			Chemin de la propriété [Texture2D] remplacée sur la cible en mode [constant FADE_TEXTURE].
 		</member>
 		<member name="transition" type="int" setter="set_transition" getter="get_transition" enum="Tween.TransitionType" default="1">
+			Courbe d'interpolation du fondu (linéaire, sinus, rebond...).
 		</member>
 	</members>
 	<constants>
 		<constant name="FADE_COLOR" value="0" enum="FadeMode">
+			Anime la propriété couleur [member color_property] jusqu'à [member color].
 		</constant>
 		<constant name="FADE_TEXTURE" value="1" enum="FadeMode">
+			Fondu enchaîné de la propriété texture [member texture_property] jusqu'à [member texture].
 		</constant>
 	</constants>
 </class>

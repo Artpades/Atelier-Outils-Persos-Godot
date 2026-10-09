@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Follow · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 〰️ Follow (FXFollower) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/follow.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">〰️</div>
+    <div>
+      <h1>〰️_FollowSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Follow</strong> : un objet (souvent une caméra) qui suit un ou plusieurs nœuds, avec zoom automatique en 2D.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : FXFollower</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Dans un jeu à deux joueurs sur le même écran, la caméra doit rester entre eux et dézoomer quand ils s'éloignent ; un familier doit suivre son maître avec un peu de retard ; une lumière doit accompagner un groupe. Chaque fois, il faut réécrire le calcul du centre, l'interpolation et le zoom. <strong>Ce module en fait un effet prêt à l'emploi</strong> : on liste les nœuds à suivre, on lance l'effet, l'objet les suit.</p>
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui veulent une caméra multijoueur ou un suivi simple sans écrire de script, et les game designers qui règlent la vitesse de suivi et les bornes de zoom dans l'inspecteur.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une orientation</strong> : <code>FXFollower</code> déplace la cible, il ne la tourne pas. Pour viser, voir <a href="ciblage-d-objet.html">🌻 Ciblage d'objet</a> (les deux se combinent).</li>
+      <li><strong>Pas un gestionnaire de caméras</strong> : pas de zones, de limites de niveau ni de transitions entre caméras ; voir le module <em>🎞️ Gestionnaire de caméras</em>.</li>
+      <li><strong>Pas un déplacement physique</strong> : la position est imposée, sans collision ni pathfinding.</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : deux personnages 2D qui s'éloignent puis se rapprochent ; la Camera2D reste centrée entre eux et dézoome / rezoome en douceur (afficher le rectangle englobant et la marge <code>zoom_margin</code> en surimpression).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>FXFollower</code> et le socle <code>Effect</code> / <code>PlayerFX</code> dont il hérite.</td></tr>
+        <tr><td><a href="socle-effets.html">✨ Socle des effets</a> (<code>PlayerFX</code>)</td><td><strong>Obligatoire</strong> en pratique</td><td>Les chemins <code>targets</code> sont relatifs au <code>PlayerFX</code>, qui fournit aussi la mise à jour à chaque frame. Déjà inclus dans <code>bin/fx/</code>.</td></tr>
+        <tr><td>Icône <code>Follower FX Icon.png</code></td><td>Optionnelle</td><td>Icône de la ressource dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune à tous les effets, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : une <code>Camera2D</code> qui reste entre deux joueurs.</p>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un <code>PlayerFX</code> comme enfant de la <code>Camera2D</code></strong>.
+      <div class="why">la caméra (parent) devient la cible déplacée par l'effet.</div>
+    </li>
+    <li>
+      <strong>Dans <code>special_effects</code>, créer un <code>FXFollower</code></strong> et ajouter à <code>targets</code> les chemins des deux joueurs, par exemple <code>../../Joueur1</code> et <code>../../Joueur2</code>.
+      <div class="why">les chemins partent du <code>PlayerFX</code> (pas de la caméra) : <code>..</code> désigne la caméra, <code>../..</code> son parent.</div>
+    </li>
+    <li>
+      <strong>Lancer l'effet au démarrage</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	$Camera2D/PlayerFX.play()</code></pre>
+      <div class="why">l'effet n'a pas de durée : il suit les joueurs tant qu'il n'est pas arrêté.</div>
+    </li>
+    <li>
+      <strong>Régler <code>follow_speed</code>, <code>min_zoom</code>, <code>max_zoom</code> et <code>zoom_margin</code></strong>.
+      <div class="why"><code>min_zoom</code> borne le dézoom quand les joueurs s'éloignent (en dessous, ils sortent de l'écran) ; <code>zoom_margin</code> évite qu'un joueur colle au bord.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/FXFollower.xml</code>. Éléments internes, non exposés : <code>_update_2d</code>, <code>_update_3d</code> et <code>_weight</code> (facteur d'interpolation). Les méthodes héritées (<code>play_fx</code>, <code>stop_fx</code>…) sont documentées dans <a href="socle-effets.html#api">✨ Socle des effets</a>.</p>
+  <div data-api="FXFollower"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-familier">Comment je fais suivre un familier avec du retard ?</h3>
+  <p>Une <code>follow_speed</code> basse donne un suivi « élastique ». Décaler le familier en suivant un <code>Marker2D</code> enfant du joueur plutôt que le joueur lui-même :</p>
+  <pre><code class="gdscript"># Joueur
+# ├─ PointFamilier (Marker2D, position (-40, -30))
+# Familier (Sprite2D, frère du Joueur)
+# └─ PlayerFX
+func _ready() -> void:
+	var suivi := FXFollower.new()
+	suivi.targets = [NodePath("../../Joueur/PointFamilier")]
+	suivi.follow_speed = 3.0
+	$Familier/PlayerFX.special_effects = [suivi]
+	$Familier/PlayerFX.play()</code></pre>
+
+  <h3 id="ex-ajout-joueur">Comment j'ajoute un joueur qui rejoint la partie ?</h3>
+  <p><code>targets</code> est relu à chaque frame : il suffit de le remplacer (les chemins invalides sont ignorés, donc un joueur qui quitte la partie disparaît du calcul).</p>
+  <pre><code class="gdscript">func ajouter_joueur(joueur: Node2D) -> void:
+	var suivi: FXFollower = $Camera2D/PlayerFX.special_effects[0]
+	var liste := suivi.targets
+	liste.append($Camera2D/PlayerFX.get_path_to(joueur))
+	suivi.targets = liste</code></pre>
+
+  <h3 id="ex-3d">Comment je combine suivi et visée en 3D ?</h3>
+  <p>Un <code>FXFollower</code> déplace un pivot vers le groupe ; un <code>FXTargeter</code> oriente la caméra (enfant du pivot, décalée en arrière) vers ce même groupe.</p>
+  <pre><code class="gdscript"># Pivot (Node3D) ─ PlayerFX (FXFollower : joueurs)
+# └─ Camera3D (position (0, 6, 10)) ─ PlayerFX (FXTargeter : joueurs, depth control désactivé)
+func _ready() -> void:
+	$Pivot/PlayerFX.play()
+	$Pivot/Camera3D/PlayerFX.play()</code></pre>
+
+  <h3 id="ex-cinematique">Comment je fige le suivi pendant une cinématique ?</h3>
+  <pre><code class="gdscript">func debut_cinematique() -> void:
+	$Camera2D/PlayerFX.stop()     # la caméra reste où elle est
+	$AnimationPlayer.play("intro_boss")
+	await $AnimationPlayer.animation_finished
+	$Camera2D/PlayerFX.play()     # reprise en douceur vers les joueurs</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Mise à jour en <code>_process</code> uniquement.</strong> Suivre un corps physique déplacé en <code>_physics_process</code> peut produire des saccades quand l'affichage tourne plus vite que la physique (activer l'interpolation physique du projet si nécessaire).</li>
+    <li><strong>Le zoom automatique ne concerne que <code>Camera2D</code></strong>, avec au moins deux nœuds suivis. Rien d'équivalent en 3D (utiliser le contrôle de distance de <a href="ciblage-d-objet.html">🌻 FXTargeter</a>).</li>
+    <li><strong>Le cadrage ne tient compte que des positions</strong> : la taille des sprites n'est pas comptée, d'où <code>zoom_margin</code>. Le calcul suppose une caméra sans rotation et utilise la taille du viewport.</li>
+    <li><strong>Zoom borné</strong> : au-delà de <code>min_zoom</code>, des nœuds suivis sortent de l'écran. Le zoom est uniforme (même valeur en X et Y).</li>
+    <li><strong>Position imposée</strong> : le <code>position_smoothing</code> de la <code>Camera2D</code>, ses <code>limit_*</code> ou un autre effet qui déplace la même cible (<code>FXShake</code>) entrent en conflit. Pour secouer une caméra qui suit, secouer un nœud enfant ou utiliser l'<code>offset</code> de la caméra par script.</li>
+    <li><strong>Moyenne simple, pas de pondération</strong> : impossible de donner plus d'importance au joueur 1. Pour cela, suivre plusieurs fois le même chemin.</li>
+    <li><strong>Interpolation dépendante du nombre d'images</strong> : facteur <code>follow_speed × delta</code> plafonné à 1 ; le suivi n'a pas exactement le même retard à 30 et à 144 images/s.</li>
+    <li><strong>Sans <code>PlayerFX</code>, aucun nœud n'est trouvé</strong> (chemins relatifs au <code>PlayerFX</code>) ; en pilotage manuel, appeler <code>set_player_fx()</code>.</li>
+    <li><strong>L'arrêt ne restaure rien</strong> : la cible reste à sa dernière position.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>FXFollower</code></strong> est un <code>Effect</code> sans état : seul <code>_process</code> est surchargé. À chaque frame, il résout ses <code>NodePath</code> depuis le <code>PlayerFX</code> (<code>_get_node_from_player</code>), calcule la moyenne des positions globales et place la cible.</li>
+    <li>En 2D, il calcule aussi le rectangle englobant des nœuds suivis ; si la cible est une <code>Camera2D</code>, le zoom est le plus petit rapport <em>taille de l'écran / taille requise</em>, borné par <code>min_zoom</code> et <code>max_zoom</code>.</li>
+    <li>Appels directs du <code>PlayerFX</code> vers l'effet ; aucun signal propre.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Hérite d'<code>Effect</code> (même bibliothèque) ; dépend du <code>PlayerFX</code> pour la résolution des chemins.</li>
+    <li>Aucun lien avec le module de caméras : il manipule directement la <code>Camera2D</code> de Godot.</li>
+  </ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Cibles en <code>NodePath</code> relatifs au <code>PlayerFX</code></td><td>Une ressource ne peut pas référencer directement un nœud de la scène ; le <code>PlayerFX</code> est le seul point fixe connu de l'effet.</td></tr>
+        <tr><td>Chemins résolus à chaque frame</td><td>Un joueur qui rejoint, quitte ou réapparaît (nouvelle instance au même chemin) est pris en compte sans réinitialiser l'effet.</td></tr>
+        <tr><td>Pas de zoom avec un seul nœud suivi</td><td>Le rectangle englobant est alors vide : le zoom calculé serait maximal et la caméra « plongerait » à chaque fois qu'un joueur reste seul.</td></tr>
+        <tr><td>Interpolation simple (<code>lerp</code>) plutôt qu'un ressort</td><td>Réglage à un seul paramètre, compréhensible par un game designer ; suffisant pour un suivi de caméra.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>FXFollower</code>, commentaires du header, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>FXFollower</code> : suivi du centre de plusieurs nœuds en 2D et 3D, zoom automatique de <code>Camera2D</code>.</li></ul>
+  </div>
+
+  <footer>Module 〰️ Follow · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/〰️Follow/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "FXFollower.targets": "Les joueurs d'un écran partagé, le maître d'un familier, les membres d'une escouade.",
+  "FXFollower.use_interpolation": "Désactiver pour coller exactement à la cible (curseur, objet tenu en main), activer pour une caméra douce.",
+  "FXFollower.follow_speed": "Bas (2-3) pour un familier ou une caméra cinématographique, haut (10+) pour une caméra de jeu nerveuse.",
+  "FXFollower.auto_zoom_2d": "Caméra de combat local à plusieurs joueurs ; désactiver pour un zoom fixe réglé à la main.",
+  "FXFollower.min_zoom": "Limiter le dézoom pour que les sprites restent lisibles même joueurs très éloignés.",
+  "FXFollower.max_zoom": "Éviter un gros plan excessif quand les joueurs sont l'un sur l'autre.",
+  "FXFollower.zoom_margin": "Garder de l'espace autour des joueurs pour voir arriver les ennemis."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Système de Dialogue · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 💬 Système de Dialogue (DialogueSystem, DialogueResource, DialogueBox et nœuds de dialogue) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/entites/systeme-de-dialogue.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">💬</div>
+    <div>
+      <h1>💬_DialogueSystem - Entités &amp; Algorithme - Documentation</h1>
+      <p class="subtitle">Module <strong>Système de Dialogue</strong> : dialogues à embranchements (répliques, choix, conditions, variables, événements) édités en graphe et affichés par une boîte prête à l'emploi.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/entity_algorithm</code></span>
+        <span class="badge">10 classes : DialogueSystem · DialogueResource · DialogueBox · 7 nœuds</span>
+        <span class="badge">Éditeur en graphe</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un PNJ qui salue, pose une question, réagit différemment si le joueur l'a déjà aidé, propose une quête seulement au niveau 2 et donne une récompense : écrit à la main, cela devient vite un enchevêtrement de <code>if</code>, de drapeaux globaux et de textes codés en dur. <strong>Ce module sépare le contenu du dialogue (une ressource <code>.tres</code> éditée en graphe) de son exécution et de son affichage</strong>, et garde les variables du joueur d'un dialogue à l'autre.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>📜 <code>DialogueResource</code> — le contenu</h4>
+      <p>Une liste de nœuds reliés : <strong>répliques</strong>, <strong>choix</strong>, <strong>embranchements</strong> sur condition, <strong>actions</strong> (variables, événements), <strong>fin</strong>. S'édite en graphe dans l'éditeur.</p>
+    </div>
+    <div class="card">
+      <h4>💬 <code>DialogueSystem</code> — l'exécution</h4>
+      <p>Parcourt le dialogue, évalue les conditions, remplace les <code>{variables}</code> dans les textes, et annonce par signaux ce qu'il faut afficher.</p>
+    </div>
+    <div class="card">
+      <h4>🗨️ <code>DialogueBox</code> — l'affichage</h4>
+      <p>Une boîte prête à l'emploi : orateur, portrait, texte écrit lettre par lettre, boutons de choix. Remplaçable par votre propre interface.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les auteurs de dialogues et game designers, qui écrivent et relient les répliques dans un graphe sans code ; les développeurs gameplay, qui branchent les événements du dialogue (ouvrir une boutique, donner un objet) et construisent leur propre interface s'ils le souhaitent.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de traduction</strong> : les textes sont stockés tels quels dans la ressource ; aucune clé de traduction n'est gérée.</li>
+      <li><strong>Pas un lecteur de voix ni de cinématiques</strong> : la propriété <code>voice</code> d'une réplique est fournie, mais rien ne la joue. Les cinématiques se déclenchent via les événements de dialogue.</li>
+      <li><strong>Pas un système de PNJ</strong> : approcher un personnage et lui parler relève du module <em>🧑 Personnage</em> (<code>NPCController</code>, <code>Interactable</code>), qui utilise ce module.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture côte à côte : à gauche la fenêtre « Éditeur de dialogue » en disposition TechTree (réplique → choix à trois options → embranchement « vrai / faux »), à droite la <code>DialogueBox</code> en jeu avec portrait, nom en jaune et deux boutons de choix.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/entity_algorithm/</code> (<code>gameplaytoolkit_entity_algorithm.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient les classes du dialogue, mais aussi ce dont elles ont besoin : le <code>Blackboard</code> des variables, l'évaluateur d'expressions et la <code>BehaviorGraphView</code> du module <em>🤾 Système de Comportement</em>. Tout est dans la même bibliothèque : rien d'autre à installer.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧍🧠/</code></td><td>Optionnelle</td><td>Seulement pour les icônes des classes dans l'éditeur. Sans elles, Godot affiche les icônes par défaut.</td></tr>
+        <tr><td>Module <em>🧑 Personnage</em> (<code>NPCController</code>)</td><td>Optionnelle</td><td>Fournit un PNJ qui lance son dialogue quand le joueur interagit avec lui. Même bibliothèque, donc déjà présent.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons entity_algorithm</code></pre>
+      <div class="why">compile uniquement la bibliothèque <em>Entités &amp; Algorithme</em> (dialogue, comportement, personnages, capacités) et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/entity_algorithm/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/entity_algorithm/</code>.
+      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/entity_algorithm/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage, et le plugin d'éditeur (bouton « 💬 Éditeur de dialogue ») n'est installé qu'à ce moment. Les recompilations suivantes sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>DialogueSystem</code> et <code>DialogueBox</code>, et <kbd>Nouvelle ressource</kbd> doit proposer <code>DialogueResource</code>. La console affiche « 🧍Module Entités &amp; Algorithme … chargé avec succès ! ».
+      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload n'est requis. Les PNJ trouvent le premier <code>DialogueSystem</code> de la scène tout seuls (<code>DialogueSystem.get_main()</code>) ; un seul par scène suffit en général.</p>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de la boîte « Créer une ressource » filtrée sur « Dialogue » (DialogueResource et les classes de nœuds visibles), puis de l'inspecteur d'un DialogueResource avec le bouton « 💬 Éditeur de dialogue » en haut.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : un garde qui dit « Halte ! », demande au joueur ce qu'il veut, et répond selon le choix.</p>
+
+  <h3 id="tuto-ressource">A. Écrire le dialogue</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer la ressource</strong> : dans le FileSystem, <em>Nouvelle ressource › DialogueResource</em>, l'enregistrer en <code>res://dialogues/garde.tres</code>.
+      <div class="why">le dialogue est une donnée indépendante des scènes : le même fichier peut servir à plusieurs PNJ et se modifie sans toucher au code.</div>
+    </li>
+    <li>
+      <strong>Ouvrir l'éditeur en graphe</strong> : sélectionner le fichier, puis cliquer sur <kbd>💬 Éditeur de dialogue</kbd> en haut de l'inspecteur.
+      <div class="why">la fenêtre montre les nœuds et leurs liens en arbre ; toutes les modifications y sont annulables (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).</div>
+    </li>
+    <li>
+      <strong>Clic droit sur le fond › Ajouter › 🗨️ Réplique</strong>, puis, en cliquant le nœud, régler dans l'inspecteur <code>speaker</code> = « Garde » et <code>text</code> = « Halte, {nom} ! ».
+      <div class="why">le premier nœud ajouté sert de départ ; <code>{nom}</code> sera remplacé par la variable <code>nom</code> au moment de l'affichage.</div>
+    </li>
+    <li>
+      <strong>Clic droit sur la réplique › Ajouter après › 🔀 Choix</strong>, puis remplir ses <code>options</code> : « Qui es-tu ? » et « Au revoir ».
+      <div class="why">« Ajouter après » relie directement la réplique au nouveau nœud (propriété <code>next</code>).</div>
+    </li>
+    <li>
+      <strong>Ajouter une réplique de réponse et un nœud 🏁 Fin</strong>, puis relier chaque option à sa suite par <kbd>Maj</kbd> + glisser d'un nœud à l'autre (ou en tapant l'identifiant dans <code>next</code>).
+      <div class="why">les liens sont des identifiants de nœud ; un lien vide termine aussi le dialogue, mais un nœud Fin rend la sortie visible dans le graphe.</div>
+    </li>
+    <li>
+      <strong>Cliquer sur <kbd>Vérifier</kbd> puis <kbd>💾 Enregistrer</kbd></strong>.
+      <div class="why">« Vérifier » signale les identifiants en double, les liens cassés et un départ introuvable ; ces erreurs ne sont sinon visibles qu'en jeu (le dialogue s'arrête net).</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-scene">B. L'afficher en jeu</h3>
+  <ol class="steps">
+    <li>
+      <strong>Dans la scène, ajouter un <code>CanvasLayer</code> avec deux enfants : <code>DialogueSystem</code> et <code>DialogueBox</code></strong>. Ancrer la <code>DialogueBox</code> en bas de l'écran (préréglage <em>Bas large</em>).
+      <div class="why">le <code>DialogueSystem</code> exécute, la <code>DialogueBox</code> affiche ; la boîte se branche toute seule sur le premier <code>DialogueSystem</code> de la scène et se masque tant qu'aucun dialogue n'est en cours.</div>
+    </li>
+    <li>
+      <strong>Lancer le dialogue</strong> depuis un script, par exemple quand le joueur parle au garde :
+      <pre><code class="gdscript">func _parler_au_garde() -> void:
+	$CanvasLayer/DialogueSystem.variables.set_value("nom", "Ada")
+	$CanvasLayer/DialogueSystem.start(preload("res://dialogues/garde.tres"))</code></pre>
+      <div class="why"><code>variables</code> est un <code>Blackboard</code> : tout ce qu'on y range est utilisable dans les textes (<code>{nom}</code>) et les conditions. Il est conservé entre les dialogues.</div>
+    </li>
+    <li>
+      <strong>Lancer la scène</strong> et appuyer sur <kbd>Entrée</kbd> / <kbd>Espace</kbd> (action <code>ui_accept</code>).
+      <div class="why">un premier appui termine l'écriture lettre par lettre, le suivant passe à la réplique suivante ; les options se choisissent à la souris ou au clavier (le premier bouton reçoit le focus).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Dialogue*.xml</code>. Seuls les éléments <strong>exposés à Godot</strong> figurent ici ; le reste est interne et peut changer sans préavis :</p>
+  <ul>
+    <li><code>DialogueEditorWindow</code> (la fenêtre « Éditeur de dialogue ») et <code>BehaviorInspectorPlugin</code> (son bouton dans l'inspecteur) sont des classes d'éditeur internes, sans référence publique.</li>
+    <li><code>DialogueSystem</code> : l'évaluateur d'expressions (<code>BehaviorExpression</code>, classe C++ non enregistrée), les nœuds visités, les options uniques déjà prises (<code>seen_options</code>) et le compte à rebours d'avance automatique.</li>
+    <li><code>DialogueBox</code> : ses enfants internes (portrait, étiquettes, conteneur des boutons, indicateur « ▼ »), créés par code et absents de l'arbre de scène.</li>
+    <li>Le format des « instantanés » (<code>get_graph_snapshot</code>, <code>get_debug_snapshot</code>) est celui de <code>BehaviorGraphView</code>, documenté avec le <a href="systeme-de-comportement.html">🤾 Système de Comportement</a> ; il peut évoluer.</li>
+  </ul>
+  <div data-api="DialogueSystem DialogueResource DialogueBox DialogueNode DialogueLine DialogueOption DialogueChoice DialogueBranch DialogueAction DialogueEnd"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-code">Comment je construis un dialogue entièrement par code ?</h3>
+  <p>Utile pour des dialogues générés (rumeurs aléatoires, marchand procédural) ou pour des tests. Les nœuds se relient par leur <code>node_id</code>.</p>
+  <pre><code class="gdscript">func creer_dialogue() -> DialogueResource:
+	var bonjour := DialogueLine.new()
+	bonjour.node_id = &amp;"bonjour"
+	bonjour.speaker = "Marchande"
+	bonjour.text = "Bienvenue ! Tu as {pieces} pièces."
+	bonjour.next = &amp;"menu"
+
+	var acheter := DialogueOption.new()
+	acheter.text = "Acheter une potion (10 pièces)"
+	acheter.condition = "pieces >= 10"
+	acheter.next = &amp;"achat"
+	var partir := DialogueOption.new()
+	partir.text = "Au revoir"
+	partir.next = &amp;"fin"
+	var menu := DialogueChoice.new()
+	menu.node_id = &amp;"menu"
+	menu.options.assign([acheter, partir])
+
+	var achat := DialogueAction.new()
+	achat.node_id = &amp;"achat"
+	achat.assignments = ["pieces -= 10", "potions += 1"]
+	achat.next = &amp;"menu"   # revient au menu
+
+	var fin := DialogueEnd.new()
+	fin.node_id = &amp;"fin"
+
+	var dialogue := DialogueResource.new()
+	dialogue.start_id = &amp;"bonjour"
+	dialogue.nodes.assign([bonjour, menu, achat, fin])
+	assert(dialogue.validate().is_empty())
+	return dialogue</code></pre>
+
+  <h3 id="ex-evenements">Comment je déclenche du gameplay depuis un dialogue (boutique, objet, quête) ?</h3>
+  <p>Un nœud <code>DialogueAction</code> avec un <code>event</code> émet <code>dialogue_event</code>. Le dialogue ne connaît pas votre jeu : c'est votre code qui interprète l'événement.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	$DialogueSystem.dialogue_event.connect(_sur_evenement)
+
+func _sur_evenement(evenement: StringName, arguments: Array) -> void:
+	match evenement:
+		&amp;"ouvrir_boutique":
+			$Boutique.ouvrir()
+		&amp;"donner_objet":
+			Inventaire.ajouter(arguments[0])   # ex. event_arguments = ["epee"]
+		&amp;"quete_acceptee":
+			$Journal.ajouter_quete(arguments[0])</code></pre>
+
+  <h3 id="ex-conditions">Comment j'adapte le dialogue à l'avancée du joueur ?</h3>
+  <p>Conditions et affectations sont des expressions Godot évaluées avec les variables. Comme <code>variables</code> n'est jamais remis à zéro, un compteur de visites suffit à faire évoluer le dialogue. Exemple de contenu de la ressource :</p>
+  <pre><code class="gdscript"># Nœud « entree »   : DialogueAction   assignments = ["visites += 1"]          next = "test"
+# Nœud « test »     : DialogueBranch   condition   = "visites > 1"
+#                                       next_if_true = "rebonjour"   next_if_false = "presentation"
+# Option du menu    : DialogueOption   condition   = "niveau >= 2 and not quete_dragon"
+#                                       once_only   = true
+
+# Côté jeu : les variables viennent de la sauvegarde, et y retournent.
+func _ready() -> void:
+	$DialogueSystem.variables.set_values(Sauvegarde.variables_dialogue)
+	$DialogueSystem.dialogue_ended.connect(func(_d):
+		Sauvegarde.variables_dialogue = $DialogueSystem.variables.values.duplicate())</code></pre>
+
+  <h3 id="ex-interlocuteur">Comment une condition interroge-t-elle le PNJ lui-même ?</h3>
+  <p>Le troisième argument de <code>start()</code> est l'interlocuteur : ses méthodes s'appellent directement dans les expressions, et il est accessible sous le nom <code>agent</code>.</p>
+  <pre><code class="gdscript"># Script du PNJ
+@export var dialogue: DialogueResource
+var humeur := 0.8
+var repas_pris := false
+
+func a_faim() -> bool:
+	return not repas_pris
+
+func parler() -> void:
+	DialogueSystem.get_main().start(dialogue, &amp;"", self)
+
+# Dans la ressource :
+#   DialogueBranch.condition = "a_faim() and agent.humeur > 0.5"
+#   DialogueAction.assignments = ["agent_content = agent.humeur > 0.5"]</code></pre>
+
+  <h3 id="ex-interface">Comment j'utilise ma propre interface au lieu de DialogueBox ?</h3>
+  <p>Le <code>DialogueSystem</code> n'affiche rien : écouter ses signaux suffit. Toujours passer l'<code>index</code> fourni à <code>choose()</code> (rang dans la liste <em>filtrée</em>).</p>
+  <pre><code class="gdscript">@onready var systeme: DialogueSystem = $DialogueSystem
+
+func _ready() -> void:
+	systeme.line_shown.connect(func(orateur, texte, ligne):
+		$Bulle.afficher(orateur, texte, ligne.portrait)
+		if ligne.voice:
+			$Voix.stream = ligne.voice
+			$Voix.play())
+	systeme.choices_shown.connect(func(question, options, _choix):
+		for option in options:
+			$Menu.ajouter_bouton(option.text, systeme.choose.bind(option.index)))
+	systeme.dialogue_ended.connect(func(_d): $Bulle.hide())
+
+func _unhandled_input(evenement: InputEvent) -> void:
+	if evenement.is_action_pressed("ui_accept"):
+		systeme.advance()   # sans effet pendant un choix</code></pre>
+
+  <h3 id="ex-auto">Comment je fais une scène qui défile toute seule (cinématique, tutoriel) ?</h3>
+  <p>Régler <code>auto_advance_time</code> sur chaque réplique : le système passe à la suite après ce délai, même sans appui. Le joueur peut toujours accélérer avec l'action d'avance.</p>
+  <pre><code class="gdscript">for noeud in dialogue.nodes:
+	if noeud is DialogueLine:
+		noeud.auto_advance_time = 2.5
+$DialogueSystem.start(dialogue)
+await $DialogueSystem.dialogue_ended</code></pre>
+
+  <h3 id="ex-mobile">Comment j'ajoute un bouton « Suivant » sur mobile ?</h3>
+  <p><code>press_advance()</code> a exactement le même effet que l'action d'avance : finir d'écrire le texte, sinon passer à la suite. Combinable avec le module <em>📱 Entrées tactiles</em>.</p>
+  <pre><code class="gdscript">$BoutonSuivant.pressed.connect($DialogueBox.press_advance)
+$DialogueBox.advance_action = &amp;""   # plus de touche : uniquement le bouton</code></pre>
+
+  <h3 id="ex-debug">Comment je suis le déroulement d'un dialogue en jeu ?</h3>
+  <p>Pendant que le jeu tourne depuis l'éditeur, la fenêtre « Éditeur de dialogue » affiche en direct le dialogue du <code>DialogueSystem</code> choisi dans sa liste (case <em>🐞 Suivre le jeu</em>) : nœud actif, nœuds déjà parcourus, dernières répliques. En jeu, une <code>BehaviorGraphView</code> peut aussi l'afficher :</p>
+  <pre><code class="gdscript">$Debug/BehaviorGraphView.set_target($DialogueSystem)
+print($DialogueSystem.get_history())   # ["Garde : Halte, Ada !", "→ Au revoir", ...]</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-execution">Exécution (DialogueSystem)</h3>
+  <ul>
+    <li><strong>Signaux synchrones.</strong> <code>start()</code>, <code>advance()</code> et <code>choose()</code> émettent leurs signaux <em>pendant</em> l'appel : connecter les signaux avant <code>start()</code>, et ne pas faire <code>start(); await line_shown</code> (le signal est déjà passé).</li>
+    <li><strong>Seules les cinq sous-classes natives sont reconnues.</strong> Un nœud créé par script (<code>extends DialogueNode</code>) est traité comme une fin de dialogue. <code>get_links()</code> et les méthodes associées ne sont pas virtuelles côté script.</li>
+    <li><strong>Erreurs silencieuses en jeu.</strong> Un lien vers un identifiant inexistant termine le dialogue (avertissement dans la console) ; une condition invalide vaut <em>faux</em> et masque l'option. Utiliser <kbd>Vérifier</kbd> (<code>validate()</code>) avant de livrer — mais il ne vérifie pas la syntaxe des expressions.</li>
+    <li><strong>Garde-fou de 256 étapes.</strong> Plus de 256 embranchements / actions enchaînés sans réplique ni choix (une boucle) arrêtent le dialogue avec une erreur.</li>
+    <li><strong>Affectations : analyse simple.</strong> <code>+=</code> / <code>-=</code> sont repérés n'importe où dans le texte : une valeur de chaîne qui en contient (<code>titre = "a+=b"</code>) est rejetée. Le nom de variable doit être un identifiant ASCII, hors mots réservés (<code>and</code>, <code>or</code>, <code>not</code>, <code>in</code>, <code>true</code>, <code>false</code>, <code>null</code>, <code>self</code>, <code>PI</code>, <code>TAU</code>, <code>INF</code>, <code>NAN</code>).</li>
+    <li><strong>Méthodes de l'interlocuteur.</strong> Sans interlocuteur passé à <code>start()</code>, une condition qui appelle une méthode (<code>a_faim()</code>) échoue et vaut <em>faux</em>.</li>
+    <li><strong>Variables jamais réinitialisées, ni sauvegardées.</strong> Elles durent autant que le nœud ; c'est à vous de les sauvegarder et recharger (voir <a href="#ex-conditions">exemple</a>). Idem pour les options <code>once_only</code> déjà prises, qui ne sont pas exposées.</li>
+    <li><strong>Options uniques repérées par position.</strong> La mémoire d'une option <code>once_only</code> est « chemin du fichier | identifiant du choix | rang de l'option » : réordonner les options ou renommer le choix change ce qui est considéré comme vu. Un dialogue non enregistré (créé par code) est repéré par son identifiant d'instance : une copie (<code>duplicate()</code>) repart de zéro.</li>
+    <li><strong>Un seul dialogue à la fois par <code>DialogueSystem</code>.</strong> <code>start()</code> pendant un dialogue arrête le précédent (avec <code>dialogue_ended</code>). Pour deux conversations simultanées, utiliser deux systèmes.</li>
+    <li><strong>L'avance automatique suit la pause.</strong> <code>auto_advance_time</code> est décompté dans le traitement du nœud : il se fige si l'arbre est en pause (sauf <code>process_mode</code> réglé autrement).</li>
+    <li><strong><code>voice</code> n'est jamais jouée</strong> par le module (voir <a href="#ex-interface">exemple</a>).</li>
+  </ul>
+
+  <h3 id="limites-boite">Affichage (DialogueBox)</h3>
+  <ul>
+    <li><strong>Mise en page fixe.</strong> Portrait à gauche (96 px), nom en jaune, texte, boutons empilés : les enfants sont internes et non modifiables dans l'éditeur. Seuls le thème du <code>PanelContainer</code>, sa taille et sa position se règlent. Pour une autre mise en page, écrire sa propre interface.</li>
+    <li><strong>Recherche du système au <code>_ready</code>.</strong> Sans <code>dialogue_system_path</code>, la boîte prend le premier <code>DialogueSystem</code> déjà présent dans l'arbre à ce moment ; s'il est ajouté plus tard, appeler <code>set_dialogue_system()</code>.</li>
+    <li><strong>Le texte d'un choix sans question</strong> reste celui de la réplique précédente.</li>
+    <li><strong><code>typing_finished</code> n'est pas émis</strong> quand <code>characters_per_second</code> vaut 0.</li>
+    <li><strong>L'écriture lettre par lettre suit la pause</strong> de l'arbre de scène, comme tout traitement de nœud.</li>
+  </ul>
+
+  <h3 id="limites-editeur">Éditeur de dialogue</h3>
+  <ul>
+    <li><strong>Une seule fenêtre</strong> à la fois ; ouvrir un autre dialogue la réutilise.</li>
+    <li><strong>Pas de disposition libre</strong> : les nœuds sont placés automatiquement (arbre en largeur depuis le départ) ; les liens qui reviennent en arrière sont dessinés en arcs. Les nœuds inaccessibles depuis le départ sont rattachés à la racine et marqués « ⚠ ».</li>
+    <li><strong>Dialogue intégré à une scène</strong> (non enregistré en <code>.tres</code>) : il s'enregistre avec la scène, pas avec le bouton <kbd>💾 Enregistrer</kbd>.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 330" role="img" aria-label="Schéma d'architecture du Système de Dialogue">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <text x="20" y="22" class="small">Contenu (ressources .tres)</text>
+    <rect class="box" x="20" y="34" width="170" height="54" rx="8"/>
+    <text x="105" y="58" text-anchor="middle">DialogueResource</text>
+    <text x="105" y="76" text-anchor="middle" class="small">nodes · start_id</text>
+    <rect class="box" x="20" y="120" width="170" height="74" rx="8"/>
+    <text x="105" y="142" text-anchor="middle">DialogueNode ×N</text>
+    <text x="105" y="160" text-anchor="middle" class="small">Line · Choice · Branch</text>
+    <text x="105" y="178" text-anchor="middle" class="small">Action · End</text>
+    <path class="arrow" d="M105 88 V118" marker-end="url(#arr)"/>
+
+    <text x="260" y="22" class="small">Exécution</text>
+    <rect class="box main" x="260" y="34" width="190" height="54" rx="8"/>
+    <text x="355" y="58" text-anchor="middle">DialogueSystem</text>
+    <text x="355" y="76" text-anchor="middle" class="small">Node · start / advance / choose</text>
+    <rect class="box" x="260" y="140" width="190" height="54" rx="8"/>
+    <text x="355" y="164" text-anchor="middle">Blackboard « variables »</text>
+    <text x="355" y="182" text-anchor="middle" class="small">+ évaluateur d'expressions</text>
+    <path class="arrow" d="M190 61 H258" marker-end="url(#arr)"/>
+    <text x="224" y="54" text-anchor="middle" class="small">lit</text>
+    <path class="arrow" d="M355 88 V138" marker-end="url(#arr)"/>
+
+    <text x="520" y="22" class="small">Affichage / jeu</text>
+    <rect class="box" x="520" y="34" width="150" height="54" rx="8"/>
+    <text x="595" y="58" text-anchor="middle">DialogueBox</text>
+    <text x="595" y="76" text-anchor="middle" class="small">ou votre interface</text>
+    <rect class="box" x="520" y="120" width="150" height="54" rx="8"/>
+    <text x="595" y="144" text-anchor="middle">Votre code</text>
+    <text x="595" y="162" text-anchor="middle" class="small">dialogue_event</text>
+    <rect class="box" x="700" y="34" width="140" height="54" rx="8"/>
+    <text x="770" y="58" text-anchor="middle">NPCController</text>
+    <text x="770" y="76" text-anchor="middle" class="small">get_main().start()</text>
+    <path class="arrow dashed" d="M450 54 H518" marker-end="url(#arr)"/>
+    <text x="484" y="48" text-anchor="middle" class="small">signaux</text>
+    <path class="arrow" d="M518 74 H452" marker-end="url(#arr)"/>
+    <text x="484" y="98" text-anchor="middle" class="small">advance / choose</text>
+    <path class="arrow dashed" d="M450 80 Q490 140 518 147" marker-end="url(#arr)"/>
+    <path class="arrow" d="M770 88 Q770 112 452 70" marker-end="url(#arr)"/>
+
+    <text x="20" y="240" class="small">Éditeur (interne)</text>
+    <rect class="box" x="20" y="252" width="230" height="54" rx="8"/>
+    <text x="135" y="276" text-anchor="middle">DialogueEditorWindow</text>
+    <text x="135" y="294" text-anchor="middle" class="small">modifie la ressource (annulable)</text>
+    <rect class="box" x="300" y="252" width="190" height="54" rx="8"/>
+    <text x="395" y="276" text-anchor="middle">BehaviorGraphView</text>
+    <text x="395" y="294" text-anchor="middle" class="small">dessine l'instantané</text>
+    <rect class="box" x="540" y="252" width="300" height="54" rx="8"/>
+    <text x="690" y="276" text-anchor="middle">BehaviorDebugger ⇄ BehaviorDebuggerPlugin</text>
+    <text x="690" y="294" text-anchor="middle" class="small">jeu → éditeur : instantanés 10×/s</text>
+    <path class="arrow" d="M250 279 H298" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M80 252 Q60 220 80 196" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M540 279 H492" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M400 194 Q520 230 600 250" marker-end="url(#arr)"/>
+    <text x="520" y="222" class="small">get_debug_snapshot</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Les nœuds de dialogue</strong> sont des ressources passives : des données reliées par identifiants. Ils ne contiennent aucune logique d'exécution.</li>
+    <li><strong><code>DialogueSystem</code></strong> lit la ressource (appels directs), traite aussitôt embranchements et actions, et s'arrête sur une réplique ou un choix en émettant <code>line_shown</code> / <code>choices_shown</code>. Il attend ensuite un appel direct à <code>advance()</code> ou <code>choose()</code>. Les expressions sont évaluées par l'évaluateur partagé avec le module Comportement (<code>Expression</code> Godot, entrées = clés du tableau noir + <code>agent</code> + <code>blackboard</code>, analyse mise en cache).</li>
+    <li><strong><code>DialogueBox</code></strong> se connecte aux signaux du système (connexion directe, retirée à la sortie de l'arbre) et l'appelle en retour. Aucune autre classe ne dépend d'elle.</li>
+    <li><strong>Découverte</strong> : chaque <code>DialogueSystem</code> s'inscrit dans une liste statique à l'entrée dans l'arbre ; <code>get_main()</code> renvoie le premier, ce qui permet aux PNJ et à la boîte de le trouver sans chemin.</li>
+    <li><strong>Débogage</strong> : en jeu lancé depuis l'éditeur, le système s'inscrit auprès du relais <code>BehaviorDebugger</code>, qui envoie ses instantanés à l'éditeur ; la fenêtre d'édition les dessine avec la même <code>BehaviorGraphView</code> que pour l'édition.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dialogue → Comportement : <code>Blackboard</code>, évaluateur d'expressions, <code>BehaviorGraphView</code>, relais de débogage. Couplage fort mais interne à la bibliothèque <code>entity_algorithm</code>.</li>
+    <li>Personnage → Dialogue : <code>NPCController</code> appelle <code>DialogueSystem.get_main().start(...)</code>. Le dialogue ne connaît pas les personnages (l'interlocuteur est un simple <code>Node</code>).</li>
+    <li>Votre jeu ↔ Dialogue : uniquement par signaux (<code>dialogue_event</code>, <code>dialogue_ended</code>…) et par le tableau noir des variables. Un module d'une autre bibliothèque passe par Godot (<code>ClassDB</code>, <code>call</code>, <code>connect</code>), sans inclure les <code>.hpp</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Liens par <strong>identifiant</strong> (<code>StringName</code>) plutôt que par référence de ressource</td><td>Un dialogue est un graphe avec des cycles (retour au menu) : des références directes créeraient des cycles de ressources difficiles à sérialiser. Les identifiants restent lisibles dans le <code>.tres</code> et l'éditeur peut les renommer en mettant les liens à jour.</td></tr>
+        <tr><td>Exécution séparée de l'affichage (signaux)</td><td>Chaque jeu a sa propre interface de dialogue ; <code>DialogueBox</code> n'est qu'une implémentation par défaut, remplaçable sans toucher à la logique.</td></tr>
+        <tr><td>Embranchements et actions traités immédiatement, sans signal propre</td><td>Ils sont invisibles pour le joueur ; seule l'attente d'une réponse (réplique, choix) mérite d'interrompre le parcours. Les actions communiquent par <code>dialogue_event</code>.</td></tr>
+        <tr><td>Variables dans un <code>Blackboard</code>, jamais remises à zéro</td><td>Les mêmes conditions que les machines à états et arbres de comportement, et la possibilité de partager le tableau noir avec l'IA du PNJ. La persistance entre dialogues est voulue (avancée des quêtes).</td></tr>
+        <tr><td>Index filtré dans <code>choose()</code></td><td>L'interface n'a pas à connaître les options masquées : le n-ième bouton affiché correspond au n-ième élément des <code>options</code> reçues.</td></tr>
+        <tr><td>Garde-fou de 256 étapes</td><td>Un embranchement qui se boucle sur lui-même figerait le jeu dans une boucle infinie ; mieux vaut arrêter le dialogue avec une erreur explicite.</td></tr>
+        <tr><td>Enfants de <code>DialogueBox</code> internes</td><td>Ils n'apparaissent pas dans l'arbre de scène et ne sont pas enregistrés : impossible de les casser en les supprimant, et la boîte reste un seul nœud à placer.</td></tr>
+        <tr><td>Graphe dessiné par <code>BehaviorGraphView</code>, partagé avec le module Comportement</td><td>Une seule vue à maintenir pour les dialogues, machines à états et arbres de comportement, en édition comme en débogage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des dix classes, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>DialogueResource</code> et ses nœuds : réplique, choix (options conditionnelles et uniques), embranchement, action (variables, événements), fin.</li>
+      <li><span class="tag add">Ajouté</span><code>DialogueSystem</code> : exécution, variables persistantes, interpolation <code>{nom}</code>, historique, avance automatique.</li>
+      <li><span class="tag add">Ajouté</span><code>DialogueBox</code> : boîte prête à l'emploi avec écriture lettre par lettre et boutons de choix.</li>
+      <li><span class="tag add">Ajouté</span>Éditeur de dialogue en graphe (TechTree / MindMap) avec édition annulable et suivi du jeu en cours.</li>
+    </ul>
+  </div>
+
+  <footer>Module 💬 Système de Dialogue · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/4.🧍Entités &amp; Algorithme🧠/💬Système de Dialogue/</code> · démo et tests : <code>GameplayToolkit/🧪Démos de modules/4.🧍🧠/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "DialogueSystem.default_dialogue": "Un PNJ ou une scène qui n'a qu'un dialogue : <code>start()</code> sans argument suffit.",
+  "DialogueSystem.variables": "Initialiser le nom du joueur, son niveau, ses quêtes ; partager l'état avec l'IA du PNJ ; sauvegarder l'avancée.",
+  "DialogueSystem.history_size": "Journal des conversations (touche « historique »), ou 0 pour économiser la mémoire.",
+  "DialogueSystem.start": "Quand le joueur parle à un PNJ, ramasse un objet, entre dans une zone de cinématique.",
+  "DialogueSystem.advance": "Brancher votre propre touche ou bouton « Suivant » sur une interface personnalisée.",
+  "DialogueSystem.choose": "Bouton d'option d'une interface personnalisée, ou choix fait par l'IA / un test automatique.",
+  "DialogueSystem.stop": "Interrompre la conversation : le joueur s'éloigne, un combat commence, il appuie sur « Passer ».",
+  "DialogueSystem.is_running": "Bloquer les déplacements du joueur ou la pause tant qu'il discute.",
+  "DialogueSystem.get_wait_state": "Afficher « ▼ Suivant » ou masquer l'indication selon qu'on attend une réplique ou un choix.",
+  "DialogueSystem.get_dialogue": "Savoir quel dialogue vient de se terminer, ou le relancer.",
+  "DialogueSystem.get_current_node": "Lire le portrait ou la voix du nœud affiché depuis une interface personnalisée.",
+  "DialogueSystem.get_current_id": "Déclencher une animation de caméra sur un nœud précis (« revelation »).",
+  "DialogueSystem.get_interlocutor": "Tourner la caméra vers le PNJ qui parle, l'animer pendant ses répliques.",
+  "DialogueSystem.get_available_options": "Reconstruire le menu de choix après un changement de langue ou d'interface.",
+  "DialogueSystem.interpolate": "Remplacer les <code>{variables}</code> dans un texte hors dialogue (bulle d'aide, journal).",
+  "DialogueSystem.execute_assignment": "Modifier une variable par code avec la même syntaxe que les actions (<code>\"reputation += 5\"</code>).",
+  "DialogueSystem.evaluate_condition": "Tester une condition de dialogue ailleurs : afficher un « ! » au-dessus du PNJ si une quête est disponible.",
+  "DialogueSystem.get_history": "Écran « historique de conversation », ou rapport de bug.",
+  "DialogueSystem.clear_seen_options": "Nouvelle partie : les options « une seule fois » redeviennent disponibles.",
+  "DialogueSystem.get_main": "Depuis un PNJ ou un objet, trouver le système de la scène sans chemin de nœud.",
+  "DialogueSystem.get_debug_snapshot": "Afficher le dialogue en cours dans une <code>BehaviorGraphView</code> ou un outil de débogage maison.",
+  "DialogueSystem.dialogue_started": "Couper les commandes du joueur, baisser la musique, cadrer la caméra.",
+  "DialogueSystem.line_shown": "Interface personnalisée, lecture de la voix, animation de bouche du personnage.",
+  "DialogueSystem.choices_shown": "Afficher un menu d'options personnalisé (roue de dialogue, cartes).",
+  "DialogueSystem.option_chosen": "Statistiques, succès (« a toujours été poli »), son de validation.",
+  "DialogueSystem.dialogue_event": "Ouvrir une boutique, donner un objet, lancer une quête ou une cinématique depuis le dialogue.",
+  "DialogueSystem.dialogue_ended": "Rendre la main au joueur, sauvegarder les variables, enchaîner sur la suite du jeu.",
+  "DialogueSystem.WAIT_NONE": "Aucune entrée attendue : ignorer la touche d'avance.",
+  "DialogueSystem.WAIT_LINE": "Afficher l'indicateur « ▼ » de réplique suivante.",
+  "DialogueSystem.WAIT_CHOICE": "Désactiver la touche d'avance pendant que le joueur choisit.",
+  "DialogueResource.nodes": "Parcourir le dialogue par code (statistiques de mots, export pour la traduction, réglages en masse).",
+  "DialogueResource.start_id": "Commencer ailleurs que sur le premier nœud sans réordonner la liste.",
+  "DialogueResource.get_dialogue_node": "Modifier un nœud précis par code avant de lancer le dialogue.",
+  "DialogueResource.has_dialogue_node": "Vérifier qu'un point d'entrée existe avant <code>start(dialogue, id)</code>.",
+  "DialogueResource.get_start_node": "Prévisualiser la première réplique (bulle « … » au-dessus du PNJ).",
+  "DialogueResource.generate_id": "Ajouter des nœuds par code sans risque de doublon.",
+  "DialogueResource.validate": "Test automatique de tous les dialogues du projet avant une livraison.",
+  "DialogueResource.get_graph_snapshot": "Afficher un dialogue (hors exécution) dans une <code>BehaviorGraphView</code>.",
+  "DialogueBox.dialogue_system_path": "Plusieurs systèmes dans la scène (écran partagé) : désigner le bon.",
+  "DialogueBox.characters_per_second": "Texte lent pour un vieillard, rapide pour un personnage pressé, 0 pour l'accessibilité.",
+  "DialogueBox.advance_action": "Utiliser une action dédiée (« dialogue_suivant ») ou désactiver la touche au profit d'un bouton.",
+  "DialogueBox.hide_when_idle": "Désactiver pour garder la boîte visible (jeu narratif en plein écran).",
+  "DialogueBox.set_dialogue_system": "Brancher la boîte sur un système créé après elle.",
+  "DialogueBox.get_dialogue_system": "Accéder au système depuis un script attaché à la boîte.",
+  "DialogueBox.is_typing": "Jouer un son de « bip » par lettre tant que le texte s'écrit.",
+  "DialogueBox.skip_typing": "Option « texte instantané » ou appui long pour tout afficher.",
+  "DialogueBox.press_advance": "Bouton tactile « Suivant », clic sur la boîte, avance pilotée par un tutoriel.",
+  "DialogueBox.get_displayed_text": "Tests automatiques de l'affichage, ou synthèse vocale du texte visible.",
+  "DialogueBox.get_speaker_text": "Tests automatiques, ou mise en forme de l'orateur dans un journal.",
+  "DialogueBox.get_choice_count": "Tests automatiques, ou navigation à la manette dans les options.",
+  "DialogueBox.typing_finished": "Arrêter le son d'écriture, faire clignoter l'indicateur, déclencher une animation.",
+  "DialogueNode.node_id": "Point d'entrée pour <code>start(dialogue, id)</code>, ou cible des liens <code>next</code>.",
+  "DialogueNode.comment": "Notes de l'auteur (intention, ton, à faire) visibles seulement dans l'éditeur.",
+  "DialogueNode.get_links": "Outil d'analyse : trouver les nœuds sans issue ou compter les embranchements.",
+  "DialogueNode.set_link": "Rebrancher un lien par code sans connaître le type exact du nœud.",
+  "DialogueNode.get_graph_kind": "Outil maison qui colore les nœuds comme le graphe de l'éditeur.",
+  "DialogueNode.get_summary": "Lister le dialogue en texte court (export, aperçu).",
+  "DialogueLine.speaker": "Nom affiché au-dessus du texte ; vide pour un narrateur.",
+  "DialogueLine.text": "La réplique, avec <code>{variables}</code> et BBCode (<code>[b]</code>, <code>[color]</code>, <code>[wave]</code>…).",
+  "DialogueLine.portrait": "Visage du personnage, ou expression différente selon la réplique.",
+  "DialogueLine.voice": "Doublage ou « blabla » sonore, à jouer depuis <code>line_shown</code>.",
+  "DialogueLine.auto_advance_time": "Cinématique, tutoriel, ou réplique de passant qui disparaît seule.",
+  "DialogueLine.next": "Enchaîner sur la réplique suivante ou un choix.",
+  "DialogueOption.text": "Réponse proposée au joueur.",
+  "DialogueOption.next": "Où mène la réponse.",
+  "DialogueOption.condition": "Réponse réservée : niveau suffisant, objet possédé, quête en cours.",
+  "DialogueOption.once_only": "Question à ne poser qu'une fois (« Qui es-tu ? »), récompense unique.",
+  "DialogueChoice.prompt": "Rappeler la question au moment du choix.",
+  "DialogueChoice.options": "Les réponses possibles, dans l'ordre d'affichage.",
+  "DialogueChoice.fallback_next": "Quand toutes les options ont été épuisées : « Je n'ai plus rien à te dire ».",
+  "DialogueBranch.condition": "Réagir à l'état du jeu : déjà venu, quête finie, réputation suffisante.",
+  "DialogueBranch.next_if_true": "Suite quand la condition est remplie.",
+  "DialogueBranch.next_if_false": "Suite quand elle ne l'est pas.",
+  "DialogueAction.assignments": "Compter les visites, donner de l'or, marquer une quête comme acceptée.",
+  "DialogueAction.event": "Prévenir le jeu : ouvrir une boutique, donner un objet, lancer un combat.",
+  "DialogueAction.event_arguments": "Préciser l'événement (quel objet, quelle quête, quelle quantité).",
+  "DialogueAction.next": "Suite du dialogue après l'action."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

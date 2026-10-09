@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DraggableComponent" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		✊ Description d'un objet déplaçable par un [DragAndDropSystem] : nœud ciblé, zone de saisie, glissement, relâchement et aimantage.
 	</brief_description>
 	<description>
+		Ressource ajoutée à [member DragAndDropSystem.draggables]. Elle ne fait rien seule : c'est le [DragAndDropSystem] qui lit la souris et déplace [member target_node].
+		Le nœud ciblé peut être un [Control], un [Node2D] ou un [Node3D]. Les chemins ([member target_node_path], [member snap_targets]) sont relatifs au [DragAndDropSystem], pas à la ressource.
+		[codeblock]
+		# Caisse 3D glissée sur le sol, posée sur la palette la plus proche (moins de 1,5 m), sinon laissée là.
+		var caisse := DraggableComponent.new()
+		caisse.target_node_path = ^"../Caisse"
+		caisse.bounds_3d = AABB(Vector3(-0.5, 0, -0.5), Vector3(1, 1, 1))
+		caisse.drag_plane_3d = DraggableComponent.DRAG_PLANE_WORLD_Y
+		caisse.release_behavior = DraggableComponent.RELEASE_LEAVE_IN_PLACE
+		caisse.snap_targets = [^"../Palette1", ^"../Palette2"]
+		caisse.snap_distance_threshold = 1.5
+		$DragAndDropSystem.register_draggable(caisse)
+		[/codeblock]
+		[b]Note :[/b] la position initiale est stockée dans la ressource. Une même instance partagée entre deux systèmes (ou deux scènes) mélange leurs positions de retour.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,63 +26,91 @@
 			<return type="void" />
 			<param index="0" name="node" type="Node" default="null" />
 			<description>
+				Mémorise la position globale de [param node] (par défaut [member target_node]) dans [member initial_position_2d] ([Control], [Node2D]) ou [member initial_position_3d] ([Node3D]). Cette position sert de point de retour au relâchement ([constant RELEASE_RETURN_TO_INITIAL], ou [constant RELEASE_SNAP_TO_VALID_POINT] loin de tout point).
+				Elle n'est pas mise à jour quand l'objet est posé ailleurs : appelez cette méthode (par exemple sur [signal DragAndDropSystem.snapped]) pour que l'objet revienne à sa dernière place plutôt qu'à sa place de départ.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="bounds_3d" type="AABB" setter="set_bounds_3d" getter="get_bounds_3d" default="AABB(-0.5, -0.5, -0.5, 1, 1, 1)">
+			Zone de saisie d'un [Node3D], en mètres, dans son repère local (suit rotation et échelle). Le rayon de la caméra courante doit la traverser. Ignorée pour un nœud 2D.
 		</member>
 		<member name="drag_plane_3d" type="int" setter="set_drag_plane_3d" getter="get_drag_plane_3d" enum="DraggableComponent.DragPlane" default="0">
+			Plan sur lequel glisse un [Node3D] : il passe par la position de l'objet au moment de la saisie et reste fixe pendant tout le glissement. Ignoré pour un nœud 2D.
 		</member>
 		<member name="initial_position_2d" type="Vector2" setter="set_initial_position_2d" getter="get_initial_position_2d">
+			Position globale de retour d'un [Control] ou d'un [Node2D]. État d'exécution : ni affiché dans l'inspecteur ni sauvegardé ; renseigné par [method save_initial_position].
 		</member>
 		<member name="initial_position_3d" type="Vector3" setter="set_initial_position_3d" getter="get_initial_position_3d">
+			Position globale de retour d'un [Node3D]. État d'exécution : ni affiché dans l'inspecteur ni sauvegardé ; renseigné par [method save_initial_position].
 		</member>
 		<member name="local_bounds_2d" type="Rect2" setter="set_local_bounds_2d" getter="get_local_bounds_2d" default="Rect2(-32, -32, 64, 64)">
+			Zone de saisie d'un [Node2D], en pixels, dans son repère local (suit rotation et échelle ; centrée sur l'origine par défaut). Ignorée pour un [Control], qui utilise son propre rectangle.
 		</member>
 		<member name="release_behavior" type="int" setter="set_release_behavior" getter="get_release_behavior" enum="DraggableComponent.ReleaseBehavior" default="1">
+			Ce qui arrive à l'objet quand il est relâché (voir [enum ReleaseBehavior]).
 		</member>
 		<member name="snap_behavior" type="int" setter="set_snap_behavior" getter="get_snap_behavior" enum="DraggableComponent.SnapMode" default="1">
+			Quand l'objet est aimanté vers un point de [member snap_targets] : jamais, au relâchement, ou dès qu'il passe près d'un point pendant le glissement.
 		</member>
 		<member name="snap_distance_threshold" type="float" setter="set_snap_distance_threshold" getter="get_snap_distance_threshold" default="50.0">
+			Distance maximale (pixels en 2D, mètres en 3D) entre la position globale de l'objet et celle d'un point pour qu'il y soit aimanté. Pour un [Control], c'est son coin supérieur gauche qui est comparé.
 		</member>
 		<member name="snap_targets" type="NodePath[]" setter="set_snap_targets" getter="get_snap_targets" default="[]">
+			Points d'aimantage : chemins (relatifs au [DragAndDropSystem]) de nœuds de même famille que l'objet ([Node2D] avec [Node2D], [Control] avec [Control], [Node3D] avec [Node3D]). L'objet prend la position globale du plus proche ; les autres familles sont ignorées.
 		</member>
 		<member name="snap_to_cursor" type="bool" setter="set_snap_to_cursor" getter="get_snap_to_cursor" default="false">
+			Si [code]true[/code], l'origine de l'objet se place sous le pointeur dès la saisie ; sinon l'objet garde le décalage du point où il a été saisi.
 		</member>
 		<member name="target_node" type="Node" setter="set_target_node" getter="get_target_node">
+			Nœud déplacé. Résolu depuis [member target_node_path] par le [DragAndDropSystem] (puis mis en cache), ou défini par code. Accès par code uniquement : ni affiché dans l'inspecteur ni sauvegardé. Défini par code, sa position initiale n'est pas mémorisée automatiquement : appeler [method save_initial_position].
 		</member>
 		<member name="target_node_path" type="NodePath" setter="set_target_node_path" getter="get_target_node_path" default="NodePath(&quot;&quot;)">
+			Chemin du nœud à déplacer, relatif au [DragAndDropSystem]. Si le nœud n'existe pas encore, il est recherché à chaque image jusqu'à son apparition ; sa position à ce moment devient sa position initiale.
 		</member>
 	</members>
 	<constants>
 		<constant name="DRAG_PLANE_CAMERA" value="0" enum="DragPlane">
+			Plan face à la caméra : l'objet suit le pointeur à distance constante de l'écran.
 		</constant>
 		<constant name="DRAG_PLANE_OBJECT_X" value="1" enum="DragPlane">
+			Plan perpendiculaire à l'axe X local de l'objet.
 		</constant>
 		<constant name="DRAG_PLANE_OBJECT_Y" value="2" enum="DragPlane">
+			Plan perpendiculaire à l'axe Y local de l'objet.
 		</constant>
 		<constant name="DRAG_PLANE_OBJECT_Z" value="3" enum="DragPlane">
+			Plan perpendiculaire à l'axe Z local de l'objet.
 		</constant>
 		<constant name="DRAG_PLANE_WORLD_X" value="4" enum="DragPlane">
+			Plan vertical perpendiculaire à l'axe X du monde (glissement en Y et Z).
 		</constant>
 		<constant name="DRAG_PLANE_WORLD_Y" value="5" enum="DragPlane">
+			Plan horizontal : glissement sur le sol (X et Z).
 		</constant>
 		<constant name="DRAG_PLANE_WORLD_Z" value="6" enum="DragPlane">
+			Plan vertical perpendiculaire à l'axe Z du monde (glissement en X et Y).
 		</constant>
 		<constant name="RELEASE_RETURN_TO_INITIAL" value="0" enum="ReleaseBehavior">
+			Revient toujours à sa position initiale.
 		</constant>
 		<constant name="RELEASE_SNAP_TO_VALID_POINT" value="1" enum="ReleaseBehavior">
+			Se pose sur le point d'aimantage le plus proche (dans [member snap_distance_threshold]), sinon revient à sa position initiale. Fonctionne quel que soit [member snap_behavior].
 		</constant>
 		<constant name="RELEASE_LEAVE_IN_PLACE" value="2" enum="ReleaseBehavior">
+			Reste là où il est lâché ; aimanté au point le plus proche si [member snap_behavior] vaut [constant SNAP_WHEN_CLOSE] et qu'il est assez près.
 		</constant>
 		<constant name="RELEASE_DO_NOTHING" value="3" enum="ReleaseBehavior">
+			Reste là où il est lâché, sans aimantage au relâchement.
 		</constant>
 		<constant name="SNAP_NONE" value="0" enum="SnapMode">
+			Pas d'aimantage pendant le glissement ni avec [constant RELEASE_LEAVE_IN_PLACE].
 		</constant>
 		<constant name="SNAP_WHEN_CLOSE" value="1" enum="SnapMode">
+			Aimanté au relâchement s'il est assez proche d'un point.
 		</constant>
 		<constant name="SNAP_ALWAYS" value="2" enum="SnapMode">
+			Aimanté pendant le glissement dès que le pointeur passe près d'un point, et décroché dès qu'il s'en éloigne.
 		</constant>
 	</constants>
 </class>

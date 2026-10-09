@@ -40,6 +40,7 @@ class SceneManager : public Node
   private:
     static ObjectID instance_id;
 
+    /// Chemin de la scène en cours de chargement (clé de ResourceLoader.load_threaded_get_status).
     String scene_path;
     bool loading = false;
     // Vrai entre le changement de scène demandé et son application : seul celui-ci émet load_finished.
@@ -48,6 +49,7 @@ class SceneManager : public Node
     bool log_activated = false;
 
     void _finish_loading();
+    /// Connecté à SceneTree.scene_changed : émet load_finished si le changement vient de ce gestionnaire.
     void _on_scene_changed();
     void _log(const String &p_message) const;
 };

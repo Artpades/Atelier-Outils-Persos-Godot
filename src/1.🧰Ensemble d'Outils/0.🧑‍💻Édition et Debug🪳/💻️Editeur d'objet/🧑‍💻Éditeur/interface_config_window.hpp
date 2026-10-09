@@ -16,14 +16,14 @@
 
 namespace godot
 {
-// Fenêtre « Configurer l'interface » (éditeur uniquement, port d'InterfaceConfigWindowEditor C#) :
-// édite le DataRegistry d'un ProceduralEditor de la scène éditée, pour la cible qu'il déclare
-// (target_path / target_resource).
-//  - gauche : barre de scan (propriétés / méthodes / signaux / méthodes privées, périmètre, actualiser) +
-//    onglets Données (DataMatrixEditor) et Groupes (GroupMatrixEditor) ;
-//  - droite : aperçu en direct (ProceduralEditor branché sur la vraie cible, annulation de l'éditeur).
-// Les registres (données, groupes) restent ceux du ProceduralEditor (enregistrés avec la scène, marquée comme modifiée).
-// Une seule fenêtre ouverte à la fois (open_for remplace la précédente).
+/// Fenêtre « Configurer l'interface » (éditeur uniquement, port d'InterfaceConfigWindowEditor C#) :
+/// édite le DataRegistry d'un ProceduralEditor de la scène éditée, pour la cible qu'il déclare
+/// (target_path / target_resource).
+///  - gauche : barre de scan (propriétés / méthodes / signaux / méthodes privées, périmètre, actualiser) +
+///    onglets Données (DataMatrixEditor) et Groupes (GroupMatrixEditor) ;
+///  - droite : aperçu en direct (ProceduralEditor branché sur la vraie cible, annulation de l'éditeur).
+/// Les registres (données, groupes) restent ceux du ProceduralEditor (enregistrés avec la scène, marquée comme modifiée).
+/// Une seule fenêtre ouverte à la fois (open_for remplace la précédente).
 class InterfaceConfigWindow : public Window
 {
     GDCLASS(InterfaceConfigWindow, Window)
@@ -35,7 +35,7 @@ class InterfaceConfigWindow : public Window
     Ref<DataRegistry> registry;
     Ref<GroupRegistry> groups;
 
-    // Enfants créés et possédés par la fenêtre.
+    /// Enfants créés et possédés par la fenêtre.
     Label *target_label = nullptr;
     CheckBox *scan_properties = nullptr;
     CheckBox *scan_methods = nullptr;
@@ -60,11 +60,11 @@ class InterfaceConfigWindow : public Window
     static void _bind_methods();
 
   public:
-    // Ouvre (ou remplace) la fenêtre de configuration pour p_host.
+    /// Ouvre (ou remplace) la fenêtre de configuration pour p_host.
     static void open_for(ProceduralEditor *p_host);
     static void close_current();
 
-    // Relit la cible déclarée, resynchronise le registre et reconstruit tableau + aperçu.
+    /// Relit la cible déclarée, resynchronise le registre et reconstruit tableau + aperçu.
     void resync();
 };
 } // namespace godot

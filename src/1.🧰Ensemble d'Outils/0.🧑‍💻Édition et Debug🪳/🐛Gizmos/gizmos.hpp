@@ -39,7 +39,7 @@
 
 namespace godot
 {
-// Propriétaire UNIQUE des ressources RenderingServer partagées par les gizmos 3D : registres (mesh et
+/// Propriétaire UNIQUE des ressources RenderingServer partagées par les gizmos 3D : registres (mesh et
 // matériaux par instance), shader de texte, matériau par défaut. Remplace les anciennes variables
 // statiques, détruites après le moteur au déchargement de la bibliothèque (RID fuités, risque de crash).
 // Créé à la première utilisation, détruit au déchargement de CHAQUE module qui l'utilise (destroy() dans son
@@ -118,7 +118,11 @@ class GizmoResources
     }
 };
 
-// Boîte à outils interne C++ regroupant tous les gizmos 2D/3D et leurs registres.
+/// 🐛 Boîte à outils interne C++ regroupant tous les gizmos 2D/3D et leurs registres.
+// Règle commune : chaque draw_* efface d'abord le dessin précédent du gizmo (une forme par gizmo), sauf
+// retours anticipés (trop peu de points, flèche de longueur nulle) qui laissent l'ancien dessin en place.
+// draw_2D_capsule / draw_2D_origin (transform du canvas_item) et draw_3D_icon / draw_3D_text (transform et
+// material_override de l'instance) modifient un état du gizmo que les autres draw_* ne réinitialisent pas.
 // Définie dans le header (comme log_it) pour être utilisable depuis tous les modules.
 // Les classes Gizmos2D et Gizmos3D exposent ces fonctions à GDScript.
 // NOTE : chaque bibliothèque a ses propres registres 3D (GizmoResources) : un gizmo 3D doit être créé et
@@ -132,6 +136,7 @@ class Gizmos
     // 2D
     //--------------------------------------------------------------------------
 
+    /// Crée un canvas_item rattaché au canvas du World2D de viewport (coordonnées du monde 2D). RID vide si échec.
     static RID create_2D_gizmo(Viewport *viewport);
     static void clear_2D_gizmo(const RID gizmo_rid); // Efface le visuel 2D d'un Gizmo
     static void free_2D_gizmo(const RID gizmo_rid);  // Libère de la mémoire associée au gizmo, à appeler lorsque le gizmo n'est plus nécessaire (ex:dans un exit_tree d'un Node)
@@ -144,9 +149,13 @@ class Gizmos
     // Dessine un cercle 2D
     static void
     draw_2D_circle(const RID &gizmo_rid, const Vector2 &center, float radius, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float thickness = 2.0, bool antialiasing = false);
+    // Dessine un rectangle 2D (contour ou plein)
     static void draw_2D_rectangle(const RID &gizmo_rid, const Rect2 &rect, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float thickness = 2.0, bool antialiasing = false);
 
+    // Dessine le contour d'une capsule verticale centrée sur position (size.x = diamètre, size.y = hauteur totale).
+    // Applique position comme transform du canvas_item (persiste pour les dessins suivants).
     static void draw_2D_capsule(const RID &gizmo_rid, const Vector2 &position, const Vector2 &size, const Color &color = Color(1.0, 1.0, 1.0, 1.0), float thickness = 2.0, bool antialiasing = false);
+    // Dessine un polygone 2D fermé (contour) ou plein (polygone simple requis). < 2 points : rien, ancien dessin conservé.
     static void draw_2D_polygon(const RID &gizmo_rid, const PackedVector2Array &points, const Color &color = Color(1, 1, 1, 1), bool filled = false, float width = 2.0f, bool antialiasing = false);
 
     // Dessine un chemin 2D avec options d'espacement, Bézier et affichage des points
@@ -172,13 +181,18 @@ class Gizmos
                                float width = 2.0f,
                                const Color &cross_color = Color(1.0, 1.0, 1.0, 1.0),
                                bool antialiasing = false);
+    // Dessine une texture centrée sur position (size (0,0) = taille de la texture).
     static void draw_2D_icon(const RID &gizmo_rid,
                              const Vector2 &position,
                              Ref<Texture2D> icon,
                              const Vector2 &size = Vector2(0, 0),
                              RenderingServer::CanvasItemTextureFilter filter = RenderingServer::CANVAS_ITEM_TEXTURE_FILTER_NEAREST);
+    // Écrit du texte sur une ligne avec la police de repli du thème ; position = début de la ligne de base.
     static void draw_2D_text(const RID &gizmo_rid, const Vector2 &position, const String &text, const Color &color = Color(1.0f, 1.0f, 1.0f, 1.0f), int font_size = 12);
 
+    // ATTENTION : transmet material->_get_shader_rid(), qui renvoie un RID vide pour les matériaux natifs
+    // (implémentation par défaut de godot-cpp) : le matériau n'est pas appliqué, il est retiré. Un material
+    // nul fait planter le moteur (vérifié en headless).
     static void apply_shader_on_2D_gizmo(const RID &gizmo_rid, const Ref<Material> &material);
 
     //--------------------------------------------------------------------------
@@ -187,6 +201,8 @@ class Gizmos
     // exclue de ce portage à la demande de l'utilisateur.
     //--------------------------------------------------------------------------
 
+    /// Crée une instance dans le scenario du World3D de viewport (repli : viewport 3D n°0 de l'éditeur),
+    /// avec le matériau par défaut (non éclairé, couleur des sommets, double face). RID vide si échec.
     static RID create_3D_gizmo(Viewport *viewport);
     static void clear_3D_gizmo(const RID &gizmo_rid);
     static void free_3D_gizmo(const RID &gizmo_rid);
@@ -223,9 +239,8 @@ class Gizmos
                                   bool filled = false,
                                   float width = 1.0f);
 
-    // Dessine une capsule 3D (contour uniquement : 2 anneaux + 4 lignes verticales, sans dômes), alignée sur l'axe Y.
-    // NOTE : comme dans le GDScript d'origine, "filled" ne change que le choix triangles/lignes, il n'existe
-    // aucun mode plein réel (pas de dômes ni de faces générées).
+    // Dessine une capsule 3D alignée sur l'axe Y, height = hauteur totale. Contour : 2 anneaux + 4 lignes
+    // verticales, sans dômes. Pleine (filled) : capsule complète avec ses deux demi-sphères.
     static void draw_3D_capsule(const RID &instance_rid, const Vector3 &center, float radius, float height, const Color &color = Color(1.0, 1.0, 1.0, 1.0), bool filled = false, float width = 1.0f);
 
     // Dessine un polygone 3D coplanaire et convexe : contour fermé, ou plein (triangulation en éventail depuis points[0]).

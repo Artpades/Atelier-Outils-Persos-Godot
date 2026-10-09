@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="WindowEditor" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🪟 Fenêtre flottante prête à l'emploi pour héberger des panneaux d'édition ou de debug, en jeu comme dans l'éditeur.
 	</brief_description>
 	<description>
+		Crée à la demande une [Window] de 800 × 600 pixels intitulée « Fenêtre d'édition », centrée, ajoutée sous la racine de l'arbre de scène courant (celui du jeu, ou celui de l'éditeur dans un script [code]@tool[/code] ou un plugin). On y place ensuite ses propres [Control] avec [method add_control_to_window].
+		La croix de fermeture [b]masque[/b] la fenêtre sans la détruire : [method open_window] la réaffiche avec son contenu intact. La fenêtre (et tout ce qu'elle contient) est libérée quand le [WindowEditor] lui-même est libéré, c'est-à-dire quand plus aucune variable ne le référence.
+		[codeblock]
+		var fenetre := WindowEditor.new() # à garder dans une variable membre
+
+		func _ready() -> void:
+			fenetre.open_window()
+			var panneau := VBoxContainer.new()
+			panneau.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			panneau.add_child(Label.new())
+			fenetre.add_control_to_window(panneau)
+			panneau.get_window().title = "Debug du joueur" # accès à la Window créée
+		[/codeblock]
+		[b]Note :[/b] chaque ouverture et fermeture écrit une ligne dans la console (voir [L]).
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,22 +26,26 @@
 			<return type="void" />
 			<param index="0" name="control" type="Control" />
 			<description>
+				Ajoute [param control] comme enfant de la fenêtre. Sans effet si la fenêtre n'a pas encore été créée par [method open_window] (ou a été détruite) : appeler [method open_window] d'abord. Le contrôle n'est pas redimensionné automatiquement : lui donner des ancres (ex. [constant Control.PRESET_FULL_RECT]) pour qu'il occupe la fenêtre.
 			</description>
 		</method>
 		<method name="close_window">
 			<return type="void" />
 			<description>
+				Masque la fenêtre sans la détruire ; son contenu est conservé. Appelée automatiquement quand l'utilisateur clique sur la croix de fermeture. Sans effet si la fenêtre n'existe pas.
 			</description>
 		</method>
 		<method name="open_window">
 			<return type="void" />
 			<description>
+				Affiche la fenêtre. Au premier appel (ou si la fenêtre a été libérée entre-temps), elle est créée, ajoutée sous la racine de l'arbre de scène et centrée ; ensuite, elle est simplement rendue visible à sa dernière position. Si aucun arbre de scène n'est actif, un message d'erreur est affiché et rien n'est créé.
 			</description>
 		</method>
 		<method name="remove_control_from_window">
 			<return type="void" />
 			<param index="0" name="control" type="Control" />
 			<description>
+				Retire [param control] de la fenêtre, sans le libérer : il devient orphelin et doit être réutilisé ou libéré ([method Object.free], [method Node.queue_free]) par l'appelant. [param control] doit être un enfant direct de la fenêtre (sinon Godot signale une erreur). Sans effet si la fenêtre n'existe pas.
 			</description>
 		</method>
 	</methods>

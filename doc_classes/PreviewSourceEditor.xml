@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PreviewSourceEditor" inherits="VBoxContainer" api_type="editor_extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Éditeur (outil d'éditeur) de la source d'un aperçu : objet affiché, propriété, fonction ou valeur manuelle.
 	</brief_description>
 	<description>
+		Utilisé par la fenêtre de configuration ; disponible dans l'éditeur uniquement et non instanciable. Les membres proposés sont ceux compatibles avec le type attendu par la classe d'aperçu ([method source_hint_of]).
+		[codeblock]
+		@tool
+		extends EditorScript
+
+		func _run() -&gt; void:
+			print(PreviewSourceEditor.source_hint_of(&amp;"TexturePreview")) # { "type": 24, "class_name": "Texture2D" }
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,18 +19,21 @@
 		<method name="refresh">
 			<return type="void" />
 			<description>
+				Reconstruit l'éditeur depuis les réglages.
 			</description>
 		</method>
 		<method name="source_hint_of" qualifiers="static">
 			<return type="Dictionary" />
 			<param index="0" name="class_name" type="StringName" />
 			<description>
+				Renvoie le type attendu par la classe d'aperçu [param class_name] (lu sur une instance temporaire), ou un dictionnaire vide.
 			</description>
 		</method>
 	</methods>
 	<signals>
 		<signal name="source_changed">
 			<description>
+				Émis après chaque modification de la source.
 			</description>
 		</signal>
 	</signals>

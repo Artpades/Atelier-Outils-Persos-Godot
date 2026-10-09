@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputAxisAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action axe (-1 à 1) : axe de manette, ou deux touches et deux boutons opposés.
 	</brief_description>
 	<description>
+		Valeur de -1 à 1, lue sur [member joy_axis] (zone morte remise à l'échelle) ; si l'axe est au repos, sur les touches et boutons + / − (qui s'annulent s'ils sont enfoncés ensemble). Signaux : [signal value_changed] et [signal velocity_changed].
+		[codeblock]
+		var gaz := InputAxisAction.new()
+		gaz.action_name = &amp;"gaz"
+		gaz.positive_key = KEY_E
+		gaz.negative_key = KEY_Q
+		gaz.joy_axis = JOY_AXIS_TRIGGER_RIGHT
+		gaz.value_changed.connect(func(v): $Moteur.puissance = v)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,37 +20,47 @@
 		<method name="get_axis" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la valeur courante, de -1 à 1.
 			</description>
 		</method>
 		<method name="get_velocity" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la variation de la valeur par seconde lors de la dernière mise à jour.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="invert" type="bool" setter="set_invert" getter="get_invert" default="false">
+			Inverse le signe de la valeur (axe Y d'avion, préférence du joueur). Fait partie des contrôles sauvegardés.
 		</member>
 		<member name="joy_axis" type="int" setter="set_joy_axis" getter="get_joy_axis" default="-1">
+			Axe de manette lu ([enum JoyAxis]), [code]-1[/code] pour aucun. Prioritaire sur les touches et boutons dès qu'il sort de la zone morte.
 		</member>
 		<member name="negative_joy_button" type="int" setter="set_negative_joy_button" getter="get_negative_joy_button" default="-1">
+			Bouton de manette qui pousse vers -1, [code]-1[/code] pour aucun.
 		</member>
 		<member name="negative_key" type="int" setter="set_negative_key" getter="get_negative_key" default="0">
+			Touche qui pousse vers -1, [code]0[/code] pour aucune.
 		</member>
 		<member name="positive_joy_button" type="int" setter="set_positive_joy_button" getter="get_positive_joy_button" default="-1">
+			Bouton de manette qui pousse vers +1, [code]-1[/code] pour aucun.
 		</member>
 		<member name="positive_key" type="int" setter="set_positive_key" getter="get_positive_key" default="0">
+			Touche qui pousse vers +1, [code]0[/code] pour aucune.
 		</member>
 	</members>
 	<signals>
 		<signal name="value_changed">
 			<param index="0" name="value" type="float" />
 			<description>
+				Émis quand la valeur varie d'au moins [member InputAction.dirty_threshold], ou revient exactement à 0.
 			</description>
 		</signal>
 		<signal name="velocity_changed">
 			<param index="0" name="velocity" type="float" />
 			<description>
+				Émis quand la vitesse de variation (unités par seconde) change d'au moins [member InputAction.dirty_threshold]. Avec des touches, elle vaut brièvement 1 / delta lors d'un appui.
 			</description>
 		</signal>
 	</signals>

@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ContainerWidgetSettings" inherits="WidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages des conteneurs (objets, collections) : colonnes, repli, nombre d'éléments affichés.
 	</brief_description>
 	<description>
+		Pour les choix BoxContainer, GridContainer, FlowContainer et TabContainer.
+		[codeblock]
+		var grille := ContainerWidgetSettings.new()
+		grille.columns = 4
+		grille.start_expanded = true
+		var entree := registre.find(&amp;"inventaire")
+		entree.widget_choice = DataEntry.WIDGET_GRID_CONTAINER
+		entree.settings = grille
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="columns" type="int" setter="set_columns" getter="get_columns" default="2">
+			Colonnes d'une grille (1 à 12).
 		</member>
 		<member name="foldable" type="bool" setter="set_foldable" getter="get_foldable" default="true">
+			Si [code]true[/code], section repliable dont le contenu n'est construit qu'à l'ouverture ; sinon un simple titre et le contenu toujours construit.
 		</member>
 		<member name="max_displayed" type="int" setter="set_max_displayed" getter="get_max_displayed" default="100">
+			Nombre maximal d'éléments affichés (les suivants sont résumés par « … n autres éléments »).
 		</member>
 		<member name="start_expanded" type="bool" setter="set_start_expanded" getter="get_start_expanded" default="false">
+			Section dépliée dès l'affichage.
 		</member>
 	</members>
 </class>

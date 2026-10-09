@@ -48,8 +48,10 @@ class FXFollower : public Effect
     Vector2 max_zoom = Vector2(2.0f, 2.0f);
     float zoom_margin = 100.0f;
 
+    /// Place la cible au centre des nœuds suivis (et règle le zoom d'une Camera2D).
     void _update_2d(Node2D *p_node, float p_delta);
     void _update_3d(Node3D *p_node, float p_delta);
+    /// Part de l'écart rattrapée cette frame avec interpolation (follow_speed × delta, au plus 1).
     float _weight(float p_delta) const;
 };
 } // namespace godot

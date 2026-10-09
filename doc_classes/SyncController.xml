@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SyncController" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Contrôleur unique de synchronisation d'un ProceduralEditor : relit à intervalle régulier les valeurs de la cible et met à jour les widgets.
 	</brief_description>
 	<description>
+		Godot n'a pas de signal « valeur modifiée » : toutes les [member interval] secondes, le contrôleur relit la valeur de chaque widget [b]visible[/b] et met à jour ceux dont la valeur a changé de l'extérieur. Un widget qui a le focus clavier (en cours d'édition) n'est pas touché.
+		Après chaque écriture, la valeur est relue : si le setter l'a refusée ou transformée (borne, arrondi), le widget est corrigé et un avertissement est écrit.
+		Il fonctionne même quand le jeu est en pause ([code]process_mode = ALWAYS[/code]). C'est un nœud interne du [ProceduralEditor] ; on règle son intervalle via [member ProceduralEditor.sync_interval].
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="get_styled_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Renvoie le nombre d'éléments dont des uniforms de shader liés sont mis à jour à chaque relecture.
+			</description>
+		</method>
 		<method name="refresh_all">
 			<return type="void" />
 			<param index="0" name="force" type="bool" />
 			<description>
+				Relit tous les widgets enregistrés. Avec [param force], même ceux dont la valeur n'a pas changé, ceux qui sont masqués et ceux qui sont en cours d'édition.
 			</description>
 		</method>
 		<method name="same_value" qualifiers="static">
@@ -18,17 +29,25 @@
 			<param index="0" name="a" type="Variant" />
 			<param index="1" name="b" type="Variant" />
 			<description>
+				Compare deux valeurs comme le contrôleur : nombres égaux à 0,01 % près (avec un minimum absolu de 0,0001), sinon même type et même contenu. [code]same_value(1, 1.0)[/code] est vrai, [code]same_value("1", 1)[/code] est faux.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="interval" type="float" setter="set_interval" getter="get_interval" default="0.1">
+			Secondes entre deux relectures. [code]0[/code] : à chaque image.
 		</member>
 		<member name="process_mode" type="int" setter="set_process_mode" getter="get_process_mode" overrides="Node" enum="Node.ProcessMode" default="3" />
 	</members>
 	<signals>
+		<signal name="synced">
+			<description>
+				Émis après chaque relecture des widgets.
+			</description>
+		</signal>
 		<signal name="target_lost">
 			<description>
+				Émis une fois quand la cible a été libérée : les widgets ne sont plus relus.
 			</description>
 		</signal>
 	</signals>

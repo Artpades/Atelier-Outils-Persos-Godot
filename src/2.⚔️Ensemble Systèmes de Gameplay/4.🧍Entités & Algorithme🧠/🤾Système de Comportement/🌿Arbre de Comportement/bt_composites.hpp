@@ -45,7 +45,9 @@ class BTOrderedComposite : public BTComposite
   private:
     bool reactive = false;
     bool random_order = false;
+    /// Ordre de parcours des enfants (mélangé si random_order), fixé à chaque _native_enter.
     LocalVector<int> order;
+    /// Rang (dans order) de l'enfant où reprendre au prochain tick (hors mode reactive).
     int current = 0;
 };
 

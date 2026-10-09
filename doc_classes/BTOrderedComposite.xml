@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTOrderedComposite" inherits="BTComposite" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Partie commune de [BTSequence] et [BTSelector] : enfants parcourus dans l'ordre (ou mélangés), en reprenant à l'enfant en cours.
 	</brief_description>
 	<description>
+		Classe abstraite. À chaque tick, les enfants sont exécutés à partir de celui qui était en cours au tick précédent ; le parcours s'arrête au premier enfant [constant BTNode.RUNNING] ou au premier enfant qui « décide » (échec pour une séquence, réussite pour un sélecteur).
+		[codeblock]
+		var garde := BTSelector.new()
+		garde.reactive = true # réévalue les branches prioritaires à chaque tick
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="random_order" type="bool" setter="set_random_order" getter="is_random_order" default="false">
+			Si [code]true[/code], l'ordre des enfants est tiré au hasard au début de chaque exécution (puis conservé jusqu'à sa fin).
 		</member>
 		<member name="reactive" type="bool" setter="set_reactive" getter="is_reactive" default="false">
+			Si [code]true[/code], le parcours repart du premier enfant à chaque tick : une condition placée avant une action longue est réévaluée en permanence et peut l'interrompre (l'enfant plus loin resté en cours reçoit [method BTNode.abort]). Les enfants déjà réussis sont alors réexécutés à chaque tick.
 		</member>
 	</members>
 </class>

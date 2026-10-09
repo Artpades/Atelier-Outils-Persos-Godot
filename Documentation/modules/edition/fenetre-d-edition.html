@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fenêtre d'édition · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🪟 Fenêtre d'édition (WindowEditor) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/edition/fenetre-d-edition.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🪟</div>
+    <div>
+      <h1>🪟_WindowEditor - Édition et Debug - Documentation</h1>
+      <p class="subtitle">Module <strong>Fenêtre d'édition</strong> : une fenêtre flottante prête à accueillir vos panneaux d'outils, en jeu comme dans l'éditeur.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/tool_editor</code></span>
+        <span class="badge">1 classe : WindowEditor</span>
+        <span class="badge">Jeu &amp; éditeur</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un panneau de debug (variables du joueur, réglages en direct, console de triche…) ou un outil d'édition a besoin d'un endroit où s'afficher sans encombrer l'écran du jeu ni la disposition de l'éditeur. Créer une <code>Window</code> à la main oblige à la placer dans l'arbre, la centrer, gérer la croix de fermeture et penser à la détruire. <strong>Ce module fournit cette fenêtre en un appel</strong> : <code>open_window()</code>, puis on y dépose ses contrôles.</p>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui écrivent des outils de debug en jeu, des scripts <code>@tool</code> ou des plugins d'éditeur. Le bouton de test « Ouvrir fenêtre de personnalisation » de la barre d'outils de l'éditeur (plugin <code>EditorTest</code>) l'utilise pour afficher le panneau de l'<em>💻 Éditeur d'objet</em>.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un éditeur d'objet</strong> : la fenêtre est vide. Pour générer automatiquement les champs d'édition d'un objet, voir <em>💻 Éditeur d'objet</em>, dont le panneau peut être placé dans cette fenêtre.</li>
+      <li><strong>Pas un gestionnaire de fenêtres</strong> : pas de disposition, d'onglets, d'ancrage ni de sauvegarde de la position.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture d'un jeu en cours avec la fenêtre « Fenêtre d'édition » (800 × 600) ouverte au centre, contenant un panneau de debug (quelques Label et HSlider) ; puis la même fenêtre ouverte depuis l'éditeur par le bouton « Ouvrir fenêtre de personnalisation ».</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code></td><td><strong>Obligatoire</strong></td><td>Elle enregistre <code>WindowEditor</code>, avec tous les autres outils d'édition et de debug.</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png</code></td><td>Optionnelle</td><td>Icône de la classe dans l'éditeur et dans les messages de console ; sans elle, la console affiche une image manquante.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler la bibliothèque</strong> si nécessaire :
+      <pre><code class="language-shell">scons tool_editor</code></pre>
+      <div class="why">ne compile que la bibliothèque des outils d'édition et régénère <code>bin/tool_editor/gameplaytoolkit_tool_editor.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code>.
+      <div class="why">le <code>.gdextension</code> pointe vers ses binaires par des chemins <code>res://bin/tool_editor/…</code>.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">les extensions ne sont découvertes qu'au démarrage ; ensuite, elles sont rechargées à chaud.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni nœud à placer : <code>WindowEditor</code> est un objet que l'on crée par code.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Déclarer le <code>WindowEditor</code> dans une variable membre</strong> d'un nœud qui vit assez longtemps :
+      <pre><code class="gdscript">extends Node
+
+var fenetre := WindowEditor.new()</code></pre>
+      <div class="why">la fenêtre est détruite en même temps que l'objet <code>WindowEditor</code>. Dans une variable locale, il disparaîtrait à la fin de la fonction, et la fenêtre avec lui.</div>
+    </li>
+    <li>
+      <strong>Ouvrir la fenêtre</strong> :
+      <pre><code class="gdscript">func _ready() -> void:
+	fenetre.open_window()</code></pre>
+      <div class="why">le premier appel crée la <code>Window</code> sous la racine de l'arbre et la centre. Elle doit exister avant qu'on puisse y ajouter quoi que ce soit.</div>
+    </li>
+    <li>
+      <strong>Ajouter un contrôle qui remplit la fenêtre</strong> :
+      <pre><code class="gdscript">	var panneau := VBoxContainer.new()
+	panneau.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var info := Label.new()
+	info.text = "Panneau de debug"
+	panneau.add_child(info)
+	fenetre.add_control_to_window(panneau)</code></pre>
+      <div class="why">la fenêtre ne redimensionne pas ses enfants : les ancres <code>PRESET_FULL_RECT</code> font suivre au panneau la taille de la fenêtre.</div>
+    </li>
+    <li>
+      <strong>Tester</strong> : lancer la scène, fermer la fenêtre avec la croix, puis rappeler <code>fenetre.open_window()</code> (par exemple sur une touche).
+      <div class="why">la croix masque seulement la fenêtre : son contenu réapparaît intact.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/WindowEditor.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li>La <code>Window</code> elle-même : pas d'accesseur. On l'atteint depuis un contrôle ajouté, avec <code>get_window()</code> (voir <a href="#ex-titre">exemple</a>).</li>
+    <li>L'identifiant <code>window_id</code> (la fenêtre est mémorisée par <code>ObjectID</code>) et <code>_get_window()</code>, qui ignore une fenêtre déjà libérée ou en cours de suppression.</li>
+    <li>Le plugin de test <code>EditorTest</code> (classe interne, non listée) qui ouvre une <code>WindowEditor</code> depuis la barre d'outils de l'éditeur.</li>
+  </ul>
+  <div data-api="WindowEditor"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-touche">Comment j'ouvre et je ferme un panneau de debug avec une touche ?</h3>
+  <pre><code class="gdscript">extends Node
+
+var fenetre := WindowEditor.new()
+var ouverte := false
+var vie: Label
+
+func _ready() -> void:
+	fenetre.open_window()
+	vie = Label.new()
+	fenetre.add_control_to_window(vie)
+	fenetre.close_window()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
+		ouverte = not ouverte
+		if ouverte:
+			fenetre.open_window()
+		else:
+			fenetre.close_window()
+
+func _process(_delta: float) -> void:
+	vie.text = "PV : %d" % $Joueur.pv</code></pre>
+  <p>L'état <code>ouverte</code> est tenu à part : si le joueur ferme la fenêtre avec la croix, il faudra appuyer deux fois sur F3. Pour suivre l'état réel, lire <code>vie.get_window().visible</code>.</p>
+
+  <h3 id="ex-titre">Comment je change le titre ou la taille de la fenêtre ?</h3>
+  <p><code>WindowEditor</code> ne l'expose pas, mais tout contrôle ajouté connaît sa fenêtre :</p>
+  <pre><code class="gdscript">fenetre.open_window()
+fenetre.add_control_to_window(panneau)
+var win := panneau.get_window()
+win.title = "Debug du joueur"
+win.size = Vector2i(400, 300)
+win.position = Vector2i(20, 20)</code></pre>
+
+  <h3 id="ex-plugin">Comment j'utilise la fenêtre dans un plugin d'éditeur ?</h3>
+  <p>Dans l'éditeur, la fenêtre est ajoutée sous la racine de l'éditeur. Garder la référence dans le plugin et la relâcher à sa désactivation :</p>
+  <pre><code class="gdscript">@tool
+extends EditorPlugin
+
+var fenetre: WindowEditor
+
+func _enter_tree() -> void:
+	add_tool_menu_item("Mon outil", _ouvrir)
+
+func _ouvrir() -> void:
+	if fenetre == null:
+		fenetre = WindowEditor.new()
+	fenetre.open_window()
+
+func _exit_tree() -> void:
+	remove_tool_menu_item("Mon outil")
+	fenetre = null  # dernière référence : la fenêtre et son contenu sont libérés</code></pre>
+
+  <h3 id="ex-objet">Comment j'affiche l'éditeur d'un objet dans la fenêtre ?</h3>
+  <p>Combinaison avec le module <em>💻 Éditeur d'objet</em> : <code>ObjectEditorWindow</code> fournit sa propre fenêtre, mais un <code>ProceduralEditor</code> (un <code>Control</code>) peut être déposé dans une <code>WindowEditor</code> comme n'importe quel contrôle. Consulter la page de ce module pour sa configuration.</p>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>La fenêtre meurt avec l'objet.</strong> Si plus aucune variable ne référence le <code>WindowEditor</code>, la fenêtre et tous ses contrôles sont libérés (vérifié en headless). Piège classique : <code>WindowEditor.new()</code> dans une variable locale.</li>
+    <li><strong>Rien n'est possible avant <code>open_window()</code>.</strong> <code>add_control_to_window</code> appelé avant est ignoré sans message (vérifié).</li>
+    <li><strong>Titre, taille et position fixes</strong> à la création (« Fenêtre d'édition », 800 × 600, centrée) ; aucun réglage dans l'API (contournement : <a href="#ex-titre">via <code>get_window()</code></a>). Une réouverture ne recentre pas la fenêtre et ne lui donne pas le focus.</li>
+    <li><strong>Pas de signal</strong> d'ouverture ou de fermeture : impossible d'être prévenu quand l'utilisateur clique sur la croix (sauf en se connectant soi-même à <code>close_requested</code> de la <code>Window</code>).</li>
+    <li><strong>Console bavarde.</strong> Chaque ouverture et chaque fermeture écrit une ligne avec <a href="journal-console.html"><code>L</code></a> ; ouvrir / fermer souvent remplit la console.</li>
+    <li><strong>Fenêtre intégrée ou séparée selon le projet.</strong> En jeu, avec le réglage par défaut <em>display/window/subwindows/embed_subwindows</em>, elle est dessinée à l'intérieur de la fenêtre du jeu ; sinon c'est une fenêtre du système d'exploitation.</li>
+    <li><strong><code>remove_control_from_window</code> ne libère pas</strong> le contrôle : il devient orphelin (fuite si on l'oublie).</li>
+    <li><strong>Un changement de scène ne la ferme pas</strong> : placée sous la racine, la fenêtre survit à <code>change_scene_to_file</code> tant que son <code>WindowEditor</code> est référencé.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>WindowEditor</code></strong> (<code>RefCounted</code>) crée une <code>Window</code> au premier <code>open_window()</code> et l'ajoute sous <code>SceneTree.root</code> (racine du jeu ou de l'éditeur, selon le <code>SceneTree</code> actif).</li>
+    <li>Le signal <code>close_requested</code> de la fenêtre est connecté à <code>close_window()</code>, qui la masque.</li>
+    <li>La fenêtre est retrouvée à chaque appel par son <code>ObjectID</code> ; si l'arbre l'a libérée (fermeture de l'éditeur…), le prochain <code>open_window()</code> en recrée une.</li>
+    <li>À la destruction du <code>WindowEditor</code> (<code>NOTIFICATION_PREDELETE</code>), la fenêtre est <code>queue_free</code>.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Dépend de <a href="journal-console.html">📰 Journal Console</a> (fonction <code>log_it</code> du header) pour ses messages.</li>
+    <li>Utilisé par le plugin de test <code>EditorTest</code> (même bibliothèque) avec le panneau <code>ObjectInterfacePanel</code> de l'éditeur d'objet.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Fenêtre stockée par <code>ObjectID</code>, pas par pointeur</td><td>C'est l'arbre de scène qui la tient : il peut la libérer de son côté (fermeture de l'éditeur). Un pointeur brut deviendrait invalide et ferait planter le moteur (crash corrigé le 2026-10-04).</td></tr>
+        <tr><td>La croix masque au lieu de détruire</td><td>Le contenu (et son état) est conservé pour la réouverture, sans tout reconstruire.</td></tr>
+        <tr><td>Fenêtre masquée avant l'ajout à l'arbre, puis <code>popup_centered()</code></td><td>Une <code>Window</code> est visible par défaut : l'ajouter visible la ferait apparaître un instant dans un coin avant d'être centrée.</td></tr>
+        <tr><td><code>RefCounted</code> propriétaire de la fenêtre</td><td>Libération automatique quand l'outil qui l'utilise disparaît (désactivation d'un plugin), sans <code>_exit_tree</code> à écrire.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>WindowEditor</code>, commentaires du header, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-05</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Fenêtre mémorisée par <code>ObjectID</code> et libérée à la destruction du <code>WindowEditor</code> ; recréée si elle a été libérée ailleurs. Messages de console via le journal.</li>
+    </ul>
+    <h3 id="v0-2">0.2 <span class="date">2026-10-04</span></h3>
+    <ul>
+      <li><span class="tag fix">Corrigé</span>Plantage après un clic sur le bouton d'ouverture (pointeur de fenêtre non initialisé).</li>
+    </ul>
+    <h3 id="v0-1">0.1 <span class="date">2026-09-05</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>WindowEditor</code> : ouverture, fermeture, ajout et retrait de contrôles.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🪟 Fenêtre d'édition · sources : <code>src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🪟Fenêtre d'édition/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "WindowEditor.open_window": "Afficher un panneau de debug sur une touche, ouvrir un outil depuis un menu d'un plugin d'éditeur.",
+  "WindowEditor.close_window": "Masquer le panneau sans perdre son contenu (touche de bascule, fin d'une session de réglage).",
+  "WindowEditor.add_control_to_window": "Déposer le contenu de l'outil : un conteneur de réglages, une console de triche, le panneau d'un éditeur d'objet.",
+  "WindowEditor.remove_control_from_window": "Remplacer le contenu de la fenêtre par un autre panneau (penser à libérer l'ancien)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

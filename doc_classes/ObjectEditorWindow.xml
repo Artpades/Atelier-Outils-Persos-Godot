@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ObjectEditorWindow" inherits="Window" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Fenêtre unique d'édition d'un objet, réutilisée : fenêtre de debug en jeu, ouverture automatique à la sélection dans l'éditeur.
 	</brief_description>
 	<description>
+		Fenêtre contenant un [ProceduralEditor] et une case « Épingler ». Il n'en existe qu'une à la fois : [method open_for] la crée au premier appel (enfant de la racine en jeu, de l'interface de l'éditeur Godot dans l'éditeur), puis la réutilise.
+		L'interface est celle du type de l'objet dans la [LayoutDatabase] du projet, sinon l'interface générale ; les gizmos du type sont dessinés pour l'objet affiché. Épinglée, la fenêtre garde son objet quand [method follow] est appelée.
+		[codeblock]
+		# Touche F2 : inspecter l'ennemi visé dans une fenêtre de debug.
+		func _unhandled_input(event: InputEvent) -&gt; void:
+			if event is InputEventKey and event.pressed and event.keycode == KEY_F2:
+				ObjectEditorWindow.open_for(ennemi_vise)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,27 +19,32 @@
 		<method name="close_current" qualifiers="static">
 			<return type="void" />
 			<description>
+				Ferme et libère la fenêtre ouverte, s'il y en a une.
 			</description>
 		</method>
 		<method name="follow" qualifiers="static">
 			<return type="bool" />
 			<param index="0" name="target" type="Object" />
 			<description>
+				Si la fenêtre est ouverte et non épinglée, affiche [param target] et renvoie [code]true[/code] ; sinon renvoie [code]false[/code] sans rien faire.
 			</description>
 		</method>
 		<method name="get_current" qualifiers="static">
 			<return type="ObjectEditorWindow" />
 			<description>
+				Renvoie la fenêtre ouverte, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_editor" qualifiers="const">
 			<return type="ProceduralEditor" />
 			<description>
+				Renvoie le [ProceduralEditor] de la fenêtre.
 			</description>
 		</method>
 		<method name="is_pinned" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la case « Épingler » est cochée.
 			</description>
 		</method>
 		<method name="open_for" qualifiers="static">
@@ -38,12 +52,14 @@
 			<param index="0" name="target" type="Object" />
 			<param index="1" name="backend" type="UndoBackend" default="null" />
 			<description>
+				Ouvre la fenêtre (ou réutilise celle qui est ouverte, même épinglée) et y affiche [param target]. [param backend] n'est utilisé qu'à la création de la fenêtre : [code]null[/code] donne un historique d'annulation propre au jeu. Renvoie [code]null[/code] si [param target] est nul ou s'il n'y a pas d'arbre de scène.
 			</description>
 		</method>
 		<method name="set_pinned">
 			<return type="void" />
 			<param index="0" name="pinned" type="bool" />
 			<description>
+				Coche ou décoche « Épingler ».
 			</description>
 		</method>
 	</methods>

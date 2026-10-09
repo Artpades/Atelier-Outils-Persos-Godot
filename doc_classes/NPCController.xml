@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="NPCController" inherits="AutomateController" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🧑‍🌾 Contrôleur de personnage non joueur : un [AutomateController] qui lance un dialogue quand le joueur interagit avec lui.
 	</brief_description>
 	<description>
+		Hérite de tout le déplacement d'[AutomateController] (patrouille, errance...). Au [code]_ready[/code], il se branche sur le premier [Interactable] enfant du personnage, ou en crée un s'il n'y en a pas (nommé « Interactable », invite [member interaction_prompt], portée 64 en 2D et 2 en 3D, ajouté en différé). Quand le joueur interagit, [method talk] lance [member dialogue] sur le [DialogueSystem] ; le PNJ se tourne vers son interlocuteur et s'arrête jusqu'à la fin du dialogue.
+		[codeblock]
+		# Marchand : Character2D &gt; NPCController (+ Interactable créé automatiquement)
+		func _ready() -&gt; void:
+			var pnj: NPCController = $Marchand/NPCController
+			pnj.dialogue = preload("res://dialogues/marchand.tres")
+			pnj.talk_ended.connect(func(): print("Au revoir !"))
+			pnj.wander(80.0)   # flâne autour de son étal entre deux conversations
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,42 +20,53 @@
 		<method name="get_interactable" qualifiers="const">
 			<return type="Interactable" />
 			<description>
+				Renvoie le premier [Interactable] enfant du personnage, ou [code]null[/code] (celui créé automatiquement n'existe qu'à partir de l'image qui suit le [code]_ready[/code]).
 			</description>
 		</method>
 		<method name="is_talking" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant une conversation lancée par [method talk].
 			</description>
 		</method>
 		<method name="talk">
 			<return type="bool" />
 			<param index="0" name="interlocutor" type="Node" />
 			<description>
+				Lance [member dialogue] sur le [DialogueSystem], avec le personnage du PNJ comme interlocuteur du système. Renvoie [code]false[/code] sans [DialogueSystem], sans [member dialogue], pendant une conversation déjà en cours, ou si le démarrage échoue. Un dialogue qui se termine aussitôt renvoie [code]true[/code] sans émettre [signal talk_started].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="dialogue" type="DialogueResource" setter="set_dialogue" getter="get_dialogue">
+			Dialogue lancé par [method talk]. Obligatoire : sans lui, [method talk] échoue ([member DialogueSystem.default_dialogue] n'est pas utilisé).
 		</member>
 		<member name="dialogue_start_id" type="StringName" setter="set_dialogue_start_id" getter="get_dialogue_start_id" default="&amp;&quot;&quot;">
+			Identifiant du nœud de départ ; vide : nœud de départ du [DialogueResource].
 		</member>
 		<member name="dialogue_system_path" type="NodePath" setter="set_dialogue_system_path" getter="get_dialogue_system_path" default="NodePath(&quot;&quot;)">
+			[DialogueSystem] à utiliser. Vide : le système principal ([method DialogueSystem.get_main]).
 		</member>
 		<member name="face_interlocutor" type="bool" setter="set_face_interlocutor" getter="get_face_interlocutor" default="true">
+			Si [code]true[/code], le PNJ se tourne vers son interlocuteur au début de la conversation ([method Character2D.face_toward] : rotation en 3D, simple mise à jour de [method Character2D.get_facing] en 2D).
 		</member>
 		<member name="interaction_prompt" type="String" setter="set_interaction_prompt" getter="get_interaction_prompt" default="&quot;Parler&quot;">
+			Invite de l'[Interactable] créé automatiquement. Sans effet si le personnage a déjà un [Interactable], ni après le [code]_ready[/code].
 		</member>
 		<member name="stop_while_talking" type="bool" setter="set_stop_while_talking" getter="get_stop_while_talking" default="true">
+			Si [code]true[/code], l'automate ne se déplace plus pendant la conversation ; son mode est conservé et reprend à la fin.
 		</member>
 	</members>
 	<signals>
 		<signal name="talk_ended">
 			<description>
+				Émis quand le dialogue lancé par [method talk] se termine.
 			</description>
 		</signal>
 		<signal name="talk_started">
 			<param index="0" name="interlocutor" type="Object" />
 			<description>
+				Émis au début d'une conversation, avec le nœud qui a parlé au PNJ ([param interlocutor], peut être [code]null[/code]).
 			</description>
 		</signal>
 	</signals>

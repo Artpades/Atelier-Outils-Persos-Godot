@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="RopeMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🪢 Déplacement sur corde 2D : s'accrocher à une [Rope2D], grimper, se balancer et sauter.
 	</brief_description>
 	<description>
+		Composant de mouvement ([MovementComponent]) à placer sous un [CharacterBody2D]. [method try_grab] (à appeler soi-même, par exemple sur une touche) accroche le corps à la corde la plus proche ; tant qu'il est actif (contexte « corde » d'un [MovementDirector]), [code]move.y[/code] fait grimper (-1) ou descendre (1), [code]move.x[/code] balance la corde, et le saut lâche la corde avec élan. Le corps ne peut pas monter plus haut que le deuxième point (index 1) : il ne rejoint jamais le point d'ancrage.
+		[codeblock]
+		func _physics_process(_delta: float) -&gt; void:
+			if Input.is_action_just_pressed("attraper"):
+				$RopeMovement2D.try_grab()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,45 +17,56 @@
 		<method name="get_rope" qualifiers="const">
 			<return type="Rope2D" />
 			<description>
+				Renvoie la [Rope2D] à laquelle le corps est accroché, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="is_attached" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le corps est accroché à une corde.
 			</description>
 		</method>
 		<method name="release">
 			<return type="void" />
 			<param index="0" name="jump" type="bool" default="false" />
 			<description>
+				Décroche le corps. Sa vitesse devient celle de la corde au point d'accroche (élan du balancement) ; avec [param jump], [member jump_up_velocity] y est ajoutée vers le haut. Émet [signal released].
 			</description>
 		</method>
 		<method name="try_grab">
 			<return type="bool" />
 			<description>
+				Accroche le corps à la [Rope2D] la plus proche à moins de [member grab_distance], au point le plus proche. Renvoie [code]true[/code] si le corps est (ou était déjà) accroché. Échoue pendant [member regrab_delay] après un lâcher. Fonctionne même si le composant est inactif : c'est l'accroche qui fait passer un [MovementDirector] en contexte « corde ».
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="climb_speed" type="float" setter="set_climb_speed" getter="get_climb_speed" default="110.0">
+			Vitesse de montée / descente le long de la corde, en px/s.
 		</member>
 		<member name="grab_distance" type="float" setter="set_grab_distance" getter="get_grab_distance" default="40.0">
+			Distance maximale, en px, entre le corps et la corde pour que [method try_grab] réussisse.
 		</member>
 		<member name="jump_up_velocity" type="float" setter="set_jump_up_velocity" getter="get_jump_up_velocity" default="320.0">
+			Vitesse verticale, en px/s, ajoutée au lâcher par un saut (en plus de l'élan de la corde, montée seulement).
 		</member>
 		<member name="regrab_delay" type="float" setter="set_regrab_delay" getter="get_regrab_delay" default="0.3">
+			Délai, en secondes (temps réel), pendant lequel [method try_grab] échoue après un lâcher : évite de se raccrocher aussitôt à la même corde.
 		</member>
 		<member name="swing_force" type="float" setter="set_swing_force" getter="get_swing_force" default="2000.0">
+			Intensité du balancement : vitesse ajoutée chaque seconde au point d'accroche, en px/s², dans le sens de la commande.
 		</member>
 	</members>
 	<signals>
 		<signal name="grabbed">
 			<param index="0" name="rope" type="Object" />
 			<description>
+				Émis quand [method try_grab] accroche le corps, avec la corde [param rope].
 			</description>
 		</signal>
 		<signal name="released">
 			<description>
+				Émis quand le corps lâche la corde.
 			</description>
 		</signal>
 	</signals>

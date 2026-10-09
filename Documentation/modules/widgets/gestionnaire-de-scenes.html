@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestionnaire de scènes · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🎬 Gestionnaire de scènes (SceneManager) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/gestionnaire-de-scenes.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🎬</div>
+    <div>
+      <h1>🎬_SceneSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>Gestionnaire de scènes</strong> : charger le niveau suivant en arrière-plan, afficher sa progression, puis l'ouvrir.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/scene_manager</code></span>
+        <span class="badge">1 classe : SceneManager</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p><code>get_tree().change_scene_to_file()</code> charge la scène suivante <em>pendant</em> l'image : sur un gros niveau, le jeu se fige plusieurs secondes sans rien afficher. Le chargement en arrière-plan de Godot (<code>ResourceLoader.load_threaded_request</code>) règle ce problème, mais demande de sonder son état à chaque image, de récupérer la ressource et d'enchaîner le changement de scène. <strong>Ce module le fait en un appel</strong> et prévient par des signaux : démarrage, progression, scène prête.</p>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui écrivent les menus, les écrans de chargement et les passages d'un niveau à l'autre.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un système de transition visuelle</strong> : aucun fondu n'est affiché. Le combiner avec <code>ScreenFader</code> du module <em>🌈 Fondu Couleur</em> (voir <a href="#ex-fondu">l'exemple</a>).</li>
+      <li><strong>Pas un gestionnaire de pile de scènes</strong> : pas d'historique, pas de scènes additives, pas de retour arrière ; il remplace la scène courante, comme <code>change_scene_to_packed</code>.</li>
+      <li><strong>Pas un préchargeur</strong> : la scène chargée est toujours ouverte aussitôt.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture d'un écran de chargement : barre de progression reliée à <code>loading_progress</code>, puis le niveau qui apparaît.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> ; le signal <code>SceneTree.scene_changed</code> est utilisé pour détecter la fin du changement.</td></tr>
+        <tr><td>Bibliothèque <code>bin/scene_manager/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>SceneManager</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code> (classe <code>ManagerBuilder</code>)</td><td>Optionnelle</td><td>Permet à <code>SceneManager.get_instance()</code> de créer le gestionnaire à la demande. Sans elle, le déclarer en autoload.</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/🧭🌍/Scene Manager Icon.png</code></td><td>Optionnelle</td><td>Icône de la classe, et icône des messages de journal (<code>log_activated</code>).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si besoin) :
+      <pre><code class="language-shell">scons scene_manager</code></pre>
+      <div class="why">compile la bibliothèque du registre <code>scene_manager_register.cpp</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/scene_manager/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/scene_manager/…</code> absolus dans le <code>.gdextension</code> ; découverte des extensions au démarrage.</div>
+    </li>
+    <li>
+      <strong>Rendre le gestionnaire persistant</strong> : soit l'obtenir par <code>SceneManager.get_instance()</code> (avec <code>ManagerBuilder</code>, il est créé sous la racine de l'arbre), soit déclarer en autoload une scène dont la racine est un <code>SceneManager</code>.
+      <div class="why">le gestionnaire doit survivre au changement de scène pour émettre <code>load_finished</code> : placé dans la scène qui va être remplacée, il serait détruit avant.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Depuis le menu principal, lancer le chargement</strong> :
+      <pre><code class="gdscript">func _on_jouer_pressed() -> void:
+	SceneManager.get_instance().load_scene_async("res://niveaux/niveau_1.tscn")</code></pre>
+      <div class="why">le niveau se charge sur un autre fil d'exécution ; le menu reste affiché et animé pendant ce temps.</div>
+    </li>
+    <li>
+      <strong>Afficher la progression</strong> dans une <code>ProgressBar</code> du menu :
+      <pre><code class="gdscript">func _ready() -> void:
+	SceneManager.get_instance().loading_progress.connect(func(p): $Barre.value = p)</code></pre>
+      <div class="why"><code>loading_progress</code> donne un pourcentage (0 à 100) à chaque image du chargement.</div>
+    </li>
+    <li>
+      <strong>Rien d'autre à faire</strong> : une fois chargé, le niveau remplace la scène courante, puis <code>load_finished</code> est émis.
+      <div class="why">le changement de scène est différé à la fin de l'image pour ne pas détruire la scène courante au milieu de son traitement.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/SceneManager.xml</code>. Éléments internes, non exposés : le chemin en cours de chargement, l'indicateur « changement de scène attendu » (qui distingue un changement demandé par le gestionnaire d'un <code>change_scene_to_file</code> fait ailleurs), et les méthodes <code>_finish_loading</code>, <code>_on_scene_changed</code>, <code>_log</code>.</p>
+  <div data-api="SceneManager"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-ecran">Comment je fais un écran de chargement réutilisable ?</h3>
+  <p>Un autoload <code>Chargement</code> (un <code>CanvasLayer</code> avec une barre) qui reste affiché pendant le changement de scène :</p>
+  <pre><code class="gdscript"># chargement.gd — racine de la scène autoload « Chargement »
+extends CanvasLayer
+
+func _ready() -> void:
+	hide()
+	var scenes := SceneManager.get_instance()
+	scenes.loading_started.connect(show)
+	scenes.loading_progress.connect(func(p): $Barre.value = p)
+	scenes.load_finished.connect(hide)
+
+func aller_a(chemin: String) -> void:
+	SceneManager.get_instance().load_scene_async(chemin)</code></pre>
+
+  <h3 id="ex-fondu">Comment je combine le chargement avec un fondu au noir ?</h3>
+  <p>Avec un autoload <code>Fondu</code> (un <code>ScreenFader</code>, module <em>🌈 Fondu Couleur</em>) : couvrir l'écran, charger, découvrir.</p>
+  <pre><code class="gdscript">func changer_de_niveau(chemin: String) -> void:
+	var scenes := SceneManager.get_instance()
+	if scenes.is_loading():
+		return
+	Fondu.fade_out()
+	await Fondu.faded_out
+	scenes.load_scene_async(chemin)
+	await scenes.load_finished
+	Fondu.fade_in()</code></pre>
+
+  <h3 id="ex-echec">Comment je détecte un échec de chargement ?</h3>
+  <p>Aucun signal n'est émis en cas d'échec : <code>is_loading()</code> repasse à <code>false</code> sans <code>load_finished</code>. On peut le surveiller, et vérifier le chemin avant :</p>
+  <pre><code class="gdscript">func charger_en_securite(chemin: String) -> void:
+	if not ResourceLoader.exists(chemin, "PackedScene"):
+		push_error("Scène introuvable : " + chemin)
+		return
+	var scenes := SceneManager.get_instance()
+	scenes.load_scene_async(chemin)
+	while scenes.is_loading():
+		await get_tree().process_frame
+	await get_tree().process_frame   # laisser le changement différé s'appliquer
+	if get_tree().current_scene.scene_file_path != chemin:
+		push_error("Échec du chargement : " + chemin)</code></pre>
+
+  <h3 id="ex-journal">Comment je suis un chargement dans la console ?</h3>
+  <pre><code class="gdscript">SceneManager.get_instance().log_activated = true
+# 🚀 Chargement asynchrone démarré… ⏳ Progression : 42.0% … ✅ Chargement terminé !</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Aucun signal d'échec</strong> (vérifié avec un chemin inexistant : <code>loading_started</code>, quelques <code>loading_progress(0)</code>, puis plus rien). Un <code>await load_finished</code> reste bloqué indéfiniment ; un écran de chargement reste affiché. Voir <a href="#ex-echec">l'exemple</a>.</li>
+    <li><strong>Erreurs silencieuses par défaut</strong> : les messages du gestionnaire (chemin vide, requête refusée, échec) ne sont écrits que si <code>log_activated</code> est actif. Godot affiche toutefois ses propres erreurs de chargement.</li>
+    <li><strong>Un chargement à la fois</strong>, et les demandes suivantes sont ignorées sans retour (vérifié). Tester <code>is_loading()</code> avant.</li>
+    <li><strong>Pas d'option « charger sans ouvrir »</strong> : impossible de précharger le niveau suivant pendant le jeu pour l'ouvrir plus tard, ni de passer des paramètres à la scène chargée (utiliser un autoload pour transmettre l'état).</li>
+    <li><strong><code>loading_progress</code> à chaque image</strong>, même sans changement de valeur, et la progression de Godot avance par paliers (souvent 0 puis 100 pour une petite scène).</li>
+    <li><strong>Gestionnaire placé dans la scène remplacée</strong> : il est détruit avec elle et <code>load_finished</code> n'est jamais émis.</li>
+    <li><strong>Le changement de scène lui-même reste synchrone</strong> : l'instanciation du niveau et les <code>_ready</code> de ses nœuds se font sur le fil principal, ce qui peut encore provoquer un court gel sur une très grosse scène.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 200" role="img" aria-label="Séquence d'un chargement par SceneManager">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="140" height="54" rx="8"/>
+    <text x="90" y="54" text-anchor="middle">Votre code</text>
+    <text x="90" y="72" text-anchor="middle" class="small">load_scene_async</text>
+    <rect class="box main" x="220" y="30" width="170" height="54" rx="8"/>
+    <text x="305" y="54" text-anchor="middle">SceneManager</text>
+    <text x="305" y="72" text-anchor="middle" class="small">_process : sonde l'état</text>
+    <rect class="box" x="450" y="30" width="170" height="54" rx="8"/>
+    <text x="535" y="54" text-anchor="middle">ResourceLoader</text>
+    <text x="535" y="72" text-anchor="middle" class="small">fil d'arrière-plan</text>
+    <rect class="box" x="680" y="30" width="160" height="54" rx="8"/>
+    <text x="760" y="54" text-anchor="middle">SceneTree</text>
+    <text x="760" y="72" text-anchor="middle" class="small">change_scene_to_packed</text>
+    <path class="arrow" d="M160 57 H218" marker-end="url(#arr)"/>
+    <path class="arrow" d="M390 57 H448" marker-end="url(#arr)"/>
+    <text x="419" y="50" text-anchor="middle" class="small">requête</text>
+    <path class="arrow" d="M390 84 Q560 150 700 86" marker-end="url(#arr)"/>
+    <text x="520" y="140" class="small">appel différé</text>
+    <path class="arrow dashed" d="M760 84 Q560 190 330 86" marker-end="url(#arr)"/>
+    <text x="600" y="180" class="small">scene_changed</text>
+    <path class="arrow dashed" d="M240 84 Q160 140 110 86" marker-end="url(#arr)"/>
+    <text x="110" y="140" class="small">signaux</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>SceneManager</code></strong> est un <code>Node</code> singleton. <code>load_scene_async</code> envoie une requête à <code>ResourceLoader</code> et active <code>_process</code>, qui sonde l'état à chaque image et émet <code>loading_progress</code>. Une fois la scène chargée, il appelle <code>change_scene_to_packed</code> en différé ; il écoute <code>SceneTree.scene_changed</code> et n'émet <code>load_finished</code> que pour un changement qu'il a lui-même demandé.</li>
+    <li>Le <code>_process</code> est désactivé hors chargement : aucun coût le reste du temps.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>→ <code>ManagerBuilder</code> (bibliothèque <code>tool_editor</code>) : optionnel, par <code>ClassDB</code>.</li>
+    <li>→ journal <code>log_it</code> (module <em>📰 Journal Console</em>) : fonction <code>inline</code> d'un header, compilée dans cette bibliothèque ; aucune bibliothèque à installer.</li>
+    <li>Aucun module ne dépend du gestionnaire. Bibliothèque propre : <code>scene_manager_register.cpp</code> → <code>bin/scene_manager/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Changement de scène différé (<code>call_deferred</code>)</td><td>Changer de scène au milieu du <code>_process</code> peut détruire des nœuds en cours de traitement.</td></tr>
+        <tr><td><code>load_finished</code> sur <code>scene_changed</code>, pas juste après l'appel</td><td>Le signal arrive quand la nouvelle scène est réellement en place : on peut y chercher ses nœuds.</td></tr>
+        <tr><td>Indicateur « changement attendu »</td><td>Un <code>change_scene_to_file</code> fait ailleurs ne doit pas conclure un chargement en cours.</td></tr>
+        <tr><td>Récupération du résultat même en cas d'échec</td><td>Sans <code>load_threaded_get</code>, la tâche échouée resterait en mémoire jusqu'à la fermeture du jeu.</td></tr>
+        <tr><td>Une requête à la fois</td><td>Deux chargements concurrents se disputeraient la scène courante ; la première demande l'emporte.</td></tr>
+        <tr><td>Singleton via <code>ManagerBuilder</code>, doublons détruits</td><td>Un seul gestionnaire écoute <code>scene_changed</code> : pas de double <code>load_finished</code> si un autoload et un nœud de scène coexistent.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>SceneManager</code>, commentaires du header, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Conversion du module en GDExtension (« Convertions 4 modules de widget et spatialité ») : chargement asynchrone, signaux de progression et de fin.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🎬 Gestionnaire de scènes · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/🎬Gestionnaire de scènes/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "SceneManager.log_activated": "Diagnostiquer un chargement trop long ou qui échoue pendant le développement.",
+  "SceneManager.get_instance": "Lancer un chargement depuis n'importe quel menu, sans référence au gestionnaire.",
+  "SceneManager.get_progress_percent": "Lire la progression à la demande (barre animée dans <code>_process</code>) plutôt que par signal.",
+  "SceneManager.is_loading": "Désactiver le bouton « Jouer » pendant le chargement, ou détecter la fin d'un chargement échoué.",
+  "SceneManager.load_scene_async": "Passer du menu au niveau, d'un niveau au suivant, revenir au menu principal.",
+  "SceneManager.load_finished": "Masquer l'écran de chargement, lancer le fondu entrant ou la musique du niveau.",
+  "SceneManager.loading_progress": "Remplir une barre de progression ou un pourcentage à l'écran.",
+  "SceneManager.loading_started": "Afficher l'écran de chargement, couper les entrées du joueur."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

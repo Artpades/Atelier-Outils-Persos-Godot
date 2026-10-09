@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GameplayToolkit · Documentation</title>
+  <meta name="description" content="Documentation des modules du GameplayToolkit (GDExtension Godot 4.7).">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-root="" data-page="index.html" data-no-toc="1">
+<main>
+<div class="content">
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🧰</div>
+    <div>
+      <h1>GameplayToolkit · Documentation</h1>
+      <p class="subtitle">Outils et systèmes de gameplay pour Godot 4.7, écrits en C++ (GDExtension) et répartis en modules indépendants.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Comment lire cette documentation</div>
+    <p>Chaque page de module suit la même structure : <strong>Présentation → Installation → Mode d'emploi → API → Exemples → Limitations → Architecture → Changelog</strong>. Les tableaux d'API sont générés depuis <code>doc_classes/*.xml</code> : ils sont identiques à l'aide intégrée de l'éditeur Godot (<kbd>F1</kbd>).</p>
+    <p>La barre sous chaque module indique la part de sa référence XML déjà rédigée. Les modules grisés n'ont pas encore de page.</p>
+  </div>
+
+  <div data-module-index></div>
+
+  <h2 id="contribuer">✍️ Ajouter ou mettre à jour une page</h2>
+  <ol class="steps">
+    <li>Rédiger la référence de chaque classe dans <code>doc_classes/&lt;Classe&gt;.xml</code> (générée vide par <code>scons</code> ou <code>scons gen_doc</code>).</li>
+    <li>Régénérer les données de l'API : <pre><code class="language-shell">python Documentation/generer_api.py</code></pre></li>
+    <li>Copier <code>Documentation/_gabarit-module.html</code> vers <code>Documentation/modules/&lt;catégorie&gt;/&lt;module&gt;.html</code> et remplir chaque section en suivant les consignes qu'il contient.</li>
+    <li>Renseigner le champ <code>page</code> du module dans <code>Documentation/assets/modules.js</code>.</li>
+  </ol>
+
+  <footer>Pages statiques HTML/CSS/JS : ouvrir <code>Documentation/index.html</code> directement dans un navigateur, aucun serveur n'est nécessaire.</footer>
+</div>
+</main>
+<script src="assets/modules.js"></script>
+<script src="assets/api-data.js"></script>
+<script src="assets/doc.js"></script>
+</body>
+</html>

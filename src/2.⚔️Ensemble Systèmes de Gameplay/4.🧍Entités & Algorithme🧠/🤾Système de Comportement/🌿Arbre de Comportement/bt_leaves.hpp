@@ -66,6 +66,7 @@ class BTWait : public BTNode
   private:
     double duration = 1.0;
     double random_deviation = 0.0;
+    /// Durée réellement attendue pour l'exécution en cours (duration ± random_deviation).
     double target = 1.0;
 };
 

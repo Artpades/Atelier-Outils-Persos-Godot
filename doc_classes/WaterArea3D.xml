@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="WaterArea3D" inherits="Area3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌊 Étendue d'eau 3D : fait flotter, freine et emporte les [RigidBody3D] ; les personnages y nagent avec [SwimMovement3D].
 	</brief_description>
 	<description>
+		[Area3D] représentant de l'eau. Sa forme est donnée par une [CollisionShape3D] enfant ; avec une [BoxShape3D], la surface est la face du haut de la boîte.
+		À chaque image physique, chaque [RigidBody3D] présent reçoit une poussée vers le haut proportionnelle à son immersion ([member buoyancy], [member float_depth]), un freinage linéaire et angulaire, et le [member current]. Les [CharacterBody3D] ne sont pas affectés directement : c'est [SwimMovement3D] qui les fait nager.
+		[codeblock]
+		# Une caisse posée sur l'eau flotte et dérive.
+		$Lac.buoyancy = 1.6
+		$Lac.current = Vector3(0.5, 0, 0)
+		$Caisse.position.y = $Lac.get_surface_y()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,32 +20,44 @@
 			<return type="WaterArea3D" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la première [WaterArea3D] qui chevauche [param body] (zones présentes dans l'arbre, en jeu), ou [code]null[/code]. Le chevauchement est celui du moteur physique : la zone doit avoir [member Area3D.monitoring] actif et son masque de collision doit inclure la couche du corps.
 			</description>
 		</method>
 		<method name="get_depth" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="point" type="Vector3" />
 			<description>
+				Renvoie la profondeur de [param point] (global) sous la surface, en m : positive sous l'eau, négative au-dessus.
 			</description>
 		</method>
 		<method name="get_surface_y" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la coordonnée Y globale de la surface : le haut de la première [BoxShape3D] enfant, sinon la position de la zone plus [member surface_offset].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="angular_drag" type="float" setter="set_angular_drag" getter="get_angular_drag" default="3.0">
+			Freinage de la rotation des [RigidBody3D] immergés (par seconde, proportionnel à l'immersion ; multiplié par la [b]masse[/b] du corps, pas par son inertie).
 		</member>
 		<member name="buoyancy" type="float" setter="set_buoyancy" getter="get_buoyancy" default="2.0">
+			Poussée d'Archimède exercée sur les corps rigides complètement immergés, en multiples de leur gravité : [code]1[/code] = l'objet flotte entre deux eaux, [code]2[/code] = il remonte avec une accélération égale à la gravité, [code]0[/code] = il coule. La poussée est proportionnelle à l'immersion.
 		</member>
 		<member name="current" type="Vector3" setter="set_current" getter="get_current" default="Vector3(0, 0, 0)">
+			Accélération du courant, en m/s². Appliquée aux corps rigides (proportionnellement à leur immersion) et, par [code]SwimMovement3D[/code], aux nageurs.
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu le contour de la forme, la surface, une flèche de courant et le nombre de corps présents.
 		</member>
 		<member name="float_depth" type="float" setter="set_float_depth" getter="get_float_depth" default="0.5">
+			Profondeur, en m, à partir de laquelle un corps rigide est considéré comme complètement immergé. L'immersion se calcule sur l'origine du corps : 50 % quand elle est exactement à la surface, 100 % à [code]float_depth / 2[/code] sous la surface.
 		</member>
 		<member name="linear_drag" type="float" setter="set_linear_drag" getter="get_linear_drag" default="3.0">
+			Freinage des corps rigides immergés (par seconde, proportionnel à l'immersion) : plus la valeur est forte, plus l'eau est « épaisse ».
 		</member>
 		<member name="surface_offset" type="float" setter="set_surface_offset" getter="get_surface_offset" default="0.0">
+			Hauteur de la surface par rapport à la position de la zone, [b]uniquement si[/b] aucune [BoxShape3D] n'est trouvée parmi les [CollisionShape3D] enfants (positif = plus haut).
 		</member>
 	</members>
 </class>

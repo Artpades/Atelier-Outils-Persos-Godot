@@ -20,7 +20,9 @@
 namespace godot
 {
 
-// HandlersManager
+/// ✋ HandlersManager : poignées 2D / 3D survolables et déplaçables à la souris (signaux de survol et de déplacement).
+// NOTE : classe compilée dans tool_editor mais NON enregistrée (aucun GDREGISTER_CLASS) : inaccessible
+// depuis Godot tant que l'enregistrement n'est pas ajouté à tool_editor_register.cpp.
 //
 // Singleton (via ManagerBuilder) responsable de la détection de survol ET du déplacement
 // au curseur (drag) des poignées (handles) 2D et 3D, à chaque frame.
@@ -47,6 +49,7 @@ class HandlersManager : public Node
     GDCLASS(HandlersManager, Node)
 
   private:
+    /// État d'une poignée 2D (zone, couleurs, survol / glissement, viewport, gizmo de dessin).
     struct Handle2D
     {
         Rect2 rect;
@@ -59,6 +62,7 @@ class HandlersManager : public Node
         RID gizmo_rid; // créé paresseusement au premier _process
     };
 
+    /// État d'une poignée 3D (AABB monde, plan de glissement figé au clic, caméra optionnelle, gizmo).
     struct Handle3D
     {
         AABB aabb;
@@ -75,9 +79,11 @@ class HandlersManager : public Node
     HashMap<StringName, Handle2D> _handles_2d;
     HashMap<StringName, Handle3D> _handles_3d;
 
+    /// Redessine le gizmo de la poignée (rectangle plein / cube fil de fer) avec la couleur de survol ou par défaut.
     void _redraw_handle_2d(Handle2D &p_handle);
     void _redraw_handle_3d(Handle3D &p_handle);
 
+    /// Détection du survol, début / fin du glissement (bouton gauche) et émission des signaux, chaque frame.
     void _process_2d_handles();
     void _process_3d_handles();
 
@@ -100,7 +106,7 @@ class HandlersManager : public Node
     void _exit_tree() override;
     void _process(double p_delta) override;
 
-    // Instance singleton (créée via ManagerBuilder au premier appel).
+    /// Instance singleton (créée via ManagerBuilder au premier appel).
     static HandlersManager *get_singleton();
 
     // --- Handles 2D ---
@@ -110,6 +116,7 @@ class HandlersManager : public Node
     // (canvas) et lire la position souris (Viewport::get_mouse_position()).
     void register_handle_2d(
         const StringName &p_id, const Rect2 &p_rect, Viewport *p_viewport, const Color &p_default_color = Color(1.0f, 1.0f, 1.0f, 1.0f), const Color &p_hover_color = Color(1.0f, 0.9f, 0.1f, 1.0f));
+    /// Retire la poignée et libère son gizmo.
     void unregister_handle_2d(const StringName &p_id);
     // À appeler chaque frame par l'appelant si le handle suit un objet qui bouge pour une
     // raison EXTÉRIEURE au drag (le HandlersManager ne connaît pas cette logique-là).
@@ -133,7 +140,9 @@ class HandlersManager : public Node
                             Camera3D *p_camera = nullptr,
                             const Color &p_default_color = Color(1.0f, 1.0f, 1.0f, 1.0f),
                             const Color &p_hover_color = Color(1.0f, 0.9f, 0.1f, 1.0f));
+    /// Retire la poignée et libère son gizmo.
     void unregister_handle_3d(const StringName &p_id);
+    /// Remplace la boîte de la poignée (objet déplacé par une autre logique que le glissement).
     void set_handle_3d_aabb(const StringName &p_id, const AABB &p_aabb_world);
     bool is_handle_3d_registered(const StringName &p_id) const;
     bool is_handle_3d_hovered(const StringName &p_id) const;

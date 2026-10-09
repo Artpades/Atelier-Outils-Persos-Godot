@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BehaviorTree" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Exécuteur d'arbre de comportement : exécute son premier enfant [BTNode] à chaque tick et recommence quand il a terminé.
 	</brief_description>
 	<description>
+		Placer ce nœud sous l'agent (le personnage à piloter), puis un [BTNode] racine dessous ([BTSelector] ou [BTSequence] le plus souvent). À chaque tick (chaque image par défaut), la racine est exécutée ; quand elle renvoie [constant BTNode.SUCCESS] ou [constant BTNode.FAILURE], [signal finished] est émis et l'arbre repart du début au tick suivant : il tourne en boucle tant qu'il est [member active].
+		Un [Blackboard] vide est créé au [code]_ready[/code] si aucun n'est assigné.
+		[codeblock]
+		# Ennemi
+		# └ BehaviorTree
+		#   └ BTSelector (reactive)
+		#     ├ BTSequence : BTCondition « vie &lt; 20 » → Fuir
+		#     └ Patrouiller
+		func _ready() -&gt; void:
+			$BehaviorTree.blackboard.set_value("vie", 100)
+			$BehaviorTree.finished.connect(func(statut): print("Cycle terminé : ", statut))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,75 +23,93 @@
 		<method name="get_agent_node" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie l'agent : le nœud de [member agent_path], ou à défaut le parent de l'arbre.
 			</description>
 		</method>
 		<method name="get_debug_snapshot" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Description de l'arbre (structure, statut et activité de chaque nœud au dernier tick) pour [BehaviorGraphView]. Appelée par la vue en graphe et par le débogueur de l'éditeur.
 			</description>
 		</method>
 		<method name="get_elapsed_time" qualifiers="const">
 			<return type="float" />
 			<description>
+				Temps cumulé des ticks (somme des [param delta]), en secondes. Sert d'horloge aux [BTCooldown].
 			</description>
 		</method>
 		<method name="get_last_status" qualifiers="const">
 			<return type="int" />
 			<description>
+				Statut renvoyé par la racine au dernier tick, ou [code]-1[/code] avant le premier tick.
 			</description>
 		</method>
 		<method name="get_root_bt_node" qualifiers="const">
 			<return type="BTNode" />
 			<description>
+				Renvoie le premier enfant [BTNode] (la racine), ou [code]null[/code]. Les autres enfants [BTNode] sont ignorés.
 			</description>
 		</method>
 		<method name="get_tick_count" qualifiers="const">
 			<return type="int" />
 			<description>
+				Nombre de ticks exécutés depuis la création de l'arbre.
 			</description>
 		</method>
 		<method name="interrupt">
 			<return type="void" />
 			<description>
+				Interrompt la branche en cours ([method BTNode.abort] sur la racine) : le prochain tick repart du début de l'arbre. Les recharges des [BTCooldown] sont conservées.
 			</description>
 		</method>
 		<method name="tick">
 			<return type="int" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Exécute la racine une fois avec [param delta] et renvoie son statut ([code]-1[/code] s'il n'y a pas de racine). Émet [signal ticked], et [signal finished] si l'arbre a terminé. Fonctionne quel que soit [member active] et [member process_callback].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="active" type="bool" setter="set_active" getter="is_active" default="true">
+			Si [code]false[/code], l'arbre n'est plus exécuté automatiquement et la branche en cours est interrompue ([method interrupt]). [method tick] fonctionne toujours, même inactif.
 		</member>
 		<member name="agent_path" type="NodePath" setter="set_agent_path" getter="get_agent_path" default="NodePath(&quot;..&quot;)">
+			Chemin de l'agent, relatif à l'arbre. Vide ou introuvable : le parent de l'arbre.
 		</member>
 		<member name="blackboard" type="Blackboard" setter="set_blackboard" getter="get_blackboard">
+			Tableau noir partagé par tous les nœuds de l'arbre. Créé vide au [code]_ready[/code] (ou au premier [method tick]) s'il n'est pas assigné.
 		</member>
 		<member name="process_callback" type="int" setter="set_process_callback" getter="get_process_callback" enum="BehaviorTree.ProcessCallback" default="0">
+			Quand l'arbre est exécuté : chaque image ([constant PROCESS_IDLE]), chaque image physique ([constant PROCESS_PHYSICS], conseillé pour un [CharacterBody2D] / [CharacterBody3D]) ou seulement par [method tick] ([constant PROCESS_MANUAL]).
 		</member>
 		<member name="tick_interval" type="float" setter="set_tick_interval" getter="get_tick_interval" default="0.0">
+			Si supérieur à 0, l'arbre n'est exécuté que tous les [member tick_interval] secondes, avec un [param delta] égal au temps cumulé. Réduit le coût de nombreux agents ; [code]0[/code] : à chaque image.
 		</member>
 	</members>
 	<signals>
 		<signal name="finished">
 			<param index="0" name="status" type="int" />
 			<description>
+				Émis quand la racine a terminé ([param status] = [constant BTNode.SUCCESS] ou [constant BTNode.FAILURE]). L'arbre recommence au tick suivant : ce signal est donc émis à chaque cycle.
 			</description>
 		</signal>
 		<signal name="ticked">
 			<param index="0" name="status" type="int" />
 			<description>
+				Émis après chaque tick, avec le statut de la racine.
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="PROCESS_IDLE" value="0" enum="ProcessCallback">
+			Exécuté dans [method Node._process], à chaque image.
 		</constant>
 		<constant name="PROCESS_PHYSICS" value="1" enum="ProcessCallback">
+			Exécuté dans [method Node._physics_process], à chaque image physique.
 		</constant>
 		<constant name="PROCESS_MANUAL" value="2" enum="ProcessCallback">
+			Jamais exécuté automatiquement : appeler [method tick] soi-même (tour par tour, IA à fréquence choisie...).
 		</constant>
 	</constants>
 </class>

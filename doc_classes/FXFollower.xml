@@ -1,25 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXFollower" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		〰️ Effet qui déplace la cible au centre d'un ou plusieurs nœuds suivis, avec un zoom automatique optionnel pour une [Camera2D].
 	</brief_description>
 	<description>
+		Tant que l'effet est actif, la position globale de la cible (un [Node2D] ou un [Node3D]) rejoint à chaque frame la moyenne des positions des nœuds [member targets], en douceur ([member use_interpolation]) ou instantanément.
+		Si la cible est une [Camera2D] et qu'au moins deux nœuds sont suivis, [member auto_zoom_2d] adapte aussi son zoom pour les garder tous à l'écran : la caméra de combat à plusieurs joueurs typique.
+		Les chemins de [member targets] sont relatifs au [PlayerFX] qui joue l'effet ; seuls les nœuds de même dimension que la cible (2D ou 3D) sont pris en compte. L'arrêt de l'effet laisse la cible où elle est.
+		[codeblock]
+		# Camera2D
+		# └─ PlayerFX
+		func _ready() -> void:
+			var suivi := FXFollower.new()
+			suivi.targets = [NodePath("../../Joueur1"), NodePath("../../Joueur2")]
+			suivi.follow_speed = 4.0
+			$Camera2D/PlayerFX.special_effects = [suivi]
+			$Camera2D/PlayerFX.play()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="auto_zoom_2d" type="bool" setter="set_auto_zoom_2d" getter="get_auto_zoom_2d" default="true">
+			Si la cible est une [Camera2D] et qu'au moins deux nœuds sont suivis, règle son zoom pour que tous tiennent dans l'écran, marge [member zoom_margin] comprise. Sans effet sur un autre nœud ou avec un seul nœud suivi.
 		</member>
 		<member name="follow_speed" type="float" setter="set_follow_speed" getter="get_follow_speed" default="5.0">
+			Rapidité de l'interpolation de la position (et du zoom) quand [member use_interpolation] est actif : fraction [code]follow_speed × delta[/code] de l'écart rattrapée à chaque frame.
 		</member>
 		<member name="max_zoom" type="Vector2" setter="set_max_zoom" getter="get_max_zoom" default="Vector2(2, 2)">
+			Zoom maximal de la [Camera2D] (le plus rapproché) quand les nœuds suivis sont proches les uns des autres.
 		</member>
 		<member name="min_zoom" type="Vector2" setter="set_min_zoom" getter="get_min_zoom" default="Vector2(0.5, 0.5)">
+			Zoom minimal de la [Camera2D] (le plus éloigné) quand les nœuds suivis sont très écartés. Au-delà, certains peuvent sortir de l'écran.
 		</member>
 		<member name="targets" type="NodePath[]" setter="set_targets" getter="get_targets" default="[]">
+			Chemins des nœuds suivis, relatifs au [PlayerFX]. La cible rejoint la moyenne de leurs positions globales ; les chemins introuvables ou d'une autre dimension sont ignorés. Sans [PlayerFX], aucun nœud n'est trouvé.
 		</member>
 		<member name="use_interpolation" type="bool" setter="set_use_interpolation" getter="get_use_interpolation" default="true">
+			Si [code]true[/code], la cible rejoint le centre progressivement (selon [member follow_speed]) ; sinon, elle y est placée à chaque frame.
 		</member>
 		<member name="zoom_margin" type="float" setter="set_zoom_margin" getter="get_zoom_margin" default="100.0">
+			Marge en pixels ajoutée de chaque côté du rectangle englobant les nœuds suivis, pour le calcul du zoom automatique.
 		</member>
 	</members>
 </class>

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ForceZone3D" inherits="Area3D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🧲 Zone de force 3D : vent, aimant, tourbillon ou freinage appliqués aux corps qui la traversent.
 	</brief_description>
 	<description>
+		[Area3D] dont la forme est donnée par une [CollisionShape3D] enfant. Mêmes modes qu'en 2D ; le tourbillon tourne autour de l'axe Y local de la zone. Les [RigidBody3D] reçoivent la force directement, les [CharacterBody3D] par leurs composants de mouvement ([method MovementComponent.external_acceleration_3d]).
+		[codeblock]
+		# Tornade qui tourne et aspire légèrement.
+		$Tornade.mode = ForceZone3D.MODE_VORTEX
+		$Tornade.strength = 20.0
+		$Tornade.falloff = ForceZone3D.FALLOFF_INVERSE_SQUARE
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,53 +20,76 @@
 			<param index="0" name="point" type="Vector3" />
 			<param index="1" name="velocity" type="Vector3" />
 			<description>
+				Renvoie l'accélération que subit un corps situé en [param point] (global) avec la vitesse [param velocity] (utilisée seulement en [constant MODE_DRAG]), atténuation et turbulence comprises. Ne vérifie pas que le point est dans la zone ; renvoie zéro si la zone est désactivée.
 			</description>
 		</method>
 		<method name="get_acceleration_on" qualifiers="static">
 			<return type="Vector3" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la somme des accélérations des zones actives (avec [member affect_characters]) qui chevauchent [param body], calculées à sa position avec sa vitesse s'il s'agit d'un [CharacterBody3D]. C'est ce qu'utilise [method MovementComponent.external_acceleration_3d].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="affect_characters" type="bool" setter="set_affect_characters" getter="get_affect_characters" default="true">
+			Si [code]true[/code], la zone est prise en compte par [method get_acceleration_on], donc par les composants de mouvement des personnages.
 		</member>
 		<member name="affect_rigid_bodies" type="bool" setter="set_affect_rigid_bodies" getter="get_affect_rigid_bodies" default="true">
+			Si [code]true[/code], les [RigidBody3D] présents reçoivent la force (masse × accélération) à chaque image physique.
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu le contour de la forme, une grille de flèches montrant le champ d'accélération, le mode et l'intensité.
 		</member>
 		<member name="direction" type="Vector3" setter="set_direction" getter="get_direction" default="Vector3(1, 0, 0)">
+			Direction de la force en mode [constant MODE_DIRECTIONAL] (normalisée au calcul). Exprimée dans le repère de la zone si [member local_direction].
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], la zone n'exerce plus aucune force.
 		</member>
 		<member name="falloff" type="int" setter="set_falloff" getter="get_falloff" default="0">
+			Atténuation selon la distance au centre (position de la zone) : [constant FALLOFF_NONE], [constant FALLOFF_LINEAR] ou [constant FALLOFF_INVERSE_SQUARE].
 		</member>
 		<member name="falloff_radius" type="float" setter="set_falloff_radius" getter="get_falloff_radius" default="5.0">
+			Distance de référence de l'atténuation, en m : intensité nulle à cette distance en linéaire, divisée par deux en inverse du carré.
 		</member>
 		<member name="local_direction" type="bool" setter="set_local_direction" getter="get_local_direction" default="true">
+			Si [code]true[/code], [member direction] suit la rotation de la zone (un ventilateur qu'on tourne souffle dans son axe).
 		</member>
 		<member name="mode" type="int" setter="set_mode" getter="get_mode" default="0">
+			Type de force : [constant MODE_DIRECTIONAL], [constant MODE_ATTRACT], [constant MODE_VORTEX] ou [constant MODE_DRAG].
 		</member>
 		<member name="strength" type="float" setter="set_strength" getter="get_strength" default="15.0">
+			Intensité de l'accélération, en m/s² (négative : sens inverse, par exemple répulsion en attraction). En [constant MODE_DRAG], coefficient de freinage par seconde.
 		</member>
 		<member name="turbulence" type="float" setter="set_turbulence" getter="get_turbulence" default="0.0">
+			Variation douce et pseudo-aléatoire de l'intensité, de 0 (constante) à 1 (de 0 à 2 fois l'intensité). Chaque zone a sa propre variation.
 		</member>
 		<member name="turbulence_speed" type="float" setter="set_turbulence_speed" getter="get_turbulence_speed" default="1.5">
+			Vitesse de variation de la turbulence.
 		</member>
 	</members>
 	<constants>
 		<constant name="MODE_DIRECTIONAL" value="0" enum="Mode">
+			Force de direction fixe ([member direction]) : vent, tapis roulant, courant, ascenseur d'air.
 		</constant>
 		<constant name="MODE_ATTRACT" value="1" enum="Mode">
+			Force vers le centre de la zone (vers l'extérieur si [member strength] est négative) : aimant, trou noir, champ répulsif.
 		</constant>
 		<constant name="MODE_VORTEX" value="2" enum="Mode">
+			Force tangentielle autour de l'axe Y local de la zone : tornade, siphon. Strength positive = sens anti-horaire vu de dessus.
 		</constant>
 		<constant name="MODE_DRAG" value="3" enum="Mode">
+			Force opposée à la vitesse : boue, mélasse, ralentisseur.
 		</constant>
 		<constant name="FALLOFF_NONE" value="0" enum="Falloff">
+			Intensité identique dans toute la zone.
 		</constant>
 		<constant name="FALLOFF_LINEAR" value="1" enum="Falloff">
+			1 au centre, 0 à [member falloff_radius] et au-delà.
 		</constant>
 		<constant name="FALLOFF_INVERSE_SQUARE" value="2" enum="Falloff">
+			1 / (1 + (distance / [member falloff_radius])²) : décroissance douce, jamais nulle.
 		</constant>
 	</constants>
 </class>

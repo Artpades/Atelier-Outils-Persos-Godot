@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTSendEvent" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Envoie un événement à une [StateMachine] : passerelle de l'arbre de comportement vers la machine à états.
 	</brief_description>
 	<description>
+		Permet de combiner les deux modèles : l'arbre décide (« la cible est à portée »), la machine à états gère l'animation ou la posture ([code]send_event("attaquer")[/code]). Échoue si l'agent, l'événement ou la machine est absent, ou si la machine n'est pas démarrée.
+		[codeblock]
+		var alerte := BTSendEvent.new()
+		alerte.event = &amp;"alerte"     # première StateMachine enfant de l'agent
+		alerte.require_consumed = true
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="event" type="StringName" setter="set_event" getter="get_event" default="&amp;&quot;&quot;">
+			Événement envoyé par [method StateMachine.send_event].
 		</member>
 		<member name="require_consumed" type="bool" setter="set_require_consumed" getter="get_require_consumed" default="false">
+			Si [code]true[/code], le nœud échoue quand aucun état n'a consommé l'événement ni franchi de transition. Si [code]false[/code], il réussit dès que la machine tourne.
 		</member>
 		<member name="state_machine_path" type="NodePath" setter="set_state_machine_path" getter="get_state_machine_path" default="NodePath(&quot;&quot;)">
+			Chemin de la [StateMachine], relatif à l'agent. Vide : la première [StateMachine] enfant direct de l'agent.
 		</member>
 	</members>
 </class>

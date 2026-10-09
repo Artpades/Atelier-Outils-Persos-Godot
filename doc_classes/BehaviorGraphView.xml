@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BehaviorGraphView" inherits="Control" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Vue en graphe (TechTree, arbre vertical ou MindMap) d'une [StateMachine], d'un [BehaviorTree] ou d'un [DialogueSystem], pour déboguer en jeu.
 	</brief_description>
 	<description>
+		Le contrôle dessine un « instantané » ([Dictionary] renvoyé par [code]get_debug_snapshot()[/code] des exécuteurs) :
+		- en direct : [member target_path] ou [method set_target], l'instantané est relu tous les [member refresh_interval] secondes ;
+		- à distance : [method set_snapshot] avec un instantané reçu d'ailleurs (c'est ce que fait l'éditeur pour un jeu en cours d'exécution).
+		La hiérarchie est dessinée en arbre, les transitions de la machine à états en arcs fléchés. Couleurs : état actif en cyan, [constant BTNode.RUNNING] en ambre, [constant BTNode.SUCCESS] en vert, [constant BTNode.FAILURE] en rouge ; les nœuds non exécutés au dernier tick sont estompés.
+		Souris : molette = zoom, glisser le fond (ou clic milieu) = déplacer, clic = sélection, double-clic = activation, clic droit = menu contextuel, pastille +/- = replier une branche. Clavier : [kbd]F[/kbd] = tout afficher, [kbd]+[/kbd] / [kbd]-[/kbd] = zoom, [kbd]Suppr[/kbd] = [signal delete_requested] (mode [member editable]).
+		La vue ne modifie jamais le comportement : en mode [member editable], elle émet seulement des signaux que votre code traite.
+		[codeblock]
+		func _ready() -&gt; void:
+			var vue := BehaviorGraphView.new()
+			vue.custom_minimum_size = Vector2(600, 300)
+			vue.layout_mode = BehaviorGraphView.LAYOUT_MIND_MAP
+			$Interface.add_child(vue)
+			vue.set_target($Garde/StateMachine)
+			vue.node_activated.connect(func(id): print("Double-clic sur ", id))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,181 +27,219 @@
 			<return type="void" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Centre la vue sur le nœud [param id], sans changer le zoom.
 			</description>
 		</method>
 		<method name="clear">
 			<return type="void" />
 			<description>
+				Vide la vue (sans changer de cible : une cible en direct la remplira de nouveau).
 			</description>
 		</method>
 		<method name="fit_to_view">
 			<return type="void" />
 			<description>
+				Recadre la vue pour afficher tout le graphe (zoom limité à 1,25). Différé si la vue n'a pas encore de taille.
 			</description>
 		</method>
 		<method name="get_node_at" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="position" type="Vector2" />
 			<description>
+				Renvoie l'identifiant du nœud sous [param position] (repère du contrôle), ou une chaîne vide.
 			</description>
 		</method>
 		<method name="get_node_data" qualifiers="const">
 			<return type="Dictionary" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Renvoie les données d'un nœud telles qu'elles figurent dans l'instantané ([code]name[/code], [code]class[/code], [code]kind[/code], [code]status[/code], [code]active[/code], [code]info[/code], [code]links[/code]...), ou un dictionnaire vide.
 			</description>
 		</method>
 		<method name="get_node_ids" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
+				Renvoie les identifiants de tous les nœuds de l'instantané. Les identifiants sont les chemins relatifs à l'exécuteur ([code]"."[/code] pour lui-même), ou les [member DialogueNode.node_id] pour un dialogue.
 			</description>
 		</method>
 		<method name="get_node_rect" qualifiers="const">
 			<return type="Rect2" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Renvoie le rectangle d'un nœud dans le repère du contrôle, ou un [Rect2] vide s'il est masqué ou absent.
 			</description>
 		</method>
 		<method name="get_selected_id" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie l'identifiant du nœud sélectionné (vide si aucun).
 			</description>
 		</method>
 		<method name="get_snapshot" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie l'instantané actuellement affiché.
 			</description>
 		</method>
 		<method name="get_target" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie l'exécuteur affiché en direct, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_view_offset" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie le décalage de la vue.
 			</description>
 		</method>
 		<method name="get_zoom" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie le zoom actuel.
 			</description>
 		</method>
 		<method name="is_collapsed" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Renvoie [code]true[/code] si la branche sous [param id] est repliée.
 			</description>
 		</method>
 		<method name="refresh">
 			<return type="void" />
 			<description>
+				Relit immédiatement l'instantané de la cible. Sans effet sans cible.
 			</description>
 		</method>
 		<method name="resolve_runner" qualifiers="static">
 			<return type="Node" />
 			<param index="0" name="node" type="Node" />
 			<description>
+				Renvoie l'exécuteur dont fait partie [param node] : la [StateMachine] racine d'un [State], le [BehaviorTree] d'un [BTNode], ou le nœud lui-même s'il s'agit d'un [BehaviorTree] ou d'un [DialogueSystem]. [code]null[/code] sinon.
 			</description>
 		</method>
 		<method name="set_selected_id">
 			<return type="void" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Sélectionne le nœud d'identifiant [param id] (sans émettre de signal).
 			</description>
 		</method>
 		<method name="set_snapshot">
 			<return type="void" />
 			<param index="0" name="snapshot" type="Dictionary" />
 			<description>
+				Affiche un instantané fourni directement (format de [method StateMachine.get_debug_snapshot], [method BehaviorTree.get_debug_snapshot] ou [method DialogueResource.get_graph_snapshot]). Avec une cible en direct, il sera remplacé à la prochaine relecture.
 			</description>
 		</method>
 		<method name="set_target">
 			<return type="void" />
 			<param index="0" name="target" type="Node" />
 			<description>
+				Affiche le comportement de [param target] (ou celui dont il fait partie, voir [method resolve_runner]). [code]null[/code] ou un nœud sans comportement vide la vue.
 			</description>
 		</method>
 		<method name="set_view_offset">
 			<return type="void" />
 			<param index="0" name="offset" type="Vector2" />
 			<description>
+				Règle le décalage de la vue : position à l'écran = position dans le graphe × zoom + décalage.
 			</description>
 		</method>
 		<method name="set_zoom">
 			<return type="void" />
 			<param index="0" name="zoom" type="float" />
 			<description>
+				Règle le zoom (entre 0,2 et 3) autour du centre de la vue.
 			</description>
 		</method>
 		<method name="toggle_collapsed">
 			<return type="void" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Replie ou déplie la branche sous le nœud [param id].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="clip_contents" type="bool" setter="set_clip_contents" getter="is_clipping_contents" overrides="Control" default="true" />
 		<member name="editable" type="bool" setter="set_editable" getter="is_editable" default="false">
+			Si [code]true[/code], glisser un nœud sur un autre émet [signal node_dropped], Maj + glisser émet [signal link_requested] et [kbd]Suppr[/kbd] émet [signal delete_requested]. La vue elle-même ne modifie rien.
 		</member>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="1" />
 		<member name="layout_mode" type="int" setter="set_layout_mode" getter="get_layout_mode" enum="BehaviorGraphView.LayoutMode" default="0">
+			Disposition : [constant LAYOUT_TECH_TREE], [constant LAYOUT_TOP_DOWN] ou [constant LAYOUT_MIND_MAP]. Changer de disposition recadre la vue.
 		</member>
 		<member name="live_update" type="bool" setter="set_live_update" getter="is_live_update" default="true">
+			Si [code]true[/code], l'instantané de la cible est relu automatiquement tous les [member refresh_interval] secondes. Si la cible est libérée, la vue se vide.
 		</member>
 		<member name="placeholder_text" type="String" setter="set_placeholder_text" getter="get_placeholder_text" default="&quot;Aucun comportement à afficher : choisissez une StateMachine ou un BehaviorTree.&quot;">
+			Texte affiché quand il n'y a rien à dessiner.
 		</member>
 		<member name="refresh_interval" type="float" setter="set_refresh_interval" getter="get_refresh_interval" default="0.1">
+			Intervalle de relecture en direct, en secondes. [code]0[/code] : à chaque image (plus coûteux : l'instantané est reconstruit entièrement).
 		</member>
 		<member name="show_history" type="bool" setter="set_show_history" getter="get_show_history" default="true">
+			Affiche en surimpression les dernières entrées de l'historique (transitions, répliques de dialogue) contenues dans l'instantané.
 		</member>
 		<member name="show_transition_labels" type="bool" setter="set_show_transition_labels" getter="get_show_transition_labels" default="true">
+			Affiche le texte des transitions (événement, condition...) sur les arcs.
 		</member>
 		<member name="target_path" type="NodePath" setter="set_target_path" getter="get_target_path" default="NodePath(&quot;&quot;)">
+			Chemin du comportement à afficher : une [StateMachine], un [BehaviorTree], ou n'importe lequel de leurs [State] / [BTNode] (l'exécuteur est retrouvé avec [method resolve_runner]). Résolu à l'entrée dans l'arbre ou à l'affectation.
 		</member>
 	</members>
 	<signals>
 		<signal name="delete_requested">
 			<param index="0" name="id" type="String" />
 			<description>
+				Mode [member editable] : [kbd]Suppr[/kbd] a été pressée avec le nœud [param id] sélectionné.
 			</description>
 		</signal>
 		<signal name="link_requested">
 			<param index="0" name="from_id" type="String" />
 			<param index="1" name="to_id" type="String" />
 			<description>
+				Mode [member editable] : Maj + glisser du nœud [param from_id] jusqu'au nœud [param to_id] (créer une transition, un lien de dialogue...).
 			</description>
 		</signal>
 		<signal name="node_activated">
 			<param index="0" name="id" type="String" />
 			<description>
+				Un nœud a été double-cliqué.
 			</description>
 		</signal>
 		<signal name="node_context_menu_requested">
 			<param index="0" name="id" type="String" />
 			<param index="1" name="screen_position" type="Vector2" />
 			<description>
+				Clic droit sur la vue : [param id] est le nœud visé (vide sur le fond), [param screen_position] la position à l'écran où ouvrir un menu.
 			</description>
 		</signal>
 		<signal name="node_dropped">
 			<param index="0" name="id" type="String" />
 			<param index="1" name="target_id" type="String" />
 			<description>
+				Mode [member editable] : le nœud [param id] a été glissé et lâché sur [param target_id].
 			</description>
 		</signal>
 		<signal name="node_selected">
 			<param index="0" name="id" type="String" />
 			<description>
+				Un nœud a été cliqué (clic gauche ou droit).
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="LAYOUT_TECH_TREE" value="0" enum="LayoutMode">
+			Racine à gauche, branches vers la droite (arbre de compétences).
 		</constant>
 		<constant name="LAYOUT_TOP_DOWN" value="1" enum="LayoutMode">
+			Racine en haut, branches vers le bas.
 		</constant>
 		<constant name="LAYOUT_MIND_MAP" value="2" enum="LayoutMode">
+			Racine au centre, branches réparties à gauche et à droite (carte mentale).
 		</constant>
 	</constants>
 </class>

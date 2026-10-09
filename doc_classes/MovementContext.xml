@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="MovementContext" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎬 Contexte de mouvement d'un [MovementDirector] : un nom, les composants actifs dans ce contexte, une condition d'activation et une priorité.
 	</brief_description>
 	<description>
+		Ressource décrivant une situation de déplacement (« sol », « eau », « mur »...). Le [MovementDirector] évalue à chaque image physique la [member condition] de chacun de ses contextes et retient celui de plus haute [member priority] dont la condition est remplie ; seuls les composants listés dans [member components] sont alors actifs.
+		[codeblock]
+		var nage := MovementContext.new()
+		nage.context_name = &amp;"eau"
+		nage.condition = MovementContext.CONDITION_IN_WATER
+		nage.priority = 50
+		nage.components = [NodePath("../SwimMovement2D")] # chemins relatifs au MovementDirector
+		var liste: Array[MovementContext] = $MovementDirector.contexts
+		liste.append(nage)
+		$MovementDirector.contexts = liste
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,39 +24,54 @@
 			<param index="0" name="body" type="Node" />
 			<param index="1" name="director" type="Node" />
 			<description>
+				Évalue [member expression] avec les variables [code]body[/code] ([param body]) et [code]director[/code] ([param director]) et renvoie le résultat converti en booléen. Renvoie [code]false[/code] si l'expression est vide, invalide (un avertissement est affiché une seule fois) ou si son exécution échoue. Appelée par le directeur pour [constant CONDITION_CUSTOM].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="components" type="NodePath[]" setter="set_components" getter="get_components" default="[]">
+			Chemins des [MovementComponent] actifs dans ce contexte, [b]relatifs au [MovementDirector][/b] (ex. [code]../GroundMovement2D[/code]). Un composant cité dans au moins un contexte est désactivé dans tous les autres ; un composant cité nulle part n'est jamais touché par le directeur.
 		</member>
 		<member name="condition" type="int" setter="set_condition" getter="get_condition" enum="MovementContext.Condition" default="0">
+			Quand ce contexte s'active automatiquement (voir les constantes [code]CONDITION_*[/code]).
 		</member>
 		<member name="context_name" type="StringName" setter="set_context_name" getter="get_context_name" default="&amp;&quot;&quot;">
+			Nom du contexte, utilisé par [method MovementDirector.set_context], [method MovementDirector.get_current_context] et le signal [signal MovementDirector.context_changed]. Deux contextes ne doivent pas porter le même nom.
 		</member>
 		<member name="expression" type="String" setter="set_expression" getter="get_expression" default="&quot;&quot;">
+			Expression Godot ([Expression]) évaluée pour [constant CONDITION_CUSTOM]. Variables disponibles : [code]body[/code] (le corps) et [code]director[/code] (le [MovementDirector]). Ex. : [code]director.is_in_air() and body.velocity.y &gt; 0[/code].
 		</member>
 		<member name="priority" type="int" setter="set_priority" getter="get_priority" default="0">
+			Priorité du contexte : parmi ceux dont la condition est remplie, le plus élevé l'emporte. À égalité, le premier de la liste [member MovementDirector.contexts] est retenu.
 		</member>
 	</members>
 	<constants>
 		<constant name="CONDITION_ALWAYS" value="0" enum="Condition">
+			Toujours rempli : contexte par défaut (en général le sol, avec la plus basse priorité).
 		</constant>
 		<constant name="CONDITION_ON_FLOOR" value="1" enum="Condition">
+			Rempli quand le corps est au sol ([method MovementDirector.is_on_floor]).
 		</constant>
 		<constant name="CONDITION_IN_AIR" value="2" enum="Condition">
+			Rempli quand le corps n'est pas au sol.
 		</constant>
 		<constant name="CONDITION_IN_WATER" value="3" enum="Condition">
+			Rempli quand le corps est dans une [WaterArea2D] ou une [WaterArea3D].
 		</constant>
 		<constant name="CONDITION_ON_WALL" value="4" enum="Condition">
+			Rempli quand un [CharacterBody2D] / [CharacterBody3D] touche un mur sans être au sol.
 		</constant>
 		<constant name="CONDITION_ON_ROPE" value="5" enum="Condition">
+			Rempli quand le corps est accroché à une [Rope2D] ou une [Rope3D].
 		</constant>
 		<constant name="CONDITION_KNOCKED" value="6" enum="Condition">
+			Rempli pendant un recul ([Knockback2D] / [Knockback3D] verrouillé).
 		</constant>
 		<constant name="CONDITION_MANUAL" value="7" enum="Condition">
+			Jamais rempli automatiquement : le contexte ne s'active que par [method MovementDirector.set_context] (vol libre, véhicule, cinématique...).
 		</constant>
 		<constant name="CONDITION_CUSTOM" value="8" enum="Condition">
+			Rempli quand [member expression] s'évalue à [code]true[/code].
 		</constant>
 	</constants>
 </class>

@@ -1,23 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="RangeWidgetSettings" inherits="WidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages des widgets numériques (SpinBox, sliders, barres) : bornes, pas, suffixe.
 	</brief_description>
 	<description>
+		Présents, ils REMPLACENT entièrement l'indice [code]@export_range[/code] de la propriété (bornes comprises, même si elles sont restées à 0-100).
+		[codeblock]
+		var bornes := RangeWidgetSettings.new()
+		bornes.min_value = 0.0
+		bornes.max_value = 360.0
+		bornes.step = 1.0
+		bornes.suffix = "°"
+		registre.find(&amp;"angle").settings = bornes
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="allow_greater" type="bool" setter="set_allow_greater" getter="get_allow_greater" default="false">
+			Autorise une saisie au-dessus de [member max_value].
 		</member>
 		<member name="allow_lesser" type="bool" setter="set_allow_lesser" getter="get_allow_lesser" default="false">
+			Autorise une saisie en dessous de [member min_value].
 		</member>
 		<member name="max_value" type="float" setter="set_max_value" getter="get_max_value" default="100.0">
+			Borne haute.
 		</member>
 		<member name="min_value" type="float" setter="set_min_value" getter="get_min_value" default="0.0">
+			Borne basse.
 		</member>
 		<member name="step" type="float" setter="set_step" getter="get_step" default="0.0">
+			Pas. [code]0[/code] : automatique (1 pour un entier, 0,001 pour un décimal).
 		</member>
 		<member name="suffix" type="String" setter="set_suffix" getter="get_suffix" default="&quot;&quot;">
+			Texte affiché après la valeur d'un [SpinBox] (unité).
 		</member>
 	</members>
 </class>

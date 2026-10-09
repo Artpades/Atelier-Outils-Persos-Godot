@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TexturePreview" inherits="PreviewWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Aperçu d'une image (Texture2D).
 	</brief_description>
 	<description>
+		Affiche la texture source, proportions conservées et centrée. Source attendue : [Texture2D] (« Aucune texture » sinon).
+		[b]Note :[/b] classe d'aperçu fournie, choisie par [member PreviewSettings.preview_class].
 	</description>
 	<tutorials>
 	</tutorials>

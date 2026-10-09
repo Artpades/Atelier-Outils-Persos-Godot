@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTComposite" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Base des nœuds d'arbre de comportement à plusieurs enfants ([BTSequence], [BTSelector], [BTParallel]).
 	</brief_description>
 	<description>
+		Classe de base non instanciable seule. Sans redéfinition de [method BTNode._tick], un composite créé par script réussit immédiatement sans exécuter ses enfants : il faut alors les exécuter soi-même avec [method BTNode.execute].
+		[codeblock]
+		# Composite par script : exécute un enfant au hasard.
+		extends BTComposite
+
+		var _choisi: BTNode
+
+		func _on_enter() -&gt; void:
+			_choisi = get_bt_children().pick_random()
+
+		func _tick(delta: float) -&gt; int:
+			return _choisi.execute(delta) if _choisi else FAILURE
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

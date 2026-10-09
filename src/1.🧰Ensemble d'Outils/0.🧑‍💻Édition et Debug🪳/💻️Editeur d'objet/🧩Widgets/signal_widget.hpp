@@ -10,22 +10,22 @@
 
 namespace godot
 {
-// Signal (choix « Button ») : liste de liens « signal → méthode » à la manière d'un UnityEvent.
-// Deux modes, choisis automatiquement et affichés :
-//  - NATIF (éditeur, émetteur ET cible = nœuds de la scène éditée) : connexion CONNECT_PERSIST enregistrée
-//    dans la scène, Callable(cible, méthode).bind(constantes...).unbind(S - k). Seule correspondance
-//    possible : les k premiers paramètres reçoivent les k premiers arguments du signal, les autres sont des
-//    constantes (contrainte de bind / unbind, expliquée dans l'interface).
-//  - RESSOURCE (tous les autres cas) : SignalLink enregistrés dans DataEntry::links ; correspondance libre
-//    (ArgumentBinding par paramètre : constante, propriété, argument du signal).
-// Toute modification est UNE action d'annulation (UndoBackend::commit_calls).
+/// Signal (choix « Button ») : liste de liens « signal → méthode » à la manière d'un UnityEvent.
+/// Deux modes, choisis automatiquement et affichés :
+///  - NATIF (éditeur, émetteur ET cible = nœuds de la scène éditée) : connexion CONNECT_PERSIST enregistrée
+///    dans la scène, Callable(cible, méthode).bind(constantes...).unbind(S - k). Seule correspondance
+///    possible : les k premiers paramètres reçoivent les k premiers arguments du signal, les autres sont des
+///    constantes (contrainte de bind / unbind, expliquée dans l'interface).
+///  - RESSOURCE (tous les autres cas) : SignalLink enregistrés dans DataEntry::links ; correspondance libre
+///    (ArgumentBinding par paramètre : constante, propriété, argument du signal).
+/// Toute modification est UNE action d'annulation (UndoBackend::commit_calls).
 class SignalWidget : public PropertyWidget
 {
     GDCLASS(SignalWidget, PropertyWidget)
 
   private:
     VBoxContainer *links_box = nullptr; // enfants possédés
-    // Liens affichés : Dictionary { "link": SignalLink, "native": bool, "callable": Callable (natif connecté), "k": int }
+    /// Liens affichés : Dictionary { "link": SignalLink, "native": bool, "callable": Callable (natif connecté), "k": int }
     Array items;
     Array native_drafts; // liens natifs pas encore complets (pas de méthode) : non connectés
     Variant shown_fingerprint;
@@ -49,7 +49,7 @@ class SignalWidget : public PropertyWidget
     PropertyWidget *_build_constant(const Ref<ArgumentBinding> &p_binding, const Dictionary &p_param, bool p_undoable);
 
     void _commit_native(int64_t p_index);
-    // Affectations [objet, propriété, valeur] en UNE action annulable.
+    /// Affectations [objet, propriété, valeur] en UNE action annulable.
     void _commit_sets(const Array &p_sets);
 
     void _on_emit();
@@ -79,15 +79,15 @@ class SignalWidget : public PropertyWidget
     void pull_value(const Variant &p_value) override;
 
   public:
-    // Empreinte des liens (connexions natives + liens ressource) : suivie par le SyncController pour
-    // refléter les changements externes (annulation dans l'éditeur...).
+    /// Empreinte des liens (connexions natives + liens ressource) : suivie par le SyncController pour
+    /// refléter les changements externes (annulation dans l'éditeur...).
     Variant read_value() const override;
 
-    // Vrai si un lien natif est possible entre ces objets (éditeur, nœuds de la scène éditée).
+    /// Vrai si un lien natif est possible entre ces objets (éditeur, nœuds de la scène éditée).
     static bool is_native_eligible(Object *p_source, Object *p_target);
-    // Callable(cible, méthode).bind(constantes...).unbind(p_unbinds).
+    /// Callable(cible, méthode).bind(constantes...).unbind(p_unbinds).
     static Callable make_native_callable(Object *p_target, const StringName &p_method, const Array &p_constants, int p_unbinds);
-    // Plus grand k tel que les k premiers arguments du signal alimentent les k premiers paramètres.
+    /// Plus grand k tel que les k premiers arguments du signal alimentent les k premiers paramètres.
     static int max_native_prefix(const Array &p_signal_args, const Array &p_method_args);
 };
 } // namespace godot

@@ -1,73 +1,210 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ProceduralEditor" inherits="VBoxContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Interface d'édition générée automatiquement pour un objet (propriétés, méthodes, signaux, aperçus), utilisable en jeu comme dans l'éditeur.
 	</brief_description>
 	<description>
+		Le [ProceduralEditor] construit un widget par membre de sa cible ([method set_target]) : case à cocher pour un [code]bool[/code], [SpinBox] pour un nombre, liste déroulante pour un enum, section repliable pour une ressource, etc. Les membres affichés et leurs widgets sont décrits par un [DataRegistry] ; leur regroupement par un [GroupRegistry].
+		Choix des registres : ceux donnés à l'éditeur ([member registry], [member group_registry]) priment ; sinon l'interface du type de la cible est cherchée dans la [LayoutDatabase] ([member layout_database], ou celle du projet si [member use_layouts]) ; sinon un registre automatique est créé (interface générale).
+		Toute modification faite par l'utilisateur passe par un [UndoBackend] (un [RuntimeUndoBackend] par défaut) : une seule action d'annulation par édition. Les changements faits de l'extérieur sont relus toutes les [member sync_interval] secondes par un [SyncController] interne. Ctrl+Z / Ctrl+Maj+Z (ou Ctrl+Y) annulent et rétablissent quand la fenêtre de l'éditeur a le focus.
+		[codeblock]
+		# Fenêtre de debug : édite en jeu les propriétés du joueur.
+		func _ready() -&gt; void:
+			var editeur := ProceduralEditor.new()
+			editeur.custom_minimum_size = Vector2(360, 500)
+			$CanvasLayer/Panneau.add_child(editeur)
+			editeur.set_target($Joueur)
+		[/codeblock]
+		[b]Note :[/b] dans l'éditeur, un [ProceduralEditor] placé dans la scène éditée ne se branche pas sur sa cible déclarée ([member target_path], [member target_resource]) : le bouton « Configurer l'interface » de l'inspecteur ouvre la fenêtre de configuration et son aperçu. En jeu, la cible déclarée est appliquée au [code]_ready[/code].
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="clear_registries">
+			<return type="void" />
+			<description>
+				Oublie [member registry] et [member group_registry] sans reconstruire l'interface. À appeler avant [method set_target] pour que la nouvelle cible reprenne l'interface de son type : sinon le registre automatique créé pour une cible précédente est réutilisé.
+			</description>
+		</method>
+		<method name="evaluate_behaviors">
+			<return type="void" />
+			<description>
+				Réévalue tout de suite les comportements ([member DataRegistry.behaviors]) du registre actif. C'est aussi fait après chaque relecture du [SyncController] et chaque reconstruction.
+			</description>
+		</method>
+		<method name="get_active_group_registry" qualifiers="const">
+			<return type="GroupRegistry" />
+			<description>
+				Renvoie le [GroupRegistry] réellement utilisé pour la cible actuelle.
+			</description>
+		</method>
+		<method name="get_active_layout" qualifiers="const">
+			<return type="TypeLayout" />
+			<description>
+				Renvoie le [TypeLayout] de la cible actuelle, ou [code]null[/code] si l'interface vient des registres de l'éditeur ou d'un registre automatique.
+			</description>
+		</method>
+		<method name="get_active_registry" qualifiers="const">
+			<return type="DataRegistry" />
+			<description>
+				Renvoie le [DataRegistry] réellement utilisé pour la cible actuelle (celui de l'éditeur, celui du type ou un registre automatique).
+			</description>
+		</method>
+		<method name="get_effective_layout_database" qualifiers="const">
+			<return type="LayoutDatabase" />
+			<description>
+				Renvoie [member layout_database], sinon la base du projet ([method LayoutDatabase.load_project_database]).
+			</description>
+		</method>
+		<method name="get_effective_style" qualifiers="const">
+			<return type="InterfaceStyle" />
+			<description>
+				Renvoie le style global appliqué : [member style], sinon celui du [TypeLayout] actif, sinon le style par défaut du projet ([method InterfaceStyle.load_project_default]). [code]null[/code] si [member styles_enabled] est faux.
+			</description>
+		</method>
 		<method name="get_factory" qualifiers="const">
 			<return type="WidgetFactory" />
 			<description>
+				Renvoie la [WidgetFactory] de l'éditeur ([code]null[/code] tant qu'aucun widget n'a été construit et qu'aucune fabrique n'a été donnée).
+			</description>
+		</method>
+		<method name="get_gizmo_host" qualifiers="const">
+			<return type="GizmoHost" />
+			<description>
+				Renvoie le [GizmoHost] interne qui dessine les gizmos du type de la cible, ou [code]null[/code] s'il n'a jamais été nécessaire.
+			</description>
+		</method>
+		<method name="get_rich_tooltip" qualifiers="const">
+			<return type="RichTooltip" />
+			<description>
+				Renvoie l'infobulle enrichie interne ([RichTooltip]) qui affiche le BBCode des infobulles des widgets.
+			</description>
+		</method>
+		<method name="get_styled_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Renvoie le nombre d'éléments de l'interface dont des uniforms de shader sont liés à des valeurs de la cible (mis à jour en direct).
 			</description>
 		</method>
 		<method name="get_target" qualifiers="const">
 			<return type="Object" />
 			<description>
+				Renvoie l'objet édité, ou [code]null[/code] s'il n'y en a pas ou s'il a été libéré.
 			</description>
 		</method>
 		<method name="get_undo_backend">
 			<return type="UndoBackend" />
 			<description>
+				Renvoie le système d'annulation utilisé. En crée un ([RuntimeUndoBackend]) au premier appel si aucun n'a été donné.
 			</description>
 		</method>
 		<method name="get_widget" qualifiers="const">
 			<return type="PropertyWidget" />
 			<param index="0" name="property" type="StringName" />
 			<description>
+				Renvoie le widget de premier niveau de la donnée [param property], ou [code]null[/code] si elle n'est pas affichée.
+			</description>
+		</method>
+		<method name="is_scroll_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si le défilement vertical est actif (par défaut : non, l'éditeur prend la hauteur de son contenu).
+			</description>
+		</method>
+		<method name="reapply_links">
+			<return type="void" />
+			<description>
+				Retire les liens de signaux (mode ressource) connectés par cet éditeur, puis connecte ceux du registre actif à la cible. Ne fait rien dans l'éditeur, ni pour un nœud dont l'interface vient de la base par type (le [LayoutLinker] s'en charge).
 			</description>
 		</method>
 		<method name="rebuild">
 			<return type="void" />
 			<description>
+				Détruit et reconstruit tous les widgets depuis le registre actif, avec les groupes, les styles et les comportements.
 			</description>
 		</method>
 		<method name="redo">
 			<return type="bool" />
 			<description>
+				Rétablit la dernière action annulée via l'[UndoBackend], puis rafraîchit les widgets. Renvoie [code]true[/code] si une action a été rétablie (dans l'éditeur, le raccourci est transmis à l'éditeur Godot).
+			</description>
+		</method>
+		<method name="resolve_declared_target" qualifiers="const">
+			<return type="Object" />
+			<description>
+				Renvoie la cible déclarée : [member target_resource] si elle est renseignée, sinon le nœud à [member target_path] (relatif à cet éditeur, qui doit être dans l'arbre), sinon [code]null[/code].
 			</description>
 		</method>
 		<method name="set_factory">
 			<return type="void" />
 			<param index="0" name="factory" type="WidgetFactory" />
 			<description>
+				Remplace la fabrique de widgets (pour substituer des classes de widgets) puis reconstruit l'interface.
+			</description>
+		</method>
+		<method name="set_scroll_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Active ou non le défilement vertical. Activé, l'éditeur s'étend en hauteur ; désactivé, il prend la hauteur de son contenu (pour s'insérer dans une liste).
 			</description>
 		</method>
 		<method name="set_target">
 			<return type="void" />
 			<param index="0" name="target" type="Object" />
 			<description>
+				Change l'objet édité : résout les registres, synchronise le registre actif avec les membres de [param target], reconstruit l'interface, applique les liens de signaux (en jeu) et les gizmos du type.
 			</description>
 		</method>
 		<method name="set_undo_backend">
 			<return type="void" />
 			<param index="0" name="backend" type="UndoBackend" />
 			<description>
+				Remplace le système d'annulation (ex : un [EditorUndoBackend] pour que les modifications rejoignent l'historique de l'éditeur Godot).
 			</description>
 		</method>
 		<method name="undo">
 			<return type="bool" />
 			<description>
+				Annule la dernière action via l'[UndoBackend], puis rafraîchit les widgets. Renvoie [code]true[/code] si une action a été annulée.
 			</description>
 		</method>
 	</methods>
 	<members>
+		<member name="draw_gizmos" type="bool" setter="set_draw_gizmos" getter="get_draw_gizmos" default="true">
+			Si [code]true[/code], les gizmos du [TypeLayout] de la cible sont dessinés pour elle (par un [GizmoHost] interne).
+		</member>
+		<member name="group_registry" type="GroupRegistry" setter="set_group_registry" getter="get_group_registry">
+			Groupes de données imposés. Créé automatiquement (vide) quand un [member registry] est donné sans groupes.
+		</member>
+		<member name="layout_database" type="LayoutDatabase" setter="set_layout_database" getter="get_layout_database">
+			Base des interfaces par type à utiliser. Vide : la base du projet (réglage [code]gameplay_toolkit/object_editor/layout_database[/code]).
+		</member>
+		<member name="max_depth" type="int" setter="set_max_depth" getter="get_max_depth" default="4">
+			Profondeur maximale des valeurs imbriquées (sous-ressources, éléments de collections), de 1 à 16. Au-delà, un simple texte remplace le widget.
+		</member>
 		<member name="registry" type="DataRegistry" setter="set_registry" getter="get_registry">
+			Registre des données imposé. Le modifier resynchronise le registre avec la cible et reconstruit l'interface. Vide : interface du type de la cible, sinon registre automatique.
 		</member>
 		<member name="size_flags_horizontal" type="int" setter="set_h_size_flags" getter="get_h_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
 		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+		<member name="style" type="InterfaceStyle" setter="set_style" getter="get_style">
+			Style global de l'interface ; prioritaire sur celui du [TypeLayout] et sur le style par défaut du projet.
+		</member>
+		<member name="styles_enabled" type="bool" setter="set_styles_enabled" getter="get_styles_enabled" default="true">
+			Si [code]false[/code], aucun style n'est appliqué (ni global, ni de groupe, ni de widget). Utilisé par les fenêtres de configuration pour garder le thème de l'éditeur Godot.
+		</member>
 		<member name="sync_interval" type="float" setter="set_sync_interval" getter="get_sync_interval" default="0.1">
+			Intervalle, en secondes, de relecture des valeurs de la cible par le [SyncController]. [code]0[/code] : à chaque image.
+		</member>
+		<member name="target_path" type="NodePath" setter="set_target_path" getter="get_target_path" default="NodePath(&quot;&quot;)">
+			Chemin (relatif à cet éditeur) du nœud à éditer, appliqué au [code]_ready[/code] en jeu.
+		</member>
+		<member name="target_resource" type="Resource" setter="set_target_resource" getter="get_target_resource">
+			Ressource à éditer, prioritaire sur [member target_path], appliquée au [code]_ready[/code] en jeu.
+		</member>
+		<member name="use_layouts" type="bool" setter="set_use_layouts" getter="get_use_layouts" default="true">
+			Si [code]true[/code], l'interface du type de la cible est cherchée dans la base ; sinon l'interface générale est utilisée.
 		</member>
 	</members>
 </class>

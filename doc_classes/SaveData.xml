@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SaveData" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💾 Données d'un système de jeu à sauvegarder : identifiant (nom du fichier), dictionnaire de valeurs et réglages de chiffrement.
 	</brief_description>
 	<description>
+		Ressource qui regroupe les données d'un système de jeu (joueur, inventaire, réglages...) et la façon de les écrire. [method get_system_id] donne le nom du fichier, [method get_data] le contenu, [method get_is_encrypted] et [method get_encryption_key] le chiffrement, [method get_file_config] l'emplacement.
+		Le contenu est écrit en JSON (voir [SaveSerializer]) : seuls les types JSON (nombres, textes, booléens, tableaux, dictionnaires, [code]null[/code]) reviennent tels quels. Un [Vector2], une [Color] ou un objet est relu sous forme de texte, et un entier est relu comme un [float].
+		Les valeurs sont accessibles par les méthodes ci-dessous, et aussi comme propriétés [code]system_id[/code], [code]data[/code], [code]is_encrypted[/code], [code]encryption_key[/code] et [code]file_config[/code].
+		[codeblock]
+		var profil := SaveData.new()
+		profil.set_system_id("profil")
+		profil.set_encryption_key("ma_cle_secrete_de_32_caracteres!")
+		profil.get_data()["pseudo"] = "Artpade"   # le Dictionary est partagé : la modification est conservée
+		profil.get_data()["niveau"] = 12
+		SaveManager.save(profil, profil.get_file_config())
+
+		var relu := SaveManager.load(profil, profil.get_file_config())
+		if relu:
+			print(relu.get_data()["niveau"]) # 12.0 : les nombres JSON sont relus en float
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,56 +26,66 @@
 		<method name="get_data" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie le dictionnaire des données. Un [Dictionary] est partagé par référence : le modifier modifie celui du [SaveData].
 			</description>
 		</method>
 		<method name="get_encryption_key" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie la clé de chiffrement (par défaut [code]"REMPLACER_PAR_UNE_CLE_SECRETE_32"[/code], à changer).
 			</description>
 		</method>
 		<method name="get_file_config" qualifiers="const">
 			<return type="SaveConfig" />
 			<description>
+				Renvoie la [SaveConfig] utilisée pour ce système. Une [SaveConfig] est créée automatiquement avec chaque [SaveData].
 			</description>
 		</method>
 		<method name="get_is_encrypted" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si les données sont chiffrées à l'écriture (par défaut). Ce réglage choisit aussi l'extension du fichier lu et écrit.
 			</description>
 		</method>
 		<method name="get_system_id" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie l'identifiant du système, qui sert de nom de fichier (sans extension).
 			</description>
 		</method>
 		<method name="set_data">
 			<return type="void" />
 			<param index="0" name="data" type="Dictionary" />
 			<description>
+				Remplace le dictionnaire des données. Les clés doivent être des textes pour survivre au passage par JSON.
 			</description>
 		</method>
 		<method name="set_encryption_key">
 			<return type="void" />
 			<param index="0" name="key" type="String" />
 			<description>
+				Règle la clé de chiffrement AES-256. Elle est convertie en UTF-8 puis tronquée ou complétée par des zéros à 32 octets : une clé plus courte reste utilisable mais affaiblit le chiffrement. Les 16 premiers octets servent aussi de vecteur d'initialisation, écrit en clair en tête du fichier : voir [method SaveFileAccess.write].
 			</description>
 		</method>
 		<method name="set_file_config">
 			<return type="void" />
 			<param index="0" name="config" type="SaveConfig" />
 			<description>
+				Remplace la [SaveConfig] (dossier et extensions) de ce système.
 			</description>
 		</method>
 		<method name="set_is_encrypted">
 			<return type="void" />
 			<param index="0" name="encrypted" type="bool" />
 			<description>
+				Active ou désactive le chiffrement. La lecture doit utiliser le même réglage que l'écriture : un fichier [code].sav[/code] n'est pas cherché quand le chiffrement est désactivé, et inversement.
 			</description>
 		</method>
 		<method name="set_system_id">
 			<return type="void" />
 			<param index="0" name="id" type="String" />
 			<description>
+				Règle l'identifiant du système (nom du fichier). Éviter les caractères interdits dans un nom de fichier ([code]/[/code], [code]:[/code]...).
 			</description>
 		</method>
 	</methods>

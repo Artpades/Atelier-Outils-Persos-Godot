@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputCircleAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action directionnelle 2D (Vector2, longueur ≤ 1) : stick de manette, 4 touches, 4 boutons (croix directionnelle).
 	</brief_description>
 	<description>
+		Valeur [Vector2] de longueur au plus 1, [b]y vers le bas[/b] comme [method Input.get_vector] ([member invert_y] pour l'inverser). Le stick ([member joy_axis_x], [member joy_axis_y], zone morte radiale remise à l'échelle) est prioritaire dès qu'il sort de sa zone morte ; sinon, les touches et boutons sont additionnés puis normalisés (une diagonale vaut une longueur de 1).
+		Par défaut : touches WASD (positions ZQSD sur AZERTY avec [member InputAction.physical_keys]), stick gauche et croix directionnelle. Les préréglages [member key_preset], [member joy_preset] et [member dpad_preset] remplissent les entrées d'un coup ; ils sont recalculés d'après les entrées et ne sont pas enregistrés.
+		Signaux : [signal value_changed], [signal velocity_changed], [signal orientation_changed].
+		[codeblock]
+		var marche := InputCircleAction.new()
+		marche.action_name = &amp;"marche"
+		marche.key_preset = InputCircleAction.KEYS_ARROWS
+		marche.value_changed.connect(func(direction: Vector2): $Joueur.velocity = direction * 200.0)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,86 +20,116 @@
 		<method name="get_orientation" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie l'angle (radians, [method Vector2.angle]) de la dernière direction non nulle : il est conservé quand le stick revient au repos.
 			</description>
 		</method>
 		<method name="get_vector" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la direction courante (longueur ≤ 1).
 			</description>
 		</method>
 		<method name="get_velocity" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la variation de la direction par seconde lors de la dernière mise à jour.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="down_key" type="int" setter="set_down_key" getter="get_down_key" default="83">
+			Touche « bas » ([code]0[/code] = aucune).
 		</member>
 		<member name="dpad_down" type="int" setter="set_dpad_down" getter="get_dpad_down" default="12">
+			Bouton de manette « bas » ([code]-1[/code] = aucun).
 		</member>
 		<member name="dpad_left" type="int" setter="set_dpad_left" getter="get_dpad_left" default="13">
+			Bouton de manette « gauche ».
 		</member>
 		<member name="dpad_preset" type="int" setter="set_dpad_preset" getter="get_dpad_preset" enum="InputCircleAction.DpadPreset" default="1">
+			Préréglage des boutons : croix directionnelle ou boutons ABXY. Indique « Personnalisé » dès qu'un bouton diffère.
 		</member>
 		<member name="dpad_right" type="int" setter="set_dpad_right" getter="get_dpad_right" default="14">
+			Bouton de manette « droite ».
 		</member>
 		<member name="dpad_up" type="int" setter="set_dpad_up" getter="get_dpad_up" default="11">
+			Bouton de manette « haut ».
 		</member>
 		<member name="invert_y" type="bool" setter="set_invert_y" getter="get_invert_y" default="false">
+			Inverse l'axe vertical (haut positif).
 		</member>
 		<member name="joy_axis_x" type="int" setter="set_joy_axis_x" getter="get_joy_axis_x" default="0">
+			Axe horizontal du stick ([code]-1[/code] = aucun).
 		</member>
 		<member name="joy_axis_y" type="int" setter="set_joy_axis_y" getter="get_joy_axis_y" default="1">
+			Axe vertical du stick ([code]-1[/code] = aucun).
 		</member>
 		<member name="joy_preset" type="int" setter="set_joy_preset" getter="get_joy_preset" enum="InputCircleAction.JoyPreset" default="1">
+			Préréglage du stick : gauche ou droit. Indique « Personnalisé » dès qu'un axe diffère.
 		</member>
 		<member name="key_preset" type="int" setter="set_key_preset" getter="get_key_preset" enum="InputCircleAction.KeyPreset" default="1">
+			Préréglage des touches : WASD, ZQSD ou flèches. Avec [member InputAction.physical_keys], WASD correspond déjà aux positions ZQSD d'un clavier AZERTY : [constant KEYS_ZQSD] ne sert que si [member InputAction.physical_keys] est faux.
 		</member>
 		<member name="left_key" type="int" setter="set_left_key" getter="get_left_key" default="65">
+			Touche « gauche ».
 		</member>
 		<member name="right_key" type="int" setter="set_right_key" getter="get_right_key" default="68">
+			Touche « droite ».
 		</member>
 		<member name="up_key" type="int" setter="set_up_key" getter="get_up_key" default="87">
+			Touche « haut ».
 		</member>
 	</members>
 	<signals>
 		<signal name="orientation_changed">
 			<param index="0" name="angle" type="float" />
 			<description>
+				Émis quand l'angle de la direction (non nulle) change d'au moins [member InputAction.dirty_threshold] radian. [param angle] est en radians.
 			</description>
 		</signal>
 		<signal name="value_changed">
 			<param index="0" name="value" type="Vector2" />
 			<description>
+				Émis quand la direction varie d'au moins [member InputAction.dirty_threshold], ou revient exactement à zéro.
 			</description>
 		</signal>
 		<signal name="velocity_changed">
 			<param index="0" name="velocity" type="Vector2" />
 			<description>
+				Émis quand la vitesse de variation de la direction change d'au moins [member InputAction.dirty_threshold].
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="KEYS_CUSTOM" value="0" enum="KeyPreset">
+			Touches personnalisées (aucun préréglage ne correspond).
 		</constant>
 		<constant name="KEYS_WASD" value="1" enum="KeyPreset">
+			W, A, S, D.
 		</constant>
 		<constant name="KEYS_ZQSD" value="2" enum="KeyPreset">
+			Z, Q, S, D (utile seulement sans touches physiques).
 		</constant>
 		<constant name="KEYS_ARROWS" value="3" enum="KeyPreset">
+			Flèches du clavier.
 		</constant>
 		<constant name="JOY_CUSTOM" value="0" enum="JoyPreset">
+			Axes personnalisés.
 		</constant>
 		<constant name="JOY_LEFT_STICK" value="1" enum="JoyPreset">
+			Stick gauche.
 		</constant>
 		<constant name="JOY_RIGHT_STICK" value="2" enum="JoyPreset">
+			Stick droit.
 		</constant>
 		<constant name="DPAD_CUSTOM" value="0" enum="DpadPreset">
+			Boutons personnalisés.
 		</constant>
 		<constant name="DPAD_CROSS" value="1" enum="DpadPreset">
+			Croix directionnelle.
 		</constant>
 		<constant name="DPAD_FACE_BUTTONS" value="2" enum="DpadPreset">
+			Boutons Y (haut), A (bas), X (gauche), B (droite).
 		</constant>
 	</constants>
 </class>

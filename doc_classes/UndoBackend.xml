@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="UndoBackend" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Base des systèmes d'annulation de l'éditeur d'objet : toute écriture d'un widget passe par lui.
 	</brief_description>
 	<description>
+		Une édition = une action d'annulation. Pendant un glissement ou une frappe ([param committing] = [code]false[/code]), la valeur est appliquée directement et la valeur de départ est mémorisée ; à la validation, UNE action « ancienne → nouvelle valeur » est enregistrée, portant sur la propriété racine. Rien n'est enregistré si la valeur n'a pas changé.
+		Classe abstraite : [RuntimeUndoBackend] (historique propre, en jeu) ou [EditorUndoBackend] (historique de l'éditeur Godot).
+		[codeblock]
+		var acces := ValueAccessor.new()
+		acces.setup($Joueur, &amp;"vie")
+		var annulation := RuntimeUndoBackend.new()
+		annulation.edit_property(acces, 50, true)
+		annulation.undo() # la vie revient à sa valeur précédente
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,6 +20,23 @@
 		<method name="can_undo_redo" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si ce système possède son propre historique (jeu). Dans l'éditeur, l'historique est celui de Godot.
+			</description>
+		</method>
+		<method name="commit_calls">
+			<return type="void" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="do_calls" type="Array" />
+			<param index="2" name="undo_calls" type="Array" />
+			<description>
+				Enregistre ET exécute une action faite d'appels de méthodes. [param do_calls] et [param undo_calls] sont des listes de [code][objet, méthode, arguments...][/code]. Sans appel « faire », rien n'est enregistré.
+			</description>
+		</method>
+		<method name="discard_edit">
+			<return type="void" />
+			<param index="0" name="accessor" type="ValueAccessor" />
+			<description>
+				Oublie la valeur de départ d'une édition abandonnée (jamais validée) sur [param accessor].
 			</description>
 		</method>
 		<method name="edit_property">
@@ -18,16 +45,19 @@
 			<param index="1" name="value" type="Variant" />
 			<param index="2" name="committing" type="bool" />
 			<description>
+				Écrit [param value] via [param accessor]. Si [param committing] est vrai, enregistre l'action d'annulation de toute l'édition. Un accesseur non annulable ([method ValueAccessor.is_undoable]) écrit directement, hors historique.
 			</description>
 		</method>
 		<method name="redo">
 			<return type="bool" />
 			<description>
+				Rétablit la dernière action annulée. Renvoie [code]true[/code] si c'est fait.
 			</description>
 		</method>
 		<method name="undo">
 			<return type="bool" />
 			<description>
+				Annule la dernière action. Renvoie [code]true[/code] si c'est fait.
 			</description>
 		</method>
 	</methods>

@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PreviewSettings" inherits="WidgetSettings" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages d'un aperçu personnalisé : classe d'aperçu, source, hauteur, mise à jour.
 	</brief_description>
 	<description>
+		Pour une entrée [constant DataEntry.MEMBER_PREVIEW]. Un aperçu de script peut déclarer ses propres réglages en héritant de [PreviewSettings].
+		[codeblock]
+		var apercu := DataEntry.new()
+		apercu.data_name = &amp;"Apparence"
+		apercu.member = DataEntry.MEMBER_PREVIEW
+		apercu.kind = DataEntry.KIND_PREVIEW
+		var reglages := PreviewSettings.new()
+		reglages.preview_class = &amp;"Model3DPreview"
+		reglages.get_source().property_path = ^"modele" # PackedScene de l'objet
+		apercu.settings = reglages
+		registre.entries.append(apercu)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,25 +23,33 @@
 		<method name="get_source">
 			<return type="ArgumentBinding" />
 			<description>
+				Renvoie la source, créée à la première lecture (source Propriété sans chemin = l'objet affiché).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="duplicate_scripts" type="bool" setter="set_duplicate_scripts" getter="get_duplicate_scripts" default="false">
+			Si [code]true[/code], un nœud copié pour l'aperçu garde ses scripts (leur logique s'exécute alors dans l'aperçu).
 		</member>
 		<member name="height" type="int" setter="set_height" getter="get_height" default="160">
+			Hauteur de l'aperçu, en pixels (32 à 1024).
 		</member>
 		<member name="preview_class" type="StringName" setter="set_preview_class" getter="get_preview_class" default="&amp;&quot;TexturePreview&quot;">
+			Classe de l'aperçu : [TexturePreview], [Model3DPreview], [Scene2DPreview] ou un [code]class_name[/code] héritant de [PreviewWidget].
 		</member>
 		<member name="source" type="ArgumentBinding" setter="set_source" getter="get_stored_source">
+			Ce qui est affiché : l'objet édité (source absente, ou Propriété sans chemin), une propriété, une fonction ou une valeur manuelle.
 		</member>
 		<member name="update_mode" type="int" setter="set_update_mode" getter="get_update_mode" enum="PreviewSettings.UpdateMode" default="0">
+			Quand l'aperçu est mis à jour.
 		</member>
 	</members>
 	<constants>
 		<constant name="UPDATE_ON_CHANGE" value="0" enum="UpdateMode">
+			Reconstruit quand la source change (autre objet ou autre valeur).
 		</constant>
 		<constant name="UPDATE_EVERY_FRAME" value="1" enum="UpdateMode">
+			Appelle [method PreviewWidget._update_preview] à chaque image (animation).
 		</constant>
 	</constants>
 </class>

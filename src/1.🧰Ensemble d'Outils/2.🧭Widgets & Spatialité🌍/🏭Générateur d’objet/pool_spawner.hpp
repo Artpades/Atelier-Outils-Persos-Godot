@@ -33,6 +33,7 @@ class PoolSpawner : public Spawner
     void _on_instance_placed(Node *p_instance) override;
 
   private:
+    /// Réserve d'une scène : instances inactives (désactivées, masquées) prêtes à être réutilisées.
     struct Pool
     {
         Ref<PackedScene> scene;

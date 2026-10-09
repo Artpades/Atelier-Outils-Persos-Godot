@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="StateTransition" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Transition d'un [State] vers un autre état de la même [StateMachine], sur événement et/ou condition.
 	</brief_description>
 	<description>
+		Ressource listée dans [member State.transitions] de l'état source.
+		- Avec un [member event] : franchie quand [method StateMachine.send_event] envoie cet événement alors que l'état source est actif.
+		- Sans événement : transition automatique, vérifiée à chaque mise à jour de la machine.
+		Dans les deux cas, toutes les conditions doivent être remplies : [member enabled], [member min_time_in_state], [member condition] et, si elle est redéfinie, [method _check].
+		[codeblock]
+		var vers_alerte := StateTransition.new()
+		vers_alerte.target_state = ^"../Alerte"
+		vers_alerte.condition = "distance &lt; 120"
+		vers_alerte.min_time_in_state = 0.5
+		$StateMachine/Patrouille.transitions.append(vers_alerte)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,46 +23,57 @@
 			<return type="bool" />
 			<param index="0" name="state" type="Node" />
 			<description>
+				À redéfinir pour une condition codée : reçoit l'état source et renvoie [code]true[/code] si la transition peut être franchie. Combinée aux autres conditions par « et ».
 			</description>
 		</method>
 		<method name="get_condition_error" qualifiers="const">
 			<return type="String" />
 			<description>
+				Dernière erreur d'analyse ou d'exécution de [member condition], ou une chaîne vide.
 			</description>
 		</method>
 		<method name="get_label" qualifiers="const">
 			<return type="String" />
 			<description>
+				Texte court affiché sur la flèche du graphe : « ⚡événement [condition] ⏱durée _check() (désactivée) ».
 			</description>
 		</method>
 		<method name="is_automatic" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la transition n'a pas d'[member event].
 			</description>
 		</method>
 		<method name="is_satisfied">
 			<return type="bool" />
 			<param index="0" name="source" type="State" />
 			<description>
+				Renvoie [code]true[/code] si toutes les conditions sont remplies pour l'état [param source] (sans tenir compte de l'événement).
 			</description>
 		</method>
 		<method name="resolve_target" qualifiers="const">
 			<return type="State" />
 			<param index="0" name="source" type="State" />
 			<description>
+				Renvoie l'état cible résolu depuis [param source], ou [code]null[/code] s'il est introuvable ou n'est pas un [State].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="condition" type="String" setter="set_condition" getter="get_condition" default="&quot;&quot;">
+			Expression qui doit être vraie (vide = vraie). Évaluée avec le tableau noir de la machine : les clés du tableau noir sont accessibles par leur nom, ainsi que [code]agent[/code] et [code]blackboard[/code] ; les méthodes de l'agent s'appellent directement ([code]is_on_floor()[/code]). Invalide ou en échec : fausse.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], la transition n'est jamais franchie (elle reste visible, barrée « désactivée », dans le graphe).
 		</member>
 		<member name="event" type="StringName" setter="set_event" getter="get_event" default="&amp;&quot;&quot;">
+			Événement qui déclenche la transition. Vide : transition automatique.
 		</member>
 		<member name="min_time_in_state" type="float" setter="set_min_time_in_state" getter="get_min_time_in_state" default="0.0">
+			Temps minimal passé dans l'état source avant de pouvoir partir, en secondes. Pratique pour un étourdissement de durée fixe ou pour éviter les allers-retours rapides.
 		</member>
 		<member name="target_state" type="NodePath" setter="set_target_state" getter="get_target_state" default="NodePath(&quot;&quot;)">
+			Chemin de l'état cible, [b]relatif à l'état source[/b] (ex. [code]../Poursuite[/code]). Doit désigner un [State] de la même machine.
 		</member>
 	</members>
 </class>

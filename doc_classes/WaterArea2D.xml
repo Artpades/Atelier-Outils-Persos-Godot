@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="WaterArea2D" inherits="Area2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌊 Étendue d'eau 2D : fait flotter, freine et emporte les [RigidBody2D] ; les personnages y nagent avec [SwimMovement2D].
 	</brief_description>
 	<description>
+		[Area2D] représentant de l'eau. Sa forme est donnée, comme pour toute [Area2D], par une [CollisionShape2D] enfant ; avec une [RectangleShape2D], la surface est le bord haut du rectangle.
+		À chaque image physique, chaque [RigidBody2D] présent reçoit une poussée vers le haut proportionnelle à son immersion ([member buoyancy], [member float_depth]), un freinage linéaire et angulaire, et le [member current]. Les [CharacterBody2D] ne sont pas affectés directement : c'est [SwimMovement2D] (activé par un [MovementDirector] dans le contexte « eau ») qui les fait nager.
+		[codeblock]
+		var eau := WaterArea2D.new()
+		var forme := CollisionShape2D.new()
+		forme.shape = RectangleShape2D.new()
+		forme.shape.size = Vector2(800, 300)
+		eau.add_child(forme)
+		eau.current = Vector2(60, 0) # léger courant vers la droite
+		add_child(eau)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,32 +23,44 @@
 			<return type="WaterArea2D" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la première [WaterArea2D] qui chevauche [param body] (zones présentes dans l'arbre, en jeu), ou [code]null[/code]. Le chevauchement est celui du moteur physique : la zone doit avoir [member Area2D.monitoring] actif et son masque de collision doit inclure la couche du corps.
 			</description>
 		</method>
 		<method name="get_depth" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="point" type="Vector2" />
 			<description>
+				Renvoie la profondeur de [param point] (global) sous la surface, en px : positive sous l'eau, négative au-dessus.
 			</description>
 		</method>
 		<method name="get_surface_y" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la coordonnée Y globale de la surface : le bord haut de la première [RectangleShape2D] enfant, sinon la position de la zone plus [member surface_offset].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="angular_drag" type="float" setter="set_angular_drag" getter="get_angular_drag" default="3.0">
+			Freinage de la rotation des [RigidBody2D] immergés (par seconde, proportionnel à l'immersion et à l'inertie du corps).
 		</member>
 		<member name="buoyancy" type="float" setter="set_buoyancy" getter="get_buoyancy" default="2.0">
+			Poussée d'Archimède exercée sur les corps rigides complètement immergés, en multiples de leur gravité : [code]1[/code] = l'objet flotte entre deux eaux, [code]2[/code] = il remonte avec une accélération égale à la gravité, [code]0[/code] = il coule. La poussée est proportionnelle à l'immersion.
 		</member>
 		<member name="current" type="Vector2" setter="set_current" getter="get_current" default="Vector2(0, 0)">
+			Accélération du courant, en px/s². Appliquée aux corps rigides (proportionnellement à leur immersion) et, par [code]SwimMovement2D[/code], aux nageurs.
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu le contour de la forme, la surface, une flèche de courant et le nombre de corps présents.
 		</member>
 		<member name="float_depth" type="float" setter="set_float_depth" getter="get_float_depth" default="16.0">
+			Profondeur, en px, à partir de laquelle un corps rigide est considéré comme complètement immergé. L'immersion se calcule sur l'origine du corps : 50 % quand elle est exactement à la surface, 100 % à [code]float_depth / 2[/code] sous la surface.
 		</member>
 		<member name="linear_drag" type="float" setter="set_linear_drag" getter="get_linear_drag" default="3.0">
+			Freinage des corps rigides immergés (par seconde, proportionnel à l'immersion) : plus la valeur est forte, plus l'eau est « épaisse ».
 		</member>
 		<member name="surface_offset" type="float" setter="set_surface_offset" getter="get_surface_offset" default="0.0">
+			Hauteur de la surface par rapport à la position de la zone, [b]uniquement si[/b] aucune [RectangleShape2D] n'est trouvée parmi les [CollisionShape2D] enfants (axe Y vers le bas : positif = plus bas).
 		</member>
 	</members>
 </class>

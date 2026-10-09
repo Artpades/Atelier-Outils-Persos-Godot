@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTSelector" inherits="BTOrderedComposite" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Sélecteur (fallback) : essaie ses enfants dans l'ordre ; réussit dès qu'un enfant réussit, échoue si tous échouent.
 	</brief_description>
 	<description>
+		Le « ou » des arbres de comportement : les branches sont rangées par priorité (fuir, sinon attaquer, sinon patrouiller). Un sélecteur sans enfant échoue. Avec [member BTOrderedComposite.reactive], une branche prioritaire redevenue possible interrompt la branche en cours.
+		[codeblock]
+		var cerveau := BTSelector.new()
+		cerveau.reactive = true
+		cerveau.add_child(branche_fuite)      # essayée en premier
+		cerveau.add_child(branche_attaque)
+		cerveau.add_child(branche_patrouille) # dernier recours
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

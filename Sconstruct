@@ -3,6 +3,13 @@ import re
 import subprocess
 import sys
 
+# Windows : la console utilise une page de code ANSI (cp1252) qui ne sait pas afficher
+# les emojis des dossiers de src/ -> UnicodeEncodeError au moindre print().
+if sys.platform == "win32":
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
 # =====================================================================================================
 #  ORGANISATION : une GDExtension par fichier de registre, détectée automatiquement
 # =====================================================================================================
@@ -222,6 +229,11 @@ for info in libraries_info:
 
 # --- 2. Environnement godot-cpp ---
 env = SConscript("godot-cpp/SConstruct")
+
+# MSVC (link.exe) lit les fichiers de réponse (.rsp) sans BOM dans la page de code ANSI :
+# les chemins contenant des emojis y deviennent illisibles (LNK1181). En UTF-16 avec BOM, il les lit correctement.
+if env.get("is_msvc", False):
+    env["TEMPFILEENCODING"] = "utf-16"
 
 env.Append(CPPPATH=["src/"])
 

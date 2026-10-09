@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueEnd" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Fin explicite du dialogue.
 	</brief_description>
 	<description>
+		Atteindre ce nœud termine le dialogue ([signal DialogueSystem.dialogue_ended]). Un lien vide a le même effet ; ce nœud sert surtout à rendre la fin visible dans le graphe et à regrouper les sorties.
+		[codeblock]
+		var fin := DialogueEnd.new()
+		fin.node_id = &amp;"fin"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

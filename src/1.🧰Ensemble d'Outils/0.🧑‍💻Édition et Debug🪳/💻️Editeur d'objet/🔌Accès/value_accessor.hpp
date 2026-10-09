@@ -9,14 +9,14 @@
 
 namespace godot
 {
-// Accès à une valeur d'un objet (port de ValueProxy C#) : objet racine (ObjectID) + propriété racine
-// + chemin (index d'Array / de Packed*Array, clé de Dictionary).
-//  - read() descend le chemin depuis la valeur de la propriété racine ;
-//  - write() reconstruit la racine (copie à chaque niveau du chemin, la valeur d'origine n'est jamais
-//    modifiée en place) puis fait UN set() sur la propriété racine. Obligatoire pour les types copiés à
-//    la lecture (Packed*Array, structures) ; pour Array/Dictionary (références), la copie évite de modifier
-//    une collection partagée et garantit que le setter est appelé.
-// Les annulations portent donc toujours sur la propriété racine (voir UndoBackend).
+/// Accès à une valeur d'un objet (port de ValueProxy C#) : objet racine (ObjectID) + propriété racine
+/// + chemin (index d'Array / de Packed*Array, clé de Dictionary).
+///  - read() descend le chemin depuis la valeur de la propriété racine ;
+///  - write() reconstruit la racine (copie à chaque niveau du chemin, la valeur d'origine n'est jamais
+///    modifiée en place) puis fait UN set() sur la propriété racine. Obligatoire pour les types copiés à
+///    la lecture (Packed*Array, structures) ; pour Array/Dictionary (références), la copie évite de modifier
+///    une collection partagée et garantit que le setter est appelé.
+/// Les annulations portent donc toujours sur la propriété racine (voir UndoBackend).
 class ValueAccessor : public RefCounted
 {
     GDCLASS(ValueAccessor, RefCounted)
@@ -35,18 +35,18 @@ class ValueAccessor : public RefCounted
     static void _bind_methods();
 
   public:
-    // Recherche la description de p_property dans p_target->get_property_list() (dictionnaire vide si absente).
+    /// Recherche la description de p_property dans p_target->get_property_list() (dictionnaire vide si absente).
     static Dictionary find_property_info(Object *p_target, const StringName &p_property);
-    // Copie superficielle d'une collection (Array, Dictionary, Packed*Array) ; les autres types sont déjà des copies.
+    /// Copie superficielle d'une collection (Array, Dictionary, Packed*Array) ; les autres types sont déjà des copies.
     static Variant copy_collection(const Variant &p_value);
 
     void setup(Object *p_target, const StringName &p_property);
-    // Accès à un élément de la valeur pointée (index ou clé), décrit par p_info.
+    /// Accès à un élément de la valeur pointée (index ou clé), décrit par p_info.
     Ref<ValueAccessor> child(const Variant &p_key, const Dictionary &p_info, const String &p_display_name) const;
-    // Même valeur, autre description (ex: Variant affiché avec le widget du type choisi).
+    /// Même valeur, autre description (ex: Variant affiché avec le widget du type choisi).
     Ref<ValueAccessor> with_info(const Dictionary &p_info) const;
 
-    // Objet cible, ou nullptr s'il a été libéré.
+    /// Objet cible, ou nullptr s'il a été libéré.
     Object *get_target() const;
     bool is_valid() const;
     StringName get_property() const;
@@ -62,7 +62,7 @@ class ValueAccessor : public RefCounted
 
     Variant read_root() const;
     Variant read() const;
-    // Écrit la valeur pointée (via la propriété racine) ; une Resource émet "changed".
+    /// Écrit la valeur pointée (via la propriété racine) ; une Resource émet "changed".
     void write(const Variant &p_value);
 };
 } // namespace godot

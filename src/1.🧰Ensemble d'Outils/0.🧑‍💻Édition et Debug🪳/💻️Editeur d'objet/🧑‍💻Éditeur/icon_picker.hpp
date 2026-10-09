@@ -12,9 +12,9 @@
 
 namespace godot
 {
-// Choix d'une icône de l'éditeur Godot (éditeur). Les icônes de l'éditeur n'existent pas dans un jeu exporté :
-// l'icône choisie est COPIÉE dans le projet (ICON_DIR/<nom>.res, ImageTexture) et c'est cette copie qui est
-// renvoyée, pour fonctionner aussi en jeu.
+/// Choix d'une icône de l'éditeur Godot (éditeur). Les icônes de l'éditeur n'existent pas dans un jeu exporté :
+/// l'icône choisie est COPIÉE dans le projet (ICON_DIR/<nom>.res, ImageTexture) et c'est cette copie qui est
+/// renvoyée, pour fonctionner aussi en jeu.
 class EditorIconPicker : public AcceptDialog
 {
     GDCLASS(EditorIconPicker, AcceptDialog)
@@ -35,14 +35,14 @@ class EditorIconPicker : public AcceptDialog
   public:
     static constexpr const char *ICON_DIR = "res://object_editor_icons/";
 
-    // Ouvre le choix ; p_on_picked(texture) reçoit la copie enregistrée dans le projet.
+    /// Ouvre le choix ; p_on_picked(texture) reçoit la copie enregistrée dans le projet.
     static EditorIconPicker *open(const Callable &p_on_picked);
-    // Copie (ou relit si elle existe déjà) l'icône p_name de l'éditeur ; nulle si elle n'existe pas.
+    /// Copie (ou relit si elle existe déjà) l'icône p_name de l'éditeur ; nulle si elle n'existe pas.
     static Ref<Texture2D> copy_editor_icon(const String &p_name);
 };
 
-// Ligne d'édition d'une icône (Texture2D) posée sur une propriété d'un objet : sélecteur de ressource +
-// « Icône de l'éditeur… ». Modifications enregistrées dans l'historique d'annulation ; émet "icon_changed".
+/// Ligne d'édition d'une icône (Texture2D) posée sur une propriété d'un objet : sélecteur de ressource +
+/// « Icône de l'éditeur… ». Modifications enregistrées dans l'historique d'annulation ; émet "icon_changed".
 class IconPickerRow : public HBoxContainer
 {
     GDCLASS(IconPickerRow, HBoxContainer)

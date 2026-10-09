@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTWait" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Attente : renvoie [constant BTNode.RUNNING] pendant [member duration] secondes (± [member random_deviation]), puis réussit.
 	</brief_description>
 	<description>
+		Le temps compté est la somme des [param delta] des ticks de l'arbre : avec [member BehaviorTree.tick_interval], l'attente se termine au premier tick qui dépasse la durée. Une durée nulle réussit au premier tick.
+		[codeblock]
+		var pause := BTWait.new()
+		pause.duration = 1.5
+		pause.random_deviation = 0.5 # entre 1 et 2 secondes
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="1.0">
+			Durée de l'attente, en secondes.
 		</member>
 		<member name="random_deviation" type="float" setter="set_random_deviation" getter="get_random_deviation" default="0.0">
+			Écart aléatoire maximal ajouté ou retiré à [member duration], tiré à chaque nouvelle exécution (la durée ne descend jamais sous 0).
 		</member>
 	</members>
 </class>

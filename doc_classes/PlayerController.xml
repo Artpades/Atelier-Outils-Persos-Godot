@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PlayerController" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🏌️ Contrôleur du joueur : lit les actions de l'InputMap et pilote le personnage parent (déplacement, saut, course, interaction, capacités).
 	</brief_description>
 	<description>
+		À placer comme enfant direct d'un [Character2D] ou d'un [Character3D]. À chaque image physique, il transmet au personnage l'entrée de déplacement ([method Input.get_vector] sur les quatre actions), le saut, la course, interagit avec l'[Interactable] le plus proche quand l'action d'interaction est pressée, et active les capacités de [member ability_actions].
+		Au lancement, les actions absentes de l'InputMap sont créées avec des touches par défaut ([member create_missing_actions]). Pendant un dialogue ([member block_during_dialogue]) ou quand [member enabled] est faux, l'entrée du personnage est remise à zéro à chaque image.
+		[codeblock]
+		# Joueur : Character2D &gt; PlayerController + HealthComponent + AbilitySystem + GroundMovement2D
+		func _ready() -&gt; void:
+			$PlayerController.ability_actions = {&amp;"attaque": &amp;"coup_epee"}   # action de l'InputMap -&gt; capacité
+			$PlayerController.auto_target_range = 120.0                       # vise l'ennemi le plus proche
+			$PlayerController.focus_changed.connect(_on_focus)
+
+		func _on_focus(objet: Interactable) -&gt; void:
+			$Bulle.visible = objet != null
+			if objet:
+				$Bulle/Label.text = objet.prompt
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,56 +25,74 @@
 		<method name="create_default_actions">
 			<return type="void" />
 			<description>
+				Ajoute à l'InputMap (zone morte 0,2) les actions de ce contrôleur qui n'existent pas : gauche (touches physiques A, Q, ←), droite (D, →), haut (W, Z, ↑), bas (S, ↓) avec le stick gauche et la croix de la manette ; saut (Espace, bouton A), course (Maj, bouton d'épaule gauche), interaction (E, bouton X). Les touches étant physiques, ZQSD (AZERTY) et WASD (QWERTY) fonctionnent toutes deux.
 			</description>
 		</method>
 		<method name="get_character" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie le nœud parent (le personnage piloté).
 			</description>
 		</method>
 		<method name="get_focused_interactable" qualifiers="const">
 			<return type="Interactable" />
 			<description>
+				Renvoie l'[Interactable] le plus proche à portée lors de la dernière image physique (celui que l'action d'interaction viserait), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="interact">
 			<return type="bool" />
 			<description>
+				Interagit tout de suite avec l'[Interactable] le plus proche à portée du personnage. Renvoie [code]false[/code] s'il n'y en a pas.
 			</description>
 		</method>
 		<method name="use_ability">
 			<return type="bool" />
 			<param index="0" name="id" type="StringName" />
 			<description>
+				Active la capacité [param id] de l'[AbilitySystem] du personnage, sur la cible automatique ([member auto_target_range]). Renvoie le résultat de [method AbilitySystem.activate], [code]false[/code] sans AbilitySystem.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="ability_actions" type="Dictionary" setter="set_ability_actions" getter="get_ability_actions" default="{}">
+			Associe une action de l'InputMap à l'identifiant d'une capacité de l'[AbilitySystem] du personnage ; un appui appelle [method use_ability]. Ces actions ne sont [b]pas[/b] créées automatiquement : déclarez-les dans l'InputMap.
 		</member>
 		<member name="action_down" type="StringName" setter="set_action_down" getter="get_action_down" default="&amp;&quot;move_down&quot;">
+			Action de l'InputMap pour aller vers le bas (y positif en 2D ; vers la caméra en 3D). Si l'une des quatre actions de déplacement n'existe pas, le déplacement est ignoré.
 		</member>
 		<member name="action_interact" type="StringName" setter="set_action_interact" getter="get_action_interact" default="&amp;&quot;interact&quot;">
+			Action qui interagit avec l'[Interactable] le plus proche à portée ([method get_focused_interactable]).
 		</member>
 		<member name="action_jump" type="StringName" setter="set_action_jump" getter="get_action_jump" default="&amp;&quot;jump&quot;">
+			Action de saut : l'appui appelle [method Character2D.request_jump], le relâchement [method Character2D.release_jump] (saut à hauteur variable).
 		</member>
 		<member name="action_left" type="StringName" setter="set_action_left" getter="get_action_left" default="&amp;&quot;move_left&quot;">
+			Action de l'InputMap pour aller à gauche.
 		</member>
 		<member name="action_right" type="StringName" setter="set_action_right" getter="get_action_right" default="&amp;&quot;move_right&quot;">
+			Action de l'InputMap pour aller à droite.
 		</member>
 		<member name="action_run" type="StringName" setter="set_action_run" getter="get_action_run" default="&amp;&quot;run&quot;">
+			Action maintenue pour courir ([method Character2D.set_running]).
 		</member>
 		<member name="action_up" type="StringName" setter="set_action_up" getter="get_action_up" default="&amp;&quot;move_up&quot;">
+			Action de l'InputMap pour aller vers le haut (y négatif en 2D ; dans la direction de la caméra en 3D).
 		</member>
 		<member name="auto_target_range" type="float" setter="set_auto_target_range" getter="get_auto_target_range" default="0.0">
+			Portée du ciblage automatique des capacités : la cible passée à [method AbilitySystem.activate] est le personnage hostile vivant le plus proche dans ce rayon ([method CharacterRegister.get_nearest]). [code]0[/code] : aucune cible.
 		</member>
 		<member name="block_during_dialogue" type="bool" setter="set_block_during_dialogue" getter="get_block_during_dialogue" default="true">
+			Si [code]true[/code], toutes les commandes sont coupées tant que le [DialogueSystem] principal ([method DialogueSystem.get_main]) a un dialogue en cours.
 		</member>
 		<member name="camera_relative" type="bool" setter="set_camera_relative" getter="get_camera_relative" default="true">
+			En 3D, si [code]true[/code], « haut » avance dans la direction de la caméra courante du viewport, projetée à l'horizontale. Sans caméra, ou si [code]false[/code], « haut » va vers -Z du monde. Sans effet en 2D.
 		</member>
 		<member name="create_missing_actions" type="bool" setter="set_create_missing_actions" getter="get_create_missing_actions" default="true">
+			Si [code]true[/code], [method create_default_actions] est appelée au [code]_ready[/code]. Les actions déjà présentes ne sont pas modifiées.
 		</member>
 		<member name="enabled" type="bool" setter="set_enabled" getter="is_enabled" default="true">
+			Si [code]false[/code], le contrôleur n'envoie plus les commandes du joueur et [b]remet l'entrée de déplacement du personnage à zéro à chaque image[/b] (cinématique, menu...).
 		</member>
 		<member name="process_physics_priority" type="int" setter="set_physics_process_priority" getter="get_physics_process_priority" overrides="Node" default="-10" />
 	</members>
@@ -67,6 +100,7 @@
 		<signal name="focus_changed">
 			<param index="0" name="interactable" type="Object" />
 			<description>
+				Émis quand l'[Interactable] le plus proche à portée change ([param interactable] vaut [code]null[/code] quand il n'y en a plus). Pratique pour afficher son [member Interactable.prompt].
 			</description>
 		</signal>
 	</signals>

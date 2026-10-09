@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fondu Couleur · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🌈 Fondu Couleur (FXFade, ScreenFader) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/fondu-couleur.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🌈</div>
+    <div>
+      <h1>🌈_FadeSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Fondu Couleur</strong> : fondus de couleur et de texture sur un objet, et fondus de l'écran entier.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">2 classes : FXFade · ScreenFader</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Faire clignoter en rouge un personnage touché, effacer un ennemi vaincu, changer l'apparence d'un objet sans « saut » brutal ou passer au noir entre deux scènes : à chaque fois, il faut écrire un <code>Tween</code>, mémoriser l'état d'origine, penser à le restaurer, gérer l'interruption… <strong>Ce module rend ces fondus prêts à l'emploi</strong> : on les règle dans l'inspecteur et on les déclenche d'une ligne.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🎨 <code>FXFade</code> — un objet</h4>
+      <p>Un <strong>effet</strong> joué par un <code>PlayerFX</code> : fondu d'une couleur (<code>modulate</code>, <code>light_color</code>…) ou fondu enchaîné vers une autre texture, puis retour à l'état d'origine à l'arrêt.</p>
+    </div>
+    <div class="card">
+      <h4>🖥️ <code>ScreenFader</code> — tout l'écran</h4>
+      <p>Un <strong>calque</strong> qui couvre puis découvre l'écran entier d'une couleur ou d'une image, uniformément ou en suivant la forme d'un masque (volet, iris, dissolution).</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui scriptent des retours visuels, et les game designers qui veulent régler un fondu dans l'éditeur sans écrire de code (<code>FXFade</code> se prévisualise directement depuis l'inspecteur).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un gestionnaire de scènes</strong> : <code>ScreenFader</code> ne charge ni ne change de scène. Il fournit le voile ; le changement de scène reste à votre code ou au module <em>🎬 Gestionnaire de scènes</em>.</li>
+      <li><strong>Pas un animateur générique</strong> : seules la couleur et la texture sont fondues. Pour la taille, voir <em>🦣 Agrandissement</em> ; pour la déformation, <em>🪗 Squash and Stretch</em> ; pour la position, <em>💥 Secousse</em>.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF côte à côte : un Sprite2D qui flashe en rouge via FXFade, puis une transition d'écran en iris via ScreenFader.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code> (<code>gameplaytoolkit_fx.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td>Contient <code>FXFade</code>, <code>ScreenFader</code>, mais aussi <code>Effect</code> et <code>PlayerFX</code> dont <code>FXFade</code> a besoin : rien d'autre à installer.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/✨🎵/</code></td><td>Optionnelle</td><td>Seulement pour l'icône de <code>PlayerFX</code> dans l'arbre de scène. Sans elles, Godot affiche l'icône par défaut.</td></tr>
+        <tr><td>Module <em>🎬 Gestionnaire de scènes</em></td><td>Optionnelle</td><td>Pratique avec <code>ScreenFader</code> pour enchaîner fondu et chargement, mais aucun lien direct entre les deux.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons fx</code></pre>
+      <div class="why">compile uniquement la bibliothèque des effets et régénère <code>bin/fx/gameplaytoolkit_fx.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/fx/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/fx/</code>.
+      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/fx/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage. Les recompilations suivantes, elles, sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>PlayerFX</code> et <code>ScreenFader</code>, et la ressource <code>FXFade</code> doit apparaître dans la liste <code>special_effects</code> d'un <code>PlayerFX</code>.
+      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet n'est requis. Pour les transitions entre scènes, il est toutefois recommandé de placer un <code>ScreenFader</code> dans un autoload (voir le <a href="#tuto-ecran">mode d'emploi</a>).</p>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture du FileSystem montrant <code>res://bin/fx/</code>, puis de la boîte « Ajouter un nœud » filtrée sur « Fader ».</div>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-objet">A. Faire flasher un objet en rouge (FXFade)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>PlayerFX</code> comme enfant</strong> du <code>Sprite2D</code> (ou de tout nœud ayant un <code>modulate</code>).
+      <div class="why">le <code>PlayerFX</code> joue ses effets sur son parent par défaut et les met à jour chaque frame ; c'est lui qu'on déclenche ensuite.</div>
+    </li>
+    <li>
+      <strong>Dans <code>special_effects</code>, ajouter un élément et choisir <code>Nouveau FXFade</code>.</strong>
+      <div class="why">l'effet est une ressource : il se configure dans l'inspecteur et peut être enregistré en <code>.tres</code> pour être réutilisé sur d'autres objets.</div>
+    </li>
+    <li>
+      <strong>Régler le fondu</strong> : <code>mode</code> = <em>Color</em>, <code>color</code> = rouge opaque, <code>duration</code> = <code>0.1</code>.
+      <div class="why"><code>color_property</code> vaut déjà <code>modulate</code> : c'est la propriété qui teinte le sprite. Une durée courte donne un « flash » plutôt qu'un fondu lent.</div>
+    </li>
+    <li>
+      <strong>Prévisualiser</strong> avec le bouton <kbd>Jouer effet</kbd> du <code>PlayerFX</code>, puis <kbd>Arrêter effet</kbd>.
+      <div class="why">permet d'ajuster couleur et durée sans lancer le jeu. L'arrêt ramène la couleur d'origine (<code>revert_on_stop</code>).</div>
+    </li>
+    <li>
+      <strong>Déclencher depuis le jeu</strong>, par exemple quand le personnage est touché :
+      <pre><code class="gdscript">func _on_touche() -> void:
+	$PlayerFX.play()
+	await get_tree().create_timer(0.15).timeout
+	$PlayerFX.stop() # retour progressif à la couleur d'origine</code></pre>
+      <div class="why"><code>play()</code> lance le fondu vers le rouge, <code>stop()</code> le fondu inverse : on obtient un flash aller-retour.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-ecran">B. Passer au noir entre deux scènes (ScreenFader)</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer une scène dont la racine est un <code>ScreenFader</code></strong>, régler sa <code>layer</code> sur <code>100</code>, l'enregistrer en <code>res://fondu.tscn</code>.
+      <div class="why">une couche haute garantit que le voile passe au-dessus de toute l'interface du jeu.</div>
+    </li>
+    <li>
+      <strong>Déclarer cette scène en autoload</strong> sous le nom <code>Fondu</code> (<em>Projet › Paramètres du projet › Globals</em>).
+      <div class="why">un autoload n'est pas détruit lors d'un changement de scène : le voile reste en place pendant que la scène suivante se charge.</div>
+    </li>
+    <li>
+      <strong>Encadrer le changement de scène</strong> par un fondu sortant et un fondu entrant :
+      <pre><code class="gdscript">func aller_a(chemin: String) -> void:
+	Fondu.fade_out()          # l'écran se couvre en 0,5 s (duration)
+	await Fondu.faded_out     # attendre qu'il soit entièrement noir
+	get_tree().change_scene_to_file(chemin)
+	Fondu.fade_in()           # l'écran se découvre sur la nouvelle scène</code></pre>
+      <div class="why">le changement de scène se fait pendant que l'écran est couvert : le joueur ne voit ni la disparition de l'ancienne scène ni l'apparition de la nouvelle.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/FXFade.xml</code> et <code>doc_classes/ScreenFader.xml</code>. Seuls les éléments <strong>exposés à Godot</strong> figurent ici ; le reste est interne et peut changer sans préavis :</p>
+  <ul>
+    <li><code>FXFade</code> : l'état du fondu (couleur et texture d'origine, <code>Tween</code> courant), le matériau de fondu enchaîné, et les méthodes <code>_fade_color_to</code>, <code>_fade_texture_to</code>, <code>_finish_crossfade</code>, <code>_new_tween</code>.</li>
+    <li><code>ScreenFader</code> : le <code>ColorRect</code> interne <code>FadeOverlay</code> (non visible dans l'arbre de scène, non enregistré) et son <code>ShaderMaterial</code>.</li>
+    <li>Les méthodes héritées <code>play_fx</code>, <code>stop_fx</code>… de <code>Effect</code> sont documentées avec le module <em>✨ Socle des effets</em> ; cochez « membres hérités » pour les afficher ici.</li>
+  </ul>
+  <div data-api="FXFade ScreenFader"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="demo">Aperçu interactif du ScreenFader</h3>
+  <p>Reproduction dans le navigateur du shader de <code>ScreenFader</code> : même calcul de recouvrement (<code>smoothstep(m, m + smoothness, progress × (1 + smoothness))</code>), mêmes courbes de transition.</p>
+  <div class="card demo" id="fader-demo">
+    <canvas width="384" height="216" aria-label="Aperçu du fondu d'écran"></canvas>
+    <div class="controls">
+      <label>Masque (<code>mask</code>)
+        <select data-k="mask">
+          <option value="none">Aucun (fondu uniforme)</option>
+          <option value="wipe">Volet gauche → droite</option>
+          <option value="iris">Iris (les bords d'abord)</option>
+          <option value="diamond">Losanges</option>
+          <option value="noise">Dissolution (bruit)</option>
+        </select>
+      </label>
+      <label>Courbe (<code>transition</code>, ease In Out)
+        <select data-k="trans">
+          <option value="sine">Sine</option>
+          <option value="linear">Linear</option>
+          <option value="cubic">Cubic</option>
+          <option value="back">Back</option>
+          <option value="bounce">Bounce</option>
+        </select>
+      </label>
+      <label>Douceur du bord (<code>mask_smoothness</code>) <output data-o="smooth">0.10</output>
+        <input type="range" data-k="smooth" min="0.001" max="1" step="0.001" value="0.1">
+      </label>
+      <label>Couleur (<code>color</code>) <input type="color" data-k="color" value="#000000"></label>
+      <label>Recouvrement (<code>progress</code>) <output data-o="progress">0.00</output>
+        <input type="range" data-k="progress" min="0" max="1" step="0.001" value="0">
+      </label>
+      <div class="row">
+        <button type="button" data-a="out">fade_out()</button>
+        <button type="button" data-a="in">fade_in()</button>
+      </div>
+      <output data-o="signal">Signal : —</output>
+    </div>
+  </div>
+
+  <h3 id="ex-disparition">Comment je fais disparaître un ennemi vaincu, puis le supprime ?</h3>
+  <p><code>FXFade</code> n'émet pas de signal de fin de fondu : on attend sa <code>duration</code>. <code>revert_on_stop = false</code> évite toute réapparition si l'effet est arrêté entre-temps.</p>
+  <pre><code class="gdscript">func mourir() -> void:
+	var effacement := FXFade.new()
+	effacement.color = Color(1, 1, 1, 0)   # blanc transparent : l'ennemi s'efface
+	effacement.duration = 0.6
+	effacement.revert_on_stop = false
+	$PlayerFX.special_effects = [effacement]
+	$PlayerFX.play()
+	set_physics_process(false)             # plus d'IA pendant l'effacement
+	await get_tree().create_timer(effacement.duration).timeout
+	queue_free()</code></pre>
+
+  <h3 id="ex-texture">Comment je change l'apparence d'un objet en douceur (fondu enchaîné) ?</h3>
+  <p>En mode texture sur un <code>Sprite2D</code> ou un <code>TextureRect</code>, les deux images sont réellement mélangées. Idéal pour un objet qui s'abîme, un portrait qui change d'expression, une saison qui passe…</p>
+  <pre><code class="gdscript">@export var porte_ouverte: Texture2D
+
+func ouvrir() -> void:
+	var fondu := FXFade.new()
+	fondu.mode = FXFade.FADE_TEXTURE
+	fondu.texture = porte_ouverte
+	fondu.duration = 0.4
+	fondu.revert_on_stop = false    # la porte reste ouverte
+	$PlayerFX.special_effects = [fondu]
+	$PlayerFX.play()</code></pre>
+
+  <h3 id="ex-lumiere">Comment je fais varier la couleur d'une lumière ou d'un matériau 3D ?</h3>
+  <p><code>color_property</code> accepte n'importe quelle propriété <code>Color</code>, y compris dans une sous-ressource. Ici, une lampe d'alarme qui passe au rouge tant que l'alarme est active.</p>
+  <pre><code class="gdscript"># PlayerFX enfant d'une OmniLight3D
+func _ready() -> void:
+	var alarme := FXFade.new()
+	alarme.color_property = "light_color"
+	alarme.color = Color.RED
+	alarme.duration = 1.0
+	$PlayerFX.special_effects = [alarme]
+
+func set_alarme(active: bool) -> void:
+	if active:
+		$PlayerFX.play()
+	else:
+		$PlayerFX.stop()  # retour à la couleur d'origine de la lampe
+
+# Sur un MeshInstance3D avec un StandardMaterial3D en material_override :
+# alarme.color_property = "material_override:albedo_color"</code></pre>
+
+  <h3 id="ex-enchainement">Comment je combine le fondu avec d'autres effets ?</h3>
+  <p>Tout <code>Effect</code> peut en entraîner d'autres : <code>effects_on_play_fx</code> sont joués et arrêtés avec lui, <code>effects_on_stop_fx</code> sont joués à son arrêt.</p>
+  <pre><code class="gdscript">var flash := FXFade.new()
+flash.color = Color(2, 2, 2)            # surexposé : flash blanc lumineux
+flash.duration = 0.05
+flash.effects_on_play_fx = [FXShake.new()]   # secousse en même temps que le flash
+$PlayerFX.special_effects = [flash]
+$PlayerFX.play()</code></pre>
+
+  <h3 id="ex-iris">Comment je fais une transition en iris ou en volet ?</h3>
+  <p>Le <code>mask</code> est une image en niveaux de gris : le <strong>noir est couvert en premier</strong>, le blanc en dernier. Un <code>GradientTexture2D</code> radial suffit pour un iris ; pour un volet, un dégradé linéaire.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var degrade := Gradient.new()
+	degrade.colors = PackedColorArray([Color.WHITE, Color.BLACK])  # centre blanc, bords noirs
+	var iris := GradientTexture2D.new()
+	iris.gradient = degrade
+	iris.fill = GradientTexture2D.FILL_RADIAL
+	iris.fill_from = Vector2(0.5, 0.5)
+	iris.fill_to = Vector2(1.0, 0.5)
+	Fondu.mask = iris              # les bords se ferment d'abord, le centre en dernier
+	Fondu.mask_smoothness = 0.05   # bord net</code></pre>
+
+  <h3 id="ex-pause">Comment j'assombris l'écran derrière un menu de pause ?</h3>
+  <p><code>fade_to</code> vise un recouvrement partiel. <code>always_process</code> (actif par défaut) laisse le fondu tourner alors que le jeu est en pause.</p>
+  <pre><code class="gdscript">func ouvrir_pause() -> void:
+	get_tree().paused = true
+	Fondu.block_input = false   # le menu de pause doit rester cliquable
+	Fondu.fade_to(0.6, 0.2)     # voile noir à 60 %
+	$MenuPause.show()           # CanvasLayer plus haut que Fondu.layer
+
+func fermer_pause() -> void:
+	$MenuPause.hide()
+	Fondu.fade_in(0.2)
+	await Fondu.faded_in
+	Fondu.block_input = true
+	get_tree().paused = false</code></pre>
+
+  <h3 id="ex-await">Comment j'attends un fondu sans risquer de bloquer ?</h3>
+  <p>Si le fondu est instantané (durée nulle, ou écran déjà couvert avec une durée nulle), le signal est émis <strong>avant</strong> le <code>await</code> qui l'attend. Tester l'état d'abord :</p>
+  <pre><code class="gdscript">func couvrir(duree := -1.0) -> void:
+	Fondu.fade_out(duree)
+	if not Fondu.is_covered():
+		await Fondu.faded_out</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-fxfade">FXFade</h3>
+  <ul>
+    <li><strong>Aucun signal de fin de fondu.</strong> <code>fx_played</code> est émis au <em>début</em> du fondu. Pour enchaîner une action à la fin, attendre <code>duration</code> secondes (voir <a href="#ex-disparition">exemple</a>).</li>
+    <li><strong>Un effet = une cible à la fois.</strong> L'état d'origine (couleur, texture, <code>Tween</code>) est stocké dans la ressource. Jouer <em>la même instance</em> de <code>FXFade</code> sur deux cibles simultanément (via <code>PlayerFX.play(autre_noeud)</code>, ou en partageant une ressource créée par code) mélange leurs états : la première cible ne revient pas à sa couleur. Les ressources enregistrées dans une scène sont dupliquées par instance (<code>resource_local_to_scene</code>), ce qui protège le cas courant.</li>
+    <li><strong>L'état d'origine est capturé au premier <code>play()</code>.</strong> Si un autre système change la couleur de la cible pendant l'effet, l'arrêt la ramène quand même à l'ancienne valeur.</li>
+    <li><strong>Le fondu suit la pause et <code>Engine.time_scale</code> de la cible.</strong> Le <code>Tween</code> appartient au nœud cible : il se fige en pause (sauf si la cible a <code>process_mode = ALWAYS</code>) et ralentit avec un ralenti global.</li>
+    <li><strong>Propriété introuvable = effet ignoré.</strong> Si <code>color_property</code> ne désigne pas une <code>Color</code> sur la cible, un avertissement <code>[FXFade]</code> est écrit et rien ne se passe ; aucune erreur n'est levée.</li>
+    <li><strong>Mode texture sur un <code>CanvasItem</code> : le <code>material</code> de la cible est remplacé pendant le fondu</strong> par le shader de mélange, puis restauré. Un shader personnalisé (contour, dissolution…) disparaît donc le temps du fondu, et un matériau assigné par un autre script pendant ce temps est écrasé à la fin.</li>
+    <li><strong>Mode texture : les deux textures sont lues avec les mêmes UV.</strong> Avec une feuille de sprites (<code>hframes</code>, <code>region</code>) ou des tailles différentes, l'image intermédiaire n'est cohérente que si les deux textures ont la même disposition.</li>
+    <li><strong>Mode texture hors <code>CanvasItem</code></strong> (<code>Sprite3D</code>…) : pas de vrai mélange, la cible s'efface, change de texture et réapparaît. Sans propriété <code>modulate</code> (texture d'un matériau 3D…), le changement est instantané.</li>
+    <li><strong>Pas de fondu si la cible n'est pas dans l'arbre ou si <code>duration</code> ≤ 0</strong> : la valeur finale est appliquée immédiatement.</li>
+    <li><strong>Prévisualisation dans l'éditeur :</strong> enregistrer la scène pendant que l'effet est joué enregistre la couleur ou la texture modifiée. Arrêter l'effet avant de sauvegarder.</li>
+  </ul>
+
+  <h3 id="limites-screenfader">ScreenFader</h3>
+  <ul>
+    <li><strong><code>block_input</code> ne bloque que la souris et le tactile</strong> (filtre souris d'un <code>Control</code>). Le clavier et la manette passent toujours : désactiver soi-même les actions du joueur pendant une transition si nécessaire.</li>
+    <li><strong>Un fondu interrompu n'émet aucun signal.</strong> Si <code>fade_in()</code> est appelé pendant un <code>fade_out()</code>, le <code>await faded_out</code> en attente ne se terminera jamais.</li>
+    <li><strong>Fondu instantané = signaux synchrones.</strong> Avec une durée nulle (ou hors de l'arbre), les signaux sont émis pendant l'appel, avant tout <code>await</code> placé après (voir <a href="#ex-await">exemple</a>).</li>
+    <li><strong>Couvre uniquement son viewport.</strong> En écran partagé (plusieurs <code>SubViewport</code>), il faut un <code>ScreenFader</code> par viewport ; et tout <code>CanvasLayer</code> de <code>layer</code> supérieure reste visible au-dessus du voile.</li>
+    <li><strong>La texture est étirée sur tout l'écran</strong>, sans conserver ses proportions ; le masque n'utilise que le canal rouge.</li>
+    <li><strong><code>always_process</code> n'est pris en compte qu'au fondu suivant</strong>, pas sur un fondu déjà lancé.</li>
+    <li><strong>Pas de file d'attente</strong> : chaque appel remplace le fondu en cours (il repart de la valeur actuelle de <code>progress</code>).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 300" role="img" aria-label="Schéma d'architecture du module Fondu Couleur">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <!-- FXFade -->
+    <text x="20" y="22" class="small">Effet sur un objet</text>
+    <rect class="box" x="20" y="34" width="150" height="54" rx="8"/>
+    <text x="95" y="58" text-anchor="middle">PlayerFX</text>
+    <text x="95" y="76" text-anchor="middle" class="small">Node · play() / stop()</text>
+    <rect class="box main" x="230" y="34" width="170" height="54" rx="8"/>
+    <text x="315" y="58" text-anchor="middle">FXFade</text>
+    <text x="315" y="76" text-anchor="middle" class="small">Effect (Resource)</text>
+    <rect class="box" x="460" y="34" width="170" height="54" rx="8"/>
+    <text x="545" y="58" text-anchor="middle">Tween</text>
+    <text x="545" y="76" text-anchor="middle" class="small">créé sur la cible</text>
+    <rect class="box" x="690" y="34" width="150" height="54" rx="8"/>
+    <text x="765" y="58" text-anchor="middle">Nœud cible</text>
+    <text x="765" y="76" text-anchor="middle" class="small">modulate, texture…</text>
+    <rect class="box" x="460" y="120" width="170" height="54" rx="8"/>
+    <text x="545" y="144" text-anchor="middle">ShaderMaterial</text>
+    <text x="545" y="162" text-anchor="middle" class="small">mélange (CanvasItem)</text>
+    <path class="arrow" d="M170 61 H228" marker-end="url(#arr)"/>
+    <text x="199" y="54" text-anchor="middle" class="small">play_fx</text>
+    <path class="arrow" d="M400 61 H458" marker-end="url(#arr)"/>
+    <path class="arrow" d="M630 61 H688" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M400 76 Q430 147 458 147" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M630 147 Q690 147 740 90" marker-end="url(#arr)"/>
+    <text x="700" y="140" class="small">material le temps du fondu</text>
+    <!-- ScreenFader -->
+    <text x="20" y="214" class="small">Fondu d'écran</text>
+    <rect class="box" x="20" y="226" width="150" height="54" rx="8"/>
+    <text x="95" y="250" text-anchor="middle">Votre code</text>
+    <text x="95" y="268" text-anchor="middle" class="small">fade_out / fade_in</text>
+    <rect class="box main" x="230" y="226" width="170" height="54" rx="8"/>
+    <text x="315" y="250" text-anchor="middle">ScreenFader</text>
+    <text x="315" y="268" text-anchor="middle" class="small">CanvasLayer · progress</text>
+    <rect class="box" x="460" y="226" width="170" height="54" rx="8"/>
+    <text x="545" y="250" text-anchor="middle">FadeOverlay</text>
+    <text x="545" y="268" text-anchor="middle" class="small">ColorRect interne</text>
+    <rect class="box" x="690" y="226" width="150" height="54" rx="8"/>
+    <text x="765" y="250" text-anchor="middle">ShaderMaterial</text>
+    <text x="765" y="268" text-anchor="middle" class="small">couleur · texture · masque</text>
+    <path class="arrow" d="M170 253 H228" marker-end="url(#arr)"/>
+    <path class="arrow" d="M400 253 H458" marker-end="url(#arr)"/>
+    <path class="arrow" d="M630 253 H688" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M260 226 Q200 196 130 224" marker-end="url(#arr)"/>
+    <text x="196" y="200" text-anchor="middle" class="small">signaux faded_out / faded_in</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>FXFade</code></strong> est une ressource dérivée de <code>Effect</code>. Le <code>PlayerFX</code> l'appelle directement (<code>play_fx</code> → <code>_play</code>, <code>stop_fx</code> → <code>_stop</code>) ; aucun signal n'est utilisé entre eux. L'animation est un <code>Tween</code> créé <em>sur la cible</em>, avec ses réglages <code>transition</code> / <code>ease_type</code>.</li>
+    <li>En mode texture sur un <code>CanvasItem</code>, un <code>ShaderMaterial</code> (créé une fois, puis gardé en cache dans la ressource) remplace temporairement le <code>material</code> de la cible. Le <code>Tween</code> anime son paramètre <code>progress</code>, puis un rappel final pose la nouvelle texture et restaure le matériau d'origine.</li>
+    <li><strong><code>ScreenFader</code></strong> est un <code>CanvasLayer</code> autonome. À l'entrée dans l'arbre, il crée un <code>ColorRect</code> plein écran <em>interne</em> portant un <code>ShaderMaterial</code>. Toute modification d'un réglage recopie les valeurs dans le shader. Les fondus animent la propriété <code>progress</code> du nœud lui-même et signalent leur fin par <code>fade_finished</code>, puis <code>faded_out</code> / <code>faded_in</code>.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li><code>FXFade</code> → <code>Effect</code> (héritage) : même bibliothèque <code>fx</code>, couplage fort mais interne.</li>
+    <li><code>ScreenFader</code> ne dépend d'aucune autre classe du toolkit, et <code>FXFade</code> et <code>ScreenFader</code> s'ignorent mutuellement.</li>
+    <li>Le module est compilé dans sa propre bibliothèque (<code>fx_register.cpp</code> → <code>bin/fx/</code>). Un autre module ne doit pas inclure ses <code>.hpp</code> : il passe par Godot (<code>ClassDB.instantiate("ScreenFader")</code>, <code>call("fade_out")</code>…).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Le <code>Tween</code> de <code>FXFade</code> est créé sur la <strong>cible</strong>, pas sur le <code>PlayerFX</code></td><td>Il est automatiquement détruit si la cible est libérée : pas d'animation qui viserait un nœud supprimé.</td></tr>
+        <tr><td>L'état d'origine n'est pas recapturé quand l'effet est relancé (<code>_is_restarting()</code>)</td><td>Pendant un fondu, la cible est déjà modifiée : la recapturer ferait « oublier » la vraie couleur d'origine, et l'arrêt ne reviendrait plus à l'état initial.</td></tr>
+        <tr><td>Mélange par shader sur <code>CanvasItem</code>, effacement / réapparition ailleurs</td><td>Le shader donne un vrai fondu enchaîné sans dupliquer le nœud. Les nœuds 3D n'ont pas de point d'injection aussi universel : le repli par <code>modulate</code> marche partout où il existe.</td></tr>
+        <tr><td><code>progress</code> est une propriété, pas seulement une méthode</td><td>Elle peut être animée par un <code>AnimationPlayer</code> ou réglée directement, pour des transitions synchronisées sur une cinématique.</td></tr>
+        <tr><td><code>FadeOverlay</code> est un enfant <strong>interne</strong></td><td>Il n'apparaît pas dans l'arbre de scène et n'est pas enregistré dans le <code>.tscn</code> : impossible de le supprimer ou de le dupliquer par erreur.</td></tr>
+        <tr><td>Voile masqué à <code>progress = 0</code></td><td>Aucun coût de rendu (fill-rate) quand l'écran est découvert, ce qui est le cas 99 % du temps.</td></tr>
+        <tr><td><code>always_process</code> et <code>block_input</code> actifs par défaut</td><td>Les transitions partent souvent d'un menu de pause ou d'un ralenti ; et un clic pendant un fondu de changement de scène déclencherait une action sur une scène en train de disparaître.</td></tr>
+        <tr><td>Code des shaders en ASCII uniquement</td><td>Les chaînes <code>const char *</code> sont lues en Latin-1 par godot-cpp : un accent dans un commentaire du shader casserait sa compilation.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>FXFade</code> et <code>ScreenFader</code>, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>FXFade</code> : fondu de couleur (toute propriété <code>Color</code>) et fondu enchaîné de texture, avec retour à l'état d'origine.</li>
+      <li><span class="tag add">Ajouté</span><code>ScreenFader</code> : fondu d'écran avec couleur, texture, masque de transition, signaux de fin.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🌈 Fondu Couleur · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🌈Fondu Couleur/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "FXFade.mode": "Choisir entre teinter / faire disparaître la cible (<em>Color</em>) et lui donner une autre image (<em>Texture</em>).",
+  "FXFade.color": "Flash rouge de dégâts, blanc surexposé (<code>Color(2, 2, 2)</code>) pour un impact, alpha 0 pour une disparition.",
+  "FXFade.color_property": "Viser autre chose que <code>modulate</code> : <code>self_modulate</code> pour ne pas teinter les enfants, <code>light_color</code> pour une lampe, <code>material_override:albedo_color</code> en 3D.",
+  "FXFade.texture": "L'image finale : porte ouverte, objet abîmé, portrait avec une autre expression.",
+  "FXFade.texture_property": "Cible dont la texture ne s'appelle pas <code>texture</code> (ex. <code>texture_normal</code> d'un <code>TextureButton</code>).",
+  "FXFade.duration": "Court (0,05–0,15 s) pour un flash, long (0,5–1 s) pour une disparition ou un changement d'ambiance.",
+  "FXFade.transition": "<em>Sine</em> pour un fondu doux, <em>Linear</em> pour une disparition régulière, <em>Bounce</em>/<em>Elastic</em> pour un effet cartoon.",
+  "FXFade.ease_type": "<em>Out</em> pour un flash qui frappe vite puis ralentit, <em>In Out</em> pour une transition équilibrée.",
+  "FXFade.revert_on_stop": "Désactiver pour un changement définitif (mort, porte ouverte) ; laisser actif pour un état temporaire (flash, alarme).",
+  "FXFade.FADE_COLOR": "Valeur de <code>mode</code> pour animer une couleur.",
+  "FXFade.FADE_TEXTURE": "Valeur de <code>mode</code> pour changer d'image par fondu.",
+  "ScreenFader.progress": "Piloter le voile depuis un <code>AnimationPlayer</code> pendant une cinématique, ou lire l'avancement d'une transition.",
+  "ScreenFader.color": "Noir pour une transition classique, blanc pour un flash d'explosion ou un « réveil », rouge pour la mort du joueur.",
+  "ScreenFader.texture": "Écran de transition illustré : logo, motif, carte du monde.",
+  "ScreenFader.mask": "Donner une forme à la transition : iris de dessin animé, volet, dissolution en pixels.",
+  "ScreenFader.mask_smoothness": "Bord net (0,01) pour un volet graphique, bord flou (0,3+) pour une dissolution douce.",
+  "ScreenFader.duration": "Durée commune à toutes les transitions du jeu, réglée une fois sur l'autoload.",
+  "ScreenFader.transition": "Changer le rythme du fondu (voir l'aperçu interactif).",
+  "ScreenFader.ease_type": "<em>In</em> pour une fermeture qui accélère vers le noir, <em>Out</em> pour une ouverture qui démarre vite.",
+  "ScreenFader.always_process": "Désactiver si le fondu doit se figer avec la pause ou suivre un ralenti du jeu.",
+  "ScreenFader.block_input": "Désactiver pour un voile partiel derrière un menu qui doit rester cliquable.",
+  "ScreenFader.fade_out": "Avant un changement de scène, un chargement, une téléportation, la mort du joueur.",
+  "ScreenFader.fade_in": "Après le changement de scène, au lancement du jeu, au retour d'une cinématique.",
+  "ScreenFader.fade_to": "Voile partiel : assombrir derrière un menu de pause, un dialogue important, une perte de vie.",
+  "ScreenFader.is_covered": "Avant un <code>await faded_out</code>, pour ne pas attendre un signal déjà émis.",
+  "ScreenFader.is_fading": "Ignorer une entrée du joueur ou empêcher une seconde transition tant que la première n'est pas finie.",
+  "ScreenFader.fade_finished": "Réagir à la fin de n'importe quel fondu, y compris partiel (<code>fade_to</code>).",
+  "ScreenFader.faded_out": "Changer de scène ou téléporter le joueur au moment où l'écran est entièrement couvert.",
+  "ScreenFader.faded_in": "Rendre la main au joueur, lancer la musique ou un dialogue quand l'écran est de nouveau visible."
+};
+
+// 🎮 Aperçu interactif : reproduit le shader de ScreenFader (screen_fader.cpp)
+(function () {
+  const root = document.getElementById("fader-demo");
+  const canvas = root.querySelector("canvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const q = (s) => root.querySelector(s);
+  const state = { progress: 0, mask: "none", smooth: 0.1, color: [0, 0, 0], trans: "sine" };
+
+  // Scène de fond : ciel, collines, soleil, personnage
+  const scene = document.createElement("canvas");
+  scene.width = W; scene.height = H;
+  (function drawScene(g) {
+    const sky = g.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#7ec8f0"); sky.addColorStop(1, "#d8f0ff");
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#ffd75e"; g.beginPath(); g.arc(W * 0.78, H * 0.25, 22, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#6cbf5a"; g.beginPath(); g.ellipse(W * 0.25, H * 1.05, W * 0.45, H * 0.45, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#4e9e45"; g.beginPath(); g.ellipse(W * 0.8, H * 1.1, W * 0.5, H * 0.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#e85d75"; g.fillRect(W * 0.46, H * 0.55, 26, 34);
+    g.fillStyle = "#fff"; g.fillRect(W * 0.46 + 6, H * 0.55 + 8, 5, 6); g.fillRect(W * 0.46 + 16, H * 0.55 + 8, 5, 6);
+  })(scene.getContext("2d"));
+  const base = scene.getContext("2d").getImageData(0, 0, W, H);
+
+  // Masques (valeur m du canal rouge, 0..1)
+  const noise = new Float32Array(W * H).map(() => Math.random());
+  const MASKS = {
+    wipe: (x) => x / (W - 1),
+    iris: (x, y) => 1 - Math.min(1, Math.hypot((x - W / 2) / (W / 2), (y - H / 2) / (W / 2)) / 1.15),
+    diamond: (x, y) => { const s = 24; const dx = Math.abs((x % s) - s / 2), dy = Math.abs((y % s) - s / 2); return (dx + dy) / s; },
+    noise: (x, y) => noise[y * W + x],
+  };
+  const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+  function render() {
+    const img = ctx.createImageData(W, H);
+    const d = img.data, s = base.data, p = state.progress, k = Math.max(state.smooth, 0.001), fn = MASKS[state.mask];
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        let a = p;
+        if (fn) { const m = fn(x, y); a = smoothstep(m, m + k, p * (1 + k)); }
+        d[i] = s[i] + (state.color[0] - s[i]) * a;
+        d[i + 1] = s[i + 1] + (state.color[1] - s[i + 1]) * a;
+        d[i + 2] = s[i + 2] + (state.color[2] - s[i + 2]) * a;
+        d[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    q('[data-o="progress"]').textContent = p.toFixed(2);
+    q('[data-k="progress"]').value = p;
+  }
+
+  // Courbes Tween de Godot, en EASE_IN_OUT
+  const inOut = (f) => (t) => (t < 0.5 ? f(t * 2) / 2 : 1 - f((1 - t) * 2) / 2);
+  const bounceOut = (t) => { const n = 7.5625, d = 2.75; if (t < 1 / d) return n * t * t; if (t < 2 / d) return n * (t -= 1.5 / d) * t + 0.75; if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + 0.9375; return n * (t -= 2.625 / d) * t + 0.984375; };
+  const EASE = {
+    linear: (t) => t,
+    sine: inOut((t) => 1 - Math.cos((t * Math.PI) / 2)),
+    cubic: inOut((t) => t * t * t),
+    back: inOut((t) => t * t * (2.70158 * t - 1.70158)),
+    bounce: inOut((t) => 1 - bounceOut(1 - t)),
+  };
+
+  let anim = null;
+  function fadeTo(target, duration) {
+    if (anim) cancelAnimationFrame(anim.id); // un nouveau fondu remplace l'ancien, sans signal
+    const from = state.progress, start = performance.now();
+    q('[data-o="signal"]').textContent = "Signal : —";
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / (duration * 1000));
+      state.progress = from + (target - from) * EASE[state.trans](t);
+      render();
+      if (t < 1) { anim.id = requestAnimationFrame(step); return; }
+      anim = null;
+      state.progress = target; render();
+      const sig = target >= 1 ? "faded_out" : target <= 0 ? "faded_in" : "";
+      q('[data-o="signal"]').textContent = "Signal : fade_finished(" + target.toFixed(1) + ")" + (sig ? " → " + sig : "");
+    };
+    anim = { id: requestAnimationFrame(step) };
+  }
+
+  root.addEventListener("input", (e) => {
+    const k = e.target.dataset.k;
+    if (!k) return;
+    if (k === "progress") { if (anim) { cancelAnimationFrame(anim.id); anim = null; } state.progress = +e.target.value; }
+    else if (k === "smooth") { state.smooth = +e.target.value; q('[data-o="smooth"]').textContent = state.smooth.toFixed(2); }
+    else if (k === "color") { const v = e.target.value; state.color = [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16)); }
+    else state[k] = e.target.value;
+    render();
+  });
+  root.addEventListener("click", (e) => {
+    const a = e.target.dataset.a;
+    if (a === "out") fadeTo(1, 1.2);
+    if (a === "in") fadeTo(0, 1.2);
+  });
+  render();
+})();
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

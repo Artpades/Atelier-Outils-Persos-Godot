@@ -48,6 +48,7 @@ class FXTargeter : public Effect
     float max_distance = 50.0f;
     float depth_margin = 1.5f;
 
+    /// Oriente la cible vers le centre des nœuds visés (et place la Camera3D en 3D).
     void _process_2d(Node2D *p_node, float p_delta);
     void _process_3d(Node3D *p_node, float p_delta);
 };

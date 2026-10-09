@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueOption" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Option proposée par un [DialogueChoice] : texte, nœud suivant, condition d'affichage, option à usage unique.
 	</brief_description>
 	<description>
+		Ressource listée dans [member DialogueChoice.options]. Une option n'est proposée que si sa [member condition] est vraie et, pour une option [member once_only], si elle n'a pas déjà été choisie.
+		[codeblock]
+		var option := DialogueOption.new()
+		option.text = "Je prends la quête ({pieces} pièces)"
+		option.condition = "niveau &gt;= 2"
+		option.once_only = true
+		option.next = &amp;"quete"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="condition" type="String" setter="set_condition" getter="get_condition" default="&quot;&quot;">
+			Expression évaluée avec les variables du [DialogueSystem] (ex. [code]niveau &gt;= 2 and not quete[/code]) ; l'option n'est proposée que si elle est vraie. Vide = toujours proposée. Une expression invalide masque l'option (avertissement dans la console).
 		</member>
 		<member name="next" type="StringName" setter="set_next" getter="get_next" default="&amp;&quot;&quot;">
+			Identifiant du nœud atteint quand l'option est choisie. Vide : le dialogue se termine.
 		</member>
 		<member name="once_only" type="bool" setter="set_once_only" getter="get_once_only" default="false">
+			Si [code]true[/code], l'option disparaît une fois choisie, pour toute la durée de vie du [DialogueSystem] (voir [method DialogueSystem.clear_seen_options]). Elle est repérée par le chemin du dialogue, l'identifiant du choix et son rang dans [member DialogueChoice.options] : réordonner les options change donc celles qui sont considérées comme vues.
 		</member>
 		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+			Texte affiché sur le bouton. Les « {nom} » y sont remplacés par les variables.
 		</member>
 	</members>
 </class>

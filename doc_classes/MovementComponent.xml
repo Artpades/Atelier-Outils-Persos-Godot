@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="MovementComponent" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🧩 Base commune des composants de mouvement (sol, nage, mur, vol, corde...) : reçoit l'intention du joueur ou de l'IA et déplace le corps parent à chaque image physique.
 	</brief_description>
 	<description>
+		Classe abstraite (non instanciable) dont héritent [GroundMovement2D], [SwimMovement2D], [WallMovement2D], [AerodynamicMovement2D], [RopeMovement2D] et leurs équivalents 3D. Un composant se place [b]comme enfant direct[/b] du corps qu'il déplace ([CharacterBody2D], [CharacterBody3D], et [RigidBody2D] / [RigidBody3D] pour certains) : [method get_body] renvoie simplement le parent.
+		Tous les composants partagent la même « intention » : [method move] (direction, longueur bornée à 1), [method jump] / [method release_jump], [method set_running] et [method set_vertical_input]. Un [MovementDirector] la transmet à tous les composants du corps et n'active ([member active]) que ceux du contexte courant ; sans directeur, chaque composant est actif par défaut et agit seul.
+		À chaque image physique, si le composant est [member active], l'étape native de la classe C++ puis la méthode virtuelle [method _movement_step] sont appelées ; ensuite la mémoire du saut ([member jump_buffer_time]) s'écoule. Rien n'est exécuté dans l'éditeur.
+		Pour écrire un mode de déplacement en GDScript, hériter de [MovementComponent] et surcharger [method _movement_step] :
+		[codeblock]
+		extends MovementComponent
+		# Échelle : move.y monte / descend, sans gravité, tant que le composant est actif.
+		@export var vitesse := 120.0
+
+		func _movement_step(delta: float) -&gt; void:
+			var corps := get_body() as CharacterBody2D
+			corps.velocity = Vector2(0, get_move_input().y * vitesse)
+			if has_jump_request(true):
+				corps.velocity.y = -300.0 # saut : quitter l'échelle
+			corps.move_and_slide()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,93 +28,114 @@
 			<return type="void" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Méthode virtuelle à surcharger en GDScript pour écrire son propre mode de déplacement. Appelée à chaque image physique, uniquement quand le composant est [member active] (après l'étape native des classes C++), avec [param delta] la durée de l'image physique. Lire l'intention avec [method get_move_input], [method has_jump_request], [method is_running]... et déplacer [method get_body].
 			</description>
 		</method>
 		<method name="external_acceleration_2d" qualifiers="static">
 			<return type="Vector2" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la somme des accélérations des [ForceZone2D] actives (avec [member ForceZone2D.affect_characters]) qui contiennent [param body], ou [code]Vector2(0, 0)[/code]. C'est par cette méthode que les composants font subir le vent, les aimants ou les tourbillons aux personnages ; à ajouter soi-même ([code]velocity += accel * delta[/code]) dans un [method _movement_step] personnalisé.
 			</description>
 		</method>
 		<method name="external_acceleration_3d" qualifiers="static">
 			<return type="Vector3" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Équivalent 3D de [method external_acceleration_2d] : somme des accélérations des [ForceZone3D] qui contiennent [param body].
 			</description>
 		</method>
 		<method name="get_body" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie le corps déplacé, c'est-à-dire le [b]parent[/b] du composant (ou [code]null[/code] hors de l'arbre).
 			</description>
 		</method>
 		<method name="get_move_input" qualifiers="const">
 			<return type="Vector2" />
 			<description>
+				Renvoie la dernière direction reçue par [method move] (longueur ≤ 1). Elle reste en mémoire tant qu'une nouvelle valeur n'est pas envoyée.
 			</description>
 		</method>
 		<method name="get_vertical_input" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la commande verticale reçue par [method set_vertical_input], entre -1 et 1.
 			</description>
 		</method>
 		<method name="has_jump_request">
 			<return type="bool" />
 			<param index="0" name="consume" type="bool" default="false" />
 			<description>
+				Renvoie [code]true[/code] si [method jump] a été appelé il y a moins de [member jump_buffer_time] secondes. Avec [param consume] à [code]true[/code], la demande est oubliée (à faire quand le saut est réellement exécuté, pour ne pas sauter deux fois).
 			</description>
 		</method>
 		<method name="is_jump_held" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] entre [method jump] et [method release_jump] (bouton de saut maintenu). Sert à la hauteur de saut variable et au plané.
 			</description>
 		</method>
 		<method name="is_running" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie l'état transmis par [method set_running].
 			</description>
 		</method>
 		<method name="jump">
 			<return type="void" />
 			<description>
+				Demande un saut : le bouton est considéré comme maintenu ([method is_jump_held]) et la demande reste valable [member jump_buffer_time] secondes (ou une seule image si ce temps vaut 0). Ce que fait le saut dépend du composant (saut, coup de nage, saut mural, battement d'ailes, lâcher de corde).
 			</description>
 		</method>
 		<method name="move">
 			<return type="void" />
 			<param index="0" name="input" type="Vector2" />
 			<description>
+				Transmet la direction voulue : [code]x[/code] gauche / droite, [code]y[/code] haut / bas en 2D ou avant / arrière en 3D ([code]-1[/code] = haut ou avant). La longueur est bornée à 1 ; une manette analogique donne donc des vitesses intermédiaires.
 			</description>
 		</method>
 		<method name="release_jump">
 			<return type="void" />
 			<description>
+				Signale le relâchement du bouton de saut ([method is_jump_held] repasse à [code]false[/code]). La demande de saut en mémoire n'est pas effacée.
 			</description>
 		</method>
 		<method name="set_running">
 			<return type="void" />
 			<param index="0" name="running" type="bool" />
 			<description>
+				Active ou désactive la course : les composants qui la gèrent multiplient leur vitesse par leur [code]run_multiplier[/code].
 			</description>
 		</method>
 		<method name="set_vertical_input">
 			<return type="void" />
 			<param index="0" name="value" type="float" />
 			<description>
+				Transmet une commande verticale entre -1 (descendre) et 1 (monter), bornée. Utilisée pour monter / descendre à la nage, en vol, sur un mur ou une corde en 3D.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="active" type="bool" setter="set_active" getter="is_active" default="true">
+			Si [code]false[/code], le composant ne fait plus rien (ni étape native, ni [method _movement_step]) ; l'intention continue d'être reçue. Un [MovementDirector] règle cette propriété selon le contexte courant. Le changement émet [signal activated] ou [signal deactivated].
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu des gizmos tant que le composant est actif : flèche de vitesse (vert), flèche d'intention (jaune) et texte (nom, classe, état propre au composant) au-dessus du corps. Les composants ajoutent leurs propres repères (normale du sol ou du mur, direction de nage...).
 		</member>
 		<member name="jump_buffer_time" type="float" setter="set_jump_buffer_time" getter="get_jump_buffer_time" default="0.12">
+			Durée, en secondes, pendant laquelle une demande de saut reste valable ([method has_jump_request]). Permet d'appuyer sur saut un peu avant d'atterrir. [code]0[/code] limite la demande à une seule image physique.
 		</member>
 	</members>
 	<signals>
 		<signal name="activated">
 			<description>
+				Émis quand [member active] passe à [code]true[/code] (par exemple quand le [MovementDirector] entre dans un contexte qui contient ce composant).
 			</description>
 		</signal>
 		<signal name="deactivated">
 			<description>
+				Émis quand [member active] passe à [code]false[/code].
 			</description>
 		</signal>
 	</signals>

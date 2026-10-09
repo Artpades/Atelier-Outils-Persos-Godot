@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="VisualsSwapper" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎭 Change l'apparence d'une scène (tenue, skin, transformation) en appliquant un [VisualsAsset] de son catalogue.
 	</brief_description>
 	<description>
+		Le nœud contient un catalogue de [VisualsAsset] ([member visuals_assets]). [method swap] ou [method swap_by_name] applique un asset : chacun de ses [VisualsRegister] remplace la texture, le maillage ou le contenu d'un nœud de la scène. Les chemins des registres sont résolus depuis ce nœud.
+		[codeblock]
+		# Personnage
+		# ├─ VisualsSwapper   (visuals_assets : « normal », « feu », « glace »)
+		# ├─ Corps (Sprite2D) ← registre : node_visual = ^"../Corps", texture = corps_feu.png
+		# └─ Chapeau (Node2D) ← registre : node_visual = ^"../Chapeau", modeling_import = chapeau_feu.tscn
+		func _on_pouvoir_ramasse(pouvoir: String) -&gt; void:
+			$VisualsSwapper.swap_by_name(pouvoir) # "feu"
+		[/codeblock]
+		Rien n'est mémorisé : pour revenir à l'apparence d'origine, appliquez un asset « normal » qui la décrit.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,17 +22,20 @@
 			<return type="void" />
 			<param index="0" name="visuals_asset" type="VisualsAsset" />
 			<description>
+				Applique [param visuals_asset] (qu'il soit ou non dans le catalogue) en résolvant ses chemins depuis ce nœud. Sans effet si [param visuals_asset] est [code]null[/code].
 			</description>
 		</method>
 		<method name="swap_by_name">
 			<return type="void" />
 			<param index="0" name="suit_type_name" type="String" />
 			<description>
+				Applique le premier asset de [member visuals_assets] dont [member VisualsAsset.suit_type_name] vaut [param suit_type_name] (sensible à la casse). Sans effet, et sans message, si aucun ne correspond.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="visuals_assets" type="VisualsAsset[]" setter="set_visuals_assets" getter="get_visuals_assets" default="[]">
+			Catalogue des apparences disponibles, recherchées par [method swap_by_name].
 		</member>
 	</members>
 </class>

@@ -22,11 +22,15 @@ class ScreenFader : public CanvasLayer
     void fade_out(double p_duration = -1.0);
     /// Découvre l'écran (progress -> 0). p_duration < 0 : duration.
     void fade_in(double p_duration = -1.0);
-    /// Anime progress jusqu'à p_progress.
+    /// Anime progress jusqu'à p_progress (interrompt le fondu en cours). Immédiat si la durée est nulle
+    /// ou hors de l'arbre : les signaux de fin sont alors émis tout de suite.
     void fade_to(double p_progress, double p_duration = -1.0);
+    /// Vrai pendant un fondu.
     bool is_fading() const;
+    /// Vrai si l'écran est entièrement couvert (progress = 1).
     bool is_covered() const { return progress >= 1.0; }
 
+    /// Borne entre 0 et 1, puis met à jour le voile.
     void set_progress(double p_value);
     double get_progress() const { return progress; }
     void set_color(const Color &p_value);
@@ -50,10 +54,11 @@ class ScreenFader : public CanvasLayer
 
   protected:
     static void _bind_methods();
+    /// Construit le voile à l'entrée dans l'arbre.
     void _notification(int p_what);
 
   private:
-    double progress = 0.0;
+    double progress = 0.0; // 0 : écran visible, 1 : écran couvert
     Color color = Color(0, 0, 0, 1);
     Ref<Texture2D> texture; // remplace la couleur unie (teintée par color)
     Ref<Texture2D> mask;    // forme de la transition (niveaux de gris)
@@ -68,8 +73,11 @@ class ScreenFader : public CanvasLayer
     Ref<ShaderMaterial> material;
     Ref<Tween> tween;
 
+    /// Crée le ColorRect interne plein écran et son ShaderMaterial (une seule fois).
     void _build_overlay();
+    /// Recopie les réglages dans le shader ; masque le voile et le rend transparent aux clics à progress = 0.
     void _update_overlay();
+    /// Émet fade_finished, puis faded_out ou faded_in selon le recouvrement atteint.
     void _on_fade_finished();
 };
 } // namespace godot

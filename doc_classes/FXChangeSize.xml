@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="FXChangeSize" inherits="Effect" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🦣 Effet qui agrandit ou rétrécit la cible en douceur au jeu, puis la ramène à une taille de repos à l'arrêt.
 	</brief_description>
 	<description>
+		Au jeu de l'effet, l'échelle de la cible ([Control], [Node2D] ou [Node3D]) est animée par un [Tween] jusqu'à [member final_scale] (uniforme sur tous les axes) ; à l'arrêt, elle est animée jusqu'à [member original_value]. Sur un [Control], le pivot est placé au centre pour que l'agrandissement se fasse depuis le milieu.
+		L'échelle de repos n'est [b]pas[/b] lue sur la cible : c'est [member original_value]. Une échelle non uniforme ou négative (sprite retourné) est donc perdue après l'effet.
+		[codeblock]
+		# Bouton qui grossit au survol
+		func _ready() -> void:
+			var grossir := FXChangeSize.new()
+			grossir.final_scale = 1.15
+			grossir.duration = 0.15
+			$Bouton/PlayerFX.special_effects = [grossir]
+			$Bouton.mouse_entered.connect($Bouton/PlayerFX.play)
+			$Bouton.mouse_exited.connect($Bouton/PlayerFX.stop)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.5">
+			Durée de l'animation en secondes, à l'aller comme au retour.
 		</member>
 		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="1">
+			Accélération de la courbe [member transition] (début, fin, ou les deux).
 		</member>
 		<member name="final_scale" type="float" setter="set_final_scale" getter="get_final_scale" default="1.2">
+			Échelle atteinte au jeu de l'effet ([code]1.2[/code] : 20 % plus grand, [code]0[/code] : disparition).
 		</member>
 		<member name="original_value" type="float" setter="set_original_value" getter="get_original_value" default="1.0">
+			Échelle rejointe à l'arrêt de l'effet, sur tous les axes. À régler si la cible n'est pas à l'échelle 1 au repos.
 		</member>
 		<member name="transition" type="int" setter="set_transition" getter="get_transition" enum="Tween.TransitionType" default="10">
+			Courbe d'interpolation. Par défaut [i]Back[/i] : léger dépassement puis retour, pour un effet « élastique ».
 		</member>
 	</members>
 </class>

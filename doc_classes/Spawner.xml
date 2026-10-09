@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Spawner" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🏭 Instancie des scènes (ennemis, objets, bonus) à des positions prédéfinies, selon des listes configurées dans l'inspecteur.
 	</brief_description>
 	<description>
+		Chaque [SpawnEntry] de [member entries] dit quelles scènes instancier et à quelles positions, et comment les choisir (dans l'ordre, au hasard, toutes). À chaque appel de [method spawn], toutes les entrées sont traitées, puis [signal spawned] est émis.
+		Les positions sont des nœuds [Node2D] / [Node3D] (des [Marker2D] / [Marker3D] par exemple) : l'instance reçoit leur transformation globale (position, rotation, échelle). Sans position dans l'entrée, les enfants 2D / 3D du Spawner servent de positions.
+		Les instances sont ajoutées sous [member parent_node], ou à défaut sous la racine de l'arbre (le Viewport).
+		[codeblock]
+		# Vague d'ennemis toutes les 5 secondes, à tour de rôle sur les marqueurs enfants du Spawner.
+		func _ready() -&gt; void:
+			$Spawner.parent_node = $Ennemis   # libérés avec le niveau
+			$Timer.timeout.connect($Spawner.spawn)
+			$Timer.start(5.0)
+		[/codeblock]
+		[b]Note :[/b] [signal spawned] ne transmet pas les instances créées. Pour les récupérer, utilisez un [member parent_node] dédié et son signal [signal Node.child_entered_tree]. Classe d'exécution uniquement (aucun effet dans l'éditeur).
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,18 +22,23 @@
 		<method name="spawn">
 			<return type="void" />
 			<description>
+				Traite toutes les entrées : pour chacune, choisit les scènes et les positions selon ses modes de sélection, instancie chaque scène choisie, l'ajoute au parent de spawn et lui donne la transformation globale de sa position (les positions sont réutilisées en boucle si elles sont moins nombreuses que les scènes). Émet ensuite [signal spawned].
+				Le Spawner doit être dans l'arbre. Une entrée nulle, sans scène ou sans position, une scène nulle ou une position introuvable est ignorée avec un avertissement. La transformation n'est copiée que si l'instance et la position sont toutes deux 2D ou toutes deux 3D.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="entries" type="SpawnEntry[]" setter="set_entries" getter="get_entries" default="[]">
+			Listes de scènes et de positions traitées à chaque [method spawn]. Chaque entrée garde son propre rang en mode séquentiel.
 		</member>
 		<member name="parent_node" type="Node" setter="set_parent_node" getter="get_parent_node">
+			Nœud sous lequel les instances sont ajoutées. Vide (ou libéré) : la racine de l'arbre, ce qui fait [b]survivre les instances à un changement de scène[/b]. Le plus souvent, choisissez un nœud du niveau.
 		</member>
 	</members>
 	<signals>
 		<signal name="spawned">
 			<description>
+				Émis à la fin de chaque [method spawn] qui a des entrées, même si aucune instance n'a pu être créée.
 			</description>
 		</signal>
 	</signals>

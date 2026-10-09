@@ -81,9 +81,12 @@ class PlayerController : public Node
     bool camera_relative = true;
     bool block_during_dialogue = true;
     bool create_missing_actions = true;
+    /// Interactable le plus proche à la dernière image (pour n'émettre focus_changed qu'au changement).
     ObjectID focused_id;
 
+    /// Lit les entrées et pilote le personnage (appelé à chaque image physique).
     void _physics_update();
+    /// Vrai si l'action est non vide et déclarée dans l'InputMap.
     bool _action_exists(const StringName &p_action) const;
 };
 
@@ -95,6 +98,7 @@ class AutomateController : public Node
     GDCLASS(AutomateController, Node)
 
   public:
+    /// Mode de déplacement en cours (get_mode).
     enum Mode
     {
         MODE_IDLE,
@@ -112,6 +116,7 @@ class AutomateController : public Node
     Mode get_start_mode() const { return start_mode; }
     void set_arrive_distance(double p_distance) { arrive_distance = p_distance; }
     double get_arrive_distance() const { return arrive_distance; }
+    /// arrive_distance, ou 8 (2D) / 0,3 (3D) si elle est négative.
     double get_effective_arrive_distance() const;
     void set_patrol_points(const Array &p_points) { patrol_points = p_points; }
     Array get_patrol_points() const { return patrol_points; }
@@ -138,6 +143,7 @@ class AutomateController : public Node
     void stop();
 
     Mode get_mode() const { return mode; }
+    /// Vrai si l'entrée de déplacement du personnage n'est pas nulle.
     bool is_moving() const;
     Vector3 get_destination() const { return destination; }
     Node *get_follow_target() const;
@@ -164,18 +170,26 @@ class AutomateController : public Node
     double run_distance = 0.0;
     bool use_navigation = true;
 
+    /// Mode courant (start_mode n'est lu qu'au _ready).
     Mode mode = MODE_IDLE;
+    /// But courant ; en suivi, recopié de la position de la cible à chaque image.
     Vector3 destination;
+    /// Centre de l'errance : position du personnage à la première image physique, sauf set_home.
     Vector3 home;
     ObjectID follow_id;
     int patrol_index = 0;
+    /// Sens de parcours de la patrouille aller-retour (+1 / -1).
     int patrol_direction = 1;
+    /// Pause restante à un point de patrouille ou d'errance.
     double wait_remaining = 0.0;
     bool home_set = false;
 
+    /// Vector2, Vector2i, Vector3 ou nœud (position actuelle) → Vector3 ; autre type → origine.
     static Vector3 _to_point(const Variant &p_point);
+    /// Tire une destination uniforme dans le disque de rayon wander_radius autour de home.
     void _pick_wander_point();
     void _physics_update(double p_delta);
+    /// Prochain point du chemin du NavigationAgent enfant (si use_navigation), sinon le but lui-même.
     Vector3 _next_path_point(CharacterAPI *p_character, const Vector3 &p_goal);
 };
 
@@ -201,6 +215,7 @@ class NPCController : public AutomateController
     void set_stop_while_talking(bool p_stop) { stop_while_talking = p_stop; }
     bool get_stop_while_talking() const { return stop_while_talking; }
 
+    /// Lance le dialogue (false sans système, sans dialogue ou si une conversation est en cours).
     bool talk(Node *p_interlocutor);
     bool is_talking() const { return talking; }
     Interactable *get_interactable() const;
@@ -217,7 +232,9 @@ class NPCController : public AutomateController
     String interaction_prompt = U"Parler";
     bool face_interlocutor = true;
     bool stop_while_talking = true;
+    /// Vrai entre talk() et la fin du dialogue (dialogue_ended du système).
     bool talking = false;
+    /// DialogueSystem de la conversation en cours, pour se déconnecter à la fin.
     ObjectID system_id;
 
     void _on_interacted(Node *p_by);

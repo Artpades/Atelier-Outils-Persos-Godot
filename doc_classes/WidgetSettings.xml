@@ -1,15 +1,57 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="WidgetSettings" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Réglages communs d'un widget (libellé, icône, style) ; base des réglages propres à chaque widget.
 	</brief_description>
 	<description>
+		Assignés à [member DataEntry.settings]. Priorité : réglages de l'entrée &gt; indice (hint) de la propriété &gt; valeurs par défaut du widget. Un [WidgetSettings] simple convient à tous les widgets ; une sous-classe destinée à un autre widget (ex : [RangeWidgetSettings] sur un texte) ne garde que les réglages communs, avec un avertissement.
+		[codeblock]
+		var reglages := WidgetSettings.new()
+		reglages.icon = preload("res://icones/coeur.png")
+		reglages.label_ratio = 0.3
+		registre.find(&amp;"vie").settings = reglages
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
+		<member name="icon" type="Texture2D" setter="set_icon" getter="get_icon">
+			Icône du widget (remplaçable par un [IconIfBehavior]).
+		</member>
+		<member name="icon_position" type="int" setter="set_icon_position" getter="get_icon_position" enum="WidgetSettings.IconPosition" default="0">
+			Place de l'icône : avant le libellé ou avant la valeur.
+		</member>
+		<member name="icon_size" type="int" setter="set_icon_size" getter="get_icon_size" default="16">
+			Côté de l'icône, en pixels (8 à 128).
+		</member>
 		<member name="label_ratio" type="float" setter="set_label_ratio" getter="get_label_ratio" default="0.4">
+			Part de la largeur occupée par le libellé (0,1 à 0,9) ; le reste va à la valeur.
 		</member>
 		<member name="show_label" type="bool" setter="set_show_label" getter="get_show_label" default="true">
+			Si [code]false[/code], le libellé n'est pas affiché (la valeur prend toute la largeur).
+		</member>
+		<member name="style" type="InterfaceStyle" setter="set_style" getter="get_style">
+			Style appliqué à la partie choisie par [member style_target].
+		</member>
+		<member name="style_target" type="int" setter="set_style_target" getter="get_style_target" enum="WidgetSettings.StyleTarget" default="0">
+			Partie du widget qui reçoit [member style].
 		</member>
 	</members>
+	<constants>
+		<constant name="STYLE_WIDGET" value="0" enum="StyleTarget">
+			Le widget entier (libellé + valeur) ; le fond du style est dessiné derrière.
+		</constant>
+		<constant name="STYLE_VALUE" value="1" enum="StyleTarget">
+			Le contrôle de la valeur seulement.
+		</constant>
+		<constant name="STYLE_LABEL" value="2" enum="StyleTarget">
+			Le libellé seulement (ignoré si le libellé est masqué).
+		</constant>
+		<constant name="ICON_BEFORE_LABEL" value="0" enum="IconPosition">
+			Icône en tête de ligne, avant le libellé.
+		</constant>
+		<constant name="ICON_BEFORE_VALUE" value="1" enum="IconPosition">
+			Icône entre le libellé et la valeur.
+		</constant>
+	</constants>
 </class>

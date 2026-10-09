@@ -8,7 +8,7 @@
 
 namespace godot
 {
-// Accès au ManagerBuilder depuis un AUTRE module GDExtension.
+/// ⚙️ Accès au ManagerBuilder depuis un AUTRE module GDExtension.
 //
 // ManagerBuilder est compilé dans le module tool_editor : un autre module ne peut pas inclure
 // manager_builder.hpp (son code ne serait pas lié). Ces fonctions passent donc par ClassDB
@@ -25,13 +25,14 @@ namespace godot
 // en scène reste accessible (mais aucune instance n'est créée à la demande).
 namespace manager_builder
 {
+/// true si la classe ManagerBuilder est chargée (bibliothèque tool_editor présente).
 inline bool is_available()
 {
     ClassDBSingleton *cdb = ClassDBSingleton::get_singleton();
     return cdb && cdb->class_exists("ManagerBuilder");
 }
 
-// Retourne le singleton de T (créé par ManagerBuilder s'il n'existe pas encore).
+/// Retourne le singleton de T (créé par ManagerBuilder s'il n'existe pas encore).
 template <typename T>
 T *get(ObjectID &r_cache)
 {
@@ -45,7 +46,7 @@ T *get(ObjectID &r_cache)
     return Object::cast_to<T>(ObjectDB::get_instance(r_cache));
 }
 
-// Enregistre p_self comme instance canonique. Retourne false si une autre instance existait déjà
+/// Enregistre p_self comme instance canonique. Retourne false si une autre instance existait déjà
 // (p_self est alors détruit par queue_free et ne doit plus s'initialiser).
 template <typename T>
 bool init(ObjectID &r_cache, T *p_self)
@@ -67,7 +68,7 @@ bool init(ObjectID &r_cache, T *p_self)
     return true;
 }
 
-// Désenregistre p_self s'il est l'instance canonique (sans effet sinon).
+/// Désenregistre p_self s'il est l'instance canonique (sans effet sinon).
 template <typename T>
 void release(ObjectID &r_cache, T *p_self)
 {

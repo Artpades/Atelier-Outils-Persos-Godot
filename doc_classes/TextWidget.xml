@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TextWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un texte (String ou StringName) : LineEdit ou TextEdit.
 	</brief_description>
 	<description>
+		La frappe est appliquée en direct (non validée) ; la validation a lieu à Entrée (LineEdit) ou à la perte du focus. Une [code]StringName[/code] reste une [code]StringName[/code]. Réglages : [TextEditWidgetSettings].
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

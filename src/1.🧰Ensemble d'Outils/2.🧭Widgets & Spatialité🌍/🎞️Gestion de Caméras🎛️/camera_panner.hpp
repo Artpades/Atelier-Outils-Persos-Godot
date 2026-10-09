@@ -76,9 +76,12 @@ class CameraPanner : public Camera2D
     StringName action_zoom_in = "ui_page_up";
     StringName action_zoom_out = "ui_page_down";
 
+    /// Position et zoom cibles modifiés par les entrées ; _process en rapproche la caméra (lerp_speed).
+    /// Initialisés au _ready depuis position et zoom.x, remplacés par teleport().
     Vector2 target_position;
     float target_zoom = 1.0f;
 
+    /// Actions de l'Input Map (déplacement et zoom vers le centre de l'écran), lues à chaque image.
     void _handle_joypad_input(float p_delta);
     /// Zoome d'un facteur en gardant fixe le point du monde situé sous p_screen_position.
     void _apply_zoom(float p_factor, const Vector2 &p_screen_position);

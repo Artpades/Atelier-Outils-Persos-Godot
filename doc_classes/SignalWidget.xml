@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SignalWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un signal : liste de liens « signal → méthode » à la manière d'un UnityEvent, et bouton « Émettre ».
 	</brief_description>
 	<description>
+		Deux modes, choisis automatiquement et affichés :
+		- [b]natif[/b] (dans l'éditeur, émetteur ET cible dans la scène éditée) : connexion [code]CONNECT_PERSIST[/code] enregistrée dans la scène, visible dans l'onglet Nœud. Seule correspondance possible : les k premiers paramètres reçoivent les k premiers arguments du signal, les autres sont des constantes ;
+		- [b]ressource[/b] (tous les autres cas, dont le jeu) : [SignalLink] enregistrés dans [member DataEntry.links], avec une source libre par paramètre.
+		Toute modification est une action d'annulation. « ▶ Émettre » émet le signal avec les valeurs par défaut des types de ses arguments.
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

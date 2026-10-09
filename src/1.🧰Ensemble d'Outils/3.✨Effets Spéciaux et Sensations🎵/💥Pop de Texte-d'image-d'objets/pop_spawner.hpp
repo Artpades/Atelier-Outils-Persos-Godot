@@ -83,7 +83,9 @@ class PopSpawner : public Node
 
     LocalVector<ObjectID> active_pops; // du plus ancien au plus récent
 
+    /// Oublie les pops libérés ou en cours de libération.
     void _prune();
+    /// Ajoute sous p_pop la scène, l'image et le texte de la demande (rangée centrée).
     static void _build_content_2d(Node *p_pop, const PopStyle &p_style, const PopRequest &p_request);
     static void _build_content_3d(Node *p_pop, const PopStyle &p_style, const PopRequest &p_request);
 };

@@ -37,9 +37,10 @@ class TimeManipulatorFX : public Node
     double recovery_speed = 5.0; // vitesse de retour vers target_time_scale
     double target_time_scale = 1.0;
     bool hit_stopping = false;
-    double scale_before_hit_stop = 1.0;
-    uint64_t last_ticks_usec = 0;
+    double scale_before_hit_stop = 1.0; // vitesse visée rétablie à la fin du gel
+    uint64_t last_ticks_usec = 0;       // horloge réelle de la frame précédente (delta indépendant de time_scale)
 
+    /// Fin du minuteur de gel : rétablit la vitesse d'avant le gel (sauf si le nœud a quitté l'arbre).
     void _on_hit_stop_finished();
 };
 } // namespace godot

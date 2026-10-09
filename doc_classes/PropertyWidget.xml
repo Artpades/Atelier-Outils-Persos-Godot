@@ -1,8 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PropertyWidget" inherits="BoxContainer" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Ligne d'édition d'une valeur (libellé + contrôle) ; base de tous les widgets et des widgets personnalisés.
 	</brief_description>
 	<description>
+		Un widget n'écrit [b]jamais[/b] dans l'objet : il émet [signal value_changed] et le [ProceduralEditor] fait passer l'écriture par l'[UndoBackend]. [param committing] vaut [code]false[/code] pendant un glissement ou une frappe, [code]true[/code] à la validation.
+		Utilisée telle quelle, la classe affiche la valeur en lecture seule. Pour un widget personnalisé (choix [constant DataEntry.WIDGET_CUSTOM] ou [method WidgetFactory.set_widget_class]), hériter de [PropertyWidget] avec un [code]class_name[/code] et surcharger [method _build] et [method _pull] :
+		[codeblock]
+		class_name CurseurEtoiles
+		extends PropertyWidget
+
+		var _etoiles: HBoxContainer
+
+		func _build(info: Dictionary, settings: WidgetSettings) -&gt; Control:
+			_etoiles = HBoxContainer.new()
+			for i in 5:
+				var b := Button.new()
+				b.text = "☆"
+				b.pressed.connect(func(): emit_value(i + 1, true))
+				_etoiles.add_child(b)
+			return _etoiles
+
+		func _pull(value: Variant) -&gt; void:
+			for i in 5:
+				_etoiles.get_child(i).text = "★" if i &lt; int(value) else "☆"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,18 +34,35 @@
 			<param index="0" name="info" type="Dictionary" />
 			<param index="1" name="settings" type="WidgetSettings" />
 			<description>
+				À surcharger : construit et renvoie le contrôle d'édition (sans le libellé). [param info] décrit la valeur ([code]type[/code], [code]hint[/code], [code]hint_string[/code]...), [param settings] sont les réglages de l'entrée (peut être [code]null[/code]). Sans surcharge, un [Label] en lecture seule.
 			</description>
 		</method>
 		<method name="_pull" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="value" type="Variant" />
 			<description>
+				À surcharger : affiche [param value] dans le contrôle SANS émettre de valeur. Appelée à la construction et à chaque changement venu de l'objet.
+			</description>
+		</method>
+		<method name="commit_if_editing">
+			<return type="void" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+				Valide [param value] seulement si une édition est en cours (perte du focus, fermeture d'un popup) ; sinon rien n'est réécrit.
+			</description>
+		</method>
+		<method name="differs_from_object" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="value" type="Variant" />
+			<description>
+				Renvoie [code]true[/code] si [param value] diffère (type ou contenu) de la valeur actuelle de l'objet.
 			</description>
 		</method>
 		<method name="display_name" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="property" type="StringName" />
 			<description>
+				Renvoie le nom lisible d'une propriété ([code]max_speed[/code] → « Max Speed »).
 			</description>
 		</method>
 		<method name="emit_value">
@@ -31,66 +70,134 @@
 			<param index="0" name="value" type="Variant" />
 			<param index="1" name="committing" type="bool" />
 			<description>
+				À appeler quand l'utilisateur modifie la valeur : émet [signal value_changed]. Ignoré pendant [method pull], en lecture seule et quand le widget est verrouillé.
 			</description>
 		</method>
 		<method name="get_accessor" qualifiers="const">
 			<return type="ValueAccessor" />
 			<description>
+				Renvoie l'accès à la valeur éditée ([ValueAccessor]).
+			</description>
+		</method>
+		<method name="get_displayed_icon" qualifiers="const">
+			<return type="Texture2D" />
+			<description>
+				Renvoie l'icône affichée, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_info" qualifiers="const">
 			<return type="Dictionary" />
 			<description>
+				Renvoie la description de la valeur ([code]type[/code], [code]hint[/code], [code]hint_string[/code], [code]usage[/code], [code]class_name[/code]).
 			</description>
 		</method>
 		<method name="get_last_value" qualifiers="const">
 			<return type="Variant" />
 			<description>
+				Renvoie la dernière valeur lue dans l'objet (utilisée pour détecter les changements externes).
 			</description>
 		</method>
 		<method name="get_property_name" qualifiers="const">
 			<return type="StringName" />
 			<description>
+				Renvoie le nom de la propriété racine éditée.
 			</description>
 		</method>
 		<method name="get_settings" qualifiers="const">
 			<return type="WidgetSettings" />
 			<description>
+				Renvoie les réglages du widget ([code]null[/code] s'il n'y en a pas).
 			</description>
 		</method>
 		<method name="get_style" qualifiers="const">
 			<return type="int" enum="DataEntry.WidgetChoice" />
 			<description>
+				Renvoie le choix de widget ([enum DataEntry.WidgetChoice]) avec lequel il a été construit.
+			</description>
+		</method>
+		<method name="get_styled_item" qualifiers="const">
+			<return type="CanvasItem" />
+			<description>
+				Renvoie l'élément qui a reçu le style des réglages (le widget, sa valeur ou son libellé), ou [code]null[/code].
+			</description>
+		</method>
+		<method name="get_tooltip_texts" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Renvoie les infobulles BBCode du widget (celle de l'entrée et celles des comportements actifs).
 			</description>
 		</method>
 		<method name="has_edit_focus" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si un contrôle du widget a le focus clavier et que sa fenêtre est active.
+			</description>
+		</method>
+		<method name="has_uncommitted_edit" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] entre une modification non validée et sa validation.
+			</description>
+		</method>
+		<method name="is_locked" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Renvoie [code]true[/code] si un « Activer si » a verrouillé le widget.
 			</description>
 		</method>
 		<method name="is_read_only" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la valeur est en lecture seule ([code]PROPERTY_USAGE_READ_ONLY[/code]).
 			</description>
 		</method>
 		<method name="pull">
 			<return type="void" />
 			<param index="0" name="value" type="Variant" />
 			<description>
+				Affiche [param value] sans émettre [signal value_changed]. Une édition non validée en cours est abandonnée ([signal edit_discarded]).
+			</description>
+		</method>
+		<method name="set_icon_override">
+			<return type="void" />
+			<param index="0" name="icon" type="Texture2D" />
+			<description>
+				Affiche [param icon] à la place de l'icône des réglages ; [code]null[/code] rétablit celle des réglages.
+			</description>
+		</method>
+		<method name="set_locked">
+			<return type="void" />
+			<param index="0" name="locked" type="bool" />
+			<description>
+				Verrouille (contrôles désactivés, widget atténué, aucune valeur émise) ou déverrouille le widget.
+			</description>
+		</method>
+		<method name="set_tooltip_texts">
+			<return type="void" />
+			<param index="0" name="texts" type="PackedStringArray" />
+			<description>
+				Remplace les infobulles BBCode. Non vide, l'infobulle simple du libellé est retirée au profit de l'infobulle enrichie.
 			</description>
 		</method>
 		<method name="stringify" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="value" type="Variant" />
 			<description>
+				Renvoie le texte d'une valeur pour un affichage en lecture seule ([code]RID(n)[/code], [code]Classe #id[/code] pour un objet).
 			</description>
 		</method>
 	</methods>
 	<signals>
+		<signal name="edit_discarded">
+			<description>
+				Émis quand une édition non validée est remplacée par une valeur venue de l'objet.
+			</description>
+		</signal>
 		<signal name="value_changed">
 			<param index="0" name="value" type="Variant" />
 			<param index="1" name="committing" type="bool" />
 			<description>
+				Émis quand l'utilisateur modifie la valeur. [param committing] : [code]true[/code] à la validation, [code]false[/code] pendant un glissement ou une frappe.
 			</description>
 		</signal>
 	</signals>

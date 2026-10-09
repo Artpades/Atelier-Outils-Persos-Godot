@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Ability" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🌟 Capacité (attaque, sort, esquive, dash...) accordée à un [AbilitySystem] : coût, recharge, incantation, effets et tags.
 	</brief_description>
 	<description>
+		Ressource de configuration : l'état (charges, recharge, activation) est conservé par l'[AbilitySystem], une même ressource peut donc être partagée entre plusieurs entités.
+		Déroulement d'une activation ([method AbilitySystem.activate]) : vérification des conditions, paiement des [member costs], consommation d'une charge ; après [member cast_time], application des [member effects_on_self] et [member effects_on_target] ; fin après [member active_duration].
+		Comportement sur mesure par script ([code]extends Ability[/code]) : [method _can_activate], [method _on_activate], [method _on_commit], [method _on_tick], [method _on_end].
+		[codeblock]
+		# boule_de_feu.gd : lance un projectile à la fin de l'incantation.
+		extends Ability
+
+		@export var projectile: PackedScene
+
+		func _on_commit(system: Node, target: Node) -&gt; void:
+			var lanceur := system.get_parent() as Node2D
+			var boule := projectile.instantiate() as Node2D
+			lanceur.add_sibling(boule)
+			boule.global_position = lanceur.global_position
+			if target:
+				boule.look_at(target.global_position)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,6 +30,7 @@
 			<param index="0" name="system" type="Node" />
 			<param index="1" name="target" type="Node" />
 			<description>
+				À surcharger : condition supplémentaire, testée après toutes les autres. Renvoyer [code]false[/code] refuse l'activation (raison [code]script[/code]). Sans surcharge, l'activation est permise.
 			</description>
 		</method>
 		<method name="_on_activate" qualifiers="virtual">
@@ -19,6 +38,7 @@
 			<param index="0" name="system" type="Node" />
 			<param index="1" name="target" type="Node" />
 			<description>
+				À surcharger : appelée au début d'une activation réussie, après le paiement du coût (animation, son d'incantation...).
 			</description>
 		</method>
 		<method name="_on_commit" qualifiers="virtual">
@@ -26,6 +46,7 @@
 			<param index="0" name="system" type="Node" />
 			<param index="1" name="target" type="Node" />
 			<description>
+				À surcharger : appelée quand les effets sont appliqués, à la fin de l'incantation ([param target] vaut [code]null[/code] si la cible a disparu). Idéale pour lancer un projectile.
 			</description>
 		</method>
 		<method name="_on_end" qualifiers="virtual">
@@ -33,6 +54,7 @@
 			<param index="0" name="system" type="Node" />
 			<param index="1" name="cancelled" type="bool" />
 			<description>
+				À surcharger : appelée à la fin de la capacité ; [param cancelled] est vrai pour une annulation.
 			</description>
 		</method>
 		<method name="_on_tick" qualifiers="virtual">
@@ -40,48 +62,67 @@
 			<param index="0" name="system" type="Node" />
 			<param index="1" name="delta" type="float" />
 			<description>
+				À surcharger : appelée à chaque [method AbilitySystem.update] tant que la capacité est active, incantation comprise. Jamais appelée pour une capacité qui se termine pendant [method AbilitySystem.activate].
 			</description>
 		</method>
 		<method name="get_effective_id" qualifiers="const">
 			<return type="StringName" />
 			<description>
+				Renvoie l'identifiant effectif : [member ability_id], sinon [member Resource.resource_name], sinon le nom du fichier sans extension.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="ability_id" type="StringName" setter="set_ability_id" getter="get_ability_id" default="&amp;&quot;&quot;">
+			Identifiant utilisé par [method AbilitySystem.activate]. Vide : [member Resource.resource_name], sinon le nom du fichier (voir [method get_effective_id]).
 		</member>
 		<member name="ability_tags" type="PackedStringArray" setter="set_ability_tags" getter="get_ability_tags" default="PackedStringArray()">
+			Tags qui décrivent la capacité (ex. [code]attaque.melee[/code]) : visés par [member cancel_abilities_with_tags] et [method AbilitySystem.cancel_abilities_with_tag].
 		</member>
 		<member name="activation_blocked_tags" type="PackedStringArray" setter="set_activation_blocked_tags" getter="get_activation_blocked_tags" default="PackedStringArray()">
+			L'activation est refusée ([code]blocked[/code]) si l'entité porte l'un de ces tags (ex. [code]etat.etourdi[/code]).
 		</member>
 		<member name="activation_owned_tags" type="PackedStringArray" setter="set_activation_owned_tags" getter="get_activation_owned_tags" default="PackedStringArray()">
+			Tags accordés à l'entité tant que la capacité est active (ex. [code]etat.incante[/code]), retirés à sa fin.
 		</member>
 		<member name="activation_required_tags" type="PackedStringArray" setter="set_activation_required_tags" getter="get_activation_required_tags" default="PackedStringArray()">
+			L'activation est refusée ([code]missing_tags[/code]) si l'entité ne porte pas tous ces tags.
 		</member>
 		<member name="active_duration" type="float" setter="set_active_duration" getter="get_active_duration" default="0.0">
+			Durée, en secondes, pendant laquelle la capacité reste active après l'incantation. [code]0[/code] : se termine dès les effets appliqués ; [code]-1[/code] : reste active jusqu'à [method AbilitySystem.end_ability] ou une annulation.
 		</member>
 		<member name="cancel_abilities_with_tags" type="PackedStringArray" setter="set_cancel_abilities_with_tags" getter="get_cancel_abilities_with_tags" default="PackedStringArray()">
+			À l'activation, annule les capacités actives de l'entité dont les [member ability_tags] correspondent (ex. une esquive qui interrompt les attaques).
 		</member>
 		<member name="cast_time" type="float" setter="set_cast_time" getter="get_cast_time" default="0.0">
+			Temps d'incantation, en secondes, entre l'activation et l'application des effets. Une annulation pendant ce temps empêche les effets.
 		</member>
 		<member name="cooldown" type="float" setter="set_cooldown" getter="get_cooldown" default="1.0">
+			Temps de recharge d'une charge, en secondes ; il démarre à l'activation, pas à la fin. [code]0[/code] : aucune charge n'est consommée (activations illimitées, seul le coût limite).
 		</member>
 		<member name="costs" type="Dictionary" setter="set_costs" getter="get_costs" default="{}">
+			Coûts d'activation : nom d'attribut → quantité, ex. [code]{&amp;"mana": 20.0}[/code]. Vérifiés sur la valeur [b]courante[/b], retirés de la valeur de [b]base[/b]. Un attribut absent rend l'activation impossible ([code]cost[/code]).
 		</member>
 		<member name="display_name" type="String" setter="set_display_name" getter="get_display_name" default="&quot;&quot;">
+			Nom affiché dans l'interface. Non utilisé par le module.
 		</member>
 		<member name="effects_on_self" type="GameplayEffect[]" setter="set_effects_on_self" getter="get_effects_on_self" default="[]">
+			Effets appliqués à l'entité qui utilise la capacité, à la fin de l'incantation.
 		</member>
 		<member name="effects_on_target" type="GameplayEffect[]" setter="set_effects_on_target" getter="get_effects_on_target" default="[]">
+			Effets appliqués à l'[AbilitySystem] de la cible ([method AbilitySystem.find_on]) à la fin de l'incantation. Ignorés sans cible, si elle a été libérée entre-temps, ou si elle n'a pas d'AbilitySystem.
 		</member>
 		<member name="icon" type="Resource" setter="set_icon" getter="get_icon">
+			Icône pour l'interface ([Texture2D] dans l'inspecteur). Non utilisée par le module.
 		</member>
 		<member name="level" type="float" setter="set_level" getter="get_level" default="1.0">
+			Niveau de la capacité, transmis à ses effets ([member AttributeModifier.magnitude_per_level], entrée [code]level[/code] des expressions).
 		</member>
 		<member name="max_charges" type="int" setter="set_max_charges" getter="get_max_charges" default="1">
+			Nombre d'utilisations possibles d'affilée ; les charges se rechargent une par une, en [member cooldown] secondes chacune.
 		</member>
 		<member name="requires_target" type="bool" setter="set_requires_target" getter="get_requires_target" default="false">
+			Si [code]true[/code], l'activation sans cible est refusée ([code]no_target[/code]).
 		</member>
 	</members>
 </class>

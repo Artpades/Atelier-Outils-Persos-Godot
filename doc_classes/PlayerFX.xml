@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PlayerFX" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		✨ Nœud qui joue une liste d'effets ([Effect]) sur une cible et les met à jour à chaque frame.
 	</brief_description>
 	<description>
+		Le [PlayerFX] est le point d'entrée des effets spéciaux : on le place dans la scène, on remplit [member special_effects] dans l'inspecteur, puis on appelle [method play] et [method stop].
+		- La cible est [member node_to_play_effects] si elle est définie, sinon le [b]parent[/b] du [PlayerFX] ; [method play] accepte aussi une autre cible ponctuelle.
+		- Après [method play], la cible est mise à jour à chaque frame ([method Node._process] et [method Node._physics_process]) : le [PlayerFX] suit donc la pause et [member Engine.time_scale] comme n'importe quel nœud.
+		- Les boutons [b]Jouer effet[/b] et [b]Arrêter effet[/b] de l'inspecteur prévisualisent les effets dans l'éditeur.
+		[codeblock]
+		# Sprite2D
+		# └─ PlayerFX (special_effects : [FXShake, FXFade])
+		func _on_degats_recus() -> void:
+			$PlayerFX.play()            # secousse + flash sur le Sprite2D parent
+			await get_tree().create_timer(0.3).timeout
+			$PlayerFX.stop()            # chaque effet restaure l'état d'origine
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,29 +23,36 @@
 		<method name="get_default_target" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie la cible utilisée quand [method play] est appelée sans argument : [member node_to_play_effects], ou à défaut le parent du [PlayerFX].
 			</description>
 		</method>
 		<method name="play">
 			<return type="void" />
 			<param index="0" name="node" type="Node" default="null" />
 			<description>
+				Joue tous les [member special_effects] sur [param node] (ou sur [method get_default_target] si [param node] est nul). Cette cible devient celle des mises à jour suivantes et du prochain [method stop]. Rejouer pendant que les effets sont actifs les relance.
 			</description>
 		</method>
 		<method name="stop">
 			<return type="void" />
 			<param index="0" name="node" type="Node" default="null" />
 			<description>
+				Arrête tous les [member special_effects] sur [param node] (ou sur la cible du dernier [method play] si [param node] est nul). Les effets inactifs sont ignorés.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="node_to_play_effects" type="Node" setter="set_node_to_play_effects" getter="get_node_to_play_effects">
+			Cible par défaut des effets. Si elle est vide (ou libérée), les effets sont joués sur le parent du [PlayerFX].
 		</member>
 		<member name="play_effect" type="Callable" setter="" getter="_get_play_button" default="Callable()">
+			Bouton de l'inspecteur [b]Jouer effet[/b] : appelle [method play] dans l'éditeur, pour prévisualiser les effets.
 		</member>
 		<member name="special_effects" type="Effect[]" setter="set_special_effects" getter="get_special_effects" default="[]">
+			Effets joués, mis à jour et arrêtés ensemble par ce [PlayerFX]. Chaque effet (et ses effets enchaînés) est relié au [PlayerFX] : les chemins de nœuds des effets lui sont relatifs.
 		</member>
 		<member name="stop_effect" type="Callable" setter="" getter="_get_stop_button" default="Callable()">
+			Bouton de l'inspecteur [b]Arrêter effet[/b] : appelle [method stop] dans l'éditeur. À utiliser avant d'enregistrer la scène, pour ne pas enregistrer l'état modifié de la cible.
 		</member>
 	</members>
 </class>

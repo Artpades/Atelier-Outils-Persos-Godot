@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ciblage d'objet · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🌻 Ciblage d'objet (FXTargeter) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/ciblage-d-objet.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🌻</div>
+    <div>
+      <h1>🌻_TargetingSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Ciblage d'objet</strong> : un objet qui se tourne vers un ou plusieurs nœuds, comme un tournesol vers le soleil.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : FXTargeter</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+  <p>Une tourelle qui vise le joueur, des yeux qui suivent le curseur, un projecteur qui éclaire le groupe, une caméra 3D qui cadre tous les combattants : il faut à chaque fois calculer un angle, gérer l'interpolation, et en 3D éviter les cas où <code>look_at</code> échoue. <strong>Ce module en fait un effet</strong> : on liste les nœuds visés, la cible s'oriente vers leur centre ; une <code>Camera3D</code> peut en plus reculer pour les garder tous dans le champ.</p>
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay et game designers qui veulent orienter un objet sans écrire de mathématiques de rotation.</p>
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un suivi de position</strong> : la cible tourne sur place (sauf le recul d'une <code>Camera3D</code>). Pour la déplacer, voir <a href="follow.html">〰️ Follow</a>.</li>
+      <li><strong>Pas une IA de visée</strong> : ni anticipation du mouvement, ni ligne de vue, ni limite d'angle de rotation.</li>
+    </ul>
+  </div>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF côte à côte : une tourelle 2D qui pivote en douceur (<code>add_lerp</code>) vers le joueur qui se déplace ; en 3D, une caméra qui s'oriente vers trois personnages et recule quand ils s'écartent.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>FXTargeter</code> et le socle <code>Effect</code> / <code>PlayerFX</code>.</td></tr>
+        <tr><td><a href="socle-effets.html">✨ Socle des effets</a> (<code>PlayerFX</code>)</td><td><strong>Obligatoire</strong> en pratique</td><td>Mise à jour à chaque frame et référence des chemins <code>nodes_to_target</code>.</td></tr>
+        <tr><td>Icône <code>Targeter Icon.png</code></td><td>Optionnelle</td><td>Icône de la ressource dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> :
+      <pre><code class="language-shell">scons fx</code></pre>
+      puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Objectif : une tourelle 2D qui vise le joueur.</p>
+  <ol class="steps">
+    <li>
+      <strong>Dessiner le canon de la tourelle pointant vers la droite</strong> (axe +X) dans son <code>Sprite2D</code>.
+      <div class="why">en 2D, c'est l'axe +X de la cible qui est orienté vers la cible visée, comme <code>look_at</code>.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>PlayerFX</code> sous la tourelle</strong>, et dans <code>special_effects</code> un <code>FXTargeter</code> avec <code>nodes_to_target</code> = <code>../../Joueur</code>.
+      <div class="why">le chemin part du <code>PlayerFX</code> ; la tourelle (parent) est la cible qui tourne.</div>
+    </li>
+    <li>
+      <strong>Activer <code>add_lerp</code></strong> et régler <code>lerp_speed</code> à 3.
+      <div class="why">sans interpolation, la tourelle est toujours parfaitement alignée ; avec, elle a un temps de réaction que le joueur peut exploiter.</div>
+    </li>
+    <li>
+      <strong>Lancer l'effet</strong> quand le joueur est détecté, l'arrêter quand il s'éloigne :
+      <pre><code class="gdscript">func _on_detection_body_entered(_corps: Node2D) -> void:
+	$PlayerFX.play()
+
+func _on_detection_body_exited(_corps: Node2D) -> void:
+	$PlayerFX.stop()   # la tourelle garde son orientation</code></pre>
+      <div class="why">l'effet n'a pas de durée : il vise tant qu'il est actif.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/FXTargeter.xml</code>. Éléments internes, non exposés : <code>_process_2d</code> et <code>_process_3d</code>. Les méthodes héritées sont documentées dans <a href="socle-effets.html#api">✨ Socle des effets</a>.</p>
+  <div data-api="FXTargeter"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-camera-groupe">Comment je cadre plusieurs combattants avec une caméra 3D ?</h3>
+  <p>Avec le contrôle de distance, la caméra tourne vers le centre du groupe et avance ou recule sur son axe de visée selon l'écart entre les combattants.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	var cadrage := FXTargeter.new()
+	cadrage.nodes_to_target = [NodePath("../../Joueur1"), NodePath("../../Joueur2"), NodePath("../../Boss")]
+	cadrage.add_lerp = true
+	cadrage.lerp_speed = 2.0
+	cadrage.min_distance = 8.0
+	cadrage.max_distance = 30.0
+	cadrage.depth_margin = 1.8
+	$Camera3D/PlayerFX.special_effects = [cadrage]
+	$Camera3D/PlayerFX.play()</code></pre>
+
+  <h3 id="ex-yeux">Comment je fais suivre la souris par des yeux ?</h3>
+  <p>Les nœuds visés doivent être des <code>Node2D</code> : on déplace un <code>Marker2D</code> à la position de la souris.</p>
+  <pre><code class="gdscript"># Visage
+# ├─ CibleSouris (Marker2D)
+# ├─ OeilGauche (Sprite2D) ─ PlayerFX (FXTargeter → ../../CibleSouris)
+# └─ OeilDroit  (Sprite2D) ─ PlayerFX (FXTargeter → ../../CibleSouris)
+func _ready() -> void:
+	$OeilGauche/PlayerFX.play()
+	$OeilDroit/PlayerFX.play()
+
+func _process(_delta: float) -> void:
+	$CibleSouris.global_position = get_global_mouse_position()</code></pre>
+
+  <h3 id="ex-projecteur">Comment j'oriente un projecteur 3D vers le joueur ?</h3>
+  <p>Une <code>SpotLight3D</code> éclaire le long de son axe -Z : exactement l'axe orienté par <code>FXTargeter</code> en 3D.</p>
+  <pre><code class="gdscript">var suivi_lumiere := FXTargeter.new()
+suivi_lumiere.nodes_to_target = [NodePath("../../Joueur")]
+suivi_lumiere.add_lerp = true
+$Projecteur/PlayerFX.special_effects = [suivi_lumiere]
+$Projecteur/PlayerFX.play()</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Une <code>Camera3D</code> avec un seul nœud visé est placée à <code>min_distance</code></strong> de lui (vérifié : caméra replacée à 5 m d'un nœud situé à 30 m). Le contrôle de distance est actif par défaut : le désactiver si la caméra a sa propre position (caméra fixe, caméra enfant d'un personnage).</li>
+    <li><strong>Le contrôle de distance impose la position de la caméra</strong> : il entre en conflit avec un <code>FXFollower</code>, une animation ou un script qui la déplace.</li>
+    <li><strong>Rotation globale imposée</strong> : en 2D, la rotation globale est remplacée chaque frame (une animation de rotation de la cible est écrasée). En 3D, la base est remplacée (l'échelle est conservée). Pas de limite d'angle (une tourelle à 90° maximum n'est pas gérée).</li>
+    <li><strong>Conventions d'axe fixes</strong> : +X en 2D, -Z en 3D. Un modèle 3D qui regarde vers +Z (convention des imports Blender courante) apparaîtra de dos : le placer dans un nœud enfant tourné de 180°.</li>
+    <li><strong>Pas de <code>Control</code></strong> : seules les cibles <code>Node2D</code> et <code>Node3D</code> sont orientées.</li>
+    <li><strong>Mise à jour en <code>_process</code></strong>, interpolation dépendante du nombre d'images (<code>lerp_speed × delta</code> plafonné à 1).</li>
+    <li><strong>Le cadrage 3D ne tient compte que du champ vertical</strong> (<code>fov</code>) et de la plus grande distance entre deux nœuds, sans leur taille : sur un écran large ou avec de grands modèles, augmenter <code>depth_margin</code>. Coût en O(n²) sur le nombre de nœuds visés (négligeable pour quelques nœuds).</li>
+    <li><strong>L'arrêt ne restaure rien</strong> : la cible garde sa dernière orientation et position.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>FXTargeter</code></strong> est un <code>Effect</code> sans état qui surcharge seulement <code>_process</code>. Il résout <code>nodes_to_target</code> depuis le <code>PlayerFX</code>, calcule le centre, puis oriente la cible.</li>
+    <li>En 3D, l'orientation est construite par <code>Basis.looking_at</code> avec un vecteur haut de secours quand la direction est verticale, puis interpolée en quaternion (<code>slerp</code>).</li>
+    <li>Distance de la caméra : <code>clamp(écart_max × depth_margin / (2·tan(fov/2)), min, max)</code>, appliquée le long de l'axe de visée courant.</li>
+  </ul>
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Hérite d'<code>Effect</code> ; dépend du <code>PlayerFX</code> pour la résolution des chemins. Aucune autre dépendance.</li>
+  </ul>
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Pas de <code>look_at</code> en 3D</td><td><code>Node3D.look_at</code> échoue (erreur) si la cible est confondue avec le nœud ou alignée avec le vecteur haut ; la base est construite à la main avec un vecteur haut de secours.</td></tr>
+        <tr><td>Même convention 2D avec ou sans interpolation (axe +X)</td><td>Activer <code>add_lerp</code> ne doit pas changer la direction visée, seulement la vitesse pour l'atteindre.</td></tr>
+        <tr><td>Échelle conservée en 3D</td><td>Remplacer la base sans réappliquer l'échelle remettrait à 1 un objet agrandi.</td></tr>
+        <tr><td>Écart minimal de 0,1 entre nœuds visés</td><td>Avec un seul nœud, l'écart nul donnerait une distance nulle ; la distance est alors bornée par <code>min_distance</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul><li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>FXTargeter</code>, commentaires du header, page de module. Aucun changement de comportement.</li></ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul><li><span class="tag add">Ajouté</span><code>FXTargeter</code> : orientation vers le centre de plusieurs nœuds en 2D et 3D, contrôle de distance d'une <code>Camera3D</code>.</li></ul>
+  </div>
+
+  <footer>Module 🌻 Ciblage d'objet · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/🌻Ciblage d'objet/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "FXTargeter.nodes_to_target": "Le joueur pour une tourelle, un marqueur sous la souris pour des yeux, tous les combattants pour une caméra.",
+  "FXTargeter.add_lerp": "Donner un temps de réaction à une tourelle, un mouvement doux à une caméra ou un projecteur.",
+  "FXTargeter.lerp_speed": "Bas pour une tourelle lourde que le joueur peut semer, haut pour un regard vif.",
+  "FXTargeter.enable_camera_3d_depth_control": "Caméra de combat qui recule quand les combattants s'écartent ; désactiver pour une caméra à position fixe.",
+  "FXTargeter.min_distance": "Empêcher la caméra de se coller aux personnages quand ils sont groupés.",
+  "FXTargeter.max_distance": "Empêcher la caméra de reculer à l'infini quand un personnage s'enfuit.",
+  "FXTargeter.depth_margin": "Augmenter pour un écran large ou de grands modèles qui débordent du cadre."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

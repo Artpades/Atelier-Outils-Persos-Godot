@@ -1,8 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SceneManager" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎬 Gestionnaire global qui charge une scène en arrière-plan puis en fait la scène courante, avec des signaux pour afficher un écran de chargement.
 	</brief_description>
 	<description>
+		[method load_scene_async] lance [method ResourceLoader.load_threaded_request] ; le gestionnaire suit ensuite la progression à chaque image, puis appelle [method SceneTree.change_scene_to_packed] (différé) dès que la scène est chargée. Signaux, dans l'ordre :
+		- [signal loading_started] au lancement ;
+		- [signal loading_progress] à chaque image pendant le chargement, puis une dernière fois à 100 ;
+		- [signal load_finished] une fois la nouvelle scène en place.
+		Un seul chargement à la fois : les demandes faites pendant un chargement sont ignorées.
+		Singleton : [method get_instance] renvoie l'instance existante (autoload ou nœud) ou en crée une sous la racine de l'arbre si la bibliothèque [code]tool_editor[/code] (ManagerBuilder) est chargée. Elle doit survivre au changement de scène : ne la placez pas dans la scène qui sera remplacée.
+		[codeblock]
+		# Écran de chargement : une barre de progression dans un autoload « Chargement ».
+		func _ready() -&gt; void:
+			SceneManager.get_instance().loading_progress.connect(func(pourcent): $Barre.value = pourcent)
+
+		func aller_au_niveau(chemin: String) -&gt; void:
+			var scenes := SceneManager.get_instance()
+			if scenes.is_loading():
+				return
+			$Barre.value = 0
+			show()
+			scenes.load_scene_async(chemin)
+			await scenes.load_finished
+			hide()
+		[/codeblock]
+		[b]Note :[/b] un échec de chargement (chemin introuvable, ressource qui n'est pas une scène) n'émet aucun signal : [method is_loading] repasse simplement à [code]false[/code], et un [code]await load_finished[/code] reste bloqué. Les messages d'erreur du gestionnaire ne sont écrits que si [member log_activated] est actif. Classe d'exécution uniquement.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,41 +33,49 @@
 		<method name="get_instance" qualifiers="static">
 			<return type="SceneManager" />
 			<description>
+				Instance unique du gestionnaire. Si aucune n'existe et que ManagerBuilder est disponible, une instance est créée et ajoutée à la racine de l'arbre à la fin de l'image (elle est déjà utilisable). Sans ManagerBuilder, renvoie l'instance placée en autoload ou en scène, sinon [code]null[/code].
 			</description>
 		</method>
 		<method name="get_progress_percent" qualifiers="const">
 			<return type="float" />
 			<description>
+				Progression du chargement en cours, de 0 à 100 (reste à la dernière valeur atteinte une fois le chargement terminé ou échoué).
 			</description>
 		</method>
 		<method name="is_loading" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant un chargement. Repasse à [code]false[/code] dès que la scène est chargée (avant [signal load_finished]) ou que le chargement a échoué.
 			</description>
 		</method>
 		<method name="load_scene_async">
 			<return type="void" />
 			<param index="0" name="scene_path" type="String" />
 			<description>
+				Charge en arrière-plan la scène [param scene_path] (chemin [code]res://[/code] d'un [PackedScene]), puis la rend courante. Ignoré si [param scene_path] est vide, si un chargement est déjà en cours, ou si la requête est refusée par [ResourceLoader]. Émet [signal loading_started] si le chargement démarre.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="log_activated" type="bool" setter="set_log_activated" getter="get_log_activated" default="false">
+			Si [code]true[/code], écrit dans la console le démarrage, la progression (à chaque image), la fin et les erreurs de chargement.
 		</member>
 	</members>
 	<signals>
 		<signal name="load_finished">
 			<description>
+				Émis quand la scène chargée est devenue la scène courante (signal [signal SceneTree.scene_changed]). Les changements de scène faits sans le gestionnaire ne l'émettent pas.
 			</description>
 		</signal>
 		<signal name="loading_progress">
 			<param index="0" name="percent" type="float" />
 			<description>
+				Émis à chaque image pendant le chargement, avec la progression [param percent] (0 à 100), même si elle n'a pas changé ; puis une dernière fois avec 100 quand la scène est chargée.
 			</description>
 		</signal>
 		<signal name="loading_started">
 			<description>
+				Émis quand un chargement démarre.
 			</description>
 		</signal>
 	</signals>

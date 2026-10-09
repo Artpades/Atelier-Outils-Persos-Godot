@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ralentissement - Arrêt du temps · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module ⏯️ Ralentissement - Arrêt du temps (TimeManipulatorFX) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/ralentissement-arret-du-temps.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">⏯️</div>
+    <div>
+      <h1>⏯️_TimeSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Ralentissement - Arrêt du temps</strong> : ralentis progressifs et gels d'impact (« hit stop ») de tout le jeu.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">1 classe : TimeManipulatorFX</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un coup puissant paraît plus lourd si le jeu se fige 80 millisecondes au moment de l'impact ; une visée en « bullet time » demande de ralentir tout le jeu, puis de revenir en douceur à la vitesse normale. Modifier <code>Engine.time_scale</code> à la main pose vite problème : un minuteur ordinaire ne s'écoule plus quand le temps est à zéro, deux gels se chevauchent, et on oublie de remettre la vitesse à 1 en quittant la scène. <strong>Ce module encapsule ces manipulations du temps dans un nœud</strong> qui gère transitions, gels et remise à la normale.</p>
+
+  <p><strong>Pour qui ?</strong> Les développeurs gameplay qui ajoutent du poids aux impacts (jeux d'action, de combat) ou des ralentis scénarisés (visée, esquive parfaite, mort du boss).</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un effet de <code>PlayerFX</code></strong> : malgré son nom, <code>TimeManipulatorFX</code> est un nœud autonome, pas un <code>Effect</code>. Il agit sur tout le jeu, pas sur une cible.</li>
+      <li><strong>Pas une pause</strong> : pour un menu de pause, utiliser <code>get_tree().paused</code>. Un gel à vitesse 0 laisse tourner <code>_process</code> (avec un <code>delta</code> nul) et l'audio.</li>
+      <li><strong>Pas un ralenti local</strong> : impossible de ralentir un seul personnage ; c'est tout le moteur qui ralentit.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF : un personnage frappe un ennemi, l'image se fige une fraction de seconde (hit stop), puis une esquive déclenche un ralenti à 0,3 qui revient progressivement à la vitesse normale ; afficher <code>Engine.time_scale</code> en surimpression.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code></td><td><strong>Obligatoire</strong></td><td>Contient <code>TimeManipulatorFX</code> (enregistrée dans <code>fx_register.cpp</code>). Aucune autre classe du toolkit n'est nécessaire.</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/✨🎵/TimeManipulator FX Icon.png</code></td><td>Optionnelle</td><td>Icône du nœud dans l'arbre de scène.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler et installer la bibliothèque des effets</strong> : <code>scons fx</code>, puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
+      <pre><code class="language-shell">scons fx</code></pre>
+      <div class="why">mêmes étapes que pour tout le module d'effets : voir <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+    </li>
+    <li>
+      <strong>Créer une scène <code>temps.tscn</code> dont la racine est un <code>TimeManipulatorFX</code></strong>, et la déclarer en autoload sous le nom <code>Temps</code>.
+      <div class="why">la vitesse du jeu est globale : un seul gestionnaire doit la piloter, et il ne doit pas disparaître au changement de scène (à sa sortie de l'arbre, il remet la vitesse à 1).</div>
+    </li>
+  </ol>
+  <div class="callout warn">
+    <div class="callout-title">Classe « runtime »</div>
+    <p><code>TimeManipulatorFX</code> n'agit pas dans l'éditeur : on ne peut pas prévisualiser un ralenti sans lancer le jeu.</p>
+  </div>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Geler le jeu à l'impact</strong> :
+      <pre><code class="gdscript">func _on_coup_porte() -> void:
+	Temps.trigger_hit_stop(0.08)</code></pre>
+      <div class="why">le jeu passe immédiatement à la vitesse 0 pendant 80 ms de temps réel, puis reprend à la vitesse d'avant. Un gel déjà en cours n'est pas prolongé.</div>
+    </li>
+    <li>
+      <strong>Ralentir progressivement</strong>, puis revenir à la normale :
+      <pre><code class="gdscript">func _on_visee(active: bool) -> void:
+	Temps.set_time_scale(0.3 if active else 1.0)</code></pre>
+      <div class="why"><code>Engine.time_scale</code> rejoint la valeur visée à la vitesse <code>recovery_speed</code> : pas de saut brutal.</div>
+    </li>
+    <li>
+      <strong>Régler <code>recovery_speed</code></strong> dans l'inspecteur de l'autoload (5 par défaut).
+      <div class="why">plus elle est haute, plus la transition est courte ; vers 1-2, on obtient un ralenti cinématographique.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/TimeManipulatorFX.xml</code>. Éléments internes, non exposés : l'horloge réelle de la frame précédente (<code>last_ticks_usec</code>), la vitesse mémorisée avant un gel (<code>scale_before_hit_stop</code>) et le rappel de fin de gel <code>_on_hit_stop_finished</code>.</p>
+  <div data-api="TimeManipulatorFX"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-proportionnel">Comment je gèle plus longtemps pour un coup plus fort ?</h3>
+  <p>La durée du gel est un simple paramètre : on la calcule à partir des dégâts. Un ralenti à 0,1 au lieu d'un arrêt total laisse voir le mouvement.</p>
+  <pre><code class="gdscript">func on_degats_infliges(degats: int) -> void:
+	var duree := clampf(degats * 0.004, 0.03, 0.15)
+	Temps.trigger_hit_stop(duree, 0.1 if degats > 30 else 0.0)</code></pre>
+
+  <h3 id="ex-secousse">Comment je combine gel et secousse de caméra ?</h3>
+  <p>Pendant un gel à 0, le <code>delta</code> des nœuds est nul : la secousse attend la fin du gel. On la déclenche sur <code>hit_stop_finished</code> pour qu'elle commence au moment où le jeu reprend.</p>
+  <pre><code class="gdscript">func _ready() -> void:
+	Temps.hit_stop_finished.connect($Camera2D/PlayerFX.play)   # PlayerFX avec un FXShake
+
+func impact() -> void:
+	Temps.trigger_hit_stop(0.1)</code></pre>
+
+  <h3 id="ex-mort-boss">Comment je fais un ralenti final qui revient tout seul ?</h3>
+  <pre><code class="gdscript">func _on_boss_vaincu() -> void:
+	Temps.recovery_speed = 8.0
+	Temps.set_time_scale(0.2)            # plongée rapide vers le ralenti
+	await get_tree().create_timer(1.5, true, false, true).timeout   # 1,5 s réelles
+	Temps.recovery_speed = 1.5
+	Temps.set_time_scale(1.0)            # retour lent à la normale</code></pre>
+  <p>Le minuteur est créé avec <code>ignore_time_scale = true</code> : sinon il durerait 7,5 s au ralenti.</p>
+
+  <h3 id="ex-ui">Comment je garde une interface fluide pendant un ralenti ?</h3>
+  <p>Les <code>Tween</code> et minuteurs de l'interface peuvent ignorer <code>time_scale</code> :</p>
+  <pre><code class="gdscript">var tween := create_tween()
+tween.set_ignore_time_scale(true)
+tween.tween_property($Menu, "modulate:a", 1.0, 0.2)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Un <code>set_time_scale()</code> pendant un gel est perdu.</strong> À la fin du gel, la vitesse visée est remplacée par celle d'avant le gel (vérifié : ralenti à 0,5, gel, <code>set_time_scale(1.0)</code> pendant le gel → retour à 0,5). Rappeler <code>set_time_scale</code> après <code>hit_stop_finished</code>.</li>
+    <li><strong>Pas de gels superposés</strong> : <code>trigger_hit_stop</code> est ignoré tant qu'un gel est en cours, même plus long ou plus fort. Pas de file d'attente.</li>
+    <li><strong>Le retour après un gel est instantané</strong>, sans transition (volontaire : c'est ce qui donne le « claquement » du hit stop).</li>
+    <li><strong>Un seul gestionnaire</strong> : deux <code>TimeManipulatorFX</code> se disputent <code>Engine.time_scale</code>. Tout autre code qui modifie <code>Engine.time_scale</code> est écrasé dès que la vitesse visée diffère de la vitesse actuelle.</li>
+    <li><strong>Remise à 1 à l'entrée et à la sortie</strong> : <code>_ready</code> et la sortie de l'arbre forcent <code>Engine.time_scale = 1</code>. Placer ce nœud dans une scène de niveau (et non un autoload) annule le ralenti à chaque changement de niveau.</li>
+    <li><strong><code>hit_stop_finished</code> n'est pas émis</strong> si le nœud quitte l'arbre pendant le gel.</li>
+    <li><strong>Ce que <code>Engine.time_scale</code> ne ralentit pas</strong> : l'audio (la musique continue à vitesse normale), les <code>Tween</code> et minuteurs créés avec <code>ignore_time_scale</code>. Le moteur physique, lui, ralentit avec le reste.</li>
+    <li><strong>Interpolation dépendante du nombre d'images</strong> : la transition est un <code>lerp</code> à facteur <code>recovery_speed × delta_réel</code>, plafonné à 1 ; elle n'est pas strictement identique à 30 et 144 images/s, et s'achève par un saut dès que l'écart passe sous 0,01.</li>
+    <li><strong>Pause du jeu</strong> : avec <code>get_tree().paused</code>, le nœud (en mode <em>Inherit</em>) cesse d'interpoler ; à la sortie de pause, le temps réel écoulé pendant la pause est compté d'un bloc et la vitesse saute directement à la valeur visée. Le minuteur d'un gel, lui, s'écoule pendant la pause.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>TimeManipulatorFX</code></strong> est un <code>Node</code> qui écrit dans le singleton <code>Engine</code>. À chaque <code>_process</code>, il mesure le temps réel écoulé (<code>Time.get_ticks_usec()</code>, car le <code>delta</code> reçu est lui-même multiplié par <code>time_scale</code>) et rapproche <code>Engine.time_scale</code> de <code>target_time_scale</code>.</li>
+    <li>Un gel coupe l'interpolation, fixe la vitesse et crée un <code>SceneTreeTimer</code> qui ignore <code>time_scale</code> et la pause ; sa fin restaure la vitesse et émet <code>hit_stop_finished</code>.</li>
+    <li>Le reste du jeu l'appelle directement (autoload) et peut écouter ses deux signaux.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Aucune dépendance à d'autres classes du toolkit ; seul lien : <code>Engine.time_scale</code>, état global partagé avec tout le moteur.</li>
+    <li>Les effets des autres modules (<a href="socle-effets.html">PlayerFX</a>, <a href="secousse.html">FXShake</a>…) ralentissent naturellement, puisqu'ils utilisent le <code>delta</code> du jeu.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Interpolation en temps réel (<code>Time.get_ticks_usec</code>)</td><td>Avec le <code>delta</code> du jeu, un ralenti à 0,01 mettrait cent fois plus de temps à revenir, et une vitesse 0 ne reviendrait jamais.</td></tr>
+        <tr><td>Minuteur de gel <code>ignore_time_scale</code> et <code>process_always</code></td><td>Un minuteur ordinaire ne s'écoulerait jamais à vitesse 0, et un gel lancé juste avant une pause bloquerait le jeu.</td></tr>
+        <tr><td>Gel ignoré si un autre est en cours</td><td>Des coups en rafale enchaînant des gels donneraient un jeu saccadé et injouable ; le premier gel suffit au ressenti.</td></tr>
+        <tr><td>Vitesse remise à 1 à la sortie de l'arbre</td><td>Sans ce nœud, plus personne ne ramènerait le jeu à la normale : un ralenti en cours au moment d'un changement de scène resterait actif pour toujours.</td></tr>
+        <tr><td><code>target_time_scale</code> non enregistrée (<code>PROPERTY_USAGE_EDITOR</code>)</td><td><code>_ready</code> la remet à 1 de toute façon : l'enregistrer laisserait croire qu'une scène peut démarrer au ralenti.</td></tr>
+        <tr><td>Classe « runtime »</td><td>Dans l'éditeur, modifier <code>Engine.time_scale</code> ralentirait les animations de l'éditeur lui-même.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>TimeManipulatorFX</code>, commentaires du header, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>TimeManipulatorFX</code> : ralenti progressif (<code>set_time_scale</code>) et gel d'impact (<code>trigger_hit_stop</code>) avec signaux.</li>
+    </ul>
+  </div>
+
+  <footer>Module ⏯️ Ralentissement - Arrêt du temps · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/⏯️Ralentissement-Arrêt temporaire du temps (HitStop, Slow Motion)/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+window.GTK_USAGES = {
+  "TimeManipulatorFX.recovery_speed": "Haute (10+) pour des transitions sèches en combat, basse (1-2) pour un ralenti cinématographique.",
+  "TimeManipulatorFX.target_time_scale": "Lire la vitesse visée (pour un HUD « bullet time ») ou la régler depuis un <code>AnimationPlayer</code>.",
+  "TimeManipulatorFX.set_time_scale": "Visée au ralenti, esquive parfaite, mort du boss, accélérer un passage (×2) dans un jeu de gestion.",
+  "TimeManipulatorFX.trigger_hit_stop": "Coup critique, parade, explosion, attrape d'un ennemi : figer l'image pour donner du poids.",
+  "TimeManipulatorFX.is_hit_stopping": "Ignorer une entrée du joueur ou un autre effet pendant le gel.",
+  "TimeManipulatorFX.hit_stop_started": "Lancer un flash blanc ou un son d'impact au moment exact du gel.",
+  "TimeManipulatorFX.hit_stop_finished": "Démarrer une secousse ou des particules quand le jeu reprend."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

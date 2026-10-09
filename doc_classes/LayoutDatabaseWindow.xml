@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="LayoutDatabaseWindow" inherits="Window" api_type="editor_extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Fenêtre d'éditeur « Interfaces par type » qui édite la LayoutDatabase du projet.
 	</brief_description>
 	<description>
+		Disponible dans l'éditeur uniquement (menu Projet › Outils › « Éditeur d'objet : interfaces par type… »). À gauche la liste des types ; à droite, pour le type choisi, ses réglages puis les onglets Données, Groupes, Gizmos, Style et Comportements. Les membres d'un type sont lus sur une instance d'exemple, créée puis libérée.
+		Les modifications restent en mémoire jusqu'au bouton « Enregistrer ». Une seule fenêtre est ouverte à la fois. Classe abstraite : on ne l'instancie pas, on l'ouvre avec [method open] (utile pour un script d'éditeur ou de test).
+		[codeblock]
+		@tool
+		extends EditorScript
+
+		func _run() -&gt; void:
+			var fenetre := LayoutDatabaseWindow.open()
+			fenetre.add_type("Ennemi")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,21 +22,25 @@
 			<return type="void" />
 			<param index="0" name="type" type="String" />
 			<description>
+				Ajoute le type [param type] à la base (s'il n'y est pas), le sélectionne et lit ses membres sur une instance d'exemple. Sans base de projet, ne fait rien.
 			</description>
 		</method>
 		<method name="close_current" qualifiers="static">
 			<return type="void" />
 			<description>
+				Ferme la fenêtre ouverte, s'il y en a une (les modifications non enregistrées sont perdues).
 			</description>
 		</method>
 		<method name="get_database" qualifiers="const">
 			<return type="LayoutDatabase" />
 			<description>
+				Renvoie la base éditée (celle du projet), ou [code]null[/code] si elle n'existe pas encore.
 			</description>
 		</method>
 		<method name="open" qualifiers="static">
 			<return type="LayoutDatabaseWindow" />
 			<description>
+				Ouvre la fenêtre, ou donne le focus à celle qui est déjà ouverte. Renvoie [code]null[/code] hors de l'éditeur.
 			</description>
 		</method>
 	</methods>

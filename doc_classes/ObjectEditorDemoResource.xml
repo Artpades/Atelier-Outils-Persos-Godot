@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ObjectEditorDemoResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Ressource de démonstration (sous-objet) : une transformation, un entier et une référence vers une ressource du même type.
 	</brief_description>
 	<description>
+		Sert à tester le dépliage des sous-ressources et la protection contre les cycles (faire pointer [member autre] sur elle-même).
+		[codeblock]
+		var r := ObjectEditorDemoResource.new()
+		r.autre = r # cycle : l'éditeur affiche « Objet déjà affiché plus haut »
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="autre" type="Resource" setter="set_autre" getter="get_autre">
+			Autre [ObjectEditorDemoResource] (ou elle-même, pour tester l'anti-cycle).
 		</member>
 		<member name="transform" type="Transform3D" setter="set_transform" getter="get_transform" default="Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)">
+			Transformation 3D (structure imbriquée).
 		</member>
 		<member name="valeur" type="int" setter="set_valeur" getter="get_valeur" default="1">
+			Entier quelconque.
 		</member>
 	</members>
 </class>

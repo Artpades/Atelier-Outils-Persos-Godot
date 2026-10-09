@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Changeur de Visuels · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🎭 Changeur de Visuels (VisualsSwapper, VisualsAsset, VisualsRegister) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/widgets/changeur-de-visuels.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🎭</div>
+    <div>
+      <h1>🎭_VisualsSystem - Widgets &amp; Spatialité - Documentation</h1>
+      <p class="subtitle">Module <strong>Changeur de Visuels</strong> : changer d'un appel l'apparence d'un personnage ou d'un objet (tenue, skin, transformation), décrite dans des ressources.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/visuals_swapper</code></span>
+        <span class="badge">3 classes : VisualsSwapper · VisualsAsset · VisualsRegister</span>
+        <span class="badge">2D, 3D &amp; interface</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un héros qui ramasse une fleur de feu change de couleur, de chapeau et d'arme ; un client choisit une skin dans la boutique ; un bâtiment évolue de niveau. Écrit à la main, chaque changement devient une suite de <code>$Corps.texture = …</code>, <code>$Arme.mesh = …</code> éparpillée dans les scripts. <strong>Ce module décrit chaque apparence dans une ressource</strong> (quels nœuds changent, et en quoi) et l'applique d'un appel, par son nom.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🎭 <code>VisualsSwapper</code> — le nœud</h4>
+      <p>Placé dans la scène, il contient le <strong>catalogue</strong> des apparences et les applique (<code>swap_by_name("feu")</code>).</p>
+    </div>
+    <div class="card">
+      <h4>👕 <code>VisualsAsset</code> — une apparence</h4>
+      <p>Une <strong>ressource</strong> nommée regroupant tous les changements d'une tenue ; réutilisable entre scènes.</p>
+    </div>
+    <div class="card">
+      <h4>🔧 <code>VisualsRegister</code> — un changement</h4>
+      <p>Un nœud cible et sa nouvelle <strong>texture</strong>, son nouveau <strong>maillage</strong> ou sa nouvelle <strong>scène</strong>.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les artistes et game designers qui préparent des variantes visuelles dans l'inspecteur, et les développeurs qui veulent les déclencher sans connaître la structure de la scène.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un fondu ni une animation</strong> : le changement est instantané. Pour un passage progressif d'une texture à l'autre, voir <code>FXFade</code> en mode texture (<em>🌈 Fondu Couleur</em>).</li>
+      <li><strong>Pas un système d'équipement</strong> : il ne gère ni inventaire ni statistiques, uniquement l'apparence.</li>
+      <li><strong>Pas réversible tout seul</strong> : l'apparence d'origine n'est pas mémorisée ; on la décrit comme une apparence « normal ».</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'inspecteur d'un <code>VisualsSwapper</code> déplié (trois <code>VisualsAsset</code> « normal », « feu », « glace », l'un ouvert sur ses <code>VisualsRegister</code>), à côté du personnage dans les trois apparences.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/visuals_swapper/</code></td><td><strong>Obligatoire</strong></td><td>Contient les trois classes ; aucune autre dépendance.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/🧭🌍/</code></td><td>Optionnelle</td><td>Icônes des classes dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler</strong> (si besoin) :
+      <pre><code class="language-shell">scons visuals_swapper</code></pre>
+      <div class="why">compile la bibliothèque du registre <code>visuals_swapper_register.cpp</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/visuals_swapper/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/visuals_swapper/…</code> absolus ; extensions découvertes au démarrage.</div>
+    </li>
+  </ol>
+  <p>Contrairement à d'autres modules, ces classes fonctionnent aussi dans l'éditeur (un <code>@tool</code> peut appeler <code>swap</code> pour prévisualiser).</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>VisualsSwapper</code></strong> comme enfant du personnage, à côté de son <code>Sprite2D</code> nommé <code>Corps</code>.
+      <div class="why">les chemins des changements sont résolus depuis ce nœud : <code>../Corps</code> désignera le sprite.</div>
+    </li>
+    <li>
+      <strong>Dans <code>visuals_assets</code>, ajouter un <code>Nouveau VisualsAsset</code></strong> et régler <code>suit_type_name</code> = <code>feu</code>.
+      <div class="why">ce nom sert à retrouver l'apparence par code ; l'asset peut être enregistré en <code>.tres</code> pour d'autres personnages.</div>
+    </li>
+    <li>
+      <strong>Dans ses <code>visuals_registers</code>, ajouter un <code>Nouveau VisualsRegister</code></strong> : <code>node_visual</code> = <code>../Corps</code>, <code>texture</code> = l'image du corps en feu.
+      <div class="why">le nœud ciblé étant un <code>Sprite2D</code>, seule la texture est utilisée.</div>
+    </li>
+    <li>
+      <strong>Répéter pour une apparence <code>normal</code></strong> avec la texture d'origine.
+      <div class="why">c'est elle qui permettra de revenir en arrière : rien n'est mémorisé automatiquement.</div>
+    </li>
+    <li>
+      <strong>Déclencher</strong> :
+      <pre><code class="gdscript">func _on_fleur_de_feu_ramassee() -> void:
+	$VisualsSwapper.swap_by_name("feu")
+
+func _on_degats() -> void:
+	$VisualsSwapper.swap_by_name("normal")</code></pre>
+      <div class="why"><code>swap_by_name</code> cherche dans le catalogue ; un nom inconnu ne fait rien.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/VisualsSwapper.xml</code>, <code>VisualsAsset.xml</code> et <code>VisualsRegister.xml</code>. Le module n'a pas d'élément interne notable : toute la logique est dans <code>VisualsAsset.swap_visuals</code>, exposée.</p>
+  <div data-api="VisualsSwapper VisualsAsset VisualsRegister"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-3d">Comment je change le modèle 3D complet d'un personnage ?</h3>
+  <p>Un <code>Node3D</code> « conteneur » n'est ni à texture ni à maillage : ses enfants sont remplacés par la scène <code>modeling_import</code> (un <code>.glb</code> importé, par exemple).</p>
+  <pre><code class="gdscript"># Joueur
+# ├─ VisualsSwapper
+# └─ Modele (Node3D) ← contient le modèle actuel
+var robot := VisualsRegister.new()
+robot.node_visual = ^"../Modele"
+robot.modeling_import = preload("res://modeles/robot.glb")
+var tenue := VisualsAsset.new()
+tenue.suit_type_name = "robot"
+tenue.visuals_registers = [robot]
+$VisualsSwapper.swap(tenue)</code></pre>
+  <div class="callout warn"><p>Les anciens enfants sont libérés à la fin de l'image (<code>queue_free</code>) : pendant l'image du changement, ancien et nouveau modèle coexistent. Toute référence vers l'ancien modèle (un <code>AnimationPlayer</code>, un <code>Skeleton3D</code>) doit être recherchée à nouveau.</p></div>
+
+  <h3 id="ex-boutique">Comment je propose des skins dans une boutique ?</h3>
+  <p>Chaque skin est un <code>.tres</code> ; la boutique liste le catalogue et le nom choisi est sauvegardé.</p>
+  <pre><code class="gdscript">func remplir_boutique() -> void:
+	for skin: VisualsAsset in $Joueur/VisualsSwapper.visuals_assets:
+		var bouton := Button.new()
+		bouton.text = skin.suit_type_name.capitalize()
+		bouton.pressed.connect(func():
+			$Joueur/VisualsSwapper.swap(skin)
+			Sauvegarde.skin = skin.suit_type_name)
+		$Liste.add_child(bouton)
+
+func _ready() -> void:
+	$Joueur/VisualsSwapper.swap_by_name(Sauvegarde.skin)</code></pre>
+
+  <h3 id="ex-interface">Comment je change les icônes d'une interface selon la saison ?</h3>
+  <p><code>TextureRect</code> est pris en charge ; un même <code>VisualsAsset</code> peut viser plusieurs nœuds.</p>
+  <pre><code class="gdscript">func appliquer_saison(saison: String) -> void:
+	var asset: VisualsAsset = load("res://saisons/%s.tres" % saison)
+	asset.apply($HUD)   # chemins résolus depuis $HUD (« Fond », « Icone/Soleil »…)</code></pre>
+
+  <h3 id="ex-fondu">Comment je change d'apparence avec un flash ?</h3>
+  <p>Combiné au module <em>🌈 Fondu Couleur</em> : un flash blanc masque le changement instantané.</p>
+  <pre><code class="gdscript">func transformer(nom: String) -> void:
+	var flash := FXFade.new()
+	flash.color = Color(3, 3, 3)
+	flash.duration = 0.08
+	$PlayerFX.special_effects = [flash]
+	$PlayerFX.play()
+	await get_tree().create_timer(0.08).timeout
+	$VisualsSwapper.swap_by_name(nom)
+	$PlayerFX.stop()</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Types reconnus limités</strong> : texture pour <code>Sprite2D</code>, <code>Sprite3D</code>, <code>Polygon2D</code>, <code>TextureRect</code> ; maillage pour <code>MeshInstance2D</code> / <code>MeshInstance3D</code>. Un <code>AnimatedSprite2D</code>, un <code>TextureButton</code>, un <code>NinePatchRect</code>, un matériau… ne reçoivent pas la texture : ils sont traités comme conteneurs (vérifié avec <code>AnimatedSprite2D</code> : texture ignorée ; avec une scène, ses enfants sont remplacés). Pour les <code>SpriteFrames</code>, passer par <code>modeling_import</code> ou par code.</li>
+    <li><strong>Échecs silencieux</strong> : chemin introuvable, ressource absente, nom inconnu dans <code>swap_by_name</code> — rien ne se passe et aucun message n'est écrit.</li>
+    <li><strong>Aucun signal, aucun retour arrière</strong> : l'apparence d'origine n'est pas mémorisée ; prévoir un asset « normal ».</li>
+    <li><strong>Réglages annexes inchangés</strong> : <code>hframes</code>, <code>region_rect</code>, <code>offset</code> d'un sprite, matériaux surchargés d'un maillage. Une nouvelle texture de dimensions différentes peut donc être mal découpée.</li>
+    <li><strong>Remplacement de scène</strong> : <em>tous</em> les enfants du conteneur sont libérés (même ceux qui ne faisaient pas partie du modèle), libération différée (ancien et nouveau coexistent une image), et la nouvelle instance n'a pas de propriétaire (elle n'est pas enregistrée si la scène est sauvegardée depuis un outil d'éditeur).</li>
+    <li><strong>Pas de fondu</strong> : changement instantané (voir <a href="#ex-fondu">l'exemple</a>).</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 200" role="img" aria-label="Schéma du module Changeur de Visuels">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box main" x="20" y="30" width="170" height="54" rx="8"/>
+    <text x="105" y="54" text-anchor="middle">VisualsSwapper</text>
+    <text x="105" y="72" text-anchor="middle" class="small">Node · catalogue</text>
+    <rect class="box" x="250" y="30" width="170" height="54" rx="8"/>
+    <text x="335" y="54" text-anchor="middle">VisualsAsset</text>
+    <text x="335" y="72" text-anchor="middle" class="small">Resource · apply()</text>
+    <rect class="box" x="480" y="30" width="170" height="54" rx="8"/>
+    <text x="565" y="54" text-anchor="middle">VisualsRegister</text>
+    <text x="565" y="72" text-anchor="middle" class="small">chemin + ressources</text>
+    <rect class="box" x="480" y="130" width="360" height="54" rx="8"/>
+    <text x="660" y="154" text-anchor="middle">Nœud ciblé</text>
+    <text x="660" y="172" text-anchor="middle" class="small">texture · mesh · enfants remplacés par une scène</text>
+    <path class="arrow" d="M190 57 H248" marker-end="url(#arr)"/>
+    <text x="219" y="50" text-anchor="middle" class="small">swap</text>
+    <path class="arrow" d="M420 57 H478" marker-end="url(#arr)"/>
+    <text x="449" y="50" text-anchor="middle" class="small">1..n</text>
+    <path class="arrow" d="M335 84 Q350 150 478 157" marker-end="url(#arr)"/>
+    <text x="300" y="140" class="small">swap_visuals (contexte = swapper)</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>VisualsSwapper</code></strong> ne fait que choisir l'asset et se passer lui-même comme contexte de résolution des chemins.</li>
+    <li><strong><code>VisualsAsset</code></strong> parcourt ses registres et appelle la méthode statique <code>swap_visuals</code>, qui teste le type du nœud ciblé et lui donne la ressource adaptée.</li>
+    <li><strong><code>VisualsRegister</code></strong> est une donnée passive. Tous les appels sont directs et synchrones ; aucun signal.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Aucune dépendance vers d'autres modules ; aucun module n'en dépend. Bibliothèque propre : <code>visuals_swapper_register.cpp</code> → <code>bin/visuals_swapper/</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Apparences décrites dans des ressources</td><td>Elles se préparent dans l'inspecteur, se partagent entre scènes (<code>.tres</code>) et se chargent à la demande (boutique, DLC).</td></tr>
+        <tr><td>Chemins résolus depuis un nœud de contexte</td><td>Le même asset sert pour toutes les instances d'un personnage : il ne contient aucune référence à une instance précise.</td></tr>
+        <tr><td>Type du nœud détecté automatiquement</td><td>Un seul type de registre pour la 2D, la 3D et l'interface ; seule la ressource utile est lue.</td></tr>
+        <tr><td><code>swap_visuals</code> statique</td><td>Utilisable sans <code>VisualsSwapper</code> ni <code>VisualsAsset</code>, pour un changement ponctuel par code.</td></tr>
+        <tr><td>Anciens enfants libérés par <code>queue_free</code></td><td>Le changement peut être déclenché par un signal émis par l'un de ces enfants : le libérer immédiatement ferait planter l'émetteur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML des trois classes, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Conversion du module en GDExtension (« Convertions 4 modules de widget et spatialité ») : textures, maillages et remplacement de scène.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🎭 Changeur de Visuels · sources : <code>src/1.🧰Ensemble d'Outils/2.🧭Widgets &amp; Spatialité🌍/🎭Changeur de Visuels/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "VisualsSwapper.visuals_assets": "Lister dans l'inspecteur toutes les tenues d'un personnage ou les niveaux d'un bâtiment.",
+  "VisualsSwapper.swap": "Appliquer une skin chargée à la demande (boutique, DLC) qui n'est pas dans le catalogue.",
+  "VisualsSwapper.swap_by_name": "Changer de tenue à la prise d'un bonus, restaurer la skin sauvegardée.",
+  "VisualsAsset.suit_type_name": "Identifiant sauvegardé de la skin choisie par le joueur.",
+  "VisualsAsset.visuals_registers": "Regrouper corps, arme et chapeau d'une même tenue.",
+  "VisualsAsset.apply": "Appliquer une apparence sans <code>VisualsSwapper</code> (HUD saisonnier, décor qui change de thème).",
+  "VisualsAsset.swap_visuals": "Changer un seul visuel par code, sans créer d'asset.",
+  "VisualsRegister.mesh": "Changer l'arme, la coiffure ou une pièce d'armure d'un personnage 3D.",
+  "VisualsRegister.modeling_import": "Remplacer un modèle 3D importé complet (personnage, véhicule, bâtiment qui évolue).",
+  "VisualsRegister.node_visual": "Désigner le sprite, le maillage ou le conteneur à modifier.",
+  "VisualsRegister.texture": "Nouvelle couleur de tenue, sprite abîmé, icône saisonnière."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,21 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTCallMethod" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Appelle une méthode d'un nœud avec des arguments fixes, sans écrire de script d'action.
 	</brief_description>
 	<description>
+		La méthode est appelée une fois par tick et le nœud se termine aussitôt : il ne peut pas rester [constant BTNode.RUNNING]. Échoue si le nœud ou la méthode est introuvable ; sinon réussit, ou utilise le résultat booléen comme statut avec [member use_result_as_status].
+		[codeblock]
+		var tirer := BTCallMethod.new()
+		tirer.node_path = ^"Arme"   # relatif à l'agent
+		tirer.method = &amp;"tirer"
+		tirer.arguments = [2]       # tirer(2)
+		tirer.use_result_as_status = true
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="arguments" type="Array" setter="set_arguments" getter="get_arguments" default="[]">
+			Arguments passés à la méthode (valeurs fixes, non évaluées).
 		</member>
 		<member name="method" type="StringName" setter="set_method" getter="get_method" default="&amp;&quot;&quot;">
+			Nom de la méthode à appeler.
 		</member>
 		<member name="node_path" type="NodePath" setter="set_node_path" getter="get_node_path" default="NodePath(&quot;&quot;)">
+			Chemin du nœud cible, relatif à l'agent. Vide : l'agent lui-même.
 		</member>
 		<member name="result_key" type="String" setter="set_result_key" getter="get_result_key" default="&quot;&quot;">
+			Si renseigné, la valeur renvoyée par la méthode est écrite sous cette clé du tableau noir (même [code]null[/code]).
 		</member>
 		<member name="use_result_as_status" type="bool" setter="set_use_result_as_status" getter="get_use_result_as_status" default="false">
+			Si [code]true[/code] et que la méthode renvoie un [bool], [code]true[/code] donne [constant BTNode.SUCCESS] et [code]false[/code] [constant BTNode.FAILURE]. Un résultat d'un autre type donne toujours [constant BTNode.SUCCESS].
 		</member>
 	</members>
 </class>

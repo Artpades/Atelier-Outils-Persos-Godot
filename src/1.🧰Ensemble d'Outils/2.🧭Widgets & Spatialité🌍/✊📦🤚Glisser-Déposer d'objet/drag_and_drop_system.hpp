@@ -72,6 +72,7 @@ class DragAndDropSystem : public Node
 
     /// Dernière position connue du pointeur, en coordonnées du Viewport (suivie dans _input).
     Vector2 pointer_position;
+    /// Décalage entre l'objet saisi et le pointeur au moment de la saisie (nul avec snap_to_cursor).
     Vector2 offset_2d;
     Vector3 offset_3d;
     /// Point par lequel passe le plan de glissement 3D (position de l'objet à la saisie).

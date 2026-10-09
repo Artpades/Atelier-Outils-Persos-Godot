@@ -63,8 +63,10 @@ class DialogueBox : public PanelContainer
     Label *continue_hint = nullptr;
 
     bool typing = false;
+    /// Nombre (fractionnaire) de caractères déjà écrits pendant l'effet machine à écrire.
     double typed_characters = 0.0;
 
+    /// Connecte (ou déconnecte) line_shown, choices_shown et dialogue_ended du système.
     void _connect_system(DialogueSystem *p_system, bool p_connect);
     void _clear_choices();
     void _on_line_shown(const String &p_speaker, const String &p_text, const Ref<DialogueLine> &p_line);

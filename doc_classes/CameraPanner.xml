@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="CameraPanner" inherits="Camera2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎞️ [Camera2D] que le joueur déplace et zoome lui-même : souris, molette, trackpad, tactile et manette.
 	</brief_description>
 	<description>
+		Pour une carte, un éditeur de niveau, un jeu de stratégie ou de gestion vu du dessus :
+		- [b]Souris[/b] : glisser avec [member pan_mouse_button] maintenu déplace la vue ; la molette zoome vers le point sous le curseur.
+		- [b]Trackpad / tactile[/b] : glissement à deux doigts ([InputEventPanGesture]) et pincement ([InputEventMagnifyGesture], zoom vers le point pincé).
+		- [b]Manette / clavier[/b] : actions de l'Input Map ([member action_pan_left]... [member action_zoom_out]) ; le zoom se fait vers le centre de l'écran.
+		Les entrées modifient une position et un zoom [i]cibles[/i] ; la caméra les rejoint en douceur à chaque image ([member lerp_speed]). Le zoom est uniforme (seul [code]zoom.x[/code] est lu) et borné entre [member min_zoom] et [member max_zoom].
+		[codeblock]
+		# Recentrer la carte sur la base du joueur, puis laisser le joueur explorer.
+		func _ready() -&gt; void:
+			$CameraPanner.teleport($Base.global_position, 1.5)
+			$CameraPanner.min_zoom = 0.5
+			$CameraPanner.pan_mouse_button = MOUSE_BUTTON_RIGHT
+		[/codeblock]
+		[b]Note :[/b] la caméra réécrit [member Node2D.position] et [member Camera2D.zoom] à chaque image : pour la déplacer par code, utilisez [method teleport]. Classe d'exécution uniquement (inactive dans l'éditeur).
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,37 +26,52 @@
 			<param index="0" name="position" type="Vector2" />
 			<param index="1" name="zoom" type="float" />
 			<description>
+				Place immédiatement la caméra en [param position] (position locale, comme [member Node2D.position]) avec le zoom [param zoom] (borné entre [member min_zoom] et [member max_zoom]), sans lissage. La position et le zoom cibles sont aussi remplacés.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="action_pan_down" type="StringName" setter="set_action_pan_down" getter="get_action_pan_down" default="&amp;&quot;ui_down&quot;">
+			Action de l'Input Map qui déplace la vue vers le bas.
 		</member>
 		<member name="action_pan_left" type="StringName" setter="set_action_pan_left" getter="get_action_pan_left" default="&amp;&quot;ui_left&quot;">
+			Action de l'Input Map qui déplace la vue vers la gauche.
 		</member>
 		<member name="action_pan_right" type="StringName" setter="set_action_pan_right" getter="get_action_pan_right" default="&amp;&quot;ui_right&quot;">
+			Action de l'Input Map qui déplace la vue vers la droite.
 		</member>
 		<member name="action_pan_up" type="StringName" setter="set_action_pan_up" getter="get_action_pan_up" default="&amp;&quot;ui_up&quot;">
+			Action de l'Input Map qui déplace la vue vers le haut.
 		</member>
 		<member name="action_zoom_in" type="StringName" setter="set_action_zoom_in" getter="get_action_zoom_in" default="&amp;&quot;ui_page_up&quot;">
+			Action de l'Input Map qui zoome (vers le centre de l'écran).
 		</member>
 		<member name="action_zoom_out" type="StringName" setter="set_action_zoom_out" getter="get_action_zoom_out" default="&amp;&quot;ui_page_down&quot;">
+			Action de l'Input Map qui dézoome (vers le centre de l'écran).
 		</member>
 		<member name="joypad_pan_speed" type="float" setter="set_joypad_pan_speed" getter="get_joypad_pan_speed" default="500.0">
+			Vitesse de déplacement par les actions, en pixels de l'écran par seconde (divisée par le zoom : la vitesse à l'écran reste la même quel que soit le zoom).
 		</member>
 		<member name="joypad_zoom_speed" type="float" setter="set_joypad_zoom_speed" getter="get_joypad_zoom_speed" default="2.0">
+			Vitesse du zoom par les actions : le zoom est multiplié par [code]1 + direction × joypad_zoom_speed × delta[/code] à chaque image.
 		</member>
 		<member name="lerp_speed" type="float" setter="set_lerp_speed" getter="get_lerp_speed" default="20.0">
+			Vitesse à laquelle la caméra rejoint la position et le zoom cibles (élevée : réactive ; faible : glissement plus doux et plus lent).
 		</member>
 		<member name="max_zoom" type="float" setter="set_max_zoom" getter="get_max_zoom" default="10.0">
+			Zoom maximal (vue la plus rapprochée).
 		</member>
 		<member name="min_zoom" type="float" setter="set_min_zoom" getter="get_min_zoom" default="0.1">
+			Zoom minimal (vue la plus éloignée).
 		</member>
 		<member name="pan_mouse_button" type="int" setter="set_pan_mouse_button" getter="get_pan_mouse_button" enum="MouseButton" default="3">
+			Bouton de la souris à maintenir pour déplacer la vue (bouton du milieu par défaut).
 		</member>
 		<member name="touch_pan_sensitivity" type="float" setter="set_touch_pan_sensitivity" getter="get_touch_pan_sensitivity" default="1.0">
+			Multiplicateur du déplacement par glissement à deux doigts (trackpad, tactile).
 		</member>
 		<member name="zoom_factor" type="float" setter="set_zoom_factor" getter="get_zoom_factor" default="1.15">
+			Facteur appliqué au zoom à chaque cran de molette (1,15 : +15 % vers l'avant, ÷1,15 vers l'arrière).
 		</member>
 	</members>
 </class>

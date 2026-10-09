@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="RuntimeUndoBackend" inherits="UndoBackend" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Annulation en jeu : historique UndoRedo propre à ce système.
 	</brief_description>
 	<description>
+		Utilisé par défaut par le [ProceduralEditor]. Des modifications successives de la même propriété faites en moins de 0,8 s sont fusionnées en une seule action ([code]UndoRedo.MERGE_ENDS[/code]) : plusieurs clics sur les flèches d'un [SpinBox] s'annulent d'un coup.
+		[codeblock]
+		var annulation := RuntimeUndoBackend.new()
+		$ProceduralEditor.set_undo_backend(annulation)
+		$BoutonAnnuler.disabled = not annulation.has_undo()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,16 +17,19 @@
 		<method name="clear_history">
 			<return type="void" />
 			<description>
+				Vide l'historique (annuler et rétablir).
 			</description>
 		</method>
 		<method name="has_redo" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] s'il y a une action à rétablir.
 			</description>
 		</method>
 		<method name="has_undo" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] s'il y a une action à annuler.
 			</description>
 		</method>
 	</methods>

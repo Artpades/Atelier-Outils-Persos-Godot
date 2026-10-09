@@ -1,31 +1,51 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="TooltipContent" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🗨️ Contenu d'une infobulle [CustomTooltip] : titre, icône, vidéo, texte BBCode et scène personnalisée.
 	</brief_description>
 	<description>
+		Ressource qui décrit ce qu'affiche une [CustomTooltip], de haut en bas : [member title], [member icon], [member video], [member text] (BBCode), puis une instance de [member custom_scene]. Les éléments vides sont omis.
+		Enregistrée en [code].tres[/code], elle peut être partagée entre plusieurs infobulles (même objet dans l'inventaire et la boutique). Toute modification d'une propriété reconstruit les infobulles affichées qui l'utilisent.
+		[codeblock]
+		var aide := TooltipContent.new()
+		aide.title = "Double saut"
+		aide.video = preload("res://videos/double_saut.ogv")   # démonstration en boucle, sans son
+		aide.text = "Appuyez deux fois sur [b]Saut[/b]."
+		$CustomTooltip.content = aide
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="custom_scene" type="PackedScene" setter="set_custom_scene" getter="get_custom_scene">
+			Scène instanciée en bas de l'infobulle (statistiques comparées, aperçu 3D...). Elle ne reçoit pas la souris : ses boutons ne sont pas cliquables.
 		</member>
 		<member name="icon" type="Texture2D" setter="set_icon" getter="get_icon">
+			Image affichée sous le titre, réduite (proportions conservées) pour tenir dans [member icon_max_size]. Jamais agrandie.
 		</member>
 		<member name="icon_max_size" type="Vector2" setter="set_icon_max_size" getter="get_icon_max_size" default="Vector2(64, 64)">
+			Taille maximale de l'icône en pixels. (0, 0) : taille native.
 		</member>
 		<member name="max_width" type="float" setter="set_max_width" getter="get_max_width" default="320.0">
+			Largeur en pixels au-delà de laquelle le texte revient à la ligne. Un texte plus court garde sa largeur naturelle.
 		</member>
 		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+			Texte de l'infobulle, en BBCode ([code][b][/code], [code][color][/code], [code][img][/code]...).
 		</member>
 		<member name="title" type="String" setter="set_title" getter="get_title" default="&quot;&quot;">
+			Titre affiché en haut, avec la variation de thème [code]HeaderSmall[/code].
 		</member>
 		<member name="video" type="VideoStream" setter="set_video" getter="get_video">
+			Vidéo jouée dans l'infobulle tant qu'elle est affichée (démonstration d'une capacité), reprise du début à chaque affichage.
 		</member>
 		<member name="video_loop" type="bool" setter="set_video_loop" getter="get_video_loop" default="true">
+			Si [code]true[/code], la vidéo recommence à sa fin.
 		</member>
 		<member name="video_muted" type="bool" setter="set_video_muted" getter="get_video_muted" default="true">
+			Si [code]true[/code], la vidéo est jouée sans son.
 		</member>
 		<member name="video_size" type="Vector2" setter="set_video_size" getter="get_video_size" default="Vector2(240, 135)">
+			Taille d'affichage de la vidéo en pixels. (0, 0) : taille native de la vidéo.
 		</member>
 	</members>
 </class>

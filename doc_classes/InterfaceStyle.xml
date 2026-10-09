@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InterfaceStyle" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Style d'une partie de l'interface générée (interface entière, groupe, widget) : thème, fond, teintes, matériau et uniforms liés.
 	</brief_description>
 	<description>
+		Le style le plus précis l'emporte : le thème se transmet aux enfants sauf s'ils ont le leur, le matériau est propre à chaque nœud. Le style par défaut du projet se règle avec [code]gameplay_toolkit/object_editor/default_style[/code].
+		Avec [member propagate_material], les descendants réutilisent le matériau ([member CanvasItem.use_parent_material]), y compris ceux créés plus tard (sous-objets dépliés). Si des uniforms sont liés ([member shader_parameters]), le matériau est dupliqué pour chaque élément stylé.
+		[codeblock]
+		var style := InterfaceStyle.new()
+		style.theme = preload("res://ui/theme_debug.tres")
+		var fond := StyleBoxFlat.new()
+		fond.bg_color = Color(0, 0, 0, 0.6)
+		style.background = fond
+		$ProceduralEditor.style = style
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,33 +22,39 @@
 			<return type="Material" />
 			<param index="0" name="item" type="CanvasItem" />
 			<description>
+				Applique le style à [param item] : thème et variation (si c'est un [Control]), [member modulate], [member self_modulate], matériau (remplace celui de l'élément, même par rien) et propagation. Le fond ([member background]) n'est pas dessiné par cette méthode. Renvoie le matériau posé (copie si des uniforms sont liés).
 			</description>
 		</method>
 		<method name="clear_from" qualifiers="static">
 			<return type="void" />
 			<param index="0" name="item" type="CanvasItem" />
 			<description>
+				Retire de [param item] ce qu'un style a pu poser : thème, variation, teintes (remises à blanc), matériau et propagation.
 			</description>
 		</method>
 		<method name="find_parameter" qualifiers="const">
 			<return type="ShaderParameterBinding" />
 			<param index="0" name="parameter" type="StringName" />
 			<description>
+				Renvoie le lien de l'uniform [param parameter], ou [code]null[/code] s'il n'est pas lié.
 			</description>
 		</method>
 		<method name="get_shader_uniforms" qualifiers="const">
 			<return type="Dictionary[]" />
 			<description>
+				Renvoie la liste des uniforms du shader de [member material] (format de [method Shader.get_shader_uniform_list]) ; vide sans [ShaderMaterial].
 			</description>
 		</method>
 		<method name="has_parameter_bindings" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si au moins un uniform est lié à une valeur.
 			</description>
 		</method>
 		<method name="load_project_default" qualifiers="static">
 			<return type="InterfaceStyle" />
 			<description>
+				Charge le style par défaut du projet, ou renvoie [code]null[/code] si le réglage est vide ou le fichier absent.
 			</description>
 		</method>
 		<method name="update_parameters" qualifiers="const">
@@ -45,25 +62,34 @@
 			<param index="0" name="item" type="CanvasItem" />
 			<param index="1" name="context" type="Object" />
 			<description>
+				Résout les uniforms liés sur [param context] et les écrit dans le [ShaderMaterial] de [param item].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="background" type="StyleBox" setter="set_background" getter="get_background">
+			[StyleBox] dessinée derrière l'élément stylé (interface, cadre du groupe, widget entier).
 		</member>
 		<member name="material" type="Material" setter="set_material" getter="get_material">
+			Matériau de l'élément, en pratique un [ShaderMaterial] « canvas_item » ou un [CanvasItemMaterial].
 		</member>
 		<member name="modulate" type="Color" setter="set_modulate" getter="get_modulate" default="Color(1, 1, 1, 1)">
+			Teinte de l'élément et de ses enfants.
 		</member>
 		<member name="propagate_material" type="bool" setter="set_propagate_material" getter="get_propagate_material" default="true">
+			Si [code]true[/code], les descendants sans matériau propre réutilisent celui-ci, y compris ceux ajoutés plus tard.
 		</member>
 		<member name="self_modulate" type="Color" setter="set_self_modulate" getter="get_self_modulate" default="Color(1, 1, 1, 1)">
+			Teinte de l'élément seul.
 		</member>
 		<member name="shader_parameters" type="ShaderParameterBinding[]" setter="set_shader_parameters" getter="get_shader_parameters" default="[]">
+			Uniforms du shader liés à des valeurs de l'objet édité.
 		</member>
 		<member name="theme" type="Theme" setter="set_theme" getter="get_theme">
+			Thème des contrôles (transmis aux enfants).
 		</member>
 		<member name="theme_type_variation" type="StringName" setter="set_theme_type_variation" getter="get_theme_type_variation" default="&amp;&quot;&quot;">
+			Variation de type du thème appliquée au contrôle stylé.
 		</member>
 	</members>
 </class>

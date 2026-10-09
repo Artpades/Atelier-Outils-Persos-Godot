@@ -90,6 +90,7 @@ class StateMachine : public State
     int history_size = 32;
 
     bool running = false;
+    /// Vrai pendant une entrée / sortie d'états : les transitions demandées sont alors mises en file (pending).
     bool in_transition = false;
     double elapsed_time = 0.0;
     Array history;
@@ -97,10 +98,16 @@ class StateMachine : public State
 
     void _update_processing();
     void _tick(double p_delta);
+    /// De la feuille vers la racine : franchit la première transition sans événement satisfaite.
     void _evaluate_automatic_transitions();
+    /// Franchit une transition (ou la met en file pendant une autre), puis vide la file (MAX_CHAINED_TRANSITIONS).
     void _fire(State *p_source, State *p_target, const StringName &p_event);
+    /// Transition externe : sort jusqu'au plus proche ancêtre strict commun, entre jusqu'à la cible et ses
+    /// sous-états initiaux, puis historique et signaux transitioned / state_changed.
     void _perform(State *p_source, State *p_target, const StringName &p_event);
+    /// Entre dans les sous-états initiaux successifs sous p_from, jusqu'à un état feuille.
     void _enter_initial_chain(State *p_from);
+    /// Vrai si p_state est cette machine ou l'un de ses descendants.
     bool _owns(const State *p_state) const;
     String _relative_path(const Node *p_node) const;
 };

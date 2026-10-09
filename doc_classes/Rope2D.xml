@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="Rope2D" inherits="Node2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🪢 Corde 2D simulée (Verlet) entre deux ancrages, avec collisions facultatives et corps accrochables.
 	</brief_description>
 	<description>
+		Corde de [member point_count] points intégrés par Verlet, contraints à [member rope_length], dessinée par le nœud lui-même ([member width], [member color]). Le premier point suit ce nœud (ou [member start_anchor_path]), le dernier peut être fixé à [member end_anchor_path]. La simulation tourne à chaque image physique, en jeu uniquement ; dans l'éditeur, la corde est affichée droite.
+		Des corps peuvent s'y accrocher ([method attach_body]) : ils suivent la corde et l'alourdissent ([member attached_weight]). [RopeMovement2D] s'en sert pour faire grimper et balancer un personnage.
+		[codeblock]
+		# Liane entre deux arbres, qui pend sous son propre poids.
+		var liane := Rope2D.new()
+		liane.rope_length = 320.0
+		liane.end_anchor_path = NodePath("../ArbreDroit")
+		$ArbreGauche.add_child(liane)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,6 +22,7 @@
 			<param index="0" name="position" type="float" />
 			<param index="1" name="velocity" type="Vector2" />
 			<description>
+				Ajoute la vitesse [param velocity] aux deux points encadrant [param position] (index fractionnaire), au prorata de la distance : pour balancer ou secouer la corde.
 			</description>
 		</method>
 		<method name="attach_body">
@@ -19,12 +30,14 @@
 			<param index="0" name="body" type="Node" />
 			<param index="1" name="position" type="float" />
 			<description>
+				Accroche [param body] à la corde à l'index fractionnaire [param position] (borné à la corde). Le corps est ensuite [b]téléporté[/b] à cette position à chaque image physique (et sa vitesse, pour un personnage, est celle de la corde). Sans effet s'il est déjà accroché. Émet [signal body_attached].
 			</description>
 		</method>
 		<method name="detach_body">
 			<return type="void" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Décroche [param body] et émet [signal body_detached] (rien si le corps n'est pas accroché).
 			</description>
 		</method>
 		<method name="find_nearest_info" qualifiers="static">
@@ -32,57 +45,67 @@
 			<param index="0" name="point" type="Vector2" />
 			<param index="1" name="max_distance" type="float" />
 			<description>
+				Renvoie la corde la plus proche de [param point] à moins de [param max_distance], sous forme de [Dictionary] [code]{"rope": Rope2D, "position": float}[/code], ou [code]null[/code] si aucune n'est assez proche.
 			</description>
 		</method>
 		<method name="find_rope_of" qualifiers="static">
 			<return type="Rope2D" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie la [Rope2D] à laquelle [param body] est accroché, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_attached_position" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie l'index fractionnaire où [param body] est accroché, ou [code]-1[/code] s'il ne l'est pas.
 			</description>
 		</method>
 		<method name="get_closest_position" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="point" type="Vector2" />
 			<description>
+				Renvoie l'index fractionnaire du point de la corde le plus proche de [param point] (global).
 			</description>
 		</method>
 		<method name="get_points" qualifiers="const">
 			<return type="PackedVector2Array" />
 			<description>
+				Renvoie les positions globales des points de la corde.
 			</description>
 		</method>
 		<method name="get_position_at" qualifiers="const">
 			<return type="Vector2" />
 			<param index="0" name="position" type="float" />
 			<description>
+				Renvoie la position globale le long de la corde à l'index fractionnaire [param position] (0 = premier point, [code]point_count - 1[/code] = dernier ; 2,5 = à mi-chemin entre les points 2 et 3).
 			</description>
 		</method>
 		<method name="get_segment_length" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la longueur d'un segment : [member rope_length] / ([member point_count] - 1).
 			</description>
 		</method>
 		<method name="get_velocity_at" qualifiers="const">
 			<return type="Vector2" />
 			<param index="0" name="position" type="float" />
 			<description>
+				Renvoie la vitesse de la corde à l'index fractionnaire [param position], déduite du déplacement depuis l'image précédente.
 			</description>
 		</method>
 		<method name="has_body" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="body" type="Node" />
 			<description>
+				Renvoie [code]true[/code] si [param body] est accroché à cette corde.
 			</description>
 		</method>
 		<method name="reset_points">
 			<return type="void" />
 			<description>
+				Remet tous les points en ligne droite (vers l'ancrage d'arrivée, sinon dans le sens de [member gravity]), au repos.
 			</description>
 		</method>
 		<method name="set_attached_position">
@@ -90,44 +113,62 @@
 			<param index="0" name="body" type="Node" />
 			<param index="1" name="position" type="float" />
 			<description>
+				Déplace l'accroche de [param body] à l'index fractionnaire [param position] (borné) : pour grimper ou descendre.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="attached_weight" type="float" setter="set_attached_weight" getter="get_attached_weight" default="1.5">
+			Poids d'un corps accroché : la gravité des points voisins de l'accroche est multipliée par (1 + cette valeur). La corde se tend et se courbe sous le corps.
 		</member>
 		<member name="collide" type="bool" setter="set_collide" getter="get_collide" default="false">
+			Si [code]true[/code], chaque point de la corde (sauf le premier) est arrêté par les corps physiques de [member collision_mask] (un rayon par point et par image, entre sa position précédente et la nouvelle). Les corps accrochés sont exclus.
 		</member>
 		<member name="collision_mask" type="int" setter="set_collision_mask" getter="get_collision_mask" default="1">
+			Couches physiques avec lesquelles la corde entre en collision si [member collide] est actif.
 		</member>
 		<member name="color" type="Color" setter="set_color" getter="get_color" default="Color(0.8, 0.65, 0.4, 1)">
+			Couleur du trait de la corde.
 		</member>
 		<member name="damping" type="float" setter="set_damping" getter="get_damping" default="0.01">
+			Amortissement par image (0 = aucune perte, la corde oscille longtemps ; 1 = aucun élan conservé).
+		</member>
+		<member name="debug_mode" type="bool" setter="set_debug_mode" getter="get_debug_mode" default="false">
+			Si [code]true[/code], dessine en jeu les points de la corde, l'origine et un texte (longueur, nombre de points).
 		</member>
 		<member name="end_anchor_path" type="NodePath" setter="set_end_anchor_path" getter="get_end_anchor_path" default="NodePath(&quot;&quot;)">
+			Nœud auquel est fixé le dernier point (pont, câble tendu entre deux objets). Vide : l'extrémité pend librement.
 		</member>
 		<member name="gravity" type="Vector2" setter="set_gravity" getter="get_gravity" default="Vector2(0, 980)">
+			Gravité propre à la corde, en px/s² (indépendante de la gravité du projet).
 		</member>
 		<member name="iterations" type="int" setter="set_iterations" getter="get_iterations" default="12">
+			Nombre de passes de correction des longueurs par image (1 à 100). Plus il y en a, moins la corde s'étire, au prix de calculs supplémentaires.
 		</member>
 		<member name="point_count" type="int" setter="set_point_count" getter="get_point_count" default="16">
+			Nombre de points simulés (2 à 128). Changer cette valeur en jeu redresse la corde (positions réinitialisées).
 		</member>
 		<member name="rope_length" type="float" setter="set_rope_length" getter="get_rope_length" default="200.0">
+			Longueur au repos de la corde, en px, répartie également entre les segments.
 		</member>
 		<member name="start_anchor_path" type="NodePath" setter="set_start_anchor_path" getter="get_start_anchor_path" default="NodePath(&quot;&quot;)">
+			Nœud auquel est fixé le premier point, suivi à chaque image. Vide : la corde part de ce nœud.
 		</member>
 		<member name="width" type="float" setter="set_width" getter="get_width" default="3.0">
+			Épaisseur du trait de la corde, en pixels.
 		</member>
 	</members>
 	<signals>
 		<signal name="body_attached">
 			<param index="0" name="body" type="Object" />
 			<description>
+				Émis quand un corps est accroché.
 			</description>
 		</signal>
 		<signal name="body_detached">
 			<param index="0" name="body" type="Object" />
 			<description>
+				Émis quand un corps est décroché (par [method detach_body], ou quand l'un d'eux quitte l'arbre : dans ce cas il est retiré sans signal).
 			</description>
 		</signal>
 	</signals>

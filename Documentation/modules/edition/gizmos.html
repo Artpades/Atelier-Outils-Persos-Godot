@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gizmos · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🐛 Gizmos (Gizmos2D, Gizmos3D) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/edition/gizmos.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🐛</div>
+    <div>
+      <h1>🐛_GizmoSystem - Édition et Debug - Documentation</h1>
+      <p class="subtitle">Module <strong>Gizmos</strong> : dessiner des formes de debug 2D et 3D (lignes, flèches, boîtes, chemins, texte…) d'un simple appel, sans ajouter de nœud.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/tool_editor</code></span>
+        <span class="badge">2 classes : Gizmos2D · Gizmos3D</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Pour comprendre un bug de déplacement, d'IA ou de collision, il faut <em>voir</em> : la vitesse du personnage, le rayon de détection d'un ennemi, le chemin qu'il suit, la zone d'un déclencheur. Godot n'a pas de fonction « dessine une flèche ici » en 3D, et en 2D <code>_draw()</code> oblige à écrire le dessin dans le nœud lui-même. <strong>Ce module fournit ces dessins de debug prêts à l'emploi</strong>, depuis n'importe quel script, en 2D comme en 3D.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>✏️ <code>Gizmos2D</code></h4>
+      <p>Lignes, flèches, cercles, rectangles, capsules, polygones, chemins (pointillés, Bézier, flèches), repère d'axes, icône et texte, dans le monde 2D.</p>
+    </div>
+    <div class="card">
+      <h4>🧊 <code>Gizmos3D</code></h4>
+      <p>Lignes et tubes, flèches, boîtes, sphères, cercles, rectangles, capsules, polygones, chemins, repère XYZ, frustum de caméra, icône et texte toujours face à la caméra.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui déboguent le gameplay, et les autres modules du toolkit : les gizmos de l'<em>💻 Éditeur d'objet</em> (<code>GizmoHost</code>), les poignées du <a href="systeme-de-handles.html">✋ Système de Handles</a> et le mode debug des modules de <em>🌀 Mouvement &amp; Physique</em> s'en servent.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas les gizmos de l'éditeur Godot</strong> (<code>EditorNode3DGizmoPlugin</code>) : ces dessins ne sont pas sélectionnables ni manipulables. Pour des poignées déplaçables, voir <a href="systeme-de-handles.html">✋ Système de Handles</a> ; pour des gizmos configurés par type d'objet, l'<em>💻 Éditeur d'objet</em>.</li>
+      <li><strong>Pas un outil de rendu de jeu</strong> : pas d'éclairage, pas d'ombre, pas de gestion de l'ordre d'affichage. C'est un outil de visualisation.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Deux captures : (1) une scène 3D avec un personnage, une flèche cyan de vitesse, une sphère fil de fer de détection, un chemin en flèches avec ses points, un repère XYZ et un texte « Patrouille » au-dessus d'un ennemi ; (2) une scène 2D avec un chemin Bézier en pointillés, un cercle de portée et un rectangle de zone.</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code> dans le <code>.gdextension</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/tool_editor/</code></td><td><strong>Obligatoire</strong> pour GDScript</td><td>Elle enregistre <code>Gizmos2D</code> et <code>Gizmos3D</code> (avec tous les outils d'édition et de debug).</td></tr>
+        <tr><td>Icône <code>res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png</code></td><td>Optionnelle</td><td>Icône des deux classes dans l'éditeur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Côté C++, un autre module peut dessiner sans la bibliothèque : toutes les fonctions sont définies dans <code>gizmos.hpp</code> (classe <code>Gizmos</code>). Il doit alors appeler <code>GizmoResources::destroy()</code> au déchargement de son propre module (comme <code>movement_physics_register.cpp</code>).</p>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler la bibliothèque</strong> si nécessaire :
+      <pre><code class="language-shell">scons tool_editor</code></pre>
+      <div class="why">compile la bibliothèque des outils d'édition et régénère son <code>.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code>, puis <strong>redémarrer l'éditeur</strong>.
+      <div class="why">chemins <code>res://bin/tool_editor/…</code> dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
+    </li>
+  </ol>
+  <p>Aucun nœud, autoload ni réglage : les deux classes sont statiques.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+  <p>Afficher en 3D la vitesse d'un <code>CharacterBody3D</code> :</p>
+  <ol class="steps">
+    <li>
+      <strong>Créer le gizmo une fois</strong>, dans <code>_ready</code> :
+      <pre><code class="gdscript">extends CharacterBody3D
+
+var gizmo_vitesse: RID
+
+func _ready() -> void:
+	gizmo_vitesse = Gizmos3D.create_3D_gizmo(get_viewport())</code></pre>
+      <div class="why">un gizmo est un objet du serveur de rendu, rattaché au monde 3D du viewport. On le garde dans une variable (<code>RID</code>) pour le redessiner et le libérer.</div>
+    </li>
+    <li>
+      <strong>Le redessiner chaque frame</strong> :
+      <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
+	move_and_slide()
+	var bout := global_position + velocity * 0.3
+	Gizmos3D.draw_3D_arrow(gizmo_vitesse, global_position, bout, Color.CYAN, 0.2, 2.0)</code></pre>
+      <div class="why">chaque appel remplace la forme précédente : la flèche suit le personnage. Les coordonnées sont globales.</div>
+    </li>
+    <li>
+      <strong>Le libérer</strong> quand le nœud quitte l'arbre :
+      <pre><code class="gdscript">func _exit_tree() -> void:
+	Gizmos3D.free_3D_gizmo(gizmo_vitesse)</code></pre>
+      <div class="why">le gizmo n'appartient à aucun nœud : sans cette ligne, la flèche resterait affichée après la disparition du personnage.</div>
+    </li>
+  </ol>
+  <p>En 2D, c'est identique avec <code>Gizmos2D.create_2D_gizmo</code>, <code>draw_2D_*</code> et <code>free_2D_gizmo</code>.</p>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Gizmos2D.xml</code> et <code>doc_classes/Gizmos3D.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li>La classe C++ <code>Gizmos</code> (<code>gizmos.hpp</code>), qui contient l'implémentation ; <code>Gizmos2D</code> et <code>Gizmos3D</code> ne font que lier ses fonctions. Ses aides privées (<code>_add_3D_thick_line</code>, <code>_add_3D_arrow_to_surfacetool</code>, <code>_add_3D_point_marker</code>, <code>_draw_2D_polyline_circle</code>, <code>_add_2D_arrow</code>, <code>_get_or_create_mesh_rid</code>, <code>_get_scenario</code>).</li>
+    <li><code>GizmoResources</code> : registres des maillages et matériaux par gizmo 3D, shader du texte, matériau par défaut, libérés au déchargement de la bibliothèque.</li>
+  </ul>
+  <div data-api="Gizmos2D Gizmos3D"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-plusieurs">Comment j'affiche plusieurs formes en même temps ?</h3>
+  <p>Un gizmo ne garde qu'une forme : créer un gizmo par forme, dans un dictionnaire.</p>
+  <pre><code class="gdscript">extends Node3D
+
+var gizmos := {}
+
+func _ready() -> void:
+	for nom in ["portee", "cible", "nom"]:
+		gizmos[nom] = Gizmos3D.create_3D_gizmo(get_viewport())
+
+func _process(_delta: float) -> void:
+	Gizmos3D.draw_3D_sphere(gizmos.portee, global_position, 5.0, Color(1, 0.5, 0))
+	Gizmos3D.draw_3D_line(gizmos.cible, global_position, $"../Joueur".global_position, Color.RED)
+	Gizmos3D.draw_3D_text(gizmos.nom, global_position + Vector3.UP * 2.2, "Garde", Color.WHITE)
+
+func _exit_tree() -> void:
+	for rid in gizmos.values():
+		Gizmos3D.free_3D_gizmo(rid)</code></pre>
+
+  <h3 id="ex-chemin">Comment je visualise le chemin d'une IA ?</h3>
+  <p>Avec <code>as_arrows</code> pour le sens, <code>show_points</code> pour les étapes. En 3D, réduire <code>arrow_head_size</code> (en mètres).</p>
+  <pre><code class="gdscript">func montrer_chemin(points: PackedVector3Array) -> void:
+	Gizmos3D.draw_3D_path(gizmo_chemin, points,
+		true,   # as_arrows
+		1,      # segments_per_line
+		0.1,    # spacing : petit écart entre les flèches
+		false,  # use_bezier
+		true,   # show_points
+		0.08,   # point_radius
+		2.0,    # width
+		Color.GREEN_YELLOW,
+		0.25)   # arrow_head_size</code></pre>
+
+  <h3 id="ex-2d-portee">Comment je montre la portée d'une tourelle 2D en pointillés ?</h3>
+  <pre><code class="gdscript">extends Node2D
+
+@export var portee := 150.0
+var g_portee: RID
+var g_visee: RID
+
+func _ready() -> void:
+	g_portee = Gizmos2D.create_2D_gizmo(get_viewport())
+	g_visee = Gizmos2D.create_2D_gizmo(get_viewport())
+
+func _process(_delta: float) -> void:
+	Gizmos2D.draw_2D_circle(g_portee, global_position, portee, Color(1, 0, 0, 0.6))
+	var cercle := PackedVector2Array()
+	for i in 41:
+		cercle.append(global_position + Vector2.RIGHT.rotated(TAU * i / 40.0) * portee * 0.5)
+	Gizmos2D.draw_2D_path(g_visee, cercle, false, 1, 4.0)  # spacing 4 px : pointillés
+
+func _exit_tree() -> void:
+	Gizmos2D.free_2D_gizmo(g_portee)
+	Gizmos2D.free_2D_gizmo(g_visee)</code></pre>
+
+  <h3 id="ex-camera">Comment je dessine le champ de vision d'une caméra de surveillance ?</h3>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	var cam: Camera3D = $Camera3D
+	var aspect := 16.0 / 9.0
+	Gizmos3D.draw_3D_camera_frustum(g_frustum, cam.global_transform, cam.fov, cam.near, 8.0, aspect, Color.MAGENTA)</code></pre>
+
+  <h3 id="ex-repere">Comment je vérifie l'orientation d'un objet ?</h3>
+  <pre><code class="gdscript">Gizmos3D.draw_3D_origin(g_repere, $Arme.global_transform, 0.5, 0.1)   # X rouge, Y vert, Z bleu
+Gizmos2D.draw_2D_origin(g_repere_2d, $Vaisseau.global_transform, 40.0)  # X rouge, Y vert</code></pre>
+
+  <h3 id="ex-toggle">Comment je masque tous mes dessins de debug d'une touche ?</h3>
+  <p><code>clear_*</code> efface sans libérer : il suffit de ne plus redessiner.</p>
+  <pre><code class="gdscript">var debug_visible := true
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("debug_toggle"):
+		debug_visible = not debug_visible
+		if not debug_visible:
+			Gizmos3D.clear_3D_gizmo(gizmo_vitesse)
+
+func _physics_process(_delta: float) -> void:
+	if debug_visible:
+		Gizmos3D.draw_3D_arrow(gizmo_vitesse, global_position, global_position + velocity * 0.3, Color.CYAN, 0.2, 2.0)</code></pre>
+
+  <h3 id="ex-shader">Comment je donne un matériau personnalisé à un gizmo 3D ?</h3>
+  <p>Le shader doit lire <code>COLOR</code> pour garder la couleur passée aux méthodes. Exemple : un tracé visible à travers les murs.</p>
+  <pre><code class="gdscript">var mat := ShaderMaterial.new()
+mat.shader = Shader.new()
+mat.shader.code = """
+shader_type spatial;
+render_mode unshaded, depth_test_disabled, cull_disabled;
+void fragment() { ALBEDO = COLOR.rgb; ALPHA = COLOR.a; }
+"""
+Gizmos3D.apply_shader_on_gizmo(gizmo_chemin, mat)</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+
+  <h3 id="limites-communes">Communes</h3>
+  <ul>
+    <li><strong>Un gizmo = une forme.</strong> Chaque <code>draw_*</code> efface le dessin précédent du gizmo. Il faut un gizmo par forme affichée simultanément.</li>
+    <li><strong>Libération manuelle obligatoire.</strong> Un gizmo n'est lié à aucun nœud : sans <code>free_*_gizmo</code>, il reste affiché et occupe de la mémoire jusqu'à la fermeture du jeu, même après un changement de scène.</li>
+    <li><strong>Certains appels ignorés laissent l'ancien dessin</strong> au lieu d'effacer : chemin de moins de 2 points, polygone 2D de moins de 2 points, polygone 3D de moins de 3 points, flèche 3D de longueur nulle.</li>
+    <li><strong>Erreurs en console seulement.</strong> Un <code>RID</code> invalide écrit un message rouge et l'appel est ignoré ; rien n'est renvoyé.</li>
+    <li><strong>Coût :</strong> en 3D, chaque appel reconstruit un maillage complet (tubes, sphères, texte glyphe par glyphe) côté CPU. Des dizaines de gizmos redessinés chaque frame restent raisonnables ; des centaines pèsent sur les performances. Ne redessiner que ce qui bouge.</li>
+    <li><strong>Visibles en jeu exporté</strong> : rien ne désactive les gizmos en release ; conditionner soi-même avec <code>OS.is_debug_build()</code>.</li>
+  </ul>
+
+  <h3 id="limites-2d">Gizmos2D</h3>
+  <ul>
+    <li><strong><code>apply_shader_on_gizmo</code> ne fonctionne pas.</strong> Le matériau transmis au serveur de rendu est toujours vide (la méthode lit un identifiant de shader que les matériaux natifs ne fournissent pas) : l'appel retire le matériau au lieu de l'appliquer. Avec <code>null</code>, le moteur plante (vérifié en headless).</li>
+    <li><strong><code>draw_2D_capsule</code> et <code>draw_2D_origin</code> déplacent le gizmo</strong> (transformation appliquée au gizmo, jamais réinitialisée) : réutiliser ce gizmo pour une ligne ou un cercle les décale d'autant.</li>
+    <li><strong>Coordonnées du monde 2D</strong> : le dessin suit la <code>Camera2D</code>. Pour un dessin fixe à l'écran (HUD), il faut convertir soi-même les positions. Aucun <code>z_index</code> n'est réglé : l'ordre par rapport aux sprites n'est pas maîtrisé.</li>
+    <li><strong>Capsule uniquement verticale et en contour</strong> ; <code>antialiasing</code> sans effet sur les lignes de <code>draw_2D_path</code> et sur les formes pleines.</li>
+    <li><strong>Texte</strong> : police de repli du thème uniquement, une seule ligne, <code>position</code> = ligne de base.</li>
+  </ul>
+
+  <h3 id="limites-3d">Gizmos3D</h3>
+  <ul>
+    <li><strong>Icône et texte modifient le gizmo durablement</strong> : <code>draw_3D_icon</code> et <code>draw_3D_text</code> déplacent le gizmo et changent (ou retirent) son matériau. Dessiner ensuite une autre forme sur ce gizmo la décale et lui donne un mauvais matériau. Réserver un gizmo à l'icône ou au texte.</li>
+    <li><strong><code>arrow_head_size</code> de <code>draw_3D_path</code> vaut 12 par défaut</strong>, soit 12 m : chaque tronçon devient un cône. Toujours le préciser (≈ 0,2).</li>
+    <li><strong>Épaisseurs liées aux unités du monde</strong> : <code>width</code> > 1 donne un tube de rayon <code>width × 0,005</code> m, qui paraît fin de loin et épais de près ; <code>width</code> ≤ 1 donne une ligne d'un pixel. Flèches et repères sont toujours des tubes.</li>
+    <li><strong>Boîtes alignées sur les axes</strong> (<code>draw_3D_cube</code> sans rotation), capsules verticales uniquement, orientation des rectangles autour de leur normale non choisie.</li>
+    <li><strong>Masqués par la géométrie</strong> (test de profondeur actif), sauf les icônes ; pour voir à travers les murs, appliquer un matériau <code>depth_test_disabled</code> (voir <a href="#ex-shader">exemple</a>).</li>
+    <li><strong>Polygone plein correct seulement s'il est plan et convexe</strong> (triangulation en éventail).</li>
+    <li><strong>Texte</strong> : une ligne, gauche à droite, police de repli du thème ; le filtrage d'une icône est figé au premier appel.</li>
+    <li><strong>Un gizmo 3D appartient à la bibliothèque qui l'a créé</strong> : en C++, le créer et le libérer depuis le même module (chaque bibliothèque a ses propres registres). Sans conséquence en GDScript.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 250" role="img" aria-label="Schéma d'architecture du module Gizmos">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="160" height="54" rx="8"/>
+    <text x="100" y="54" text-anchor="middle">Script GDScript</text>
+    <text x="100" y="72" text-anchor="middle" class="small">Gizmos2D / Gizmos3D</text>
+    <rect class="box" x="20" y="160" width="160" height="54" rx="8"/>
+    <text x="100" y="184" text-anchor="middle">Modules C++</text>
+    <text x="100" y="202" text-anchor="middle" class="small">GizmoHost, Handles, Debug</text>
+    <rect class="box main" x="260" y="95" width="170" height="60" rx="8"/>
+    <text x="345" y="120" text-anchor="middle">Gizmos (gizmos.hpp)</text>
+    <text x="345" y="139" text-anchor="middle" class="small">fonctions statiques inline</text>
+    <rect class="box" x="500" y="30" width="160" height="54" rx="8"/>
+    <text x="580" y="54" text-anchor="middle">canvas_item</text>
+    <text x="580" y="72" text-anchor="middle" class="small">2D · canvas du World2D</text>
+    <rect class="box" x="500" y="160" width="160" height="54" rx="8"/>
+    <text x="580" y="184" text-anchor="middle">instance + mesh</text>
+    <text x="580" y="202" text-anchor="middle" class="small">3D · scenario du World3D</text>
+    <rect class="box" x="700" y="160" width="145" height="54" rx="8"/>
+    <text x="772" y="184" text-anchor="middle">GizmoResources</text>
+    <text x="772" y="202" text-anchor="middle" class="small">meshes, matériaux, shader</text>
+    <path class="arrow" d="M180 57 Q220 80 258 110" marker-end="url(#arr)"/>
+    <path class="arrow" d="M180 187 Q220 165 258 140" marker-end="url(#arr)"/>
+    <path class="arrow" d="M430 110 Q465 75 498 60" marker-end="url(#arr)"/>
+    <path class="arrow" d="M430 140 Q465 175 498 185" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M660 187 H698" marker-end="url(#arr)"/>
+    <text x="465" y="240" text-anchor="middle" class="small">RenderingServer : aucun nœud créé</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>Gizmos</code></strong> (C++ pur, non enregistré) contient toutes les fonctions, en <code>inline</code> dans le header. <code>Gizmos2D</code> et <code>Gizmos3D</code> (<code>RefCounted</code> sans état) lient directement ces fonctions comme méthodes statiques.</li>
+    <li><strong>2D</strong> : un gizmo est un <code>canvas_item</code> du <code>RenderingServer</code>, enfant du canvas du <code>World2D</code> du viewport. Chaque dessin fait <code>canvas_item_clear</code> puis ajoute ses primitives.</li>
+    <li><strong>3D</strong> : un gizmo est une instance du <code>RenderingServer</code> dans le scenario du <code>World3D</code>, avec le matériau par défaut en <code>material_override</code>. Chaque dessin vide le maillage associé (créé au premier dessin) et y ajoute une surface construite avec <code>SurfaceTool</code>.</li>
+    <li><strong>Texte 3D</strong> : mis en forme par le <code>TextServer</code> ; chaque glyphe devient un quad qui pointe dans l'atlas de la police, avec un matériau par page d'atlas et un shader commun qui oriente le texte vers la caméra.</li>
+    <li><strong><code>GizmoResources</code></strong> détient les registres (maillage et matériaux par gizmo, shader du texte, matériau par défaut), créés au premier usage et libérés par <code>GizmoResources::destroy()</code> au déchargement du module.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Ne dépend d'aucun autre module.</li>
+    <li>Inclus (header) par <a href="systeme-de-handles.html">✋ Système de Handles</a>, <em>💻 Éditeur d'objet</em> (<code>GizmoHost</code>) et les modules de <em>🌀 Mouvement &amp; Physique</em> (<code>DebugGizmos</code>, <code>Knockback</code>, <code>ForceZone</code>, <code>Jiggle</code>…). Chaque bibliothèque qui l'inclut possède son propre exemplaire de <code>GizmoResources</code>.</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Dessin direct par le <code>RenderingServer</code>, sans nœud</td><td>Aucun nœud parasite dans l'arbre (ni dans les scènes enregistrées) ; dessinable depuis n'importe quel objet, y compris une ressource ou un plugin.</td></tr>
+        <tr><td>Implémentation <code>inline</code> dans le header</td><td>Les autres bibliothèques du toolkit (mouvement, physique) dessinent leurs gizmos sans dépendre de <code>tool_editor</code>.</td></tr>
+        <tr><td><code>GizmoResources</code> détruit explicitement au déchargement</td><td>Des variables statiques étaient détruites <em>après</em> le moteur : RID perdus et risque de plantage. Classe C++ ordinaire (pas une classe Godot) pour que plusieurs bibliothèques puissent l'inclure sans conflit d'enregistrement.</td></tr>
+        <tr><td>Tube hexagonal quand <code>width</code> > 1</td><td>Les lignes du GPU font toujours un pixel : seul un vrai volume donne une épaisseur.</td></tr>
+        <tr><td>Primitive (lignes / triangles) choisie selon la même règle que les tubes</td><td>Mélanger lignes à 2 sommets et triangles dans un même tampon donne l'erreur « Vertex amount must be a multiple of 3 ».</td></tr>
+        <tr><td>Texte 3D par <code>TextServer</code> plutôt que <code>Label3D</code> ou viewport hors écran</td><td>Aucun nœud ni texture intermédiaire ; le shaping (crénage, polices de repli) reste celui du moteur.</td></tr>
+        <tr><td>Grille 3D non portée</td><td>Exclue volontairement lors du portage depuis <code>gizmos_manager.gd</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>Gizmos2D</code> et <code>Gizmos3D</code>, commentaires de <code>gizmos.hpp</code>, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span><code>GizmoResources</code> devient une classe C++ ordinaire, détruite au déchargement de chaque module qui l'utilise (arrivée des modules de mouvement).</li>
+    </ul>
+    <h3 id="v0-4">0.4 <span class="date">2026-10-05</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Capsule 3D pleine (avec demi-sphères).</li>
+      <li><span class="tag fix">Corrigé</span>Ressources 3D partagées regroupées dans <code>GizmoResources</code>, libérées tant que le moteur existe (RID qui fuyaient au déchargement).</li>
+    </ul>
+    <h3 id="v0-3">0.3 <span class="date">2026-10-04</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Migration en C++ natif : toutes les fonctions dans <code>gizmos.hpp</code>, <code>Gizmos2D</code> / <code>Gizmos3D</code> réduites à des liaisons (mêmes noms côté GDScript).</li>
+    </ul>
+    <h3 id="v0-2">0.2 <span class="date">2026-09-08</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Gizmos 3D : lignes, flèches, cube, sphère, cercle, rectangle, capsule, polygone, chemin, repère, frustum, icône, texte 3D.</li>
+    </ul>
+    <h3 id="v0-1">0.1 <span class="date">2026-09-05 → 07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span>Gizmos 2D : ligne, flèche, cercle, rectangle, capsule, chemin, texte, application de matériau.</li>
+    </ul>
+  </div>
+
+  <footer>Module 🐛 Gizmos · sources : <code>src/1.🧰Ensemble d'Outils/0.🧑‍💻Édition et Debug🪳/🐛Gizmos/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "Gizmos2D.create_2D_gizmo": "Dans <code>_ready</code> d'un nœud de debug, une fois par forme à afficher.",
+  "Gizmos2D.clear_2D_gizmo": "Masquer un dessin le temps qu'une condition soit fausse (ennemi sans cible), sans recréer le gizmo.",
+  "Gizmos2D.free_2D_gizmo": "Dans <code>_exit_tree</code> du nœud qui a créé le gizmo.",
+  "Gizmos2D.draw_2D_line": "Ligne de visée, lien entre deux objets, normale d'une collision.",
+  "Gizmos2D.draw_2D_arrow": "Vitesse ou direction d'un personnage, force appliquée, direction vers une cible.",
+  "Gizmos2D.draw_2D_circle": "Portée d'une tourelle, rayon de détection, zone d'explosion.",
+  "Gizmos2D.draw_2D_rectangle": "Zone d'un déclencheur, limites d'une caméra, cellule de grille.",
+  "Gizmos2D.draw_2D_capsule": "Visualiser la forme de collision d'un personnage debout.",
+  "Gizmos2D.draw_2D_polygon": "Zone de navigation, cône de vision approximé, polygone de collision.",
+  "Gizmos2D.draw_2D_path": "Chemin d'une IA, trajectoire prévue d'un projectile, patrouille en pointillés.",
+  "Gizmos2D.draw_2D_origin": "Vérifier la position et la rotation d'un nœud (repère local X / Y).",
+  "Gizmos2D.draw_2D_icon": "Marquer un point d'apparition ou un objectif invisible en jeu.",
+  "Gizmos2D.draw_2D_text": "Afficher un état d'IA, une valeur numérique ou un nom au-dessus d'un objet.",
+  "Gizmos2D.apply_shader_on_gizmo": "Non fonctionnel actuellement (voir Limitations) : à éviter.",
+  "Gizmos3D.create_3D_gizmo": "Dans <code>_ready</code> d'un nœud de debug, une fois par forme à afficher.",
+  "Gizmos3D.clear_3D_gizmo": "Masquer un dessin (bascule de debug) sans libérer le gizmo.",
+  "Gizmos3D.free_3D_gizmo": "Dans <code>_exit_tree</code> du nœud qui a créé le gizmo.",
+  "Gizmos3D.draw_3D_line": "Rayon de visée, lien entre deux objets, normale de sol.",
+  "Gizmos3D.draw_3D_arrow": "Vitesse, gravité, force de recul, direction d'un regard.",
+  "Gizmos3D.draw_3D_cube": "Zone de déclenchement, boîte englobante, cellule de grille 3D.",
+  "Gizmos3D.draw_3D_sphere": "Rayon de détection, portée d'un son, zone d'effet.",
+  "Gizmos3D.draw_3D_circle": "Portée au sol d'un ennemi, zone d'atterrissage, cercle de sélection.",
+  "Gizmos3D.draw_3D_rectangle": "Zone au sol, plan de découpe, surface d'un panneau.",
+  "Gizmos3D.draw_3D_capsule": "Forme de collision d'un personnage.",
+  "Gizmos3D.draw_3D_polygon": "Zone de navigation plane, surface d'un déclencheur convexe.",
+  "Gizmos3D.draw_3D_path": "Chemin de navigation d'une IA, trajectoire balistique prévue, rail de caméra.",
+  "Gizmos3D.draw_3D_origin": "Vérifier l'orientation d'une arme, d'un os, d'un point d'attache.",
+  "Gizmos3D.draw_3D_camera_frustum": "Champ de vision d'une caméra de surveillance ou d'une caméra de cinématique.",
+  "Gizmos3D.draw_3D_icon": "Repérer un point d'apparition, une lumière ou un son invisibles, à travers les murs.",
+  "Gizmos3D.draw_3D_text": "État d'une IA, points de vie ou nom affichés au-dessus d'un personnage.",
+  "Gizmos3D.apply_shader_on_gizmo": "Rendre un tracé visible à travers les murs, ou animé (clignotement), avec un <code>ShaderMaterial</code>."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

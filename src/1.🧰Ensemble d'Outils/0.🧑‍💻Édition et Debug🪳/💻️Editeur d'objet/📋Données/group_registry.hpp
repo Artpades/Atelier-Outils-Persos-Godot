@@ -9,14 +9,14 @@
 
 namespace godot
 {
-// Groupe de données défini par l'utilisateur (port de GroupEntry C#) : ses données sont affichées
-// ensemble dans un conteneur, à la place de la PREMIÈRE d'entre elles, dans l'ordre de data_names.
+/// Groupe de données défini par l'utilisateur (port de GroupEntry C#) : ses données sont affichées
+/// ensemble dans un conteneur, à la place de la PREMIÈRE d'entre elles, dans l'ordre de data_names.
 class GroupEntry : public Resource
 {
     GDCLASS(GroupEntry, Resource)
 
   public:
-    // Valeurs enregistrées dans les .tres : jamais renumérotées.
+    /// Valeurs enregistrées dans les .tres : jamais renumérotées.
     enum ContainerType
     {
         CONTAINER_VBOX = 0,
@@ -42,7 +42,7 @@ class GroupEntry : public Resource
   public:
     void set_group_name(const String &p_name);
     String get_group_name() const;
-    // VBox / HBox imposent l'orientation (comme le C#).
+    /// VBox / HBox imposent l'orientation (comme le C#).
     void set_container_type(ContainerType p_type);
     ContainerType get_container_type() const;
     void set_columns(int p_columns);
@@ -59,7 +59,7 @@ class GroupEntry : public Resource
     PackedStringArray get_child_groups() const;
 };
 
-// Registre des groupes (port de GroupRegistry C#). Une donnée appartient à un seul groupe.
+/// Registre des groupes (port de GroupRegistry C#). Une donnée appartient à un seul groupe.
 class GroupRegistry : public Resource
 {
     GDCLASS(GroupRegistry, Resource)
@@ -75,14 +75,14 @@ class GroupRegistry : public Resource
     TypedArray<GroupEntry> get_groups() const;
 
     Ref<GroupEntry> find(const String &p_group_name) const;
-    // Retourne le groupe p_group_name, créé s'il n'existe pas.
+    /// Retourne le groupe p_group_name, créé s'il n'existe pas.
     Ref<GroupEntry> ensure(const String &p_group_name);
-    // Premier groupe contenant p_data_name (Ref nulle si aucun).
+    /// Premier groupe contenant p_data_name (Ref nulle si aucun).
     Ref<GroupEntry> group_of(const String &p_data_name) const;
-    // Groupe en onglets qui contient le groupe p_group_name (nul s'il n'est dans aucun).
+    /// Groupe en onglets qui contient le groupe p_group_name (nul s'il n'est dans aucun).
     Ref<GroupEntry> tabs_of(const String &p_group_name) const;
     void remove_data_name(const String &p_data_name);
-    // Retire p_data_name de tous les groupes puis l'ajoute à p_group.
+    /// Retire p_data_name de tous les groupes puis l'ajoute à p_group.
     void assign(const String &p_data_name, const Ref<GroupEntry> &p_group);
 };
 } // namespace godot

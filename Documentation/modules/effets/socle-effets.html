@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle des effets · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module ✨ Socle des effets (Effect, PlayerFX) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/effets/socle-effets.html">
+<main>
+<div class="content">
+
+  <!-- ═══════════════════════════ En-tête ═══════════════════════════ -->
+  <div class="hero">
+    <div class="logo" aria-hidden="true">✨</div>
+    <div>
+      <h1>✨_EffectSystem - Effets Spéciaux et Sensations - Documentation</h1>
+      <p class="subtitle">Module <strong>Socle des effets</strong> : le lecteur <code>PlayerFX</code> et la classe de base <code>Effect</code> sur lesquels reposent tous les effets du toolkit.</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/fx</code></span>
+        <span class="badge">2 classes : Effect · PlayerFX</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un personnage touché doit secouer, flasher en rouge, jouer un son et afficher « -12 » en même temps ; un coffre qui s'ouvre doit grossir puis faire jaillir des pièces. Écrits à la main, ces retours (le « game feel ») dispersent des <code>Tween</code> et des minuteurs dans tous les scripts, et chacun doit penser à remettre l'objet dans son état d'origine. <strong>Ce module fournit un format commun pour ces effets</strong> : chaque effet est une ressource réglée dans l'inspecteur, un nœud <code>PlayerFX</code> les joue ensemble sur une cible, et chacun sait restaurer ce qu'il a modifié.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>▶️ <code>PlayerFX</code> — le lecteur</h4>
+      <p>Un <strong>nœud</strong> placé sous l'objet à animer. Il joue sa liste d'effets d'un <code>play()</code>, les met à jour à chaque frame et les arrête d'un <code>stop()</code>. Boutons de prévisualisation dans l'inspecteur.</p>
+    </div>
+    <div class="card">
+      <h4>🧩 <code>Effect</code> — la brique</h4>
+      <p>La <strong>ressource</strong> dont héritent tous les effets (<code>FXShake</code>, <code>FXFade</code>, <code>FXAudio</code>…). Elle gère le cycle jeu / mise à jour / arrêt, l'enchaînement d'autres effets, et peut être dérivée en GDScript pour créer ses propres effets.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les game designers, qui composent des retours visuels et sonores dans l'inspecteur sans code ; les développeurs gameplay, qui les déclenchent d'une ligne ou écrivent un effet sur mesure ; et les autres pages du module « ✨ Effets Spéciaux » qui renvoient ici pour tout ce qui est commun.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas un effet en soi</strong> : <code>PlayerFX</code> sans effet ne fait rien. Les effets prêts à l'emploi sont documentés dans leurs pages : <a href="secousse.html">💥 Secousse</a>, <a href="fondu-couleur.html">🌈 Fondu Couleur</a>, <a href="agrandissement-retrecissement.html">🦣 Agrandissement</a>, <a href="squash-and-stretch.html">🪗 Squash and Stretch</a>, <a href="effet-joueur-de-son.html">🔊 Effet joueur de son</a>, <a href="pop-de-texte-d-image-et-d-objets.html">💥 Pop</a>, <a href="follow.html">〰️ Follow</a>, <a href="ciblage-d-objet.html">🌻 Ciblage</a>.</li>
+      <li><strong>Pas un système de particules ni un <code>AnimationPlayer</code></strong> : les effets modifient des propriétés existantes de la cible (position, échelle, couleur…) de façon procédurale et réversible ; ils ne remplacent pas une animation authored image par image.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'inspecteur d'un <code>PlayerFX</code> enfant d'un Sprite2D : liste <code>special_effects</code> dépliée avec un FXShake et un FXFade, et les boutons « Jouer effet » / « Arrêter effet » visibles ; à côté, GIF du sprite qui secoue et flashe au clic sur « Jouer effet ».</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td>La bibliothèque déclare <code>compatibility_minimum = "4.7"</code> : une version antérieure refuse de la charger.</td></tr>
+        <tr><td>Bibliothèque <code>bin/fx/</code> (<code>gameplaytoolkit_fx.gdextension</code> + binaires)</td><td><strong>Obligatoire</strong></td><td><code>Effect</code> et <code>PlayerFX</code> y sont enregistrés avant tous les effets du module : installer cette bibliothèque fournit le socle et tous les effets d'un coup.</td></tr>
+        <tr><td>Icônes <code>res://🖼️Editor Icons/✨🎵/</code></td><td>Optionnelle</td><td>Icônes de <code>Effect</code> et <code>PlayerFX</code> dans l'éditeur (<code>Fancy UI Icon.png</code>). Sans elles, Godot affiche l'icône par défaut.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
+      <pre><code class="language-shell">scons fx</code></pre>
+      <div class="why">compile uniquement la bibliothèque des effets (<code>fx_register.cpp</code>) et régénère <code>bin/fx/gameplaytoolkit_fx.gdextension</code>.</div>
+    </li>
+    <li>
+      <strong>Copier le dossier <code>bin/fx/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/fx/</code>.
+      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/fx/…</code> absolus.</div>
+    </li>
+    <li>
+      <strong>Redémarrer l'éditeur</strong> après le premier ajout.
+      <div class="why">Godot ne découvre les nouvelles extensions qu'au démarrage ; ensuite, les recompilations sont rechargées à chaud (<code>reloadable = true</code>).</div>
+    </li>
+    <li>
+      <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>PlayerFX</code>, et le panneau <em>Sortie</em> affiche « ✨Module d'effets spéciaux chargé avec succès ! ».
+      <div class="why">si la classe est absente, la bibliothèque n'est pas chargée : l'erreur de chargement est dans ce même panneau.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet n'est requis.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-jouer">A. Jouer des effets sur un objet</h3>
+  <ol class="steps">
+    <li>
+      <strong>Ajouter un nœud <code>PlayerFX</code> comme enfant</strong> de l'objet à animer (un <code>Sprite2D</code> par exemple).
+      <div class="why">sans autre réglage, le <code>PlayerFX</code> joue ses effets sur son <strong>parent</strong>. Pour viser un autre nœud, renseigner <code>node_to_play_effects</code>.</div>
+    </li>
+    <li>
+      <strong>Dans <code>special_effects</code>, ajouter deux éléments</strong> : <code>Nouveau FXShake</code> et <code>Nouveau FXChangeSize</code>.
+      <div class="why">tous les effets de la liste sont joués ensemble, sur la même cible, et arrêtés ensemble.</div>
+    </li>
+    <li>
+      <strong>Prévisualiser</strong> avec <kbd>Jouer effet</kbd>, puis <kbd>Arrêter effet</kbd>.
+      <div class="why">les effets tournent dans l'éditeur : on règle amplitude et durées sans lancer le jeu. Arrêter avant d'enregistrer, sinon l'état modifié (position, échelle) est sauvegardé.</div>
+    </li>
+    <li>
+      <strong>Déclencher depuis le jeu</strong> :
+      <pre><code class="gdscript">func _on_ramasse() -> void:
+	$PlayerFX.play()</code></pre>
+      <div class="why">la secousse s'arrête seule après sa <code>duration</code> ; l'agrandissement reste jusqu'à <code>$PlayerFX.stop()</code>, qui ramène l'objet à sa taille.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-enchainer">B. Enchaîner des effets</h3>
+  <ol class="steps">
+    <li>
+      <strong>Déplier un effet de la liste</strong> et remplir son <code>effects_on_play_fx</code> (par exemple un <code>FXAudio</code>).
+      <div class="why">un effet enchaîné au jeu est joué, mis à jour et arrêté avec son parent : on construit des « recettes » réutilisables.</div>
+    </li>
+    <li>
+      <strong>Remplir <code>effects_on_stop_fx</code></strong> pour ce qui doit se produire à la fin (un son, un pop).
+      <div class="why">ces effets sont seulement <em>déclenchés</em> à l'arrêt, sans mise à jour ensuite : réservez-les aux effets instantanés (voir <a href="#limitations">Limitations</a>).</div>
+    </li>
+    <li>
+      <strong>Enregistrer l'effet parent en <code>.tres</code></strong> (menu de la ressource › <em>Enregistrer</em>).
+      <div class="why">la recette complète (effet + enchaînés) se réutilise sur tous les objets du jeu.</div>
+    </li>
+  </ol>
+
+  <h3 id="tuto-script">C. Écrire son propre effet</h3>
+  <ol class="steps">
+    <li>
+      <strong>Créer un script qui hérite de <code>Effect</code></strong> et lui donner un <code>class_name</code> :
+      <pre><code class="gdscript">class_name FXClignote
+extends Effect
+
+@export var frequence := 10.0
+var _temps := 0.0
+
+func _play_fx(target: Node) -> void:
+	_temps = 0.0
+
+func _process_fx(delta: float, target: Node) -> void:
+	_temps += delta
+	if target is CanvasItem:
+		target.visible = fmod(_temps * frequence, 1.0) &lt; 0.5
+
+func _stop_fx(target: Node) -> void:
+	if target is CanvasItem:
+		target.visible = true</code></pre>
+      <div class="why">les quatre méthodes virtuelles correspondent au cycle de vie ; <code>_stop_fx</code> restaure la cible.</div>
+    </li>
+    <li>
+      <strong>L'ajouter à <code>special_effects</code></strong> : <code>FXClignote</code> apparaît dans la liste des nouveaux effets.
+      <div class="why">un effet scripté se joue, s'enchaîne et se prévisualise exactement comme un effet C++ (ajouter <code>@tool</code> au script pour la prévisualisation dans l'éditeur).</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/Effect.xml</code> et <code>doc_classes/PlayerFX.xml</code>. Seuls les éléments <strong>exposés à Godot</strong> figurent ici ; le reste est interne et peut changer sans préavis :</p>
+  <ul>
+    <li><code>Effect</code> : les méthodes C++ <code>_play</code>, <code>_process</code>, <code>_physics_process</code>, <code>_stop</code> (surchargées par les effets C++), <code>_is_restarting()</code> (vrai pendant un relancement : l'état d'origine ne doit pas être recapturé), <code>_get_node_from_player()</code>, et le masque <code>running_operations</code> qui empêche la récursion d'un effet enchaîné à lui-même.</li>
+    <li><code>PlayerFX</code> : l'identifiant de la cible du dernier <code>play()</code> (cible des mises à jour), <code>_link_effects()</code>, et les méthodes <code>_get_play_button</code> / <code>_get_stop_button</code> derrière les boutons de l'inspecteur.</li>
+  </ul>
+  <div data-api="Effect PlayerFX"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-degats">Comment je compose un retour de dégâts complet ?</h3>
+  <p>Un seul <code>play()</code> déclenche secousse, flash, son et chiffre. Les effets sont créés par code ici, mais le même assemblage se fait dans l'inspecteur.</p>
+  <pre><code class="gdscript"># Ennemi (Sprite2D)
+# └─ PlayerFX
+func _ready() -> void:
+	var secousse := FXShake.new()
+	secousse.duration = 0.25
+	secousse.max_amplitude = 6.0
+
+	var flash := FXFade.new()
+	flash.color = Color(1, 0.3, 0.3)
+	flash.duration = 0.05
+
+	var son := FXAudio.new()
+	son.stream = preload("res://sons/impact.wav")
+	son.randomize_pitch_scale = true
+
+	# Enchaînés au jeu : quand la secousse s'arrête seule (duration),
+	# le flash est arrêté avec elle et la couleur d'origine revient.
+	secousse.effects_on_play_fx = [flash, son]
+	$PlayerFX.special_effects = [secousse]
+
+func toucher() -> void:
+	$PlayerFX.play()</code></pre>
+
+  <h3 id="ex-autre-cible">Comment je joue les mêmes effets sur une autre cible ?</h3>
+  <p><code>play(noeud)</code> vise un nœud ponctuellement ; cette cible devient celle des mises à jour et du <code>stop()</code> suivant.</p>
+  <pre><code class="gdscript">func surligner(carte: Control) -> void:
+	$PlayerFX.stop()        # arrête les effets sur la carte précédente
+	$PlayerFX.play(carte)</code></pre>
+  <p>Ne pas jouer <em>en même temps</em> les mêmes instances d'effets sur deux cibles : l'état d'origine est stocké dans l'effet (voir <a href="#limitations">Limitations</a>). Utiliser plutôt un <code>PlayerFX</code> par cible.</p>
+
+  <h3 id="ex-attendre">Comment je réagis à la fin d'un effet ?</h3>
+  <p><code>fx_stopped</code> est émis quand l'effet s'arrête, y compris seul (fin de <code>duration</code> d'un <code>FXShake</code>). <code>fx_played</code> est émis au <em>début</em>.</p>
+  <pre><code class="gdscript">var secousse: FXShake = $PlayerFX.special_effects[0]
+$PlayerFX.play()
+await secousse.fx_stopped
+porte.ouvrir()</code></pre>
+
+  <h3 id="ex-sans-player">Comment je joue un effet sans <code>PlayerFX</code> ?</h3>
+  <p>Un effet se pilote aussi à la main : c'est alors à vous d'appeler les mises à jour. Les effets qui utilisent des chemins de nœuds (<code>FXFollower</code>, <code>FXTargeter</code>) ont besoin de <code>set_player_fx()</code>.</p>
+  <pre><code class="gdscript">var vibre := FXShake.new()
+
+func _ready() -> void:
+	vibre.duration = 0.0   # jusqu'à l'arrêt
+	vibre.play_fx($Icone)
+
+func _process(delta: float) -> void:
+	vibre.process_fx(delta, $Icone)
+
+func calmer() -> void:
+	vibre.stop_fx($Icone)</code></pre>
+
+  <h3 id="ex-pause">Comment je fais tourner les effets pendant la pause ?</h3>
+  <p>Le <code>PlayerFX</code> est un nœud ordinaire : il se fige en pause. Pour animer un menu de pause, le passer en <code>PROCESS_MODE_ALWAYS</code> (les effets à base de <code>Tween</code>, comme <code>FXChangeSize</code>, dépendent eux du mode de la <em>cible</em>).</p>
+  <pre><code class="gdscript">$MenuPause/Titre/PlayerFX.process_mode = Node.PROCESS_MODE_ALWAYS
+$MenuPause/Titre.process_mode = Node.PROCESS_MODE_ALWAYS</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Une instance d'effet = une cible à la fois.</strong> L'état d'origine (position, échelle, couleur, <code>Tween</code>…) est stocké dans la ressource. Les effets enregistrés dans une scène sont dupliqués par instance de scène (<code>resource_local_to_scene</code> actif par défaut), mais un effet créé par code puis partagé, ou joué sur deux cibles via <code>play(autre)</code>, mélange les états : la première cible ne revient pas à son état.</li>
+    <li><strong><code>effects_on_stop_fx</code> ne reçoit aucune mise à jour.</strong> Ces effets sont joués à l'arrêt puis ne sont plus ni mis à jour ni arrêtés : un <code>FXShake</code>, un <code>FXFollower</code> ou un <code>FXStretchAndSquash</code> placé là ne fait rien (vérifié). Seuls les effets qui agissent dès leur jeu (<code>FXAudio</code>, <code>FXPop</code>, <code>FXFade</code>, <code>FXChangeSize</code>) y ont un résultat.</li>
+    <li><strong><code>fx_played</code> marque le début, pas la fin.</strong> Il n'existe pas de signal « effet terminé » pour les effets sans durée propre (<code>FXFade</code>, <code>FXChangeSize</code>) : attendre leur <code>duration</code>.</li>
+    <li><strong>Les mises à jour suivent le <code>PlayerFX</code></strong> : pause, <code>process_mode</code> et <code>Engine.time_scale</code> (un ralenti de <a href="ralentissement-arret-du-temps.html">⏯️ Ralentissement</a> ralentit aussi les effets ; un gel à <code>time_scale = 0</code> les fige).</li>
+    <li><strong>Prévisualisation dans l'éditeur :</strong> enregistrer la scène pendant qu'un effet est joué enregistre l'état modifié de la cible (position décalée, échelle agrandie). Cliquer sur <kbd>Arrêter effet</kbd> avant. Un effet écrit en GDScript ne tourne dans l'éditeur que si son script est <code>@tool</code>.</li>
+    <li><strong>Modifier <code>special_effects</code> en place</strong> (<code>special_effects.append(...)</code>) ne relie pas tout de suite le nouvel effet au <code>PlayerFX</code> : la liaison est refaite au prochain <code>play()</code>. Avant cela, <code>get_player_fx()</code> renvoie <code>null</code> (vérifié).</li>
+    <li><strong>Pas d'ordre garanti entre effets qui touchent la même propriété</strong> : deux effets qui modifient l'échelle (<code>FXChangeSize</code> et <code>FXStretchAndSquash</code>) ou la position (<code>FXShake</code> et <code>FXFollower</code>) s'écrasent mutuellement.</li>
+    <li><strong>Une cible libérée n'arrête pas les effets</strong> : ils restent « actifs » et leurs mises à jour visent alors la cible par défaut du <code>PlayerFX</code>. Arrêter les effets avant de libérer la cible ponctuelle.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 250" role="img" aria-label="Schéma d'architecture du socle des effets">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="40" width="150" height="54" rx="8"/>
+    <text x="95" y="64" text-anchor="middle">Votre code</text>
+    <text x="95" y="82" text-anchor="middle" class="small">play() / stop()</text>
+    <rect class="box main" x="230" y="40" width="170" height="54" rx="8"/>
+    <text x="315" y="64" text-anchor="middle">PlayerFX</text>
+    <text x="315" y="82" text-anchor="middle" class="small">Node · _process</text>
+    <rect class="box main" x="460" y="40" width="170" height="54" rx="8"/>
+    <text x="545" y="64" text-anchor="middle">Effect</text>
+    <text x="545" y="82" text-anchor="middle" class="small">special_effects[i]</text>
+    <rect class="box" x="690" y="40" width="150" height="54" rx="8"/>
+    <text x="765" y="64" text-anchor="middle">Nœud cible</text>
+    <text x="765" y="82" text-anchor="middle" class="small">parent par défaut</text>
+    <rect class="box" x="460" y="160" width="170" height="54" rx="8"/>
+    <text x="545" y="184" text-anchor="middle">Effets enchaînés</text>
+    <text x="545" y="202" text-anchor="middle" class="small">on_play_fx / on_stop_fx</text>
+    <rect class="box" x="230" y="160" width="170" height="54" rx="8"/>
+    <text x="315" y="184" text-anchor="middle">Script dérivé</text>
+    <text x="315" y="202" text-anchor="middle" class="small">_play_fx … _stop_fx</text>
+    <path class="arrow" d="M170 67 H228" marker-end="url(#arr)"/>
+    <path class="arrow" d="M400 67 H458" marker-end="url(#arr)"/>
+    <text x="429" y="58" text-anchor="middle" class="small">play_fx</text>
+    <path class="arrow" d="M630 67 H688" marker-end="url(#arr)"/>
+    <text x="659" y="58" text-anchor="middle" class="small">modifie</text>
+    <path class="arrow" d="M545 94 V158" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M458 187 H402" marker-end="url(#arr)"/>
+    <text x="430" y="150" text-anchor="middle" class="small">GDVIRTUAL</text>
+    <path class="arrow dashed" d="M500 40 Q420 10 120 38" marker-end="url(#arr)"/>
+    <text x="300" y="20" text-anchor="middle" class="small">signaux fx_played / fx_stopped</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong><code>PlayerFX</code></strong> mémorise la cible du dernier <code>play()</code> (par <code>ObjectID</code> : une cible libérée n'est jamais déréférencée) et appelle directement <code>play_fx</code>, <code>process_fx</code>, <code>physics_process_fx</code>, <code>stop_fx</code> de chaque effet. Aucun signal entre le lecteur et ses effets.</li>
+    <li><strong><code>Effect</code></strong> implémente le cycle de vie (drapeau <code>activated</code>, relancement, effets enchaînés) puis délègue à ses méthodes protégées <code>_play</code> / <code>_process</code> / <code>_physics_process</code> / <code>_stop</code>. Les effets C++ les surchargent ; leur version de base appelle les méthodes virtuelles <code>_play_fx</code>… d'un script dérivé.</li>
+    <li>Chaque effet connaît son <code>PlayerFX</code> (<code>set_player_fx</code>, propagé aux effets enchaînés) : c'est le point de référence des <code>NodePath</code> des effets qui visent d'autres nœuds.</li>
+    <li>Vers l'extérieur, un effet communique par ses deux signaux <code>fx_played</code> et <code>fx_stopped</code>.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Le socle ne dépend d'aucun autre module. Tous les effets du dossier <em>✨ Effets Spéciaux</em> en héritent (même bibliothèque <code>fx</code>) : modifier <code>Effect</code> touche tous les effets.</li>
+    <li><code>Effect</code> ne connaît pas <code>PlayerFX</code> (il le manipule comme un simple <code>Node</code>) : on peut écrire un autre lecteur, ou piloter les effets à la main.</li>
+    <li>Un module d'une autre bibliothèque ne doit pas inclure ces <code>.hpp</code> : il passe par Godot (<code>ClassDB.instantiate("PlayerFX")</code>, <code>call("play")</code>).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Les effets sont des <code>Resource</code>, pas des nœuds</td><td>Ils se règlent et s'enregistrent en <code>.tres</code>, se composent en listes et se partagent entre scènes, sans encombrer l'arbre de scène.</td></tr>
+        <tr><td><code>resource_local_to_scene</code> actif par défaut</td><td>L'état d'un effet vit dans la ressource : sans copie par instance de scène, dix ennemis partageant le même <code>.tres</code> se voleraient leur position d'origine.</td></tr>
+        <tr><td>Rejouer un effet actif ne recapture pas l'état d'origine (<code>_is_restarting()</code>)</td><td>Pendant l'effet, la cible est déjà modifiée : la recapturer ferait « oublier » le vrai état d'origine, et l'arrêt ne reviendrait plus à la normale.</td></tr>
+        <tr><td><code>stop_fx</code> ignoré si l'effet est inactif</td><td>Il n'y a rien à restaurer ; sans ce garde-fou, un arrêt sans jeu remettrait la cible à une valeur d'origine jamais capturée (souvent zéro).</td></tr>
+        <tr><td>Masque d'opérations en cours (<code>running_operations</code>)</td><td>Un effet présent dans ses propres effets enchaînés (directement ou en cycle) provoquerait une récursion infinie ; chaque opération n'est exécutée qu'une fois par appel.</td></tr>
+        <tr><td>Cible et <code>PlayerFX</code> mémorisés par <code>ObjectID</code></td><td>Un pointeur brut vers un nœud libéré ferait planter le jeu ; l'<code>ObjectID</code> renvoie simplement <code>null</code>.</td></tr>
+        <tr><td>Boutons de l'inspecteur via <code>PROPERTY_HINT_TOOL_BUTTON</code></td><td>Prévisualisation sans plugin d'éditeur ni script <code>@tool</code> ; les propriétés ne sont pas enregistrées dans la scène (<code>PROPERTY_USAGE_EDITOR</code>).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>Effect</code> et <code>PlayerFX</code>, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>Effect</code> : cycle de vie jeu / mise à jour / arrêt, effets enchaînés, méthodes virtuelles pour les effets en GDScript.</li>
+      <li><span class="tag add">Ajouté</span><code>PlayerFX</code> : lecture d'une liste d'effets sur une cible, boutons de prévisualisation dans l'inspecteur.</li>
+    </ul>
+  </div>
+
+  <footer>Module ✨ Socle des effets · sources : <code>src/1.🧰Ensemble d'Outils/3.✨Effets Spéciaux et Sensations🎵/</code> (<code>effect.*</code>, <code>player_fx.*</code>) · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "Effect.effects_on_play_fx": "Composer une recette : un son et un pop qui accompagnent une secousse, un flash pendant un agrandissement.",
+  "Effect.effects_on_stop_fx": "Un son de fin, un pop « +1 » quand l'objet a fini de grossir, un fondu de disparition après une animation.",
+  "Effect._play_fx": "Effet scripté : capturer l'état d'origine de la cible, remettre un minuteur à zéro.",
+  "Effect._process_fx": "Effet scripté : animer la cible à chaque frame (clignotement, oscillation, rotation).",
+  "Effect._physics_process_fx": "Effet scripté qui agit sur un corps physique (impulsion, vitesse), en phase avec la physique.",
+  "Effect._stop_fx": "Effet scripté : restaurer ce que l'effet a modifié (visibilité, rotation, matériau).",
+  "Effect.play_fx": "Piloter un effet à la main, sans <code>PlayerFX</code> (dans un outil, un script d'interface).",
+  "Effect.process_fx": "Mise à jour manuelle d'un effet joué sans <code>PlayerFX</code>, depuis votre propre <code>_process</code>.",
+  "Effect.physics_process_fx": "Mise à jour manuelle d'un effet physique joué sans <code>PlayerFX</code>, depuis votre <code>_physics_process</code>.",
+  "Effect.stop_fx": "Arrêter un seul effet d'une liste sans toucher aux autres.",
+  "Effect.is_activated": "Ne relancer un effet que s'il n'est pas déjà en cours ; afficher un état de débogage.",
+  "Effect.get_player_fx": "Dans un effet scripté, retrouver des nœuds relatifs au <code>PlayerFX</code> (<code>get_player_fx().get_node(...)</code>).",
+  "Effect.set_player_fx": "Effet <code>FXFollower</code> / <code>FXTargeter</code> piloté à la main : donner le nœud de référence des chemins.",
+  "Effect.fx_played": "Synchroniser une action sur le début d'un effet (désactiver les contrôles pendant une secousse).",
+  "Effect.fx_stopped": "Enchaîner une action à la fin d'une secousse, rendre la main au joueur, libérer un objet.",
+  "PlayerFX.node_to_play_effects": "Placer le <code>PlayerFX</code> ailleurs que sous la cible (un gestionnaire d'effets qui vise le sprite d'un personnage).",
+  "PlayerFX.special_effects": "La liste des effets de l'objet, réglée dans l'inspecteur ou remplacée par code selon la situation.",
+  "PlayerFX.play_effect": "Régler un effet dans l'éditeur en le voyant tourner, sans lancer le jeu.",
+  "PlayerFX.stop_effect": "Arrêter la prévisualisation et rendre à la cible son état avant d'enregistrer la scène.",
+  "PlayerFX.play": "Déclencher les effets sur un événement de jeu : coup reçu, objet ramassé, bouton survolé.",
+  "PlayerFX.stop": "Terminer un état temporaire (survol, alarme, invincibilité) et restaurer la cible.",
+  "PlayerFX.get_default_target": "Vérifier quel nœud sera animé, ou l'utiliser comme ancre dans un effet scripté."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -8,8 +8,8 @@
 
 namespace godot
 {
-// Ajoute en tête de l'inspecteur le bouton « Configurer l'interface » (ProceduralEditor) ou
-// « Configurer les gizmos » (GizmoHost).
+/// Ajoute en tête de l'inspecteur le bouton « Configurer l'interface » (ProceduralEditor) ou
+/// « Configurer les gizmos » (GizmoHost).
 class ProceduralEditorInspectorPlugin : public EditorInspectorPlugin
 {
     GDCLASS(ProceduralEditorInspectorPlugin, EditorInspectorPlugin)
@@ -26,13 +26,13 @@ class ProceduralEditorInspectorPlugin : public EditorInspectorPlugin
     void _parse_begin(Object *p_object) override;
 };
 
-// Plugin d'éditeur de l'éditeur d'objet (enregistré au niveau EDITOR via EditorPlugins::add_by_type) :
-// - installe l'inspector plugin ci-dessus ;
-// - ouverture automatique de l'ObjectEditorWindow à la sélection (nœuds : EditorSelection ; Resources :
-//   objet de l'inspecteur) pour un objet qui a une interface de type, ou suivi de la sélection si la fenêtre
-//   est ouverte et non épinglée. Réglage de l'éditeur AUTO_OPEN_SETTING (actif par défaut) ;
-// - export : la base des interfaces toujours incluse (LayoutDatabaseExportPlugin) ;
-// - menu Outils : basculer l'ouverture automatique, ouvrir la fenêtre « Interfaces par type ».
+/// Plugin d'éditeur de l'éditeur d'objet (enregistré au niveau EDITOR via EditorPlugins::add_by_type) :
+/// - installe l'inspector plugin ci-dessus ;
+/// - ouverture automatique de l'ObjectEditorWindow à la sélection (nœuds : EditorSelection ; Resources :
+///   objet de l'inspecteur) pour un objet qui a une interface de type, ou suivi de la sélection si la fenêtre
+///   est ouverte et non épinglée. Réglage de l'éditeur AUTO_OPEN_SETTING (actif par défaut) ;
+/// - export : la base des interfaces toujours incluse (LayoutDatabaseExportPlugin) ;
+/// - menu Outils : basculer l'ouverture automatique, ouvrir la fenêtre « Interfaces par type ».
 class ObjectEditorPlugin : public EditorPlugin
 {
     GDCLASS(ObjectEditorPlugin, EditorPlugin)

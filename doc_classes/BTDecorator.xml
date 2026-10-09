@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTDecorator" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Base des nœuds à un seul enfant qui modifient son résultat ou son exécution.
 	</brief_description>
 	<description>
+		Seul le premier enfant [BTNode] est utilisé. Sans script, un décorateur transmet le statut de son enfant (et échoue s'il n'en a pas). Pour un décorateur personnalisé, étendre cette classe et redéfinir [method BTNode._tick] en appelant [code]get_child_node().execute(delta)[/code].
+		[codeblock]
+		# Décorateur par script : n'exécute l'enfant que si l'agent est au sol.
+		extends BTDecorator
+
+		func _tick(delta: float) -&gt; int:
+			if not get_agent().is_on_floor():
+				return FAILURE
+			return get_child_node().execute(delta)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,6 +21,7 @@
 		<method name="get_child_node" qualifiers="const">
 			<return type="BTNode" />
 			<description>
+				Renvoie le premier enfant [BTNode], ou [code]null[/code].
 			</description>
 		</method>
 	</methods>

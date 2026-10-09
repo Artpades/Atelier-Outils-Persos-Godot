@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueBranch" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Embranchement invisible : continue vers [member next_if_true] ou [member next_if_false] selon une condition sur les variables.
 	</brief_description>
 	<description>
+		Traité instantanément par le [DialogueSystem], sans attendre le joueur ni émettre de signal.
+		[codeblock]
+		var test := DialogueBranch.new()
+		test.node_id = &amp;"deja_venu"
+		test.condition = "visites &gt; 0"
+		test.next_if_true = &amp;"rebonjour"
+		test.next_if_false = &amp;"presentation"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="condition" type="String" setter="set_condition" getter="get_condition" default="&quot;&quot;">
+			Expression évaluée avec les variables du [DialogueSystem] et l'interlocuteur (voir [method DialogueSystem.evaluate_condition]). Vide = vraie ; invalide = fausse.
 		</member>
 		<member name="next_if_false" type="StringName" setter="set_next_if_false" getter="get_next_if_false" default="&amp;&quot;&quot;">
+			Nœud suivant si la condition est fausse. Vide : fin du dialogue.
 		</member>
 		<member name="next_if_true" type="StringName" setter="set_next_if_true" getter="get_next_if_true" default="&amp;&quot;&quot;">
+			Nœud suivant si la condition est vraie. Vide : fin du dialogue.
 		</member>
 	</members>
 </class>

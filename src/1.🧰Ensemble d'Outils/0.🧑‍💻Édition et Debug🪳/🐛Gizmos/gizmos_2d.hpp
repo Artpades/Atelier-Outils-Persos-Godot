@@ -5,7 +5,7 @@
 
 namespace godot
 {
-// Version exposée à GDScript : Gizmos2D.draw_2D_line(...)
+/// 🐛 Version exposée à GDScript : Gizmos2D.draw_2D_line(...). Classe purement statique.
 // Les méthodes sont liées directement aux fonctions de Gizmos (voir _bind_methods) ;
 // en C++, utiliser Gizmos::... directement.
 class Gizmos2D : public RefCounted

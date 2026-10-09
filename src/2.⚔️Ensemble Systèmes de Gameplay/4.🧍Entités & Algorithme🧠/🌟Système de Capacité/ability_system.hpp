@@ -100,12 +100,14 @@ class AbilitySystem : public Node
     void _notification(int p_what);
 
   private:
+    /// État d'un attribut : base (modifiée par les effets instantanés / périodiques) et valeur courante calculée.
     struct AttributeState
     {
         Ref<AttributeDefinition> definition;
         double base = 0.0;
         double current = 0.0;
     };
+    /// Instance d'un effet à durée (handle unique, source, niveau, temps restant, cumuls).
     struct ActiveEffect
     {
         int handle = 0;
@@ -116,6 +118,7 @@ class AbilitySystem : public Node
         double period_timer = 0.0;
         int stacks = 1;
     };
+    /// État d'une capacité accordée : charges, recharge, activation en cours, cible.
     struct AbilityState
     {
         Ref<Ability> ability;
@@ -132,26 +135,35 @@ class AbilitySystem : public Node
     PackedStringArray initial_tags;
     TypedArray<GameplayEffect> initial_effects;
     bool manual_update = false;
+    /// Vrai après le premier initialize() (le _ready ne réinitialise pas une seconde fois).
     bool initialized = false;
 
     HashMap<StringName, AttributeState> attributes;
     LocalVector<StringName> attribute_order;
+    /// Tags possédés et leur nombre d'occurrences (sources).
     HashMap<String, int> tag_counts;
     LocalVector<ActiveEffect> effects;
     int next_handle = 1;
+    /// Profondeur de _recompute : garde-fou contre des bornes max_attribute circulaires.
     int recompute_depth = 0;
     HashMap<StringName, AbilityState> abilities;
     LocalVector<StringName> ability_order;
 
+    /// Borne une valeur par min / max de la définition et par l'attribut plafond (max_attribute).
     double _clamp(const AttributeState &p_state, double p_value) const;
+    /// Recalcule la valeur courante (modificateurs des effets non périodiques), puis les attributs qu'elle plafonne ; émet attribute_changed / attribute_depleted.
     void _recompute(const StringName &p_name);
     void _recompute_all();
+    /// Applique les modificateurs d'un effet à la valeur de base (effet instantané ou période).
     void _apply_to_base(const Ref<GameplayEffect> &p_effect, AbilitySystem *p_source, double p_level, int p_stacks);
     void _grant_tags(const PackedStringArray &p_tags, int p_sign);
     int _find_effect(const Ref<GameplayEffect> &p_effect) const;
     void _remove_effect_at(int p_index);
+    /// Fin d'incantation : applique les effets sur soi et sur la cible, puis _on_commit.
     void _commit(const StringName &p_id);
+    /// Termine une capacité active : retire ses tags d'activation, _on_end, ability_ended.
     void _finish(const StringName &p_id, bool p_cancelled);
+    /// Vrai si p_owned vaut p_query ou en descend (« a.b » correspond à « a »).
     static bool _tag_matches(const String &p_owned, const String &p_query);
 };
 } // namespace godot

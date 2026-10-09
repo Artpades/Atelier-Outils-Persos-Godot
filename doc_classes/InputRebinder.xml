@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputRebinder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Écoute la prochaine touche, bouton ou axe et l'assigne à un emplacement d'action (réassignation des contrôles).
 	</brief_description>
 	<description>
+		[method start_rebind] passe en écoute : le prochain appui de touche, de bouton de souris ou de manette, ou un axe poussé au-delà de [member joy_threshold], est assigné à l'emplacement donné (voir [method InputAction.get_rebind_slots]). [member cancel_key] ou le délai [member listening_timeout] annulent. Pendant l'écoute, ces évènements sont marqués comme traités : ils n'activent pas l'interface.
+		[method find_conflicts] liste les autres emplacements d'un [PlayerInput] qui utilisent déjà la même entrée. Pour un menu complet, voir [PlayerInputUI].
+		[codeblock]
+		@onready var reassign: InputRebinder = $InputRebinder
+
+		func _on_bouton_saut_pressed() -&gt; void:
+			var saut := $PlayerInput.get_action(&amp;"saut")
+			reassign.start_rebind(saut, &amp;"key")
+			var resultat = await reassign.rebind_completed # (action, emplacement)
+			$BoutonSaut.text = saut.get_slot_text(&amp;"key")
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,6 +22,7 @@
 		<method name="cancel_rebind">
 			<return type="void" />
 			<description>
+				Arrête l'écoute et émet [signal rebind_cancelled] (sans effet hors écoute).
 			</description>
 		</method>
 		<method name="find_conflicts" qualifiers="const">
@@ -18,26 +31,31 @@
 			<param index="1" name="action" type="InputAction" />
 			<param index="2" name="slot" type="StringName" />
 			<description>
+				Renvoie les autres emplacements de [param player] (un [PlayerInput]) du même groupe (clavier-souris ou manette) qui affichent la même entrée que [param slot] : [code][[action, emplacement], ...][/code]. Ne corrige rien.
 			</description>
 		</method>
 		<method name="get_current_action" qualifiers="const">
 			<return type="InputAction" />
 			<description>
+				Renvoie l'action en cours de réassignation, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_current_slot" qualifiers="const">
 			<return type="StringName" />
 			<description>
+				Renvoie l'emplacement en cours de réassignation.
 			</description>
 		</method>
 		<method name="get_remaining_time" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie le temps restant avant l'annulation automatique.
 			</description>
 		</method>
 		<method name="is_listening" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant l'écoute.
 			</description>
 		</method>
 		<method name="start_rebind">
@@ -45,21 +63,26 @@
 			<param index="0" name="action" type="InputAction" />
 			<param index="1" name="slot" type="StringName" />
 			<description>
+				Commence l'écoute pour l'emplacement [param slot] de [param action] et émet [signal rebind_started]. Une écoute en cours est d'abord annulée.
 			</description>
 		</method>
 		<method name="submit_event">
 			<return type="bool" />
 			<param index="0" name="event" type="InputEvent" />
 			<description>
+				Propose [param event] comme nouvelle entrée (interface personnalisée, tests). Renvoie [code]true[/code] s'il a été assigné ; [member cancel_key] annule l'écoute.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="cancel_key" type="int" setter="set_cancel_key" getter="get_cancel_key" default="4194305">
+			Touche qui annule l'écoute (Échap par défaut). Elle ne peut donc pas être assignée.
 		</member>
 		<member name="joy_threshold" type="float" setter="set_joy_threshold" getter="get_joy_threshold" default="0.5">
+			Poussée minimale d'un axe de manette pour qu'il soit retenu.
 		</member>
 		<member name="listening_timeout" type="float" setter="set_listening_timeout" getter="get_listening_timeout" default="5.0">
+			Durée maximale d'écoute en secondes ; 0 = sans limite.
 		</member>
 	</members>
 	<signals>
@@ -67,18 +90,21 @@
 			<param index="0" name="action" type="InputAction" />
 			<param index="1" name="slot" type="StringName" />
 			<description>
+				Émis quand l'écoute est annulée (touche d'annulation, délai, nouvelle écoute).
 			</description>
 		</signal>
 		<signal name="rebind_completed">
 			<param index="0" name="action" type="InputAction" />
 			<param index="1" name="slot" type="StringName" />
 			<description>
+				Émis quand une entrée a été assignée à [param slot] de [param action].
 			</description>
 		</signal>
 		<signal name="rebind_started">
 			<param index="0" name="action" type="InputAction" />
 			<param index="1" name="slot" type="StringName" />
 			<description>
+				Émis au début de l'écoute.
 			</description>
 		</signal>
 	</signals>

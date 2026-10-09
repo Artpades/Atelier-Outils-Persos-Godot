@@ -11,9 +11,9 @@
 
 namespace godot
 {
-// Fenêtre « Configurer les gizmos » (éditeur uniquement) : édite le GizmoRegistry d'un GizmoHost de la
-// scène éditée (créé s'il n'existe pas, enregistré avec la scène). Les dessins se mettent à jour en direct
-// dans la vue 2D / 3D de l'éditeur. Une seule fenêtre ouverte à la fois.
+/// Fenêtre « Configurer les gizmos » (éditeur uniquement) : édite le GizmoRegistry d'un GizmoHost de la
+/// scène éditée (créé s'il n'existe pas, enregistré avec la scène). Les dessins se mettent à jour en direct
+/// dans la vue 2D / 3D de l'éditeur. Une seule fenêtre ouverte à la fois.
 class GizmoConfigWindow : public Window
 {
     GDCLASS(GizmoConfigWindow, Window)

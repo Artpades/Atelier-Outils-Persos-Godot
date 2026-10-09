@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="HealthComponent" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		❤️ Composant de vie d'une entité : dégâts, soins, mort, résurrection, invulnérabilité temporaire ; vie interne ou attribut d'un [AbilitySystem].
 	</brief_description>
 	<description>
+		À placer comme enfant d'un personnage ou de toute autre entité (caisse, tourelle...). Deux modes :
+		- [b]Vie interne[/b] : [member health] bornée entre 0 et [member max_health].
+		- [b]Attribut[/b] : si un [AbilitySystem] (frère, ou désigné par [member ability_system_path]) possède l'attribut [member health_attribute], la vie est cet attribut, et [member max_health_attribute] le maximum s'il existe. Les effets de jeu (poison, soin...) modifient alors directement la vie ; les signaux sont relayés.
+		La mort ([signal died]) survient quand la vie atteint 0 ; un composant mort ignore dégâts et soins jusqu'à [method revive].
+		[codeblock]
+		@onready var vie: HealthComponent = $HealthComponent
+
+		func _ready() -&gt; void:
+			vie.invulnerability_time = 0.5   # pas de dégâts pendant 0,5 s après un coup
+			vie.health_changed.connect(func(pv, pv_max): $Barre.value = 100.0 * pv / pv_max)
+			vie.died.connect(queue_free)
+
+		func _on_piege_touche() -&gt; void:
+			vie.take_damage(15.0, $Piege)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,38 +26,45 @@
 		<method name="get_ability_system" qualifiers="const">
 			<return type="AbilitySystem" />
 			<description>
+				Renvoie l'[AbilitySystem] utilisé (voir [member ability_system_path]), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_health_ratio" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la vie entre 0 et 1 (vie / vie maximale).
 			</description>
 		</method>
 		<method name="heal">
 			<return type="float" />
 			<param index="0" name="amount" type="float" />
 			<description>
+				Rend [param amount] points de vie sans dépasser le maximum. Renvoie la vie réellement rendue et émet [signal healed] si elle est positive. Sans effet si le composant est mort ou si [param amount] ≤ 0.
 			</description>
 		</method>
 		<method name="is_alive" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]false[/code] entre la mort et [method revive].
 			</description>
 		</method>
 		<method name="is_invulnerable" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant l'invulnérabilité qui suit des dégâts.
 			</description>
 		</method>
 		<method name="kill">
 			<return type="void" />
 			<description>
+				Tue immédiatement le composant (émet [signal died]) sans changer sa vie. Sans effet s'il est déjà mort.
 			</description>
 		</method>
 		<method name="revive">
 			<return type="void" />
 			<param index="0" name="health" type="float" default="-1.0" />
 			<description>
+				Ressuscite un composant mort avec [param health] points de vie (négatif : vie maximale), puis émet [signal revived]. Avec [code]0[/code], il meurt à nouveau aussitôt. Sans effet s'il est vivant.
 			</description>
 		</method>
 		<method name="take_damage">
@@ -49,26 +72,34 @@
 			<param index="0" name="amount" type="float" />
 			<param index="1" name="source" type="Object" default="null" />
 			<description>
+				Retire [param amount] points de vie et renvoie les dégâts réellement appliqués (limités par la vie restante). Ignoré (renvoie 0) si le composant est mort, invulnérable, ou si [param amount] ≤ 0. Relance l'invulnérabilité. Ordre des signaux : [signal health_changed], puis [signal died] si la vie tombe à 0, puis [signal damaged].
 			</description>
 		</method>
 		<method name="uses_attribute" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la vie est l'attribut d'un [AbilitySystem] (mode attribut). Toujours [code]false[/code] avant l'initialisation de l'AbilitySystem (son [code]_ready[/code]).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="ability_system_path" type="NodePath" setter="set_ability_system_path" getter="get_ability_system_path" default="NodePath(&quot;&quot;)">
+			[AbilitySystem] dont l'attribut de vie est utilisé. Vide : le premier [AbilitySystem] frère (enfant du même parent).
 		</member>
 		<member name="health" type="float" setter="set_health" getter="get_health" default="100.0">
+			Vie actuelle. Bornée entre 0 et [member max_health] ; à 0, le composant meurt (s'il est dans l'arbre). En mode attribut, la lecture renvoie la valeur courante de [member health_attribute] et l'écriture fixe sa valeur de base (bornée par la définition de l'attribut).
 		</member>
 		<member name="health_attribute" type="StringName" setter="set_health_attribute" getter="get_health_attribute" default="&amp;&quot;health&quot;">
+			Nom de l'attribut de vie dans l'[AbilitySystem]. S'il n'existe pas, la vie interne est utilisée.
 		</member>
 		<member name="invulnerability_time" type="float" setter="set_invulnerability_time" getter="get_invulnerability_time" default="0.0">
+			Durée, en secondes, pendant laquelle les dégâts sont ignorés après en avoir subi (décomptée à chaque image physique). [code]0[/code] : jamais invulnérable.
 		</member>
 		<member name="max_health" type="float" setter="set_max_health" getter="get_max_health" default="100.0">
+			Vie maximale interne (au moins 1). En mode attribut, la lecture renvoie l'attribut [member max_health_attribute] s'il existe ; l'écriture ne change que la valeur interne.
 		</member>
 		<member name="max_health_attribute" type="StringName" setter="set_max_health_attribute" getter="get_max_health_attribute" default="&amp;&quot;max_health&quot;">
+			Nom de l'attribut de vie maximale dans l'[AbilitySystem]. S'il n'existe pas, [member max_health] sert de maximum.
 		</member>
 	</members>
 	<signals>
@@ -76,25 +107,30 @@
 			<param index="0" name="amount" type="float" />
 			<param index="1" name="source" type="Object" />
 			<description>
+				Émis après des dégâts : [param amount] réellement retiré, [param source] passée à [method take_damage] (peut être [code]null[/code]). Quand le coup est fatal, il est émis [b]après[/b] [signal died].
 			</description>
 		</signal>
 		<signal name="died">
 			<description>
+				Émis une fois quand la vie atteint 0, ou par [method kill].
 			</description>
 		</signal>
 		<signal name="healed">
 			<param index="0" name="amount" type="float" />
 			<description>
+				Émis après un soin, avec la vie réellement rendue.
 			</description>
 		</signal>
 		<signal name="health_changed">
 			<param index="0" name="health" type="float" />
 			<param index="1" name="max_health" type="float" />
 			<description>
+				Émis à chaque changement de la vie (dégâts, soin, écriture de [member health], effet de jeu en mode attribut) et, en mode attribut, du maximum.
 			</description>
 		</signal>
 		<signal name="revived">
 			<description>
+				Émis par [method revive].
 			</description>
 		</signal>
 	</signals>

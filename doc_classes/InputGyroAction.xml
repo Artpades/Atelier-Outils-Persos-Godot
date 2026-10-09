@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="InputGyroAction" inherits="InputAction" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🕹️ Action gyroscope / accéléromètre de manette (capteurs de mouvement, Godot 4.7+).
 	</brief_description>
 	<description>
+		Lit la vitesse de rotation (et, si [member track_accelerometer], l'accélération) de la manette [member PlayerInput.device] : visée gyroscopique, pilotage par inclinaison. Les capteurs sont activés automatiquement si [member auto_enable_sensors] est vrai. Sans manette compatible, ou avec un moteur qui n'expose pas ces fonctions, la valeur reste nulle sans erreur.
+		Pour les capteurs d'un téléphone, voir plutôt [MobileInput].
+		[codeblock]
+		var visee := InputGyroAction.new()
+		visee.action_name = &amp;"visee_gyro"
+		visee.sensitivity = 0.5
+		visee.gyroscope_changed.connect(func(vitesse: Vector3): $Viseur.position += Vector2(-vitesse.y, -vitesse.x) * 10.0)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,42 +19,51 @@
 		<method name="get_accelerometer" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie la dernière accélération lue (nulle si [member track_accelerometer] est faux).
 			</description>
 		</method>
 		<method name="get_gyroscope" qualifiers="const">
 			<return type="Vector3" />
 			<description>
+				Renvoie la dernière vitesse de rotation (rad/s × [member sensitivity]).
 			</description>
 		</method>
 		<method name="has_sensors" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le moteur et la manette lue fournissent des capteurs de mouvement.
 			</description>
 		</method>
 		<method name="set_sensors_enabled">
 			<return type="void" />
 			<param index="0" name="enabled" type="bool" />
 			<description>
+				Active ou désactive les capteurs de mouvement de la manette lue (sans effet si le moteur ne le permet pas).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="auto_enable_sensors" type="bool" setter="set_auto_enable_sensors" getter="get_auto_enable_sensors" default="true">
+			Si [code]true[/code], active les capteurs de la manette à la mise à jour s'ils sont éteints.
 		</member>
 		<member name="sensitivity" type="float" setter="set_sensitivity" getter="get_sensitivity" default="1.0">
+			Multiplicateur de la vitesse de rotation.
 		</member>
 		<member name="track_accelerometer" type="bool" setter="set_track_accelerometer" getter="get_track_accelerometer" default="false">
+			Si [code]true[/code], lit aussi l'accéléromètre ([signal accelerometer_changed]).
 		</member>
 	</members>
 	<signals>
 		<signal name="accelerometer_changed">
 			<param index="0" name="acceleration" type="Vector3" />
 			<description>
+				Émis quand l'accélération change d'au moins [member InputAction.dirty_threshold].
 			</description>
 		</signal>
 		<signal name="gyroscope_changed">
 			<param index="0" name="rotation_rate" type="Vector3" />
 			<description>
+				Émis quand la vitesse de rotation change d'au moins [member InputAction.dirty_threshold], ou revient à zéro.
 			</description>
 		</signal>
 	</signals>

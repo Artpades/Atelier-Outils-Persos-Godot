@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DialogueAction" inherits="DialogueNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💬 Action invisible : modifie des variables et/ou émet un événement de dialogue, puis continue vers [member next].
 	</brief_description>
 	<description>
+		Traitée instantanément par le [DialogueSystem] : chaque affectation de [member assignments] est exécutée dans l'ordre, puis [signal DialogueSystem.dialogue_event] est émis si [member event] est renseigné.
+		[codeblock]
+		var recompense := DialogueAction.new()
+		recompense.node_id = &amp;"recompense"
+		recompense.assignments = ["pieces += 10", "quete_finie = true"]
+		recompense.event = &amp;"donner_objet"
+		recompense.event_arguments = ["epee"]
+		recompense.next = &amp;"merci"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="assignments" type="PackedStringArray" setter="set_assignments" getter="get_assignments" default="PackedStringArray()">
+			Affectations exécutées dans l'ordre : [code]nom = expression[/code], [code]nom += expression[/code] ou [code]nom -= expression[/code] (voir [method DialogueSystem.execute_assignment]). Une affectation invalide est ignorée avec un avertissement, les suivantes sont quand même exécutées.
 		</member>
 		<member name="event" type="StringName" setter="set_event" getter="get_event" default="&amp;&quot;&quot;">
+			Nom de l'événement émis par [signal DialogueSystem.dialogue_event] (ouvrir une boutique, donner un objet, lancer une cinématique...). Vide : aucun événement.
 		</member>
 		<member name="event_arguments" type="Array" setter="set_event_arguments" getter="get_event_arguments" default="[]">
+			Arguments transmis tels quels avec [member event] (non interprétés comme expressions).
 		</member>
 		<member name="next" type="StringName" setter="set_next" getter="get_next" default="&amp;&quot;&quot;">
+			Nœud suivant. Vide : fin du dialogue.
 		</member>
 	</members>
 </class>

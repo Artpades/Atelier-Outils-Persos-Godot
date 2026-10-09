@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTAction" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Action : feuille d'arbre de comportement dont la logique est écrite par script ([code]extends BTAction[/code]).
 	</brief_description>
 	<description>
+		Redéfinir [method BTNode._tick] (et si besoin [method BTNode._on_enter] / [method BTNode._on_exit]). Sans script, l'action réussit immédiatement et l'éditeur affiche un avertissement de configuration.
+		[codeblock]
+		extends BTAction
+
+		@export var duree_repos := 2.0
+
+		func _on_enter() -&gt; void:
+			get_agent().velocity = Vector2.ZERO
+
+		func _tick(_delta: float) -&gt; int:
+			return SUCCESS if get_running_time() &gt;= duree_repos else RUNNING
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>

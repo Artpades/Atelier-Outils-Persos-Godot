@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="PathWidget" inherits="PropertyWidget" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Widget d'un NodePath ou d'un nœud : chemin + bouton « … » de sélection.
 	</brief_description>
 	<description>
+		Dans l'éditeur, le sélecteur de nœud de Godot (et « Propriété… » pour ajouter un sous-chemin de propriété à un NodePath) ; en jeu, un sélecteur maison listant la scène courante, les types non autorisés étant grisés. Le chemin est relatif au nœud qui porte la propriété. En mode nœud, « ✕ » remet la valeur à [code]null[/code].
+		[b]Note :[/b] créé par la [WidgetFactory] ; ne s'instancie pas à la main dans un usage normal.
 	</description>
 	<tutorials>
 	</tutorials>

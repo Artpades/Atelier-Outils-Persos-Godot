@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="MusicLooper" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🔁 Lecteur de musique à boucle : joue l'intro, répète une section du morceau (sans fin ou un nombre de fois donné), puis la fin, avec fondus d'entrée et de sortie.
 	</brief_description>
 	<description>
+		Les musiques de jeu ont souvent une intro jouée une seule fois, puis une partie qui boucle. [MusicLooper] joue le début du morceau jusqu'à [member loop_end], revient à [member loop_start], et recommence [member loop_count] fois (ou sans fin), puis laisse le morceau aller jusqu'à sa fin et émet [signal finished].
+		- [b]WAV[/b] : la boucle est exacte à l'échantillon près, quelle que soit la section (confiée au flux audio).
+		- [b]OGG / MP3[/b] : boucle exacte si elle va jusqu'à la fin du fichier ([member loop_end] à 0) ; sinon, le retour à [member loop_start] est fait à chaque frame, à quelques millisecondes près.
+		Le flux d'origine n'est jamais modifié : une copie configurée est jouée par un [AudioStreamPlayer] interne. Les réglages de boucle sont lus au [method play] suivant. Les boutons [b]Écouter[/b] / [b]Arrêter[/b] de l'inspecteur permettent de régler les points de boucle à l'oreille dans l'éditeur.
+		[codeblock]
+		@onready var musique: MusicLooper = $MusicLooper
+
+		func _ready() -> void:
+			musique.stream = preload("res://musiques/donjon.ogg")
+			musique.loop_start = 12.35     # fin de l'intro
+			musique.play(0.0, 1.5)         # fondu d'entrée de 1,5 s
+
+		func _on_boss_vaincu() -> void:
+			musique.stop(2.0)              # fondu de sortie de 2 s
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,31 +26,37 @@
 		<method name="get_effective_loop_end" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la fin de boucle réellement utilisée : [member loop_end], ou la durée du flux si [member loop_end] vaut 0 ou la dépasse.
 			</description>
 		</method>
 		<method name="get_loops_done" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie le nombre de retours à [member loop_start] depuis le dernier [method play].
 			</description>
 		</method>
 		<method name="get_playback_position" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie la position de lecture en secondes (0 si rien n'a encore été joué).
 			</description>
 		</method>
 		<method name="is_loop_sample_accurate" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la boucle en cours est assurée par le flux audio lui-même (exacte à l'échantillon), [code]false[/code] si elle est faite à chaque frame (ou s'il n'y a pas de boucle). Mis à jour par [method play].
 			</description>
 		</method>
 		<method name="is_paused" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si la lecture est suspendue par [method set_paused].
 			</description>
 		</method>
 		<method name="is_playing" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] pendant la lecture, y compris pendant un fondu de sortie.
 			</description>
 		</method>
 		<method name="play">
@@ -42,51 +64,66 @@
 			<param index="0" name="from_position" type="float" default="0.0" />
 			<param index="1" name="fade_in" type="float" default="0.0" />
 			<description>
+				Joue le morceau depuis [param from_position] secondes, avec un fondu d'entrée de [param fade_in] secondes (0 : volume plein immédiatement). Remet à zéro le compteur de boucles et prend en compte les réglages de boucle actuels. Sans [member stream], ne fait rien.
 			</description>
 		</method>
 		<method name="set_paused">
 			<return type="void" />
 			<param index="0" name="paused" type="bool" />
 			<description>
+				Suspend ([code]true[/code]) ou reprend ([code]false[/code]) la lecture à la même position.
 			</description>
 		</method>
 		<method name="stop">
 			<return type="void" />
 			<param index="0" name="fade_out" type="float" default="0.0" />
 			<description>
+				Arrête la lecture, après un fondu de sortie de [param fade_out] secondes (0 : immédiatement). [signal finished] n'est pas émis.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="autoplay" type="bool" setter="set_autoplay" getter="get_autoplay" default="false">
+			Si [code]true[/code], le morceau est joué automatiquement au [method Node._ready] (jamais dans l'éditeur).
 		</member>
 		<member name="bus" type="StringName" setter="set_bus" getter="get_bus" default="&amp;&quot;Master&quot;">
+			Bus audio de la musique (ex. [code]"Musique"[/code]).
 		</member>
 		<member name="listen" type="Callable" setter="" getter="_get_play_button" default="Callable()">
+			Bouton de l'inspecteur [b]Écouter[/b] : joue le morceau dans l'éditeur avec les réglages de boucle actuels.
 		</member>
 		<member name="loop_count" type="int" setter="set_loop_count" getter="get_loop_count" default="-1">
+			Nombre de retours à [member loop_start] avant de laisser le morceau finir. [code]-1[/code] : boucle sans fin ; [code]0[/code] : pas de boucle.
 		</member>
 		<member name="loop_enabled" type="bool" setter="set_loop_enabled" getter="get_loop_enabled" default="true">
+			Active la boucle. Si [code]false[/code], le morceau est joué une fois du début à la fin.
 		</member>
 		<member name="loop_end" type="float" setter="set_loop_end" getter="get_loop_end" default="0.0">
+			Fin de la section bouclée, en secondes. 0 : la fin du fichier (cas le plus précis pour un OGG / MP3).
 		</member>
 		<member name="loop_start" type="float" setter="set_loop_start" getter="get_loop_start" default="0.0">
+			Début de la section bouclée, en secondes (fin de l'intro). Doit précéder la fin de boucle, sinon un avertissement est affiché et le morceau est joué sans boucle.
 		</member>
 		<member name="stop_listening" type="Callable" setter="" getter="_get_stop_button" default="Callable()">
+			Bouton de l'inspecteur [b]Arrêter[/b] : arrête l'écoute dans l'éditeur.
 		</member>
 		<member name="stream" type="AudioStream" setter="set_stream" getter="get_stream">
+			Morceau joué (WAV, OGG, MP3 ou autre [AudioStream]). Le changer pendant la lecture relance le nouveau morceau depuis le début, sans fondu.
 		</member>
 		<member name="volume_db" type="float" setter="set_volume_db" getter="get_volume_db" default="0.0">
+			Volume en décibels, appliqué immédiatement. Les fondus se font par-dessus ce volume.
 		</member>
 	</members>
 	<signals>
 		<signal name="finished">
 			<description>
+				Émis quand le morceau arrive à sa fin (après la dernière boucle, ou sans boucle). Jamais émis en boucle infinie ni après [method stop].
 			</description>
 		</signal>
 		<signal name="looped">
 			<param index="0" name="loops_done" type="int" />
 			<description>
+				Émis à chaque retour à [member loop_start], avec le nombre de boucles effectuées depuis le dernier [method play]. Pour une boucle exacte, il est émis à la frame qui suit le retour.
 			</description>
 		</signal>
 	</signals>

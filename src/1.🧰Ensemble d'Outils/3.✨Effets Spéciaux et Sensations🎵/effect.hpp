@@ -24,10 +24,13 @@ class Effect : public Resource
   public:
     Effect();
 
+    /// Active l'effet sur p_target (_play, signal fx_played), puis joue les effets enchaînés à son jeu.
     void play_fx(Node *p_target = nullptr);
+    /// Mises à jour par frame (rendu / physique), transmises aux effects_on_play_fx ; ignorées si l'effet est inactif.
     void process_fx(double p_delta, Node *p_target = nullptr);
     void physics_process_fx(double p_delta, Node *p_target = nullptr);
-    /// Arrête l'effet (sans effet s'il n'est pas actif : rien à restaurer).
+    /// Arrête l'effet (sans effet s'il n'est pas actif : rien à restaurer), arrête les effets enchaînés à son jeu
+    /// et joue ceux enchaînés à son arrêt (qui ne reçoivent ensuite aucune mise à jour).
     void stop_fx(Node *p_target = nullptr);
     bool is_activated() const { return activated; }
 
@@ -74,8 +77,8 @@ class Effect : public Resource
     TypedArray<Effect> effects_on_play_fx;
     TypedArray<Effect> effects_on_stop_fx;
     ObjectID player_fx_id;
-    bool activated = false;
-    bool restarting = false;
+    bool activated = false;  // entre play_fx et stop_fx
+    bool restarting = false; // vrai pendant _play d'un effet relancé (voir _is_restarting)
     uint32_t running_operations = 0;
 };
 } // namespace godot

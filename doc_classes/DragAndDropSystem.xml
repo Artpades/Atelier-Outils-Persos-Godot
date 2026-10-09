@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="DragAndDropSystem" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		✊ Glisser-déposer à la souris des [Control], [Node2D] et [Node3D] décrits par une liste de [DraggableComponent].
 	</brief_description>
 	<description>
+		Chaque objet déplaçable est décrit par un [DraggableComponent] de [member draggables] : nœud ciblé, zone de saisie, plan de glissement en 3D, comportement au relâchement et points d'aimantage. Les chemins des composants sont relatifs au [DragAndDropSystem].
+		- [b]Survol[/b] : réévalué à chaque image et à chaque mouvement de souris ([signal pointed], [signal depointed]).
+		- [b]Saisie[/b] : clic sur [member action_button], maintenu ([constant INPUT_MODE_HOLD]) ou en bascule ([constant INPUT_MODE_TOGGLE]) ; [signal grabbed]. L'objet suit ensuite le pointeur, avec le décalage du point saisi (sauf [member DraggableComponent.snap_to_cursor]).
+		- [b]Relâchement[/b] : selon [member DraggableComponent.release_behavior] (retour, aimantage vers un point, laissé sur place) ; [signal snapped] s'il finit sur un point d'aimantage, puis [signal released].
+		La saisie passe par [method Node._unhandled_input] : une interface placée au-dessus de l'objet (un [Control] en [constant Control.MOUSE_FILTER_STOP]) l'empêche. Un [Control] déplaçable doit donc avoir [member Control.mouse_filter] à [constant Control.MOUSE_FILTER_PASS] ou [constant Control.MOUSE_FILTER_IGNORE]. Le relâchement passe par [method Node._input] : il n'est jamais perdu, même au-dessus d'une interface.
+		[codeblock]
+		# Carte (Node2D) à poser sur l'un des deux emplacements, sinon elle revient à sa place.
+		func _ready() -&gt; void:
+			var carte := DraggableComponent.new()
+			carte.target_node_path = ^"../Carte"
+			carte.local_bounds_2d = Rect2(-40, -60, 80, 120)
+			carte.snap_targets = [^"../Emplacement1", ^"../Emplacement2"]
+			carte.snap_distance_threshold = 80.0
+			$DragAndDropSystem.register_draggable(carte)
+			$DragAndDropSystem.snapped.connect(func(noeud, emplacement): print(noeud.name, " posée sur ", emplacement.name))
+		[/codeblock]
+		[b]Note :[/b] classe d'exécution uniquement : dans l'éditeur, le nœud ne lit pas la souris et ne déplace rien.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,97 +29,120 @@
 			<return type="DraggableComponent" />
 			<param index="0" name="position" type="Vector2" />
 			<description>
+				Composant dont le nœud se trouve sous [param position] (coordonnées du Viewport), ou [code]null[/code]. Les nœuds masqués sont ignorés.
+				- [Control] : son rectangle ([member Control.size]) ; [Node2D] : [member DraggableComponent.local_bounds_2d] dans son repère local (rotation et échelle comprises).
+				- [Node3D] : rayon de la caméra courante testé contre [member DraggableComponent.bounds_3d] ; sans [Camera3D], aucun objet 3D n'est détecté.
+				Un [Control] ou un [Node2D] l'emporte toujours sur un [Node3D] ; entre objets 2D, le premier de [member draggables] l'emporte (l'ordre d'affichage n'est pas pris en compte) ; entre objets 3D, le plus proche de la caméra.
 			</description>
 		</method>
 		<method name="get_grabbed_component" qualifiers="const">
 			<return type="DraggableComponent" />
 			<description>
+				Composant actuellement saisi, ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_hovered_component" qualifiers="const">
 			<return type="DraggableComponent" />
 			<description>
+				Composant actuellement survolé, ou [code]null[/code]. Mis à jour seulement quand rien n'est saisi.
 			</description>
 		</method>
 		<method name="grab">
 			<return type="void" />
 			<param index="0" name="component" type="DraggableComponent" />
 			<description>
+				Saisit [param component] par code, comme un clic à la position actuelle du pointeur (le décalage entre le pointeur et l'objet est conservé, sauf [member DraggableComponent.snap_to_cursor]). Erreur si un objet est déjà saisi, ou si le nœud ciblé est introuvable, hors de l'arbre, ou n'est ni un [Control], ni un [Node2D], ni un [Node3D]. Émet [signal grabbed].
 			</description>
 		</method>
 		<method name="initialize_draggables">
 			<return type="void" />
 			<description>
+				Résout le nœud ciblé de chaque composant de [member draggables] et mémorise sa position globale actuelle comme position initiale. Appelé automatiquement au [code]_ready[/code] ; à rappeler pour redéfinir les positions de retour de tous les objets.
 			</description>
 		</method>
 		<method name="is_free" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si aucun objet n'est saisi.
 			</description>
 		</method>
 		<method name="is_occupied" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si un objet est saisi.
 			</description>
 		</method>
 		<method name="register_draggable">
 			<return type="void" />
 			<param index="0" name="component" type="DraggableComponent" />
 			<description>
+				Ajoute [param component] à [member draggables] (ignoré s'il y est déjà). Si le système est dans l'arbre et que le nœud ciblé est trouvé, sa position actuelle devient sa position initiale.
 			</description>
 		</method>
 		<method name="release">
 			<return type="void" />
 			<description>
+				Relâche l'objet saisi en appliquant [member DraggableComponent.release_behavior], puis émet [signal snapped] (s'il est posé sur un point d'aimantage) et [signal released]. Sans effet si rien n'est saisi. L'objet est libéré avant l'émission des signaux : un récepteur peut saisir un autre objet.
 			</description>
 		</method>
 		<method name="unregister_draggable">
 			<return type="void" />
 			<param index="0" name="component" type="DraggableComponent" />
 			<description>
+				Retire [param component] de [member draggables]. S'il était survolé, [signal depointed] est émis ; s'il était saisi, il est abandonné sur place, sans comportement de relâchement ni signal [signal released].
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="action_button" type="int" setter="set_action_button" getter="get_action_button" enum="MouseButton" default="1">
+			Bouton de la souris qui saisit et relâche les objets (gauche par défaut).
 		</member>
 		<member name="draggables" type="DraggableComponent[]" setter="set_draggables" getter="get_draggables" default="[]">
+			Objets déplaçables gérés par ce système. Modifier le tableau directement ne mémorise pas les positions initiales : préférer [method register_draggable], ou appeler [method initialize_draggables] ensuite.
 		</member>
 		<member name="input_mode" type="int" setter="set_input_mode" getter="get_input_mode" enum="DragAndDropSystem.InputMode" default="0">
+			Manière de tenir l'objet : tant que le bouton est maintenu, ou d'un clic à l'autre.
 		</member>
 	</members>
 	<signals>
 		<signal name="depointed">
 			<param index="0" name="node" type="Object" />
 			<description>
+				Émis quand le pointeur quitte le nœud [param node] survolé (ou quand son composant est retiré).
 			</description>
 		</signal>
 		<signal name="grabbed">
 			<param index="0" name="node" type="Object" />
 			<description>
+				Émis quand le nœud [param node] est saisi.
 			</description>
 		</signal>
 		<signal name="pointed">
 			<param index="0" name="node" type="Object" />
 			<description>
+				Émis quand le pointeur arrive sur le nœud [param node] d'un composant (rien n'étant saisi).
 			</description>
 		</signal>
 		<signal name="released">
 			<param index="0" name="node" type="Object" />
 			<description>
+				Émis quand le nœud [param node] est relâché, après son déplacement final (et après [signal snapped]). Non émis si le nœud a été libéré pendant le glissement.
 			</description>
 		</signal>
 		<signal name="snapped">
 			<param index="0" name="node" type="Object" />
 			<param index="1" name="snap_target" type="Object" />
 			<description>
+				Émis au relâchement quand le nœud [param node] se trouve exactement sur le point d'aimantage [param snap_target] (aimanté au relâchement, ou déjà aimanté pendant le glissement avec [constant DraggableComponent.SNAP_ALWAYS]).
 			</description>
 		</signal>
 	</signals>
 	<constants>
 		<constant name="INPUT_MODE_HOLD" value="0" enum="InputMode">
+			L'objet est tenu tant que [member action_button] reste enfoncé.
 		</constant>
 		<constant name="INPUT_MODE_TOGGLE" value="1" enum="InputMode">
+			Un clic saisit l'objet, le clic suivant le relâche (où qu'il soit).
 		</constant>
 	</constants>
 </class>

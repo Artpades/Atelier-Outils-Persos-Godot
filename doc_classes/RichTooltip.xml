@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="RichTooltip" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Infobulle enrichie (BBCode, valeurs dynamiques) affichée au survol des widgets d'un ProceduralEditor.
 	</brief_description>
 	<description>
+		Godot n'affiche pas de BBCode dans l'infobulle d'un contrôle natif. Ce nœud interne du [ProceduralEditor] surveille le widget survolé : après [method get_delay] secondes, il affiche ses infobulles ([method PropertyWidget.get_tooltip_texts]) dans une fenêtre, les modèles [code]{propriété}[/code] et [code]{fonction()}[/code] étant résolus sur la cible au moment de l'affichage ([method WidgetBehavior.format_text]). Plusieurs infobulles sont séparées par une ligne vide.
+		Classe non instanciable : on la récupère avec [method ProceduralEditor.get_rich_tooltip].
+		[codeblock]
+		$ProceduralEditor.get_rich_tooltip().set_delay(0.2)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,38 +17,45 @@
 			<return type="String" />
 			<param index="0" name="widget" type="PropertyWidget" />
 			<description>
+				Renvoie le texte BBCode final des infobulles de [param widget], modèles résolus.
 			</description>
 		</method>
 		<method name="get_delay" qualifiers="const">
 			<return type="float" />
 			<description>
+				Renvoie le délai de survol, en secondes, avant l'affichage (0,5 par défaut).
 			</description>
 		</method>
 		<method name="get_shown_text" qualifiers="const">
 			<return type="String" />
 			<description>
+				Renvoie le texte affiché, ou une chaîne vide si l'infobulle est cachée.
 			</description>
 		</method>
 		<method name="hide_tooltip">
 			<return type="void" />
 			<description>
+				Cache l'infobulle.
 			</description>
 		</method>
 		<method name="is_shown" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si l'infobulle est affichée.
 			</description>
 		</method>
 		<method name="set_delay">
 			<return type="void" />
 			<param index="0" name="delay" type="float" />
 			<description>
+				Règle le délai de survol avant l'affichage (négatif ramené à 0).
 			</description>
 		</method>
 		<method name="show_for">
 			<return type="void" />
 			<param index="0" name="widget" type="PropertyWidget" />
 			<description>
+				Affiche tout de suite l'infobulle de [param widget] à la position de la souris (cachée si le texte est vide).
 			</description>
 		</method>
 	</methods>

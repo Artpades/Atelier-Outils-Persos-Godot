@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="VisualsAsset" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🎭 Une apparence complète (tenue, skin, pouvoir) : la liste des [VisualsRegister] à appliquer ensemble.
 	</brief_description>
 	<description>
+		Ressource réutilisable (enregistrable en [code].tres[/code]) qui regroupe les changements visuels d'une même apparence. Elle est appliquée par un [VisualsSwapper], ou directement avec [method apply].
+		[codeblock]
+		var tenue_feu := VisualsAsset.new()
+		tenue_feu.suit_type_name = "feu"
+		var corps := VisualsRegister.new()
+		corps.node_visual = ^"Corps"
+		corps.texture = preload("res://perso/corps_feu.png")
+		tenue_feu.visuals_registers = [corps]
+		tenue_feu.apply($Personnage) # chemins résolus depuis $Personnage
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,6 +22,7 @@
 			<return type="void" />
 			<param index="0" name="context" type="Node" />
 			<description>
+				Applique tous les registres de [member visuals_registers], dans l'ordre, en résolvant leurs chemins depuis [param context] (voir [method swap_visuals]).
 			</description>
 		</method>
 		<method name="swap_visuals" qualifiers="static">
@@ -18,13 +30,20 @@
 			<param index="0" name="context" type="Node" />
 			<param index="1" name="register" type="VisualsRegister" />
 			<description>
+				Applique un seul registre : le nœud [member VisualsRegister.node_visual] (résolu depuis [param context]) reçoit, selon son type :
+				- [Sprite2D], [Sprite3D], [Polygon2D], [TextureRect] : [member VisualsRegister.texture] ;
+				- [MeshInstance3D], [MeshInstance2D] : [member VisualsRegister.mesh] ;
+				- tout autre type : ses enfants sont libérés ([method Node.queue_free]) et une instance de [member VisualsRegister.modeling_import] est ajoutée à leur place.
+				Si la ressource correspondante est vide, ou si le nœud est introuvable, rien ne change (aucun message). Une scène instanciée n'a pas de propriétaire : elle n'est pas enregistrée avec la scène.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="suit_type_name" type="String" setter="set_suit_type_name" getter="get_suit_type_name" default="&quot;&quot;">
+			Nom de l'apparence (« feu », « hiver », « tenue_2 »), recherché par [method VisualsSwapper.swap_by_name].
 		</member>
 		<member name="visuals_registers" type="VisualsRegister[]" setter="set_visuals_registers" getter="get_visuals_registers" default="[]">
+			Changements à appliquer : un [VisualsRegister] par nœud à modifier.
 		</member>
 	</members>
 </class>

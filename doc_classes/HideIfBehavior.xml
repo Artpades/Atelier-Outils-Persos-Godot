@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="HideIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement « Cacher si » : les cibles sont masquées tant que la condition est vraie.
 	</brief_description>
 	<description>
+		Un widget masqué n'est plus relu par le [SyncController].
+		[codeblock]
+		var cacher := HideIfBehavior.new()
+		cacher.get_condition().property_path = ^"est_mort"
+		cacher.targets = PackedStringArray(["vie", "Combat"]) # une donnée et un groupe
+		registre.behaviors.append(cacher)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
-	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
-	</members>
 </class>

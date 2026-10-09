@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GizmoRegistry" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Liste des dessins automatiques (gizmos) d'un objet ou d'un type.
 	</brief_description>
 	<description>
+		Dessinée par un [GizmoHost] (nœud de la scène, ou hôte interne d'un [ProceduralEditor] pour le [TypeLayout] de sa cible).
+		[codeblock]
+		var registre := GizmoRegistry.new()
+		registre.entries = [GizmoEntry.new()]
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="entries" type="GizmoEntry[]" setter="set_entries" getter="get_entries" default="[]">
+			Dessins, un [GizmoEntry] chacun.
 		</member>
 	</members>
 </class>

@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orchestrateur de mouvement · GameplayToolkit</title>
+  <meta name="description" content="Documentation du module 🎬 Orchestrateur de mouvement (MovementDirector, MovementContext) du GameplayToolkit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-root="../../" data-page="modules/mouvement/orchestrateur-de-mouvement.html">
+<main>
+<div class="content">
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">🎬</div>
+    <div>
+      <h1>🎬_MovementSystem - Mouvement & Physique - Documentation</h1>
+      <p class="subtitle">Module <strong>Orchestrateur de mouvement</strong> : un chef d'orchestre qui reçoit l'intention et n'active que le bon composant de mouvement selon la situation (sol, eau, mur, corde, air…).</p>
+      <div class="badges">
+        <span class="badge">Godot 4.7+</span>
+        <span class="badge">Bibliothèque <code>bin/movement_physics</code></span>
+        <span class="badge">2 classes : MovementDirector · MovementContext</span>
+        <span class="badge">2D &amp; 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ Présentation ═══════════════════════════ -->
+  <h2 id="presentation">📝 Présentation</h2>
+
+  <p>Un personnage a un composant de marche, un de nage et un de glissade murale : qui décide lequel agit ? Sans arbitre, chaque script d'entrée doit tester « suis-je dans l'eau ? contre un mur ? » et activer / désactiver les composants à la main, avec le risque d'en laisser deux actifs en même temps. <strong>Ce module fait cet arbitrage</strong> : on décrit des contextes (« dans l'eau → nage », « contre un mur → mur », « sinon → sol ») et le directeur bascule tout seul, à chaque image physique.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🎬 <code>MovementDirector</code> — l'arbitre</h4>
+      <p>Nœud enfant du corps : relaie <code>move</code> / <code>jump</code> / <code>set_running</code> à tous les composants, détecte l'environnement et applique le contexte gagnant. Peut se configurer tout seul d'après les composants présents.</p>
+    </div>
+    <div class="card">
+      <h4>📋 <code>MovementContext</code> — une règle</h4>
+      <p>Ressource : un nom, les composants à activer, une condition (au sol, dans l'eau, contre un mur, sur une corde, en recul, manuelle, expression libre) et une priorité.</p>
+    </div>
+  </div>
+
+  <p><strong>Pour qui ?</strong> Les développeurs qui assemblent un personnage avec plusieurs composants du <a href="socle-mouvement.html">🧩 Socle du mouvement</a> ; les game designers qui veulent régler les priorités dans l'inspecteur sans code.</p>
+
+  <div class="callout">
+    <div class="callout-title">Ce que ce module n'est pas</div>
+    <ul>
+      <li><strong>Pas une machine à états générale</strong> : il ne gère que l'activation des composants de mouvement. Pour l'IA ou les états de jeu, voir <em>🤖 HFSM</em> ou <em>🌿 Arbre de comportement</em>.</li>
+      <li><strong>Pas un lecteur d'entrées</strong> : il reçoit l'intention, il ne lit pas le clavier.</li>
+      <li><strong>Pas un animateur</strong> : il signale les changements (<code>context_changed</code>) ; changer d'animation reste à votre code.</li>
+    </ul>
+  </div>
+
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>GIF d'un personnage 2D qui marche, saute dans l'eau, en ressort et glisse le long d'un mur, avec <code>debug_mode</code> du directeur activé (texte « 🎬 eau · eau », « 🎬 mur · mur », « 🎬 sol · sol » au-dessus de la tête).</div>
+  </div>
+
+  <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
+  <h2 id="installation">🛠️ Installation</h2>
+
+  <h3 id="dependances">Dépendances</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dépendance</th><th>Nature</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Godot <strong>4.7</strong> ou plus récent</td><td><strong>Obligatoire</strong></td><td><code>compatibility_minimum = "4.7"</code> dans le <code>.gdextension</code>.</td></tr>
+        <tr><td>Bibliothèque <code>bin/movement_physics/</code></td><td><strong>Obligatoire</strong></td><td>Contient le directeur et tous les composants qu'il pilote (voir <a href="socle-mouvement.html#installation">installation du socle</a>).</td></tr>
+        <tr><td>Au moins un composant de mouvement sous le même corps</td><td><strong>Obligatoire</strong> (en pratique)</td><td>Sans composant, le directeur n'a rien à piloter : il ne déplace jamais le corps lui-même.</td></tr>
+        <tr><td><code>Knockback2D/3D</code>, <code>WaterArea2D/3D</code>, <code>Rope2D/3D</code></td><td>Optionnelles</td><td>Nécessaires seulement pour que les conditions « en recul », « dans l'eau », « sur une corde » puissent être remplies.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="mise-en-place">Mise en place</h3>
+  <ol class="steps">
+    <li>
+      <strong>Installer la bibliothèque</strong> comme décrit sur la page du <a href="socle-mouvement.html#mise-en-place">🧩 Socle du mouvement</a> (<code>scons movement_physics</code>, copie de <code>bin/movement_physics/</code>, redémarrage).
+      <div class="why">le directeur fait partie de la même bibliothèque que les composants : il n'y a rien d'autre à installer.</div>
+    </li>
+    <li>
+      <strong>Ajouter un <code>MovementDirector</code> comme enfant direct du corps</strong>, à côté de ses composants.
+      <div class="why">il considère comme siens les <code>MovementComponent</code> enfants directs de son parent ; ailleurs, il ne les voit pas.</div>
+    </li>
+  </ol>
+  <p>Aucun autoload ni réglage de projet n'est requis.</p>
+
+  <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
+  <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="tuto-auto">Un personnage qui marche, nage et glisse aux murs</h3>
+  <ol class="steps">
+    <li>
+      <strong>Construire l'arbre</strong> : <code>CharacterBody2D</code> › <code>CollisionShape2D</code>, <code>Sprite2D</code>, <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>SwimMovement2D</code>, <code>WallMovement2D</code>.
+      <div class="why">chaque composant gère une situation ; le directeur choisira lequel est actif.</div>
+    </li>
+    <li>
+      <strong>Laisser <code>contexts</code> vide</strong> et <code>auto_configure</code> coché.
+      <div class="why">au démarrage, le directeur crée « eau » (priorité 50), « mur » (40) et « sol » (0, toujours vrai) d'après les composants trouvés.</div>
+    </li>
+    <li>
+      <strong>Ajouter une <code>WaterArea2D</code></strong> avec une <code>CollisionShape2D</code> rectangulaire dans le niveau.
+      <div class="why">c'est elle qui rend la condition « dans l'eau » vraie quand le corps la chevauche.</div>
+    </li>
+    <li>
+      <strong>Envoyer l'intention au directeur seulement</strong> :
+      <pre><code class="gdscript">extends CharacterBody2D
+
+@onready var directeur: MovementDirector = $MovementDirector
+
+func _physics_process(_delta: float) -> void:
+	directeur.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
+	if Input.is_action_just_pressed("ui_accept"):
+		directeur.jump()
+	elif Input.is_action_just_released("ui_accept"):
+		directeur.release_jump()</code></pre>
+      <div class="why">le directeur relaie à tous les composants ; celui qui est actif agit, les autres attendent avec l'intention à jour.</div>
+    </li>
+    <li>
+      <strong>Cocher <code>debug_mode</code></strong> sur le directeur et lancer le jeu.
+      <div class="why">le contexte courant et l'environnement détecté s'affichent au-dessus du personnage : on vérifie que les bascules ont lieu au bon moment.</div>
+    </li>
+  </ol>
+
+  <!-- ═══════════════════════════ API ═══════════════════════════ -->
+  <h2 id="api">💻 API Accessible</h2>
+  <p>Référence générée depuis <code>doc_classes/MovementDirector.xml</code> et <code>doc_classes/MovementContext.xml</code>. Éléments internes, non exposés :</p>
+  <ul>
+    <li><code>MovementDirector</code> : <code>_apply()</code> (activation des composants d'un contexte), les copies internes de l'intention (<code>move_input</code>, <code>jump_held</code>, <code>running</code>, <code>vertical_input</code>) et le dessin de débogage. La priorité de traitement physique (<code>-20</code>) est un réglage hérité de <code>Node</code>.</li>
+    <li><code>MovementContext</code> : l'<code>Expression</code> analysée en cache et l'indicateur d'échec d'analyse.</li>
+  </ul>
+  <div data-api="MovementDirector MovementContext"></div>
+
+  <!-- ═══════════════════════════ Exemples ═══════════════════════════ -->
+  <h2 id="exemples">📌 Exemples d'utilisation</h2>
+
+  <h3 id="ex-manuel">Comment je configure les contextes moi-même dans l'inspecteur ?</h3>
+  <p>Remplir <code>contexts</code> avec des <code>MovementContext</code> : <code>context_name</code>, <code>condition</code>, <code>priority</code> et <code>components</code> (chemins <strong>relatifs au directeur</strong>, ex. <code>../GroundMovement2D</code>). Un contexte « sol » en <em>Always</em> avec la priorité la plus basse sert de valeur par défaut. Dès que <code>contexts</code> n'est pas vide, la configuration automatique est ignorée.</p>
+  <div class="figure-todo">
+    <div><strong>📷 Image à insérer</strong></div>
+    <div>Capture de l'inspecteur d'un MovementDirector avec trois MovementContext dépliés (sol / Always / 0, eau / In Water / 50, mur / On Wall / 40) et leurs listes <code>components</code>.</div>
+  </div>
+
+  <h3 id="ex-code">Comment je crée les contextes par code sans qu'ils soient écrasés ?</h3>
+  <p>La configuration automatique est lancée <em>en différé</em> à l'entrée dans l'arbre : des contextes affectés juste après <code>add_child</code> seraient remplacés. Les affecter <strong>avant</strong> l'ajout, ou désactiver <code>auto_configure</code>.</p>
+  <pre><code class="gdscript">func creer_directeur(corps: CharacterBody2D) -> MovementDirector:
+	var sol := MovementContext.new()
+	sol.context_name = &amp;"sol"
+	sol.components = [NodePath("../GroundMovement2D")]
+	var air := MovementContext.new()
+	air.context_name = &amp;"air"
+	air.condition = MovementContext.CONDITION_IN_AIR
+	air.priority = 10
+	air.components = [NodePath("../AerodynamicMovement2D")]
+
+	var d := MovementDirector.new()
+	d.contexts = [sol, air]      # AVANT add_child
+	corps.add_child(d)
+	return d</code></pre>
+
+  <h3 id="ex-vol">Comment j'active un mode à la demande (vol, véhicule) ?</h3>
+  <p>Un contexte en <em>Manual</em> ne s'active jamais seul : <code>set_context</code> le force, <code>clear_forced_context</code> rend la main. Un <code>AerodynamicMovement2D</code> en mode vol libre crée d'ailleurs automatiquement un contexte « vol » de ce type.</p>
+  <pre><code class="gdscript">func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("voler"):
+		$MovementDirector.set_context(&amp;"vol")
+	elif event.is_action_pressed("atterrir"):
+		$MovementDirector.clear_forced_context()</code></pre>
+
+  <h3 id="ex-expression">Comment j'écris une condition sur mesure ?</h3>
+  <p><em>Custom</em> évalue une expression avec <code>body</code> et <code>director</code>. Ici, un sprint glissé quand on court vite en descente :</p>
+  <pre><code class="gdscript">var glissade := MovementContext.new()
+glissade.context_name = &amp;"glissade"
+glissade.condition = MovementContext.CONDITION_CUSTOM
+glissade.expression = "director.is_on_floor() and abs(body.velocity.x) > 300 and body.get_floor_angle() > 0.3"
+glissade.priority = 30
+glissade.components = [NodePath("../SlideMovement")]  # composant GDScript maison</code></pre>
+
+  <h3 id="ex-animation">Comment je change d'animation selon le contexte ?</h3>
+  <pre><code class="gdscript">func _ready() -> void:
+	$MovementDirector.context_changed.connect(_sur_contexte)
+
+func _sur_contexte(_avant: StringName, apres: StringName) -> void:
+	match apres:
+		&amp;"eau": $AnimationPlayer.play("nage")
+		&amp;"mur": $AnimationPlayer.play("glissade")
+		_: $AnimationPlayer.play("marche")</code></pre>
+
+  <h3 id="ex-recul">Comment je laisse le recul déplacer le personnage tout seul ?</h3>
+  <p>Aucun contexte « recul » n'est créé automatiquement. En ajouter un <strong>sans composant</strong> : tous les composants cités ailleurs sont alors désactivés, et le <code>Knockback2D</code> déplace lui-même le corps (voir <a href="recul.html">🌬️ Recul</a>).</p>
+  <pre><code class="gdscript">var recul := MovementContext.new()
+recul.context_name = &amp;"recul"
+recul.condition = MovementContext.CONDITION_KNOCKED
+recul.priority = 100   # passe avant tout le reste</code></pre>
+
+  <h3 id="ex-env">Comment j'affiche l'état du personnage pour le débogage ?</h3>
+  <pre><code class="gdscript">func _process(_delta: float) -> void:
+	$Etiquette.text = str($MovementDirector.get_environment())
+	# {"on_floor": true, "in_water": false, "on_wall": false, "on_rope": false, "knocked": false, "context": &amp;"sol"}</code></pre>
+
+  <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
+  <h2 id="limitations">🚧 Limitations</h2>
+  <ul>
+    <li><strong>Contextes écrasés si affectés par code juste après l'ajout.</strong> Si <code>contexts</code> est vide à l'entrée dans l'arbre et <code>auto_configure</code> actif, <code>create_default_contexts()</code> est appelée en différé et remplace ce que vous auriez mis entre-temps (vérifié). Voir <a href="#ex-code">l'exemple</a>.</li>
+    <li><strong>Le plané automatique ne permet pas de battre des ailes.</strong> Le contexte « plané » créé automatiquement exige le saut maintenu : au moment de l'appui, c'est le composant de sol qui est actif et reçoit le saut, et <code>jump()</code> n'est transmis qu'aux composants actifs. Résultat : <code>max_flaps</code> n'a aucun effet avec ce contexte (vérifié). Utiliser un contexte <em>In Air</em> (voir <a href="physique-aerodynamique.html#ex-battements">🪂 Aérodynamique</a>).</li>
+    <li><strong>Pas de contexte « recul » automatique</strong>, contrairement à ce que laisse entendre le commentaire du code : seuls corde, eau, mur, vol / plané et sol sont créés.</li>
+    <li><strong>Un composant cité dans aucun contexte n'est jamais touché</strong> : il reste actif en permanence (et déplace le corps en plus du composant du contexte). Un composant GDScript maison doit donc être cité dans un contexte.</li>
+    <li><strong>Le saut n'est relayé qu'aux composants actifs.</strong> Si le contexte change juste après l'appui, le nouveau composant ne reçoit pas ce saut.</li>
+    <li><strong>Pas de transition « aucun contexte ».</strong> Si aucune condition n'est remplie (pas de contexte <em>Always</em>), le contexte précédent reste appliqué.</li>
+    <li><strong>Égalité de priorité</strong> : le premier contexte de la liste l'emporte.</li>
+    <li><strong>Corps rigides</strong> : « au sol » = au moins un contact signalé, ce qui exige <code>contact_monitor</code> et <code>max_contacts_reported &gt; 0</code> ; « contre un mur » est toujours faux ; le plané automatique (expression sur <code>body.velocity</code>) échoue silencieusement car un corps rigide n'a pas de <code>velocity</code>.</li>
+    <li><strong>Détection avec une image de retard</strong> : les tests « au sol », « contre un mur » viennent du dernier <code>move_and_slide</code>, ceux de l'eau et des cordes du dernier pas physique.</li>
+    <li><strong>Coût</strong> : chaque relais d'intention et chaque recherche de composants parcourt les enfants du corps ; négligeable pour quelques dizaines de personnages, à surveiller pour des centaines d'IA.</li>
+    <li><strong>Expression invalide</strong> : un seul avertissement est affiché, puis la condition reste fausse jusqu'à la prochaine modification de <code>expression</code>.</li>
+  </ul>
+
+  <!-- ═══════════════════════════ Architecture ═══════════════════════════ -->
+  <h2 id="architecture">🏗️ Architecture</h2>
+
+  <svg class="diagram" viewBox="0 0 860 300" role="img" aria-label="Schéma d'architecture de l'orchestrateur de mouvement">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color: var(--text-muted)"/>
+      </marker>
+    </defs>
+    <rect class="box" x="20" y="30" width="160" height="54" rx="8"/>
+    <text x="100" y="54" text-anchor="middle">Joueur / IA</text>
+    <text x="100" y="72" text-anchor="middle" class="small">move · jump…</text>
+    <rect class="box main" x="250" y="30" width="190" height="54" rx="8"/>
+    <text x="345" y="54" text-anchor="middle">MovementDirector</text>
+    <text x="345" y="72" text-anchor="middle" class="small">priorité physique -20</text>
+    <rect class="box" x="250" y="140" width="190" height="54" rx="8"/>
+    <text x="345" y="164" text-anchor="middle">MovementContext[]</text>
+    <text x="345" y="182" text-anchor="middle" class="small">condition · priorité · chemins</text>
+    <rect class="box" x="520" y="20" width="320" height="110" rx="8"/>
+    <text x="680" y="44" text-anchor="middle">MovementComponent (frères)</text>
+    <text x="680" y="70" text-anchor="middle" class="small">GroundMovement · SwimMovement · WallMovement</text>
+    <text x="680" y="90" text-anchor="middle" class="small">AerodynamicMovement · RopeMovement · GDScript</text>
+    <text x="680" y="112" text-anchor="middle" class="small">set_active(true / false)</text>
+    <rect class="box" x="520" y="170" width="320" height="110" rx="8"/>
+    <text x="680" y="194" text-anchor="middle">Environnement (registres statiques)</text>
+    <text x="680" y="220" text-anchor="middle" class="small">CharacterBody.is_on_floor / is_on_wall</text>
+    <text x="680" y="240" text-anchor="middle" class="small">WaterArea::find_containing · Rope::find_rope_of</text>
+    <text x="680" y="260" text-anchor="middle" class="small">Knockback::active_on · Expression</text>
+    <path class="arrow" d="M180 57 H248" marker-end="url(#arr)"/>
+    <path class="arrow" d="M440 57 H518" marker-end="url(#arr)"/>
+    <text x="480" y="50" text-anchor="middle" class="small">relais</text>
+    <path class="arrow dashed" d="M345 84 V138" marker-end="url(#arr)"/>
+    <text x="355" y="114" class="small">évalue</text>
+    <path class="arrow dashed" d="M440 167 Q480 200 518 210" marker-end="url(#arr)"/>
+    <path class="arrow dashed" d="M300 84 Q200 200 120 230" marker-end="url(#arr)"/>
+    <text x="40" y="250" class="small">signal context_changed</text>
+  </svg>
+
+  <h3 id="composants">Composants et communication</h3>
+  <ul>
+    <li><strong>Intention</strong> : le directeur garde une copie de l'intention et l'envoie par <strong>appel direct</strong> à chaque <code>MovementComponent</code> enfant du corps (liste recalculée à chaque appel).</li>
+    <li><strong>Choix du contexte</strong> : à chaque <code>NOTIFICATION_PHYSICS_PROCESS</code>, <code>update_context()</code> prend le contexte forcé s'il existe, sinon (si <code>auto_switch</code>) le contexte de plus haute priorité dont la condition est remplie. Le directeur a une priorité physique de <code>-20</code> : il décide <em>avant</em> que les composants (priorité 0) ne bougent le corps.</li>
+    <li><strong>Application</strong> : seulement si le nom du contexte change. Les composants cités dans au moins un contexte sont désactivés, ceux du contexte choisi activés et resynchronisés (direction, course, vertical, relâchement du saut). Puis <code>context_changed</code> est émis.</li>
+    <li><strong>Conditions</strong> : interrogations directes du corps et des registres statiques des autres classes du module ; <em>Custom</em> utilise une <code>Expression</code> analysée une fois puis mise en cache.</li>
+  </ul>
+
+  <h3 id="couplage">Dépendances et couplage</h3>
+  <ul>
+    <li>Le directeur dépend de presque tout le module (<code>WaterArea</code>, <code>Knockback</code>, <code>Rope</code>, et des classes concrètes pour <code>create_default_contexts</code>) ; aucun composant ne dépend du directeur. On peut donc toujours s'en passer.</li>
+    <li><code>MovementContext</code> ne dépend de rien : c'est une ressource pure, enregistrable en <code>.tres</code> et partageable entre personnages (les chemins étant relatifs au directeur).</li>
+  </ul>
+
+  <h3 id="decisions">Décisions de conception</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Choix</th><th>Pourquoi (ne pas « corriger » sans en tenir compte)</th></tr></thead>
+      <tbody>
+        <tr><td>Contextes = ressources avec priorité, pas un graphe de transitions</td><td>Les situations physiques (eau, mur, corde) se chevauchent ; une priorité tranche simplement, sans écrire chaque transition possible.</td></tr>
+        <tr><td><code>move</code> relayé à tous les composants, <code>jump</code> aux seuls actifs</td><td>Un composant qui s'active doit connaître la direction courante ; mais un saut mis en mémoire dans un composant inactif se déclencherait par surprise à son activation.</td></tr>
+        <tr><td>Seuls les composants cités dans un contexte sont gérés</td><td>Permet d'avoir des composants toujours actifs (ex. un composant purement visuel) et de mixer orchestration et gestion manuelle.</td></tr>
+        <tr><td>Priorité physique -20</td><td>Le contexte est choisi avant que les composants ne déplacent le corps dans la même image : pas d'image où l'ancien composant agit encore.</td></tr>
+        <tr><td>Configuration automatique en différé</td><td>Les composants frères placés après le directeur dans l'arbre ne sont pas encore prêts à son <code>_ready</code>.</td></tr>
+        <tr><td>Application uniquement au changement de nom</td><td>Évite de réactiver les composants à chaque image (réinitialisation de leur état, signaux répétés).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
+  <h2 id="changelog">🗒️ Changelog</h2>
+  <div class="changelog">
+    <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Documentation complète : référence XML de <code>MovementDirector</code> (structure resynchronisée, ajout de <code>debug_mode</code>) et <code>MovementContext</code>, commentaires des headers, page de module. Aucun changement de comportement.</li>
+    </ul>
+    <h3 id="v1-0-0">1.0.0 <span class="date">2026-10-07</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>debug_mode</code> du directeur : contexte courant et environnement détecté affichés en jeu.</li>
+    </ul>
+    <h3 id="v0-1-0">0.1.0 <span class="date">2026-10-06</span></h3>
+    <ul>
+      <li><span class="tag add">Ajouté</span><code>MovementDirector</code> (relais de l'intention, contextes automatiques et forcés, configuration automatique) et <code>MovementContext</code> (conditions, expressions, priorités).</li>
+    </ul>
+  </div>
+
+  <footer>Module 🎬 Orchestrateur de mouvement · sources : <code>src/2.⚔️Ensemble Systèmes de Gameplay/5.🌀Mouvement &amp; Physique🫗/🎬Orchestrateur de mouvement/</code> · page structurée selon « ✍️📄 Structurer un Documentation de Module ».</footer>
+</div>
+</main>
+
+<script>
+// 🎓 Colonne « Dans quel cas je peux l'utiliser » des tableaux d'API
+window.GTK_USAGES = {
+  "MovementDirector.auto_configure": "Laisser le directeur se configurer seul pour un prototype ; décocher dès qu'on écrit ses propres contextes par code.",
+  "MovementDirector.auto_switch": "Désactiver pendant une cinématique ou un mini-jeu où l'on force le contexte soi-même.",
+  "MovementDirector.contexts": "Régler finement les règles d'un personnage : priorités, composants par situation, conditions maison.",
+  "MovementDirector.debug_mode": "Vérifier en jeu quel contexte est actif et ce que le directeur détecte.",
+  "MovementDirector.clear_forced_context": "Fin du vol libre, sortie de véhicule, fin de cinématique.",
+  "MovementDirector.create_default_contexts": "Régénérer les contextes après avoir ajouté un composant par code (nouvelle capacité débloquée).",
+  "MovementDirector.get_body": "Accéder au corps depuis un script qui ne connaît que le directeur.",
+  "MovementDirector.get_components": "Régler tous les composants d'un coup (vitesse globale réduite par un poison, debug_mode partout).",
+  "MovementDirector.get_context": "Modifier un contexte en jeu (priorité, composants) après la configuration automatique.",
+  "MovementDirector.get_current_context": "Choisir l'animation, le son de pas ou l'action disponible (pas d'attaque dans l'eau).",
+  "MovementDirector.get_environment": "Afficher l'état du personnage dans un panneau de débogage ou l'envoyer à un AnimationTree.",
+  "MovementDirector.get_forced_context": "Savoir si un mode a été imposé (afficher « vol » dans le HUD).",
+  "MovementDirector.get_move_input": "Lire la dernière commande reçue (animation, IA qui imite le joueur).",
+  "MovementDirector.is_condition_met": "Tester une condition sans changer de contexte (afficher « appuyez pour nager »).",
+  "MovementDirector.is_in_air": "Interdire une action au sol, jouer une animation de chute.",
+  "MovementDirector.is_in_water": "Bulles, son étouffé, jauge d'oxygène (module 📊 Jauge).",
+  "MovementDirector.is_jump_held": "Utilisé dans les expressions de contexte (plané tant que le saut est maintenu).",
+  "MovementDirector.is_knocked": "Ignorer les attaques du joueur pendant qu'il est repoussé.",
+  "MovementDirector.is_on_floor": "Poussière à l'atterrissage, conditions d'expressions.",
+  "MovementDirector.is_on_rope": "Afficher l'aide « sauter pour lâcher ».",
+  "MovementDirector.is_on_wall": "Particules de frottement contre le mur.",
+  "MovementDirector.jump": "Bouton de saut du joueur ou décision de saut d'une IA.",
+  "MovementDirector.move": "Seule entrée de direction du personnage, quel que soit son mode de déplacement.",
+  "MovementDirector.release_jump": "Relâchement du bouton : saut court, fin du plané.",
+  "MovementDirector.set_context": "Activer le vol libre, un véhicule, un mode « cinématique » sans contrôle.",
+  "MovementDirector.set_running": "Touche de course, partagée par la marche et la nage.",
+  "MovementDirector.set_vertical_input": "Monter / descendre à la nage, en vol ou sur une corde en 3D.",
+  "MovementDirector.update_context": "Appliquer tout de suite un changement (téléportation dans l'eau) sans attendre l'image suivante.",
+  "MovementDirector.context_changed": "Changer d'animation, de son, de caméra ou de particules à chaque changement de mode.",
+  "MovementContext.components": "Désigner le ou les composants actifs dans cette situation (plusieurs possibles : nage + composant visuel).",
+  "MovementContext.condition": "Choisir quand la règle s'applique, sans code.",
+  "MovementContext.context_name": "Nom lu par <code>set_context</code> et <code>context_changed</code> (animation, HUD).",
+  "MovementContext.expression": "Condition sur mesure : vitesse, pente, objet tenu, variable du joueur.",
+  "MovementContext.priority": "Décider qui gagne quand deux situations se chevauchent (corde dans l'eau, mur sous l'eau…).",
+  "MovementContext.evaluate_expression": "Tester une expression dans la console avant de la mettre en jeu.",
+  "MovementContext.CONDITION_ALWAYS": "Contexte par défaut (sol), avec la priorité la plus basse.",
+  "MovementContext.CONDITION_ON_FLOOR": "Mode « au sol » distinct d'un mode aérien.",
+  "MovementContext.CONDITION_IN_AIR": "Planeur, contrôle aérien dédié, battements d'ailes.",
+  "MovementContext.CONDITION_IN_WATER": "Nage dès qu'on entre dans une WaterArea.",
+  "MovementContext.CONDITION_ON_WALL": "Glissade et saut mural.",
+  "MovementContext.CONDITION_ON_ROPE": "Escalade de corde après <code>try_grab()</code>.",
+  "MovementContext.CONDITION_KNOCKED": "Contexte sans composant pour laisser le recul déplacer le corps.",
+  "MovementContext.CONDITION_MANUAL": "Vol libre, véhicule, cinématique : activés seulement par code.",
+  "MovementContext.CONDITION_CUSTOM": "Toute autre règle exprimable en une ligne (glissade en pente, sprint rapide…)."
+};
+</script>
+<script src="../../assets/modules.js"></script>
+<script src="../../assets/api-data.js"></script>
+<script src="../../assets/doc.js"></script>
+</body>
+</html>

@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="StyleIfBehavior" inherits="WidgetBehavior" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💻️ Comportement « Style si » : applique un InterfaceStyle aux cibles tant que la condition est vraie.
 	</brief_description>
 	<description>
+		Le style (thème, teintes, matériau) est posé par-dessus le style de base de la cible, puis retiré quand la condition redevient fausse.
+		[codeblock]
+		var alerte := StyleIfBehavior.new()
+		alerte.get_condition().method = &amp;"est_en_danger"
+		alerte.get_condition().source = ArgumentBinding.SOURCE_METHOD
+		alerte.style = InterfaceStyle.new()
+		alerte.style.modulate = Color(1, 0.4, 0.4)
+		alerte.targets = PackedStringArray(["vie"])
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
-		<member name="condition" type="ArgumentBinding" setter="set_condition" getter="get_condition" overrides="WidgetBehavior" />
 		<member name="style" type="InterfaceStyle" setter="set_style" getter="get_style">
+			Style appliqué tant que la condition est vraie. Vide : aucun effet.
 		</member>
 	</members>
 </class>

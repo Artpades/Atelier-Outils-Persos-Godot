@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTSetValue" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Écrit une valeur calculée dans le tableau noir : [member key] = résultat de [member value_expression].
 	</brief_description>
 	<description>
+		Réussit immédiatement après l'écriture ; échoue si [member key] est vide, s'il n'y a pas de tableau noir, ou si l'expression échoue (le tableau noir n'est alors pas modifié). Dans l'expression, les clés du tableau noir sont accessibles par leur nom, ainsi que [code]agent[/code] et [code]blackboard[/code] ; les méthodes de l'agent s'appellent directement ([code]is_on_floor()[/code]).
+		[codeblock]
+		var memoriser := BTSetValue.new()
+		memoriser.key = "derniere_position"
+		memoriser.value_expression = "agent.global_position"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="key" type="String" setter="set_key" getter="get_key" default="&quot;&quot;">
+			Clé du tableau noir à écrire.
 		</member>
 		<member name="value_expression" type="String" setter="set_value_expression" getter="get_value_expression" default="&quot;&quot;">
+			Expression dont le résultat est écrit (ex. [code]munitions - 1[/code], [code]true[/code], [code]"alerte"[/code]).
 		</member>
 	</members>
 </class>

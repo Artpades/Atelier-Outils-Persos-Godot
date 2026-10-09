@@ -9,34 +9,37 @@
 
 namespace godot
 {
-// Catalogue des fonctions de dessin : méthodes statiques draw_* de Gizmos2D / Gizmos3D lues dans ClassDB
-// (aucune liste écrite en dur). Une fonction est désignée par "Classe.méthode" (ex: "Gizmos3D.draw_3D_cube").
-// Le premier paramètre (RID du gizmo) est toujours fourni par le GizmoHost : les « paramètres utilisateur »
-// commencent au deuxième.
+/// Catalogue des fonctions de dessin : méthodes statiques draw_* de Gizmos2D / Gizmos3D lues dans ClassDB
+/// (aucune liste écrite en dur). Une fonction est désignée par "Classe.méthode" (ex: "Gizmos3D.draw_3D_cube").
+/// Le premier paramètre (RID du gizmo) est toujours fourni par le GizmoHost : les « paramètres utilisateur »
+/// commencent au deuxième.
 class GizmoCatalog
 {
   public:
     GizmoCatalog() = delete; // Classe purement statique
 
+    /// Toutes les fonctions de dessin disponibles, triées ("Gizmos2D.draw_2D_circle"...).
     static PackedStringArray functions();
+    /// Description ClassDB de la fonction (format get_method_list) ; vide si elle n'existe pas.
     static Dictionary method_info(const String &p_function);
     static String class_of(const String &p_function);
     static String method_of(const String &p_function);
     static bool is_3d(const String &p_function);
+    /// Nombre de paramètres hors RID ; user_param(i) décrit le i-ème.
     static int user_param_count(const String &p_function);
     static Dictionary user_param(const String &p_function, int p_index);
-    // Valeur par défaut d'un paramètre utilisateur (default_args, sinon défaut du type).
+    /// Valeur par défaut d'un paramètre utilisateur (default_args, sinon défaut du type).
     static Variant user_default(const String &p_function, int p_index);
 };
 
-// Un dessin automatique (port de GizmoEntry C#) : fonction du catalogue + un ArgumentBinding par paramètre
-// utilisateur (constante ou propriété de la cible), visibilité et politique de redessin.
+/// Un dessin automatique (port de GizmoEntry C#) : fonction du catalogue + un ArgumentBinding par paramètre
+/// utilisateur (constante ou propriété de la cible), visibilité et politique de redessin.
 class GizmoEntry : public Resource
 {
     GDCLASS(GizmoEntry, Resource)
 
   public:
-    // Valeurs enregistrées dans les .tres : jamais renumérotées.
+    /// Valeurs enregistrées dans les .tres : jamais renumérotées.
     enum Visibility
     {
         VISIBILITY_EVERYWHERE = 0,
@@ -62,15 +65,15 @@ class GizmoEntry : public Resource
     void _validate_property(PropertyInfo &p_property) const;
 
   public:
-    // Arguments neufs pour une fonction : constantes par défaut, typées comme les paramètres.
+    /// Arguments neufs pour une fonction : constantes par défaut, typées comme les paramètres.
     static TypedArray<ArgumentBinding> make_default_arguments(const String &p_function);
 
     void set_enabled(bool p_enabled);
     bool get_enabled() const;
-    // Changer de fonction recrée les arguments (valeurs par défaut de la nouvelle fonction).
+    /// Changer de fonction recrée les arguments (valeurs par défaut de la nouvelle fonction).
     void set_function(const String &p_function);
     String get_function() const;
-    // Fonction ET arguments en une fois (annulation d'un changement de fonction, sans régénérer les arguments).
+    /// Fonction ET arguments en une fois (annulation d'un changement de fonction, sans régénérer les arguments).
     void restore(const String &p_function, const TypedArray<ArgumentBinding> &p_arguments);
     void set_arguments(const TypedArray<ArgumentBinding> &p_arguments);
     TypedArray<ArgumentBinding> get_arguments() const;
@@ -79,11 +82,11 @@ class GizmoEntry : public Resource
     void set_redraw(Redraw p_redraw);
     Redraw get_redraw() const;
 
-    // Vrai si l'entrée doit être dessinée dans le contexte courant (éditeur ou jeu).
+    /// Vrai si l'entrée doit être dessinée dans le contexte courant (éditeur ou jeu).
     bool is_shown_now() const;
 };
 
-// Liste des dessins d'un objet (port de GizmoRegistry C#).
+/// Liste des dessins d'un objet (port de GizmoRegistry C#).
 class GizmoRegistry : public Resource
 {
     GDCLASS(GizmoRegistry, Resource)

@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SaveDataBinder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💾 Nœud qui relie un [SaveData] aux propriétés d'un nœud ou d'une ressource : sauvegarde et rechargement sans code de sérialisation.
 	</brief_description>
 	<description>
+		Liste les propriétés à conserver ([member tracked_properties]) d'une cible ([member node_target], sinon [member resource_target]) et les synchronise avec le dictionnaire du [member save_data] :
+		- [method pull_to_save_data] copie les valeurs de la cible dans les données ; [method save] le fait puis écrit le fichier.
+		- [method push_from_save_data] applique les données sur la cible ; [method load] relit d'abord le fichier.
+		Les valeurs passent par JSON : une propriété de type [Vector2], [Color], [Transform3D]... est relue sous forme de texte et n'est pas réappliquée (la cible garde sa valeur). Préférer des propriétés numériques, booléennes ou textuelles, ou sauvegarder [code]position.x[/code] et [code]position.y[/code] dans des propriétés dédiées.
+		[codeblock]
+		@onready var lien: SaveDataBinder = $SaveDataBinder
+
+		func _ready() -&gt; void:
+			lien.save_data = SaveData.new()
+			lien.save_data.set_system_id("joueur")
+			lien.node_target = $Joueur
+			lien.tracked_properties = PackedStringArray(["pv", "or", "niveau"])
+			lien.load() # sans fichier : rien n'est changé
+
+		func _notification(what: int) -&gt; void:
+			if what == NOTIFICATION_WM_CLOSE_REQUEST:
+				lien.save()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,37 +29,46 @@
 		<method name="delete">
 			<return type="void" />
 			<description>
+				Supprime le fichier de sauvegarde du [member save_data] (s'il existe). Les valeurs en mémoire ne changent pas. Erreur si [member save_data] est nul.
 			</description>
 		</method>
 		<method name="load">
 			<return type="void" />
 			<description>
+				Relit le fichier du [member save_data] via [method SaveManager.load] ; s'il existe et se lit correctement, remplace les données en mémoire puis appelle [method push_from_save_data]. Sans fichier (ou avec une mauvaise clé), rien n'est modifié. Erreur si [member save_data] est nul.
 			</description>
 		</method>
 		<method name="pull_to_save_data">
 			<return type="void" />
 			<description>
+				Copie la valeur de chaque propriété de [member tracked_properties] de la cible dans le dictionnaire du [member save_data] (clé = nom de la propriété). N'écrit rien sur disque. Sans cible ou sans [member save_data], ne fait rien.
 			</description>
 		</method>
 		<method name="push_from_save_data">
 			<return type="void" />
 			<description>
+				Applique sur la cible chaque propriété de [member tracked_properties] présente dans les données ; les autres gardent leur valeur. Une valeur de type incompatible est ignorée par Godot sans erreur.
 			</description>
 		</method>
 		<method name="save">
 			<return type="void" />
 			<description>
+				Appelle [method pull_to_save_data], puis écrit le fichier via [method SaveManager.save] avec la [SaveConfig] du [member save_data]. Erreur si [member save_data] est nul.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="node_target" type="Node" setter="set_node_target" getter="get_node_target">
+			Nœud dont les propriétés sont sauvegardées. Prioritaire sur [member resource_target]. Mémorisé par identifiant d'instance : s'il est libéré, la cible redevient [member resource_target] (ou aucune) sans erreur.
 		</member>
 		<member name="resource_target" type="Resource" setter="set_resource_target" getter="get_resource_target">
+			Ressource dont les propriétés sont sauvegardées, utilisée seulement si [member node_target] est vide (réglages, statistiques, inventaire en [Resource]).
 		</member>
 		<member name="save_data" type="SaveData" setter="set_save_data" getter="get_save_data">
+			Données et réglages de fichier (identifiant, chiffrement, emplacement). Obligatoire pour [method save], [method load] et [method delete].
 		</member>
 		<member name="tracked_properties" type="PackedStringArray" setter="set_tracked_properties" getter="get_tracked_properties" default="PackedStringArray()">
+			Noms des propriétés de la cible à sauvegarder (ex. [code]"pv"[/code], [code]"visible"[/code]). Les sous-propriétés ([code]"position:x"[/code]) ne sont pas prises en charge.
 		</member>
 	</members>
 </class>

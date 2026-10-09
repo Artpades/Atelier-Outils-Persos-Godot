@@ -16,6 +16,8 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
 
+#include <initializer_list>
+
 using namespace godot;
 
 static const char32_t *const TOOL_NAMES[DrawingCanvas::TOOL_MAX] = {
@@ -47,6 +49,11 @@ static PackedStringArray to_strings(const char32_t *const *p_items, int p_count)
         strings.push_back(String(p_items[i]));
     }
     return strings;
+}
+
+static PackedStringArray to_strings(std::initializer_list<const char32_t *> p_items)
+{
+    return to_strings(p_items.begin(), (int)p_items.size());
 }
 
 DrawingStudio::DrawingStudio() { _build(); }
@@ -730,7 +737,7 @@ void DrawingStudio::_rebuild_tool_options()
         HSlider *expand =
             _add_slider(tool_options, U"Étendre", -16, 16, 1, canvas->get_fill_expand(), callable_mp(this, &DrawingStudio::_on_canvas_property).bind(StringName("fill_expand"), 1.0), false, U" px");
         expand->set_tooltip_text(U"Agrandit la zone remplie (glisse sous les traits)");
-        _add_options(tool_options, U"Référence", to_strings((const char32_t *const[]){U"Calque courant", U"Tous les calques"}, 2), canvas->get_fill_reference(),
+        _add_options(tool_options, U"Référence", to_strings({U"Calque courant", U"Tous les calques"}), canvas->get_fill_reference(),
                      callable_mp(this, &DrawingStudio::_on_canvas_option).bind(StringName("fill_reference")));
         _add_check(tool_options, U"Zone contiguë seulement", canvas->get_fill_contiguous(), callable_mp(this, &DrawingStudio::_on_canvas_bool).bind(StringName("fill_contiguous")));
         break;
@@ -744,13 +751,13 @@ void DrawingStudio::_rebuild_tool_options()
     case DrawingCanvas::TOOL_SELECT_LASSO:
     case DrawingCanvas::TOOL_SELECT_WAND:
     {
-        _add_options(tool_options, U"Mode", to_strings((const char32_t *const[]){U"Remplacer", U"Ajouter (Maj)", U"Soustraire (Alt)", U"Intersection"}, 4), canvas->get_selection_mode(),
+        _add_options(tool_options, U"Mode", to_strings({U"Remplacer", U"Ajouter (Maj)", U"Soustraire (Alt)", U"Intersection"}), canvas->get_selection_mode(),
                      callable_mp(this, &DrawingStudio::_on_canvas_option).bind(StringName("selection_mode")));
         if (tool == DrawingCanvas::TOOL_SELECT_WAND)
         {
             _add_slider(tool_options, U"Tolérance", 0, 100, 1, canvas->get_wand_tolerance() * 100.0, callable_mp(this, &DrawingStudio::_on_canvas_property).bind(StringName("wand_tolerance"), 100.0),
                         false, U" %");
-            _add_options(tool_options, U"Référence", to_strings((const char32_t *const[]){U"Calque courant", U"Tous les calques"}, 2), canvas->get_fill_reference(),
+            _add_options(tool_options, U"Référence", to_strings({U"Calque courant", U"Tous les calques"}), canvas->get_fill_reference(),
                          callable_mp(this, &DrawingStudio::_on_canvas_option).bind(StringName("fill_reference")));
         }
         add_section(tool_options, U"Sélection");
@@ -820,7 +827,7 @@ void DrawingStudio::_build_brush_options(bool p_eraser)
     _add_check(tool_options, U"Orienter selon le trait", brush->get_follow_direction(), callable_mp(this, &DrawingStudio::_on_brush_bool).bind(StringName("follow_direction")));
     if (!p_eraser)
     {
-        _add_options(tool_options, U"Mode", to_strings((const char32_t *const[]){U"Normal", U"Derrière", U"Gomme"}, 3), brush->get_blend_mode(), callable_mp(this, &DrawingStudio::_on_brush_blend));
+        _add_options(tool_options, U"Mode", to_strings({U"Normal", U"Derrière", U"Gomme"}), brush->get_blend_mode(), callable_mp(this, &DrawingStudio::_on_brush_blend));
     }
 
     // 📈 Dynamique : pression et vitesse, pour la taille et pour l'opacité.

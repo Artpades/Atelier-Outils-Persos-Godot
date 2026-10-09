@@ -22,8 +22,10 @@ class Interactable : public Node
     void set_one_shot(bool p_one_shot) { one_shot = p_one_shot; }
     bool is_one_shot() const { return one_shot; }
 
+    /// Émet interacted(p_by) si activé (désactive l'objet si one_shot). Ne vérifie pas la portée.
     bool interact(Node *p_by);
     Vector3 get_world_position() const;
+    /// Vrai si p_node est à portée de la position du parent (et n'est pas ce parent).
     bool is_in_range_of(Node *p_node) const;
 
     /// Interactable activé le plus proche de p_from, à portée (de lui-même) ; nullptr s'il n'y en a pas.
@@ -39,6 +41,7 @@ class Interactable : public Node
     bool enabled = true;
     bool one_shot = false;
 
+    /// Interactable présents dans l'arbre (en jeu), parcourus par find_nearest.
     static LocalVector<ObjectID> instances;
 };
 } // namespace godot

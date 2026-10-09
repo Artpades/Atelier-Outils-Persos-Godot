@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="WallMovement2D" inherits="MovementComponent" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🧗 Déplacement mural 2D d'un [CharacterBody2D] : glissade ralentie le long d'un mur, saut mural et escalade.
 	</brief_description>
 	<description>
+		Composant de mouvement ([MovementComponent]) à placer sous un [CharacterBody2D] (vue de côté), en général activé par un [MovementDirector] dans le contexte « mur » (contact avec un mur sans être au sol).
+		- Contre un mur, en poussant vers lui (voir [member require_input_toward_wall]) : la chute est plafonnée à [member slide_speed].
+		- [method MovementComponent.jump] contre un mur : saut mural, loin du mur ([member jump_away_velocity]) et vers le haut ([member jump_up_velocity]).
+		- Avec [member can_climb] : [code]move.y[/code] grimpe ou descend, sans gravité.
+		- Hors du mur : gravité et contrôle horizontal ([member air_speed]).
+		Les [ForceZone2D] s'ajoutent à la vitesse ; le recul ([Knockback2D]) n'est pas pris en compte.
+		[codeblock]
+		func _ready() -&gt; void:
+			$WallMovement2D.can_climb = true # murs d'escalade
+			$WallMovement2D.wall_jumped.connect(func(): $AnimationPlayer.play("saut_mural"))
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,42 +22,55 @@
 		<method name="is_climbing" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le corps grimpe (contact avec un mur et [member can_climb]) à cette image.
 			</description>
 		</method>
 		<method name="is_sliding" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le corps glisse le long d'un mur à cette image.
 			</description>
 		</method>
 		<method name="is_touching_wall" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] si le [CharacterBody2D] touche un mur sans être au sol (contact détecté au dernier [code]move_and_slide[/code]).
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="air_acceleration" type="float" setter="set_air_acceleration" getter="get_air_acceleration" default="900.0">
+			Accélération horizontale, en px/s², quand le composant est actif mais que le corps ne glisse pas (mur quitté, ou mur touché sans pousser vers lui).
 		</member>
 		<member name="air_speed" type="float" setter="set_air_speed" getter="get_air_speed" default="200.0">
+			Vitesse horizontale maximale, en px/s, dans ces mêmes cas. À régler comme la vitesse de marche du composant de sol, sinon le contrôle change brutalement au contact d'un mur.
 		</member>
 		<member name="can_climb" type="bool" setter="set_can_climb" getter="get_can_climb" default="false">
+			Si [code]true[/code], toucher un mur fait grimper au lieu de glisser : [code]move.y[/code] monte (-1) ou descend (1) à [member climb_speed], sans gravité ; sans commande, le corps reste accroché.
 		</member>
 		<member name="climb_speed" type="float" setter="set_climb_speed" getter="get_climb_speed" default="120.0">
+			Vitesse d'escalade, en px/s.
 		</member>
 		<member name="jump_away_velocity" type="float" setter="set_jump_away_velocity" getter="get_jump_away_velocity" default="320.0">
+			Vitesse horizontale, en px/s, donnée par un saut mural, dans le sens de la normale du mur (loin du mur).
 		</member>
 		<member name="jump_up_velocity" type="float" setter="set_jump_up_velocity" getter="get_jump_up_velocity" default="420.0">
+			Vitesse verticale, en px/s, donnée par un saut mural.
 		</member>
 		<member name="require_input_toward_wall" type="bool" setter="set_require_input_toward_wall" getter="get_require_input_toward_wall" default="true">
+			Si [code]true[/code], la glissade ralentie n'a lieu que si la commande pousse vers le mur ; sinon le corps tombe normalement. Si [code]false[/code], tout contact avec un mur fait glisser.
 		</member>
 		<member name="slide_speed" type="float" setter="set_slide_speed" getter="get_slide_speed" default="110.0">
+			Vitesse de chute maximale, en px/s, pendant la glissade le long d'un mur.
 		</member>
 		<member name="stick_velocity" type="float" setter="set_stick_velocity" getter="get_stick_velocity" default="40.0">
+			Petite vitesse, en px/s, poussant vers le mur pendant la glissade et l'escalade, pour que le moteur continue à détecter le contact.
 		</member>
 	</members>
 	<signals>
 		<signal name="wall_jumped">
 			<description>
+				Émis à chaque saut mural.
 			</description>
 		</signal>
 	</signals>

@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTNode" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Nœud d'arbre de comportement (classe de base) : s'exécute à chaque tick et renvoie [constant SUCCESS], [constant FAILURE] ou [constant RUNNING].
 	</brief_description>
 	<description>
+		Tous les nœuds d'un [BehaviorTree] en héritent. À chaque tick, [method execute] appelle [method _on_enter] au premier passage, puis [method _tick] ; quand le statut n'est plus [constant RUNNING] (ou si le nœud est interrompu par [method abort]), [method _on_exit] est appelé.
+		Seuls les enfants de type [BTNode] participent à l'arbre : d'autres nœuds peuvent y être rangés sans gêner.
+		Pour écrire une action ou une condition, étendre [BTAction] ou [BTCondition] et redéfinir [method _tick]. Redéfinir [method _tick] sur une classe native ([BTWait], [BTSequence]...) [b]remplace[/b] entièrement son comportement natif.
+		[codeblock]
+		extends BTAction
+
+		func _on_enter() -&gt; void:
+			get_agent().play_animation("course")
+
+		func _tick(_delta: float) -&gt; int:
+			var cible: Node2D = get_blackboard().get_value("cible")
+			if cible == null:
+				return FAILURE
+			get_agent().destination = cible.global_position
+			return SUCCESS if get_agent().global_position.distance_to(cible.global_position) &lt; 8.0 else RUNNING
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,98 +27,118 @@
 		<method name="_on_enter" qualifiers="virtual">
 			<return type="void" />
 			<description>
+				À redéfinir : appelé quand le nœud commence une nouvelle exécution (premier tick, ou premier tick après avoir terminé / été interrompu).
 			</description>
 		</method>
 		<method name="_on_exit" qualifiers="virtual">
 			<return type="void" />
 			<description>
+				À redéfinir : appelé quand le nœud termine ([constant SUCCESS] ou [constant FAILURE]) ou est interrompu par [method abort]. Idéal pour arrêter une animation ou libérer une réservation.
 			</description>
 		</method>
 		<method name="_tick" qualifiers="virtual">
 			<return type="int" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				À redéfinir : logique du nœud, appelée à chaque tick tant qu'il est exécuté. [param delta] est le temps écoulé depuis le tick précédent de l'arbre. Doit renvoyer [constant SUCCESS], [constant FAILURE] ou [constant RUNNING] ; toute autre valeur compte comme [constant FAILURE].
 			</description>
 		</method>
 		<method name="abort">
 			<return type="void" />
 			<description>
+				Interrompt le nœud s'il est en cours : ses enfants en cours sont interrompus d'abord, puis [method _on_exit] est appelé. Sans effet s'il n'est pas en cours.
 			</description>
 		</method>
 		<method name="execute">
 			<return type="int" enum="BTNode.Status" />
 			<param index="0" name="delta" type="float" />
 			<description>
+				Exécute le nœud pour un tick et renvoie son statut. Appelé par le parent ; à n'appeler soi-même que pour écrire un composite ou un décorateur par script.
 			</description>
 		</method>
 		<method name="get_agent" qualifiers="const">
 			<return type="Node" />
 			<description>
+				Renvoie l'agent piloté par l'arbre ([method BehaviorTree.get_agent_node]), ou [code]null[/code] hors d'un arbre.
 			</description>
 		</method>
 		<method name="get_behavior_tree" qualifiers="const">
 			<return type="BehaviorTree" />
 			<description>
+				Renvoie le [BehaviorTree] qui contient ce nœud (en remontant les parents [BTNode]), ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_blackboard" qualifiers="const">
 			<return type="Blackboard" />
 			<description>
+				Renvoie le tableau noir de l'arbre, ou [code]null[/code] hors d'un arbre (ou avant le premier tick si aucun n'est assigné).
 			</description>
 		</method>
 		<method name="get_bt_child" qualifiers="const">
 			<return type="BTNode" />
 			<param index="0" name="index" type="int" />
 			<description>
+				Renvoie le [param index]-ième enfant de type [BTNode], ou [code]null[/code].
 			</description>
 		</method>
 		<method name="get_bt_child_count" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie le nombre d'enfants de type [BTNode].
 			</description>
 		</method>
 		<method name="get_bt_children" qualifiers="const">
 			<return type="BTNode[]" />
 			<description>
+				Renvoie les enfants de type [BTNode], dans l'ordre de l'arbre de scène.
 			</description>
 		</method>
 		<method name="get_debug_info" qualifiers="const">
 			<return type="String" />
 			<description>
+				Détail affiché par [BehaviorGraphView] sous le nom du nœud (compteur, temps restant, expression...). Vide pour la classe de base.
 			</description>
 		</method>
 		<method name="get_debug_kind" qualifiers="const">
 			<return type="String" />
 			<description>
+				Catégorie affichée par [BehaviorGraphView] : [code]"composite"[/code], [code]"decorator"[/code], [code]"action"[/code] ou [code]"condition"[/code].
 			</description>
 		</method>
 		<method name="get_last_status" qualifiers="const">
 			<return type="int" />
 			<description>
+				Renvoie le dernier statut renvoyé par [method execute], ou [code]-1[/code] si le nœud n'a jamais été exécuté.
 			</description>
 		</method>
 		<method name="get_last_tick" qualifiers="const">
 			<return type="int" />
 			<description>
+				Numéro du tick de l'arbre ([method BehaviorTree.get_tick_count]) lors de la dernière exécution : permet de savoir si le nœud a été exécuté au dernier tick.
 			</description>
 		</method>
 		<method name="get_running_time" qualifiers="const">
 			<return type="float" />
 			<description>
+				Temps cumulé (somme des [param delta] des ticks) depuis le début de l'exécution en cours.
 			</description>
 		</method>
 		<method name="is_running" qualifiers="const">
 			<return type="bool" />
 			<description>
+				Renvoie [code]true[/code] entre [method _on_enter] et [method _on_exit].
 			</description>
 		</method>
 	</methods>
 	<constants>
 		<constant name="SUCCESS" value="0" enum="Status">
+			Le nœud a réussi.
 		</constant>
 		<constant name="FAILURE" value="1" enum="Status">
+			Le nœud a échoué.
 		</constant>
 		<constant name="RUNNING" value="2" enum="Status">
+			Le nœud n'a pas fini : il sera de nouveau exécuté au prochain tick.
 		</constant>
 	</constants>
 </class>

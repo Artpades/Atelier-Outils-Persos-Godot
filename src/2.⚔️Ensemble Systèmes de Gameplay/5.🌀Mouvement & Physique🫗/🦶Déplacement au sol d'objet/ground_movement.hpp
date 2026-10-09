@@ -23,6 +23,7 @@ struct GroundSettings
     double jump_cut = 0.5;
 
     // État
+    /// Temps de grâce restant, sauts consommés depuis le dernier contact au sol, coupure de saut déjà faite, sol à l'image précédente (signal landed).
     double coyote = 0.0;
     int jumps_used = 0;
     bool jump_cut_done = true;
@@ -66,6 +67,7 @@ class GroundMovement2D : public MovementComponent
     GDCLASS(GroundMovement2D, MovementComponent)
 
   public:
+    /// Vue de côté (gravité, saut) ou vue de dessus (déplacement libre en x / y).
     enum Mode
     {
         MODE_PLATFORMER,
@@ -91,8 +93,10 @@ class GroundMovement2D : public MovementComponent
   private:
     Mode mode = MODE_PLATFORMER;
     NodePath visual_path;
+    /// Direction du regard : (±1, 0) en plateforme, dernière direction commandée en vue de dessus.
     Vector2 facing = Vector2(1, 0);
 
+    /// Retourne le visuel (flip_h, sinon signe de scale.x) selon facing.
     void _update_visual();
 };
 
@@ -134,6 +138,7 @@ class GroundMovement3D : public MovementComponent
     bool rotate_toward_movement = true;
     double turn_speed = 12.0;
     NodePath visual_path;
+    /// Dernière direction de marche dans le monde (x, z).
     Vector2 facing = Vector2(0, -1);
 };
 } // namespace godot

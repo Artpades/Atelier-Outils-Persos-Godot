@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="BTCondition" inherits="BTNode" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		🤾 Condition : réussit si [member expression] est vraie, échoue sinon — sans écrire de script.
 	</brief_description>
 	<description>
+		L'expression est une [Expression] Godot : les clés du tableau noir sont accessibles par leur nom, ainsi que [code]agent[/code] et [code]blackboard[/code] ; les méthodes de l'agent s'appellent directement ([code]is_on_floor()[/code]). Une expression invalide ou dont l'exécution échoue renvoie [constant BTNode.FAILURE] (avertissement dans la console, une fois par erreur ; voir [method get_error]). Pour une condition codée, redéfinir [method BTNode._tick] : l'expression est alors ignorée.
+		[codeblock]
+		var en_danger := BTCondition.new()
+		en_danger.expression = "vie &lt; 20 and agent.ennemis_proches() &gt; 0"
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -10,11 +16,13 @@
 		<method name="get_error" qualifiers="const">
 			<return type="String" />
 			<description>
+				Dernière erreur d'analyse ou d'exécution de [member expression], ou une chaîne vide si la dernière évaluation a réussi.
 			</description>
 		</method>
 	</methods>
 	<members>
 		<member name="expression" type="String" setter="set_expression" getter="get_expression" default="&quot;&quot;">
+			Expression booléenne évaluée à chaque tick (ex. [code]distance &lt; 3 and not blesse[/code]). Vide : la condition échoue.
 		</member>
 	</members>
 </class>

@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SaveSerializer" inherits="Object" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		💾 Conversion d'un [SaveData] en texte JSON et inversement.
 	</brief_description>
 	<description>
+		Classe utilitaire statique (non instanciable). Le JSON produit a deux clés : [code]system_id[/code] et [code]data[/code].
+		La conversion utilise [method JSON.stringify] : les types sans équivalent JSON ([Vector2], [Color], [Object]...) deviennent leur représentation texte, et tous les nombres sont relus comme des [float].
+		[codeblock]
+		var donnees := SaveData.new()
+		donnees.set_system_id("debug")
+		donnees.set_data({"vies": 3})
+		print(SaveSerializer.serialize(donnees)) # {"data":{"vies":3},"system_id":"debug"}
+		var copie := SaveSerializer.deserialize('{"system_id":"debug","data":{"vies":3}}')
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -11,12 +21,14 @@
 			<return type="SaveData" />
 			<param index="0" name="json" type="String" />
 			<description>
+				Crée un [SaveData] à partir de [param json]. Renvoie [code]null[/code] si le texte n'est pas un objet JSON valide. Une clé [code]data[/code] absente ou qui n'est pas un objet donne des données vides.
 			</description>
 		</method>
 		<method name="serialize" qualifiers="static">
 			<return type="String" />
 			<param index="0" name="save_data" type="SaveData" />
 			<description>
+				Renvoie le JSON (sur une ligne) de l'identifiant et des données de [param save_data]. Renvoie un texte vide si [param save_data] est nul.
 			</description>
 		</method>
 	</methods>
