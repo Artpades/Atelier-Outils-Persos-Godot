@@ -2,6 +2,7 @@
 #define NETWORK_SESSION_HPP
 
 #include "../🔐Chiffrement/secure_channel.hpp"
+#include "../🚪Accès/server_access_policy.hpp"
 
 #include <godot_cpp/classes/crypto_key.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
@@ -66,6 +67,9 @@ class NetworkSession : public Node
         REASON_SECURITY_MISMATCH,  ///< Exigences de chiffrement incompatibles.
         REASON_INVALID_HANDSHAKE,
         REASON_KICKED,
+        REASON_ACCESS_DENIED,      ///< Compte, invitation ou validation refusés.
+        REASON_BANNED,             ///< Appareil ou adresse bannis.
+        REASON_TOO_MANY_ATTEMPTS,  ///< Trop d'échecs depuis cette adresse : bloquée temporairement.
     };
 
   private:
@@ -109,6 +113,20 @@ class NetworkSession : public Node
     {
         PackedByteArray nonce;
         Dictionary info;
+        String address;
+        String fingerprint;
+        int role = ServerAccessPolicy::ROLE_PLAYER;
+        /// En attente de approve_peer / deny_peer.
+        bool awaiting_approval = false;
+        /// Code d'invitation présenté, consommé à l'acceptation.
+        String invite;
+    };
+
+    /// Échecs d'authentification d'une adresse (protection contre l'essai de mots de passe en série).
+    struct Failures
+    {
+        int count = 0;
+        uint64_t blocked_until_msec = 0;
     };
 
 #pragma region Réglages
@@ -131,6 +149,13 @@ class NetworkSession : public Node
     bool end_to_end_encryption = false;
     Ref<CryptoKey> identity_key;
     uint64_t discovery_id = 0;
+
+    bool dedicated_server = false;
+    Ref<ServerAccessPolicy> access_policy;
+    String account_name;
+    String account_password;
+    String invite_code;
+    String expected_server_fingerprint;
 #pragma endregion
 
 #pragma region État
@@ -147,6 +172,13 @@ class NetworkSession : public Node
     bool session_e2e = false;
     bool session_transport_encrypted = false;
     bool session_password = false;
+    bool session_dedicated = false;
+    /// Client : empreinte de la clé du serveur (signature du défi vérifiée), et si elle était attendue.
+    String server_fingerprint;
+    bool server_verified = false;
+    /// Client : en attente de validation par le serveur jusqu'à cette heure (0 sinon).
+    uint64_t approval_deadline_msec = 0;
+    std::map<String, Failures> failures;
     int active_port = 0;
     uint64_t connect_start_msec = 0;
     Reason last_reason = REASON_NONE;
@@ -183,6 +215,12 @@ class NetworkSession : public Node
     void _send_auth(int p_id, const Dictionary &p_message);
     void _host_handle_hello(int p_id, const Dictionary &p_hello);
     void _host_reject(int p_id, Reason p_reason, const String &p_message);
+    void _host_accept(int p_id, bool p_remember);
+    Dictionary _pending_request(int p_id) const;
+    /// Vrai si un échec de plus depuis p_address la bloque.
+    void _register_failure(const String &p_address);
+    PackedByteArray _signature_digest(const PackedByteArray &p_nonce, const String &p_label) const;
+    bool _is_known_peer(int p_id) const;
     void _client_handle_challenge(const Dictionary &p_challenge);
     void _client_handle_accept(const Dictionary &p_accept);
     void _client_handle_roster(const Dictionary &p_roster);
@@ -253,13 +291,40 @@ class NetworkSession : public Node
     Error send_message(const Variant &p_data, int p_peer_id = 0, bool p_reliable = true, int p_channel = 0);
 #pragma endregion
 
+#pragma region Accès (serveur)
+    /// Serveur : demandes en attente de validation (Array de Dictionary, comme access_requested).
+    Array get_pending_requests() const;
+    /// Serveur : accepte un appareil en attente. p_remember : il ne sera plus validé à la main.
+    /// p_role : rôle donné (-1 : celui prévu par les règles d'accès).
+    Error approve_peer(int p_peer_id, bool p_remember = true, int p_role = -1);
+    Error deny_peer(int p_peer_id, const String &p_message = "");
+    /// Serveur : bannit l'appareil (son empreinte), et son adresse IP si p_ban_address, puis l'expulse.
+    Error ban(int p_peer_id, const String &p_message = "", bool p_ban_address = false);
+    /// Adresse IP d'un pair connecté (serveur), ou "".
+    String get_peer_address(int p_peer_id) const;
+    bool is_dedicated_session() const { return session_dedicated; }
+#pragma endregion
+
+#pragma region Code de connexion
+    /// Code à partager pour rejoindre ce serveur depuis Internet : gtk://adresse:port?t=enet&tls=1&fp=...&inv=...
+    /// p_address : adresse publique (ou nom de domaine) ; p_invite : code d'invitation inclus (facultatif).
+    String create_connection_code(const String &p_address, const String &p_invite = "");
+    /// Décode un code de connexion : { address, port, transport, transport_encryption, fingerprint, invite }
+    /// (Dictionary vide s'il est invalide).
+    static Dictionary parse_connection_code(const String &p_code);
+    /// Rejoint le serveur d'un code de connexion, en vérifiant son identité (empreinte du code).
+    Error join_with_code(const String &p_code);
+#pragma endregion
+
 #pragma region Sécurité
     bool is_transport_encrypted() const { return session_transport_encrypted; }
     bool is_end_to_end_active() const { return session_e2e; }
     /// Vrai quand les messages avec p_peer_id sont chiffrés de bout en bout dans les deux sens.
     bool has_secure_link(int p_peer_id) const;
-    /// Empreinte de notre clé d'identité (vide si pas de chiffrement de bout en bout).
+    /// Empreinte de notre clé d'identité (vide si cet appareil n'en a pas).
     String get_local_fingerprint() const;
+    /// Client : empreinte de la clé du serveur (dont la signature a été vérifiée). Serveur : la sienne.
+    String get_server_fingerprint() const;
     /// Empreinte de la clé de p_peer_id telle que nous l'avons reçue. Si elle diffère de ce que ce joueur
     /// lit chez lui (get_local_fingerprint), un intermédiaire a substitué sa clé.
     String get_peer_fingerprint(int p_peer_id) const;
@@ -303,6 +368,18 @@ class NetworkSession : public Node
     bool is_end_to_end_encryption_enabled() const { return end_to_end_encryption; }
     void set_identity_key(const Ref<CryptoKey> &p_key) { identity_key = p_key; }
     Ref<CryptoKey> get_identity_key() const { return identity_key; }
+    void set_dedicated_server(bool p_dedicated) { dedicated_server = p_dedicated; }
+    bool is_dedicated_server() const { return dedicated_server; }
+    void set_access_policy(const Ref<ServerAccessPolicy> &p_policy) { access_policy = p_policy; }
+    Ref<ServerAccessPolicy> get_access_policy() const { return access_policy; }
+    void set_account_name(const String &p_name) { account_name = p_name; }
+    String get_account_name() const { return account_name; }
+    void set_account_password(const String &p_password) { account_password = p_password; }
+    String get_account_password() const { return account_password; }
+    void set_invite_code(const String &p_code) { invite_code = p_code; }
+    String get_invite_code() const { return invite_code; }
+    void set_expected_server_fingerprint(const String &p_fingerprint) { expected_server_fingerprint = p_fingerprint; }
+    String get_expected_server_fingerprint() const { return expected_server_fingerprint; }
     void set_discovery(Node *p_discovery);
     Node *get_discovery() const;
 #pragma endregion

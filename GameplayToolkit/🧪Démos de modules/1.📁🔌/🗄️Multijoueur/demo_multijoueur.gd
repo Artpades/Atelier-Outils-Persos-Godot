@@ -17,8 +17,7 @@ const SuiteTests := preload("suite_tests_multijoueur.gd")
 
 const NOMS_COMPATIBILITE := ["✅ compatible", "⬆️ autre version du jeu : mise à jour nécessaire", "🎮 autre jeu", "⬆️ autre version du module réseau"]
 const NOMS_ETAT := ["⚪ Hors ligne", "🟡 Connexion…", "🟡 Authentification…", "🟢 Connecté", "🟢 Hôte de la partie"]
-const NOMS_RAISON := ["", "fermée", "connexion impossible", "hôte perdu", "délai dépassé", "mauvais mot de passe", "autre jeu",
-	"autre version", "partie complète", "sécurité incompatible", "poignée de main invalide", "expulsé"]
+const Noms := preload("noms_multijoueur.gd")
 
 @onready var decouverte: LanDiscovery = %Decouverte
 @onready var session: NetworkSession = %Session
@@ -52,9 +51,9 @@ func _ready() -> void:
 	session.state_changed.connect(func(_etat): _rafraichir_session())
 	session.hosting_started.connect(func(port): _journaliser("[color=cyan]🏠 Partie hébergée sur le port %d[/color]" % port))
 	session.session_joined.connect(func(id): _journaliser("[color=green]🟢 Partie rejointe (je suis le joueur #%d)[/color]" % id))
-	session.connection_failed.connect(func(raison, message): _journaliser("[color=red]❌ Connexion refusée (%s) : %s[/color]" % [NOMS_RAISON[raison], message]))
-	session.session_ended.connect(func(raison, message): _journaliser("[color=orange]🚪 Session terminée (%s) : %s[/color]" % [NOMS_RAISON[raison], message]))
-	session.peer_rejected.connect(func(id, raison, _message): _journaliser("[color=orange]⛔ Joueur #%d refusé : %s[/color]" % [id, NOMS_RAISON[raison]]))
+	session.connection_failed.connect(func(raison, message): _journaliser("[color=red]❌ Connexion refusée (%s) : %s[/color]" % [Noms.raison(raison), message]))
+	session.session_ended.connect(func(raison, message): _journaliser("[color=orange]🚪 Session terminée (%s) : %s[/color]" % [Noms.raison(raison), message]))
+	session.peer_rejected.connect(func(id, raison, _message): _journaliser("[color=orange]⛔ Joueur #%d refusé : %s[/color]" % [id, Noms.raison(raison)]))
 	session.player_joined.connect(func(id, infos): _journaliser("👋 %s (#%d, %s) a rejoint" % [infos.name, id, infos.os]); _rafraichir_session())
 	session.player_left.connect(func(id, infos): _journaliser("👋 %s (#%d) est parti" % [infos.name, id]); _rafraichir_session())
 	session.player_updated.connect(func(_id, _infos): _rafraichir_session())

@@ -6,6 +6,8 @@
 #include <godot_cpp/classes/crypto.hpp>
 #include <godot_cpp/classes/e_net_connection.hpp>
 #include <godot_cpp/classes/e_net_multiplayer_peer.hpp>
+#include <godot_cpp/classes/e_net_packet_peer.hpp>
+#include <godot_cpp/classes/web_socket_peer.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/hashing_context.hpp>
 #include <godot_cpp/classes/offline_multiplayer_peer.hpp>
@@ -68,7 +70,8 @@ Error NetworkSession::host(int p_port)
     close();
 
     const int use_port = p_port > 0 ? p_port : port;
-    if (end_to_end_encryption)
+    // Clé d'identité : signe le défi (les clients vérifient l'identité du serveur) et sert au bout en bout.
+    if (end_to_end_encryption || access_policy.is_valid() || dedicated_server)
     {
         ERR_FAIL_COND_V(_ensure_identity_key() != OK, ERR_CANT_CREATE);
     }
@@ -90,8 +93,8 @@ Error NetworkSession::host(int p_port)
         Ref<ENetMultiplayerPeer> enet;
         enet.instantiate();
         // Une place de plus que de clients admis : le client en trop est prévenu (« partie complète »)
-        // au lieu d'être refusé sans explication par ENet.
-        err = enet->create_server(use_port, max_players);
+        // au lieu d'être refusé sans explication par ENet. L'hôte d'une partie occupe une place, pas un serveur dédié.
+        err = enet->create_server(use_port, max_players + (dedicated_server ? 1 : 0));
         if (err == OK && transport_encryption)
         {
             err = enet->get_host()->dtls_server_setup(TLSOptions::server(transport_key, transport_certificate));
@@ -115,8 +118,15 @@ Error NetworkSession::host(int p_port)
         return err;
     }
     api->set_multiplayer_peer(peer);
+    if (access_policy.is_valid() && access_policy->is_approval_required())
+    {
+        // La validation manuelle peut prendre du temps : la poignée de main ne doit pas expirer avant.
+        api->set_auth_timeout(MAX(connection_timeout, access_policy->get_approval_timeout() + 5.0f));
+    }
 
     session_e2e = end_to_end_encryption;
+    session_dedicated = dedicated_server;
+    failures.clear();
     session_transport_encrypted = transport_encryption;
     session_password = !password.is_empty();
     password_salt = SecureChannel::random_bytes(16);
@@ -128,9 +138,13 @@ Error NetworkSession::host(int p_port)
     _set_state(STATE_HOSTING);
     emit_signal("hosting_started", use_port);
 
-    Dictionary wire_info = _local_player_info();
-    wire_info["peer_id"] = 1;
-    _add_player(1, wire_info);
+    if (!dedicated_server)
+    {
+        Dictionary wire_info = _local_player_info();
+        wire_info["peer_id"] = 1;
+        wire_info["role"] = ServerAccessPolicy::ROLE_ADMIN;
+        _add_player(1, wire_info);
+    }
     _update_discovery();
     return OK;
 }
@@ -214,6 +228,10 @@ Error NetworkSession::_start_join(const String &p_address, int p_port, Transport
     api->set_multiplayer_peer(peer);
 
     session_e2e = false; // décidé par l'hôte dans le défi
+    session_dedicated = false;
+    server_fingerprint = "";
+    server_verified = false;
+    approval_deadline_msec = 0;
     session_transport_encrypted = p_encrypted;
     session_password = false;
     active_port = p_port;
@@ -320,6 +338,8 @@ void NetworkSession::_end(Reason p_reason, const String &p_message)
     session_e2e = false;
     session_transport_encrypted = false;
     session_password = false;
+    session_dedicated = false;
+    approval_deadline_msec = 0;
     active_port = 0;
     _set_state(STATE_OFFLINE);
     _update_discovery();
@@ -387,17 +407,24 @@ void NetworkSession::_process(double p_delta)
     (void)p_delta;
     const uint64_t now = now_msec();
 
-    if ((state == STATE_CONNECTING || state == STATE_AUTHENTICATING) && now - connect_start_msec > (uint64_t)(connection_timeout * 1000.0f))
+    if (state == STATE_CONNECTING || state == STATE_AUTHENTICATING)
     {
-        _end(REASON_TIMEOUT, U"L'hôte n'a pas répondu à temps.");
-        return;
+        const uint64_t deadline = approval_deadline_msec != 0 ? approval_deadline_msec : connect_start_msec + (uint64_t)(connection_timeout * 1000.0f);
+        if (now > deadline)
+        {
+            _end(REASON_TIMEOUT, approval_deadline_msec != 0 ? String(U"Le serveur n'a pas validé la connexion à temps.") : String(U"L'hôte n'a pas répondu à temps."));
+            return;
+        }
     }
 
     for (auto it = pending_kicks.begin(); it != pending_kicks.end();)
     {
         if (now >= it->second && api.is_valid())
         {
-            api->disconnect_peer(it->first);
+            if (api->get_peers().has(it->first) || api->get_authenticating_peers().has(it->first))
+            {
+                api->disconnect_peer(it->first);
+            }
             it = pending_kicks.erase(it);
         }
         else
@@ -433,6 +460,7 @@ void NetworkSession::_update_discovery()
     info["password_required"] = session_password;
     info["transport_encryption"] = session_transport_encrypted;
     info["end_to_end_encryption"] = session_e2e;
+    info["dedicated"] = session_dedicated;
     discovery->set_session_info(info);
 }
 
@@ -459,6 +487,21 @@ void NetworkSession::_on_peer_authenticating(int p_id)
         challenge["iterations"] = PASSWORD_ITERATIONS;
         challenge["nonce"] = pending.nonce;
         challenge["e2e"] = session_e2e;
+        challenge["dedicated"] = session_dedicated;
+        if (identity_key.is_valid())
+        {
+            // Le serveur prouve son identité : signature du défi avec sa clé privée.
+            Ref<Crypto> crypto;
+            crypto.instantiate();
+            challenge["server_key"] = identity_key->save_to_string(true);
+            challenge["server_sig"] = crypto->sign(HashingContext::HASH_SHA256, _signature_digest(pending.nonce, "server"), identity_key);
+        }
+        if (access_policy.is_valid())
+        {
+            challenge["identify"] = true; // l'appareil doit prouver son identité (bans, appareils reconnus)
+            challenge["access_mode"] = access_policy->get_access_mode();
+            challenge["account_seed"] = access_policy->get_account_seed();
+        }
         _send_auth(p_id, challenge);
     }
     else if (state == STATE_CONNECTING && p_id == 1)
@@ -469,7 +512,9 @@ void NetworkSession::_on_peer_authenticating(int p_id)
 
 void NetworkSession::_on_peer_authentication_failed(int p_id)
 {
+    // Un pair parti pendant l'authentification n'émet pas peer_disconnected : expulsion prévue annulée ici.
     pending_clients.erase(p_id);
+    pending_kicks.erase(p_id);
     if (p_id == 1 && state == STATE_AUTHENTICATING && last_reason == REASON_NONE)
     {
         _end(REASON_TIMEOUT, U"Poignée de main avec l'hôte trop longue.");
@@ -538,6 +583,10 @@ void NetworkSession::_client_handle_roster(const Dictionary &p_roster)
         {
             _add_player(ids[i], info);
         }
+    }
+    if (session_dedicated)
+    {
+        _try_establish_link(1); // le serveur dédié n'est pas un joueur : lien établi à part
     }
 }
 
@@ -628,10 +677,18 @@ void NetworkSession::_on_auth(int p_id, const PackedByteArray &p_data)
     {
         _client_handle_accept(message);
     }
+    else if (type == "wait")
+    {
+        // Le serveur fait valider cet appareil à la main : délai prolongé.
+        const float timeout = CLAMP((float)message.get("timeout", 120.0f), 5.0f, 3600.0f);
+        approval_deadline_msec = now_msec() + (uint64_t)(timeout * 1000.0f);
+        api->set_auth_timeout(timeout + 5.0f);
+        emit_signal("waiting_for_approval", timeout);
+    }
     else if (type == "reject")
     {
         int reason = message.get("reason", REASON_INVALID_HANDSHAKE);
-        if (reason <= REASON_CLOSED || reason > REASON_KICKED)
+        if (reason <= REASON_CLOSED || reason > REASON_TOO_MANY_ATTEMPTS)
         {
             reason = REASON_INVALID_HANDSHAKE;
         }
@@ -654,10 +711,48 @@ void NetworkSession::_client_handle_challenge(const Dictionary &p_challenge)
     }
     session_e2e = host_e2e;
     session_password = p_challenge.get("password", false);
-    if (session_e2e && _ensure_identity_key() != OK)
+    session_dedicated = p_challenge.get("dedicated", false);
+    const PackedByteArray nonce = p_challenge.get("nonce", PackedByteArray());
+    Ref<Crypto> crypto;
+    crypto.instantiate();
+
+    // Identité du serveur : signature du défi, et empreinte comparée à celle attendue (code de connexion).
+    const String server_pem = p_challenge.get("server_key", "");
+    Ref<CryptoKey> server_key;
+    if (!server_pem.is_empty())
     {
-        _end(REASON_SECURITY_MISMATCH, U"Clé de chiffrement de bout en bout impossible à générer.");
+        server_key.instantiate();
+        if (server_key->load_from_string(server_pem, true) != OK ||
+            !crypto->verify(HashingContext::HASH_SHA256, _signature_digest(nonce, "server"), p_challenge.get("server_sig", PackedByteArray()), server_key))
+        {
+            _end(REASON_SECURITY_MISMATCH, U"Signature du serveur invalide.");
+            return;
+        }
+        server_fingerprint = SecureChannel::fingerprint(server_pem.to_utf8_buffer());
+    }
+    if (!expected_server_fingerprint.is_empty())
+    {
+        const String expected = expected_server_fingerprint.replace(" ", "").to_upper();
+        if (server_fingerprint.replace(" ", "") != expected)
+        {
+            _end(REASON_SECURITY_MISMATCH, U"Ce serveur n'est pas celui attendu (empreinte différente) : connexion annulée, faux serveur possible.");
+            return;
+        }
+        server_verified = true;
+    }
+
+    const bool identify = p_challenge.get("identify", false);
+    if ((session_e2e || identify) && _ensure_identity_key() != OK)
+    {
+        _end(REASON_SECURITY_MISMATCH, U"Clé d'identité impossible à générer.");
         return;
+    }
+    if (session_e2e && server_key.is_valid())
+    {
+        // Serveur dédié (pas dans la liste des joueurs) : sa clé publique vient du défi.
+        PeerLink &link = links[1];
+        link.public_key = server_key;
+        link.fingerprint = server_fingerprint;
     }
 
     Dictionary hello;
@@ -670,9 +765,23 @@ void NetworkSession::_client_handle_challenge(const Dictionary &p_challenge)
     {
         const int iterations = CLAMP((int)p_challenge.get("iterations", PASSWORD_ITERATIONS), 1, 1000000);
         const PackedByteArray key = SecureChannel::derive_key(password, p_challenge.get("salt", PackedByteArray()), iterations, 32);
-        Ref<Crypto> crypto;
-        crypto.instantiate();
-        hello["proof"] = crypto->hmac_digest(HashingContext::HASH_SHA256, key, p_challenge.get("nonce", PackedByteArray()));
+        hello["proof"] = crypto->hmac_digest(HashingContext::HASH_SHA256, key, nonce);
+    }
+    if (identify)
+    {
+        // Preuve de possession de la clé d'identité : l'appareil ne peut pas se faire passer pour un autre.
+        hello["device_key"] = identity_key->save_to_string(true);
+        hello["device_sig"] = crypto->sign(HashingContext::HASH_SHA256, _signature_digest(nonce, "device"), identity_key);
+    }
+    if (!account_name.is_empty())
+    {
+        hello["username"] = account_name;
+        const PackedByteArray account_key = ServerAccessPolicy::account_key(p_challenge.get("account_seed", PackedByteArray()), account_name, account_password);
+        hello["account_proof"] = crypto->hmac_digest(HashingContext::HASH_SHA256, account_key, nonce);
+    }
+    if (!invite_code.is_empty())
+    {
+        hello["invite_proof"] = ServerAccessPolicy::invite_proof(invite_code, nonce);
     }
     _send_auth(1, hello);
 }
@@ -700,23 +809,102 @@ void NetworkSession::_host_handle_hello(int p_id, const Dictionary &p_hello)
                                                         .format(Array::make(get_game_version(), p_hello.get("game_version", ""))));
         return;
     }
+    PendingClient &client = pending->second;
+    client.address = get_peer_address(p_id);
+    const uint64_t now = now_msec();
+    const auto failure = failures.find(client.address);
+    if (failure != failures.end() && failure->second.blocked_until_msec > now)
+    {
+        _host_reject(p_id, REASON_TOO_MANY_ATTEMPTS, String(U"Trop de tentatives échouées : réessayez dans {0} s.")
+                                                         .format(Array::make((int64_t)((failure->second.blocked_until_msec - now) / 1000 + 1))));
+        return;
+    }
+    if (access_policy.is_valid() && access_policy->is_address_banned(client.address))
+    {
+        _host_reject(p_id, REASON_BANNED, U"Adresse bannie de ce serveur.");
+        return;
+    }
+
+    Ref<Crypto> crypto;
+    crypto.instantiate();
+    if (access_policy.is_valid())
+    {
+        // Identité de l'appareil : clé publique + signature du défi (une empreinte ne se déclare pas, elle se prouve).
+        const String device_pem = p_hello.get("device_key", "");
+        Ref<CryptoKey> device_key;
+        device_key.instantiate();
+        if (device_pem.is_empty() || device_key->load_from_string(device_pem, true) != OK ||
+            !crypto->verify(HashingContext::HASH_SHA256, _signature_digest(client.nonce, "device"), p_hello.get("device_sig", PackedByteArray()), device_key))
+        {
+            _host_reject(p_id, REASON_SECURITY_MISMATCH, U"Identité de l'appareil absente ou invalide.");
+            return;
+        }
+        client.fingerprint = SecureChannel::fingerprint(device_pem.to_utf8_buffer());
+        if (access_policy->is_device_banned(client.fingerprint))
+        {
+            _host_reject(p_id, REASON_BANNED, U"Cet appareil est banni de ce serveur.");
+            return;
+        }
+    }
+
     if (session_password)
     {
-        Ref<Crypto> crypto;
-        crypto.instantiate();
-        const PackedByteArray expected = crypto->hmac_digest(HashingContext::HASH_SHA256, password_key, pending->second.nonce);
+        const PackedByteArray expected = crypto->hmac_digest(HashingContext::HASH_SHA256, password_key, client.nonce);
         const Variant proof = p_hello.get("proof", Variant());
         if (proof.get_type() != Variant::PACKED_BYTE_ARRAY || !crypto->constant_time_compare(expected, proof))
         {
+            _register_failure(client.address);
             _host_reject(p_id, REASON_WRONG_PASSWORD, U"Mot de passe incorrect.");
             return;
         }
     }
 
+    // Règles d'accès : rôle donné par le compte, l'invitation ou l'appareil déjà reconnu.
+    int role = access_policy.is_valid() ? (int)access_policy->get_default_role() : (int)ServerAccessPolicy::ROLE_PLAYER;
+    String username;
+    String invite;
+    const bool known_device = access_policy.is_valid() && access_policy->is_device_known(client.fingerprint);
+    if (known_device)
+    {
+        role = access_policy->get_device_role(client.fingerprint);
+    }
+    if (access_policy.is_valid() && access_policy->get_access_mode() == ServerAccessPolicy::ACCESS_ACCOUNTS)
+    {
+        username = String(p_hello.get("username", "")).substr(0, MAX_TEXT_LENGTH);
+        if (!access_policy->verify_account(username, client.nonce, p_hello.get("account_proof", PackedByteArray())))
+        {
+            _register_failure(client.address);
+            _host_reject(p_id, REASON_ACCESS_DENIED, U"Compte inconnu ou mot de passe incorrect.");
+            return;
+        }
+        role = access_policy->get_account_role(username);
+    }
+    else if (access_policy.is_valid() && access_policy->get_access_mode() == ServerAccessPolicy::ACCESS_INVITATIONS && !known_device)
+    {
+        invite = access_policy->find_invite(client.nonce, p_hello.get("invite_proof", PackedByteArray()));
+        if (invite.is_empty())
+        {
+            _register_failure(client.address);
+            _host_reject(p_id, REASON_ACCESS_DENIED, U"Invitation absente, expirée ou déjà utilisée.");
+            return;
+        }
+        role = ((Dictionary)access_policy->get_invites_data().get(invite, Dictionary())).get("role", role);
+    }
+    failures.erase(client.address);
+
     const Variant raw_info = p_hello.get("info", Dictionary());
     Dictionary info = _sanitize_info(raw_info.get_type() == Variant::DICTIONARY ? (Dictionary)raw_info : Dictionary());
     info["peer_id"] = p_id;
     info["game_version"] = String(p_hello.get("game_version", "")).substr(0, MAX_TEXT_LENGTH);
+    info["role"] = role; // attribué par le serveur : un client ne peut pas le choisir
+    if (!client.fingerprint.is_empty())
+    {
+        info["fingerprint"] = client.fingerprint;
+    }
+    if (!username.is_empty())
+    {
+        info["username"] = username;
+    }
     if (session_e2e)
     {
         Ref<CryptoKey> key;
@@ -740,13 +928,99 @@ void NetworkSession::_host_handle_hello(int p_id, const Dictionary &p_hello)
         _host_reject(p_id, REASON_SESSION_FULL, String(U"Partie complète ({0} joueurs).").format(Array::make(max_players)));
         return;
     }
-    pending->second.info = info;
+    client.info = info;
+    client.role = role;
+    client.invite = invite;
+
+    if (access_policy.is_valid() && access_policy->is_approval_required() && !known_device)
+    {
+        // Appareil inconnu : l'administrateur du serveur décide (approve_peer / deny_peer).
+        client.awaiting_approval = true;
+        Dictionary wait;
+        wait["t"] = "wait";
+        wait["timeout"] = access_policy->get_approval_timeout();
+        _send_auth(p_id, wait);
+        emit_signal("access_requested", p_id, _pending_request(p_id));
+        return;
+    }
+    _host_accept(p_id, false);
+}
+
+void NetworkSession::_host_accept(int p_id, bool p_remember)
+{
+    const auto pending = pending_clients.find(p_id);
+    if (pending == pending_clients.end())
+    {
+        return;
+    }
+    PendingClient &client = pending->second;
+    if (!client.invite.is_empty())
+    {
+        // Invitation consommée seulement maintenant : un appareil refusé ne gaspille pas d'usage.
+        if (!access_policy->has_invite(client.invite))
+        {
+            _host_reject(p_id, REASON_ACCESS_DENIED, U"Invitation expirée ou déjà utilisée.");
+            return;
+        }
+        access_policy->consume_invite(client.invite);
+        p_remember = true; // un appareil invité revient ensuite sans nouveau code
+    }
+    if (p_remember && access_policy.is_valid() && !client.fingerprint.is_empty())
+    {
+        access_policy->remember_device(client.fingerprint, client.info.get("name", ""), (ServerAccessPolicy::Role)client.role);
+    }
+    client.awaiting_approval = false;
 
     Dictionary accept;
     accept["t"] = "accept";
     accept["peer_id"] = p_id;
     _send_auth(p_id, accept);
     api->complete_auth(p_id);
+}
+
+Dictionary NetworkSession::_pending_request(int p_id) const
+{
+    const auto pending = pending_clients.find(p_id);
+    if (pending == pending_clients.end())
+    {
+        return Dictionary();
+    }
+    Dictionary request = pending->second.info.duplicate(true);
+    request.erase("public_key");
+    request["peer_id"] = p_id;
+    request["address"] = pending->second.address;
+    request["fingerprint"] = pending->second.fingerprint;
+    request["role"] = pending->second.role;
+    return request;
+}
+
+void NetworkSession::_register_failure(const String &p_address)
+{
+    const int max_attempts = access_policy.is_valid() ? access_policy->get_max_failed_attempts() : 5;
+    const float duration = access_policy.is_valid() ? access_policy->get_block_duration() : 60.0f;
+    if (max_attempts <= 0 || p_address.is_empty())
+    {
+        return;
+    }
+    Failures &entry = failures[p_address];
+    entry.count++;
+    if (entry.count >= max_attempts)
+    {
+        entry.count = 0;
+        entry.blocked_until_msec = now_msec() + (uint64_t)(duration * 1000.0f);
+    }
+}
+
+PackedByteArray NetworkSession::_signature_digest(const PackedByteArray &p_nonce, const String &p_label) const
+{
+    // Le libellé distingue la signature du serveur de celle d'un appareil (pas de réutilisation croisée).
+    PackedByteArray data = p_label.to_utf8_buffer();
+    data.append_array(p_nonce);
+    Ref<HashingContext> hashing;
+    hashing.instantiate();
+    hashing->start(HashingContext::HASH_SHA256);
+    hashing->update(data);
+    return hashing->finish();
 }
 
 void NetworkSession::_host_reject(int p_id, Reason p_reason, const String &p_message)
@@ -917,9 +1191,223 @@ Error NetworkSession::kick(int p_peer_id, const String &p_message)
 {
     ERR_FAIL_COND_V_MSG(!is_host(), ERR_UNAUTHORIZED, U"NetworkSession : seul l'hôte peut expulser un joueur.");
     ERR_FAIL_COND_V_MSG(p_peer_id == 1 || !has_player(p_peer_id), ERR_INVALID_PARAMETER, U"NetworkSession : joueur inconnu.");
-    _send_packet(PACKET_KICK, UtilityFunctions::var_to_bytes(p_message.is_empty() ? String(U"Expulsé par l'hôte.") : p_message), p_peer_id);
+    Dictionary kick_message;
+    kick_message["reason"] = REASON_KICKED;
+    kick_message["message"] = p_message.is_empty() ? String(U"Expulsé par l'hôte.") : p_message;
+    _send_packet(PACKET_KICK, UtilityFunctions::var_to_bytes(kick_message), p_peer_id);
     pending_kicks[p_peer_id] = now_msec() + KICK_DELAY_MSEC;
     return OK;
+}
+
+#pragma endregion
+
+#pragma region Accès (serveur)
+
+Array NetworkSession::get_pending_requests() const
+{
+    Array requests;
+    for (const auto &entry : pending_clients)
+    {
+        if (entry.second.awaiting_approval)
+        {
+            requests.push_back(_pending_request(entry.first));
+        }
+    }
+    return requests;
+}
+
+Error NetworkSession::approve_peer(int p_peer_id, bool p_remember, int p_role)
+{
+    ERR_FAIL_COND_V_MSG(!is_host(), ERR_UNAUTHORIZED, U"NetworkSession : seul le serveur valide les connexions.");
+    const auto pending = pending_clients.find(p_peer_id);
+    ERR_FAIL_COND_V_MSG(pending == pending_clients.end() || !pending->second.awaiting_approval, ERR_INVALID_PARAMETER, U"NetworkSession : aucune demande en attente pour ce pair.");
+    if (p_role >= ServerAccessPolicy::ROLE_SPECTATOR && p_role <= ServerAccessPolicy::ROLE_ADMIN)
+    {
+        pending->second.role = p_role;
+        pending->second.info["role"] = p_role;
+    }
+    _host_accept(p_peer_id, p_remember);
+    return OK;
+}
+
+Error NetworkSession::deny_peer(int p_peer_id, const String &p_message)
+{
+    ERR_FAIL_COND_V_MSG(!is_host(), ERR_UNAUTHORIZED, U"NetworkSession : seul le serveur valide les connexions.");
+    const auto pending = pending_clients.find(p_peer_id);
+    ERR_FAIL_COND_V_MSG(pending == pending_clients.end() || !pending->second.awaiting_approval, ERR_INVALID_PARAMETER, U"NetworkSession : aucune demande en attente pour ce pair.");
+    _host_reject(p_peer_id, REASON_ACCESS_DENIED, p_message.is_empty() ? String(U"Connexion refusée par le serveur.") : p_message);
+    return OK;
+}
+
+Error NetworkSession::ban(int p_peer_id, const String &p_message, bool p_ban_address)
+{
+    ERR_FAIL_COND_V_MSG(!is_host(), ERR_UNAUTHORIZED, U"NetworkSession : seul le serveur peut bannir.");
+    const auto pending = pending_clients.find(p_peer_id);
+    ERR_FAIL_COND_V_MSG(p_peer_id == 1 || (!has_player(p_peer_id) && pending == pending_clients.end()), ERR_INVALID_PARAMETER, U"NetworkSession : pair inconnu.");
+    if (access_policy.is_null())
+    {
+        access_policy.instantiate(); // règles ouvertes, juste pour retenir le bannissement
+    }
+    const String fingerprint = has_player(p_peer_id) ? String(players[p_peer_id].get("fingerprint", "")) : pending->second.fingerprint;
+    access_policy->ban_device(fingerprint);
+    if (p_ban_address)
+    {
+        access_policy->ban_address(get_peer_address(p_peer_id));
+    }
+    const String message = p_message.is_empty() ? String(U"Banni de ce serveur.") : p_message;
+    if (!has_player(p_peer_id))
+    {
+        _host_reject(p_peer_id, REASON_BANNED, message);
+        return OK;
+    }
+    Dictionary kick_message;
+    kick_message["reason"] = REASON_BANNED;
+    kick_message["message"] = message;
+    _send_packet(PACKET_KICK, UtilityFunctions::var_to_bytes(kick_message), p_peer_id);
+    pending_kicks[p_peer_id] = now_msec() + KICK_DELAY_MSEC;
+    return OK;
+}
+
+String NetworkSession::get_peer_address(int p_peer_id) const
+{
+    if (peer.is_null() || !is_host())
+    {
+        return "";
+    }
+    if (ENetMultiplayerPeer *enet = Object::cast_to<ENetMultiplayerPeer>(peer.ptr()))
+    {
+        const Ref<ENetPacketPeer> packet_peer = enet->get_peer(p_peer_id);
+        return packet_peer.is_valid() ? packet_peer->get_remote_address() : String();
+    }
+    if (WebSocketMultiplayerPeer *websocket = Object::cast_to<WebSocketMultiplayerPeer>(peer.ptr()))
+    {
+        const Ref<WebSocketPeer> socket = websocket->get_peer(p_peer_id);
+        return socket.is_valid() ? socket->get_connected_host() : String();
+    }
+    return "";
+}
+
+bool NetworkSession::_is_known_peer(int p_id) const
+{
+    // Un serveur dédié n'est pas dans la liste des joueurs, mais reste un destinataire valide.
+    return has_player(p_id) || (p_id == 1 && !is_host() && is_online());
+}
+
+#pragma endregion
+
+#pragma region Code de connexion
+
+String NetworkSession::create_connection_code(const String &p_address, const String &p_invite)
+{
+    ERR_FAIL_COND_V_MSG(p_address.is_empty(), "", U"NetworkSession : adresse vide.");
+    // L'empreinte du code permet au client de vérifier qu'il parle bien à CE serveur.
+    ERR_FAIL_COND_V(_ensure_identity_key() != OK, "");
+    const String host = p_address.contains(":") && !p_address.begins_with("[") ? "[" + p_address + "]" : p_address;
+    String code = "gtk://" + host + ":" + String::num_int64(active_port > 0 ? active_port : port);
+    code += String("?t=") + transport_name(transport);
+    code += String("&tls=") + (transport_encryption ? "1" : "0");
+    code += String("&fp=") + get_local_fingerprint().replace(" ", "");
+    if (!p_invite.is_empty())
+    {
+        code += String("&inv=") + ServerAccessPolicy::normalize_invite(p_invite);
+    }
+    return code;
+}
+
+Dictionary NetworkSession::parse_connection_code(const String &p_code)
+{
+    String code = p_code.strip_edges();
+    if (!code.begins_with("gtk://"))
+    {
+        return Dictionary();
+    }
+    code = code.substr(6);
+    const String host_port = code.get_slice("?", 0);
+    const String query = code.contains("?") ? code.get_slice("?", 1) : String();
+
+    String address;
+    String port_text;
+    if (host_port.begins_with("["))
+    {
+        // IPv6 : [adresse]:port
+        address = host_port.substr(1, host_port.find("]") - 1);
+        port_text = host_port.substr(host_port.find("]") + 2);
+    }
+    else
+    {
+        const int64_t colon = host_port.rfind(":");
+        address = colon >= 0 ? host_port.substr(0, colon) : host_port;
+        port_text = colon >= 0 ? host_port.substr(colon + 1) : String();
+    }
+    const int code_port = port_text.is_valid_int() ? port_text.to_int() : 0;
+    if (address.is_empty() || code_port < 1 || code_port > 65535)
+    {
+        return Dictionary();
+    }
+
+    Dictionary result;
+    result["address"] = address;
+    result["port"] = code_port;
+    result["transport"] = TRANSPORT_ENET;
+    result["transport_encryption"] = false;
+    result["fingerprint"] = "";
+    result["invite"] = "";
+    const PackedStringArray parameters = query.split("&", false);
+    for (const String &parameter : parameters)
+    {
+        const String key = parameter.get_slice("=", 0);
+        const String value = parameter.get_slice("=", 1).uri_decode();
+        if (key == "t")
+        {
+            result["transport"] = value == "websocket" ? TRANSPORT_WEBSOCKET : TRANSPORT_ENET;
+        }
+        else if (key == "tls")
+        {
+            result["transport_encryption"] = value == "1";
+        }
+        else if (key == "fp")
+        {
+            // Remis en groupes de 4, comme get_local_fingerprint.
+            PackedStringArray groups;
+            const String hex = value.to_upper();
+            for (int64_t i = 0; i < hex.length(); i += 4)
+            {
+                groups.push_back(hex.substr(i, 4));
+            }
+            result["fingerprint"] = String(" ").join(groups);
+        }
+        else if (key == "inv")
+        {
+            result["invite"] = ServerAccessPolicy::normalize_invite(value);
+        }
+    }
+    return result;
+}
+
+Error NetworkSession::join_with_code(const String &p_code)
+{
+    const Dictionary parsed = parse_connection_code(p_code);
+    if (parsed.is_empty())
+    {
+        last_reason = REASON_CONNECTION_FAILED;
+        last_message = U"Code de connexion invalide.";
+        emit_signal("connection_failed", last_reason, last_message);
+        return ERR_INVALID_PARAMETER;
+    }
+    const bool remote_encrypted = parsed["transport_encryption"];
+    if (transport_encryption && !remote_encrypted)
+    {
+        last_reason = REASON_SECURITY_MISMATCH;
+        last_message = U"Le serveur ne chiffre pas le transport, alors que ce client l'exige.";
+        emit_signal("connection_failed", last_reason, last_message);
+        return ERR_UNAUTHORIZED;
+    }
+    expected_server_fingerprint = parsed["fingerprint"];
+    if (!String(parsed["invite"]).is_empty())
+    {
+        invite_code = parsed["invite"];
+    }
+    return _start_join(parsed["address"], parsed["port"], (Transport)(int)parsed["transport"], remote_encrypted);
 }
 
 #pragma endregion
@@ -941,7 +1429,7 @@ Error NetworkSession::send_message(const Variant &p_data, int p_peer_id, bool p_
     ERR_FAIL_COND_V_MSG(!is_online(), ERR_UNCONFIGURED, U"NetworkSession : aucune session ouverte.");
     const int local_id = get_local_peer_id();
     ERR_FAIL_COND_V_MSG(p_peer_id == local_id, ERR_INVALID_PARAMETER, U"NetworkSession : impossible de s'envoyer un message à soi-même.");
-    ERR_FAIL_COND_V_MSG(p_peer_id > 0 && !has_player(p_peer_id), ERR_INVALID_PARAMETER, U"NetworkSession : destinataire inconnu.");
+    ERR_FAIL_COND_V_MSG(p_peer_id > 0 && !_is_known_peer(p_peer_id), ERR_INVALID_PARAMETER, U"NetworkSession : destinataire inconnu.");
     const PackedByteArray payload = UtilityFunctions::var_to_bytes(p_data);
 
     if (!session_e2e)
@@ -950,6 +1438,10 @@ Error NetworkSession::send_message(const Variant &p_data, int p_peer_id, bool p_
     }
 
     // Bout en bout : un chiffrement par destinataire (chacun a sa propre clé).
+    if (p_peer_id > 0)
+    {
+        return _send_secure(p_peer_id, payload, p_reliable, p_channel);
+    }
     Error result = OK;
     for (const auto &entry : players)
     {
@@ -1069,7 +1561,10 @@ void NetworkSession::_on_peer_packet(int p_id, const PackedByteArray &p_packet)
     case PACKET_KICK:
         if (p_id == 1 && state == STATE_CONNECTED)
         {
-            _end(REASON_KICKED, String(UtilityFunctions::bytes_to_var(payload)).substr(0, 256));
+            const Variant decoded = UtilityFunctions::bytes_to_var(payload);
+            const Dictionary kick_message = decoded.get_type() == Variant::DICTIONARY ? (Dictionary)decoded : Dictionary();
+            const int reason = kick_message.get("reason", REASON_KICKED);
+            _end(reason == REASON_BANNED ? REASON_BANNED : REASON_KICKED, String(kick_message.get("message", "")).substr(0, 256));
         }
         break;
     default:
@@ -1116,7 +1611,7 @@ PackedByteArray NetworkSession::_key_offer_digest(const PackedByteArray &p_encry
 void NetworkSession::_try_establish_link(int p_id)
 {
     const int local_id = get_local_peer_id();
-    if (!session_e2e || p_id == local_id || !has_player(p_id) || !_is_reachable(p_id) || identity_key.is_null())
+    if (!session_e2e || p_id == local_id || !_is_known_peer(p_id) || !_is_reachable(p_id) || identity_key.is_null())
     {
         return;
     }
@@ -1248,11 +1743,16 @@ bool NetworkSession::has_secure_link(int p_peer_id) const
 
 String NetworkSession::get_local_fingerprint() const
 {
-    if (identity_key.is_null() || (!session_e2e && !end_to_end_encryption))
+    if (identity_key.is_null())
     {
         return "";
     }
     return SecureChannel::fingerprint(identity_key->save_to_string(true).to_utf8_buffer());
+}
+
+String NetworkSession::get_server_fingerprint() const
+{
+    return is_host() ? get_local_fingerprint() : server_fingerprint;
 }
 
 String NetworkSession::get_peer_fingerprint(int p_peer_id) const
@@ -1273,6 +1773,10 @@ Dictionary NetworkSession::get_security_summary() const
     summary["transport_verified"] = session_transport_encrypted && (is_host() || trusted_certificate.is_valid());
     summary["end_to_end"] = session_e2e;
     summary["password_protected"] = session_password;
+    // Client : identité du serveur prouvée (signature) ET conforme à l'empreinte attendue.
+    summary["server_verified"] = is_host() || server_verified;
+    summary["dedicated"] = session_dedicated;
+    summary["access_mode"] = is_host() && access_policy.is_valid() ? (int)access_policy->get_access_mode() : -1;
     PackedInt32Array secure_links;
     for (const auto &entry : links)
     {
@@ -1381,6 +1885,29 @@ void NetworkSession::_bind_methods()
     ClassDB::bind_method(D_METHOD("is_end_to_end_encryption_enabled"), &NetworkSession::is_end_to_end_encryption_enabled);
     ClassDB::bind_method(D_METHOD("set_identity_key", "key"), &NetworkSession::set_identity_key);
     ClassDB::bind_method(D_METHOD("get_identity_key"), &NetworkSession::get_identity_key);
+    ClassDB::bind_method(D_METHOD("get_pending_requests"), &NetworkSession::get_pending_requests);
+    ClassDB::bind_method(D_METHOD("approve_peer", "peer_id", "remember", "role"), &NetworkSession::approve_peer, DEFVAL(true), DEFVAL(-1));
+    ClassDB::bind_method(D_METHOD("deny_peer", "peer_id", "message"), &NetworkSession::deny_peer, DEFVAL(""));
+    ClassDB::bind_method(D_METHOD("ban", "peer_id", "message", "ban_address"), &NetworkSession::ban, DEFVAL(""), DEFVAL(false));
+    ClassDB::bind_method(D_METHOD("get_peer_address", "peer_id"), &NetworkSession::get_peer_address);
+    ClassDB::bind_method(D_METHOD("is_dedicated_session"), &NetworkSession::is_dedicated_session);
+    ClassDB::bind_method(D_METHOD("get_server_fingerprint"), &NetworkSession::get_server_fingerprint);
+    ClassDB::bind_method(D_METHOD("create_connection_code", "address", "invite"), &NetworkSession::create_connection_code, DEFVAL(""));
+    ClassDB::bind_static_method("NetworkSession", D_METHOD("parse_connection_code", "code"), &NetworkSession::parse_connection_code);
+    ClassDB::bind_method(D_METHOD("join_with_code", "code"), &NetworkSession::join_with_code);
+
+    ClassDB::bind_method(D_METHOD("set_dedicated_server", "dedicated"), &NetworkSession::set_dedicated_server);
+    ClassDB::bind_method(D_METHOD("is_dedicated_server"), &NetworkSession::is_dedicated_server);
+    ClassDB::bind_method(D_METHOD("set_access_policy", "policy"), &NetworkSession::set_access_policy);
+    ClassDB::bind_method(D_METHOD("get_access_policy"), &NetworkSession::get_access_policy);
+    ClassDB::bind_method(D_METHOD("set_account_name", "name"), &NetworkSession::set_account_name);
+    ClassDB::bind_method(D_METHOD("get_account_name"), &NetworkSession::get_account_name);
+    ClassDB::bind_method(D_METHOD("set_account_password", "password"), &NetworkSession::set_account_password);
+    ClassDB::bind_method(D_METHOD("get_account_password"), &NetworkSession::get_account_password);
+    ClassDB::bind_method(D_METHOD("set_invite_code", "code"), &NetworkSession::set_invite_code);
+    ClassDB::bind_method(D_METHOD("get_invite_code"), &NetworkSession::get_invite_code);
+    ClassDB::bind_method(D_METHOD("set_expected_server_fingerprint", "fingerprint"), &NetworkSession::set_expected_server_fingerprint);
+    ClassDB::bind_method(D_METHOD("get_expected_server_fingerprint"), &NetworkSession::get_expected_server_fingerprint);
     ClassDB::bind_method(D_METHOD("set_discovery", "discovery"), &NetworkSession::set_discovery);
     ClassDB::bind_method(D_METHOD("get_discovery"), &NetworkSession::get_discovery);
 
@@ -1400,6 +1927,16 @@ void NetworkSession::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "connection_timeout", PROPERTY_HINT_RANGE, "0.5,60,0.5,suffix:s"), "set_connection_timeout", "get_connection_timeout");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "password", PROPERTY_HINT_PASSWORD), "set_password", "get_password");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "discovery", PROPERTY_HINT_NODE_TYPE, "LanDiscovery"), "set_discovery", "get_discovery");
+
+    ADD_GROUP(U"Serveur", "");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dedicated_server"), "set_dedicated_server", "is_dedicated_server");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "access_policy", PROPERTY_HINT_RESOURCE_TYPE, "ServerAccessPolicy"), "set_access_policy", "get_access_policy");
+
+    ADD_GROUP(U"Identifiants (client)", "");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "account_name"), "set_account_name", "get_account_name");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "account_password", PROPERTY_HINT_PASSWORD), "set_account_password", "get_account_password");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "invite_code"), "set_invite_code", "get_invite_code");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "expected_server_fingerprint"), "set_expected_server_fingerprint", "get_expected_server_fingerprint");
 
     ADD_GROUP(U"Sécurité", "");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "transport_encryption"), "set_transport_encryption", "is_transport_encryption_enabled");
@@ -1422,6 +1959,8 @@ void NetworkSession::_bind_methods()
     ADD_SIGNAL(MethodInfo("message_received", PropertyInfo(Variant::INT, "from_peer_id"), PropertyInfo(Variant::NIL, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), PropertyInfo(Variant::BOOL, "encrypted")));
     ADD_SIGNAL(MethodInfo("secure_link_established", PropertyInfo(Variant::INT, "peer_id")));
     ADD_SIGNAL(MethodInfo("security_warning", PropertyInfo(Variant::INT, "peer_id"), PropertyInfo(Variant::STRING, "message")));
+    ADD_SIGNAL(MethodInfo("access_requested", PropertyInfo(Variant::INT, "peer_id"), PropertyInfo(Variant::DICTIONARY, "request")));
+    ADD_SIGNAL(MethodInfo("waiting_for_approval", PropertyInfo(Variant::FLOAT, "timeout")));
 
     BIND_ENUM_CONSTANT(TRANSPORT_ENET);
     BIND_ENUM_CONSTANT(TRANSPORT_WEBSOCKET);
@@ -1444,4 +1983,7 @@ void NetworkSession::_bind_methods()
     BIND_ENUM_CONSTANT(REASON_SECURITY_MISMATCH);
     BIND_ENUM_CONSTANT(REASON_INVALID_HANDSHAKE);
     BIND_ENUM_CONSTANT(REASON_KICKED);
+    BIND_ENUM_CONSTANT(REASON_ACCESS_DENIED);
+    BIND_ENUM_CONSTANT(REASON_BANNED);
+    BIND_ENUM_CONSTANT(REASON_TOO_MANY_ATTEMPTS);
 }

@@ -1,6 +1,8 @@
 #include "🌐Session/network_session.hpp"
 #include "📡Découverte/lan_discovery.hpp"
 #include "🔐Chiffrement/secure_channel.hpp"
+#include "🚪Accès/server_access_policy.hpp"
+#include "🌍Internet/port_forwarder.hpp"
 
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/print_string.hpp>
@@ -18,6 +20,8 @@ static void initialize(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(SecureChannel); // @icon res://🖼️Editor Icons/💾🔐/EncryptionKey Icon.png
     GDREGISTER_CLASS(LanDiscovery); // @icon res://🖼️Editor Icons/🎮🔌/LanDiscovery Icon.png
     GDREGISTER_CLASS(NetworkSession); // @icon res://🖼️Editor Icons/🎮🔌/NetworkSession Icon.png
+    GDREGISTER_CLASS(ServerAccessPolicy); // @icon res://🖼️Editor Icons/🎮🔌/ServerAccessPolicy Icon.png
+    GDREGISTER_CLASS(PortForwarder); // @icon res://🖼️Editor Icons/🎮🔌/PortForwarder Icon.png
 
     godot::print_line_rich(U"[color=dark_green]🗄️Module Multijoueur chargé avec succès ![/color]");
 }

@@ -10,10 +10,10 @@
 		Plusieurs instances sur la même machine prennent chacune le premier port libre de la plage. Relier ce nœud à [member NetworkSession.discovery] pour annoncer automatiquement la partie hébergée.
 		[codeblock]
 		@onready var decouverte: LanDiscovery = $LanDiscovery
-		
+
 		func _ready():
 		    decouverte.device_found.connect(func(appareil):
-		        print(appareil.name, &quot; (&quot;, appareil.os, &quot;) &quot;, &quot;peut être rejoint&quot; if appareil.can_join else &quot;&quot;))
+		        print(appareil.name, " (", appareil.os, ") ", "peut être rejoint" if appareil.can_join else ""))
 		    decouverte.start_search()
 		[/codeblock]
 		Sur Android, la réception du broadcast UDP peut demander la permission [code]CHANGE_WIFI_MULTICAST_STATE[/code] ; un export Web ne peut ni annoncer ni chercher (pas d'UDP dans un navigateur).

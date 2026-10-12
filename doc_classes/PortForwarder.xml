@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PortForwarder" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🌍 Rend un serveur joignable depuis Internet : ouverture du port sur la box (UPnP), adresse publique, détection du double NAT et du CGNAT.
+	</brief_description>
+	<description>
+		Un appareil distant ne peut joindre un serveur derrière une box que si la box redirige le port du serveur vers lui. [method open_port] le demande à la box par UPnP (dans un thread : la recherche prend jusqu'à [member discover_timeout] ms), puis [signal port_opened] donne l'adresse publique vue par la box. Le port est refermé par [method close_port] ou à la sortie de l'arbre.
+		Si l'UPnP échoue ([signal port_failed]), ouvrir le port à la main dans l'interface de la box (UDP pour ENet, TCP pour WebSocket), vers l'IP locale de ce PC ([method get_local_addresses]).
+		[signal nat_warning] signale les cas où une redirection ne suffit pas : box derrière un autre routeur (double NAT), ou adresse partagée par l'opérateur (CGNAT, fréquent en 4G/5G et chez certains fournisseurs). Solutions : demander une IP publique à l'opérateur, héberger le serveur sur une machine louée (VPS, sans fenêtre : voir la démo serveur), ou relier les appareils par un VPN maillé (Tailscale, ZeroTier...).
+		[method find_public_address] interroge [member public_ip_service_url] (un service web externe, qui voit donc l'adresse de ce PC). Si l'adresse publique change souvent, utiliser un nom de domaine dynamique (DynDNS) dans le code de connexion.
+		[codeblock]
+		$PortForwarder.port_opened.connect(func(adresse, port): print("Joignable sur ", adresse, ":", port))
+		$PortForwarder.port_failed.connect(func(message): print("Ouvrir le port à la main : ", message))
+		$PortForwarder.nat_warning.connect(push_warning)
+		$PortForwarder.open_port(47500)
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="classify_address" qualifiers="static">
+			<return type="int" enum="PortForwarder.AddressKind" />
+			<param index="0" name="address" type="String" />
+			<description>
+				Nature de l'adresse IP [param address] : publique, privée (réseau local), CGNAT, boucle locale ou invalide. Une IPv4 encapsulée ([code]::ffff:a.b.c.d[/code]) est classée comme l'IPv4.
+			</description>
+		</method>
+		<method name="close_port">
+			<return type="void" />
+			<description>
+				Supprime la redirection créée par [method open_port] et émet [signal port_closed]. Appelé automatiquement à la sortie de l'arbre.
+			</description>
+		</method>
+		<method name="find_public_address">
+			<return type="int" enum="Error" />
+			<description>
+				Demande l'adresse publique de ce PC à [member public_ip_service_url]. Résultat : [signal public_address_found] ou [signal public_address_failed]. Si elle diffère de l'adresse annoncée par la box, [signal nat_warning] est émis.
+			</description>
+		</method>
+		<method name="get_external_address" qualifiers="const">
+			<return type="String" />
+			<description>
+				Adresse publique annoncée par la box après [method open_port] (peut être privée ou CGNAT : voir [signal nat_warning]).
+			</description>
+		</method>
+		<method name="get_last_message" qualifiers="const">
+			<return type="String" />
+			<description>
+				Message du dernier résultat de [method open_port].
+			</description>
+		</method>
+		<method name="get_local_addresses" qualifiers="static">
+			<return type="PackedStringArray" />
+			<description>
+				Adresses IPv4 de ce PC sur le réseau local : celle vers laquelle rediriger le port, et à donner à un joueur du même réseau.
+			</description>
+		</method>
+		<method name="get_public_address" qualifiers="const">
+			<return type="String" />
+			<description>
+				Adresse publique trouvée par [method find_public_address] (vide avant).
+			</description>
+		</method>
+		<method name="get_status" qualifiers="const">
+			<return type="int" enum="PortForwarder.Status" />
+			<description>
+				État de l'ouverture du port.
+			</description>
+		</method>
+		<method name="is_port_open" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Vrai si le port est ouvert sur la box.
+			</description>
+		</method>
+		<method name="open_port">
+			<return type="int" enum="Error" />
+			<param index="0" name="port" type="int" default="-1" />
+			<description>
+				Demande à la box (UPnP) de rediriger [param port] ([member port] si -1) vers ce PC, en UDP et/ou TCP selon [member forward_udp] et [member forward_tcp]. Résultat : [signal port_opened] ou [signal port_failed]. Renvoie [constant ERR_BUSY] si une ouverture est déjà en cours.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="description" type="String" setter="set_description" getter="get_description" default="&quot;GameplayToolkit&quot;">
+			Nom de la redirection affiché dans l'interface de la box.
+		</member>
+		<member name="discover_timeout" type="int" setter="set_discover_timeout" getter="get_discover_timeout" default="2000">
+			Durée maximale de la recherche de la box.
+		</member>
+		<member name="forward_tcp" type="bool" setter="set_forward_tcp" getter="is_forwarding_tcp" default="true">
+			Redirige le port en TCP (transport WebSocket).
+		</member>
+		<member name="forward_udp" type="bool" setter="set_forward_udp" getter="is_forwarding_udp" default="true">
+			Redirige le port en UDP (transport ENet).
+		</member>
+		<member name="lease_duration" type="int" setter="set_lease_duration" getter="get_lease_duration" default="0">
+			Durée de la redirection (0 : jusqu'à sa suppression ; si la box refuse, une heure).
+		</member>
+		<member name="port" type="int" setter="set_port" getter="get_port" default="47500">
+			Port à ouvrir par défaut (celui de la [NetworkSession]).
+		</member>
+		<member name="public_ip_service_url" type="String" setter="set_public_ip_service_url" getter="get_public_ip_service_url" default="&quot;https://api.ipify.org&quot;">
+			Service web qui renvoie l'adresse IP de l'appelant en texte brut. Contacter ce service lui révèle l'adresse de ce PC.
+		</member>
+	</members>
+	<signals>
+		<signal name="nat_warning">
+			<param index="0" name="message" type="String" />
+			<description>
+				Le serveur risque de rester injoignable malgré le port ouvert : double NAT ou CGNAT. [param message] explique les solutions.
+			</description>
+		</signal>
+		<signal name="port_closed">
+			<description>
+				La redirection a été supprimée.
+			</description>
+		</signal>
+		<signal name="port_failed">
+			<param index="0" name="message" type="String" />
+			<description>
+				L'ouverture du port a échoué (pas de box UPnP, UPnP désactivé, port déjà redirigé ailleurs...).
+			</description>
+		</signal>
+		<signal name="port_opened">
+			<param index="0" name="external_address" type="String" />
+			<param index="1" name="port" type="int" />
+			<description>
+				Le port [param port] est ouvert sur la box ; [param external_address] est l'adresse publique annoncée par la box.
+			</description>
+		</signal>
+		<signal name="public_address_failed">
+			<param index="0" name="message" type="String" />
+			<description>
+				L'adresse publique n'a pas pu être obtenue.
+			</description>
+		</signal>
+		<signal name="public_address_found">
+			<param index="0" name="address" type="String" />
+			<description>
+				Adresse publique de ce PC, vue depuis Internet.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="ADDRESS_PUBLIC" value="0" enum="AddressKind">
+			Adresse joignable depuis Internet.
+		</constant>
+		<constant name="ADDRESS_PRIVATE" value="1" enum="AddressKind">
+			Adresse de réseau local (10.x, 172.16-31.x, 192.168.x, 169.254.x, fc00::/7, fe80::/10).
+		</constant>
+		<constant name="ADDRESS_CGNAT" value="2" enum="AddressKind">
+			Adresse partagée par l'opérateur (100.64.0.0/10) : une redirection de port ne peut pas fonctionner.
+		</constant>
+		<constant name="ADDRESS_LOOPBACK" value="3" enum="AddressKind">
+			Cette machine (127.x, ::1).
+		</constant>
+		<constant name="ADDRESS_INVALID" value="4" enum="AddressKind">
+			Pas une adresse IP.
+		</constant>
+		<constant name="STATUS_IDLE" value="0" enum="Status">
+			Aucun port ouvert.
+		</constant>
+		<constant name="STATUS_WORKING" value="1" enum="Status">
+			Recherche de la box et ouverture en cours.
+		</constant>
+		<constant name="STATUS_OPEN" value="2" enum="Status">
+			Port ouvert sur la box.
+		</constant>
+		<constant name="STATUS_FAILED" value="3" enum="Status">
+			Dernière ouverture échouée.
+		</constant>
+	</constants>
+</class>

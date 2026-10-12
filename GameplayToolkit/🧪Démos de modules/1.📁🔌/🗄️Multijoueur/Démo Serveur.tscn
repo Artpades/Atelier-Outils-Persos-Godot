@@ -1,0 +1,426 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/1.📁🔌/🗄️Multijoueur/demo_serveur.gd" id="1_serveur"]
+
+[node name="DémoServeur" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_serveur")
+
+[node name="Session" type="NetworkSession" parent="."]
+unique_name_in_owner = true
+max_players = 16
+dedicated_server = true
+
+[node name="Redirection" type="PortForwarder" parent="."]
+unique_name_in_owner = true
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.11, 0.14, 1)
+
+[node name="Marges" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Colonnes" type="HBoxContainer" parent="Marges"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DefilementGauche" type="ScrollContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Gauche" type="VBoxContainer" parent="Marges/Colonnes/DefilementGauche"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Titre" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "🖥️ Serveur multijoueur"
+
+[node name="Grille" type="GridContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+columns = 2
+
+[node name="LabelMode" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+layout_mode = 2
+text = "Mode"
+
+[node name="Mode" type="OptionButton" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Serveur dédié : ce PC sert la partie sans y jouer (il peut tourner sans fenêtre, ou sur un serveur loué). Héberger et jouer : ce PC est aussi un joueur."
+
+[node name="LabelNom" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+layout_mode = 2
+text = "Nom"
+
+[node name="NomServeur" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelPort" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+layout_mode = 2
+text = "Port"
+
+[node name="Port" type="SpinBox" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1024.0
+max_value = 65535.0
+value = 47500.0
+
+[node name="LabelTransport" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+layout_mode = 2
+text = "Transport"
+
+[node name="Transport" type="OptionButton" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelJoueursMax" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+layout_mode = 2
+text = "Joueurs max"
+
+[node name="JoueursMax" type="SpinBox" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 64.0
+value = 16.0
+
+[node name="LabelMotDePasse" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+layout_mode = 2
+text = "Mot de passe"
+
+[node name="MotDePasse" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/Grille"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "(aucun, commun à tous)"
+secret = true
+
+[node name="ChiffrementTransport" type="CheckBox" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "🔒 Chiffrer le transport (DTLS / TLS)"
+
+[node name="BoutEnBout" type="CheckBox" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🛡️ Chiffrement de bout en bout"
+
+[node name="Boutons" type="HBoxContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="BoutonDemarrer" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "▶️ Démarrer"
+
+[node name="BoutonArreter" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⏹️ Arrêter"
+
+[node name="Etat" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Separateur" type="HSeparator" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="TitreInternet" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "🌍 Accès depuis Internet"
+
+[node name="Adresses" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 3
+
+[node name="BoutonsInternet" type="HBoxContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="BoutonUpnp" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/BoutonsInternet"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Demande à la box (UPnP) de rediriger le port du serveur vers ce PC, pour que les appareils distants puissent le joindre. Le port est refermé à l'arrêt."
+text = "🔓 Ouvrir le port (box)"
+
+[node name="BoutonIpPublique" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/BoutonsInternet"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Demande l'adresse publique de ce PC à un service web (api.ipify.org), qui voit l'adresse depuis Internet."
+text = "🔎 Mon IP publique"
+
+[node name="EtatInternet" type="RichTextLabel" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+theme_override_font_sizes/mono_font_size = 11
+bbcode_enabled = true
+fit_content = true
+
+[node name="LabelAdresse" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+text = "Adresse à partager"
+
+[node name="AdressePublique" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Adresse IP publique, ou nom de domaine (DNS dynamique) si l'IP change. Pour un joueur du même réseau : l'IP locale."
+placeholder_text = "IP publique ou nom de domaine"
+
+[node name="AvecInvitation" type="CheckBox" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Inclure une nouvelle invitation (mode Invitations)"
+
+[node name="LigneCode" type="HBoxContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="CodeConnexion" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/LigneCode"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Code de connexion (serveur démarré)"
+editable = false
+
+[node name="BoutonCopierCode" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/LigneCode"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Génère et copie le code de connexion à envoyer aux joueurs (adresse, port, empreinte du serveur, et invitation éventuelle)."
+text = "📋 Code"
+
+[node name="Empreinte" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+autowrap_mode = 3
+
+[node name="Onglets" type="TabContainer" parent="Marges/Colonnes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+current_tab = 0
+
+[node name="Acces" type="ScrollContainer" parent="Marges/Colonnes/Onglets"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 0
+
+[node name="PanneauAcces" type="VBoxContainer" parent="Marges/Colonnes/Onglets/Acces"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="GrilleAcces" type="GridContainer" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+columns = 2
+
+[node name="LabelModeAcces" type="Label" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/GrilleAcces"]
+layout_mode = 2
+text = "Mode d'accès"
+
+[node name="ModeAcces" type="OptionButton" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/GrilleAcces"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Ouvert : tout appareil qui a le jeu (et le mot de passe s'il y en a un). Comptes : identifiant + mot de passe créés ici. Invitations : code à usages et durée limités ; l'appareil invité est ensuite reconnu."
+
+[node name="LabelRoleDefaut" type="Label" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/GrilleAcces"]
+layout_mode = 2
+text = "Rôle par défaut"
+
+[node name="RoleDefaut" type="OptionButton" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/GrilleAcces"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Validation" type="CheckBox" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Chaque appareil inconnu attend votre accord (onglet Demandes). Un appareil accepté est ensuite reconnu."
+text = "✋ Valider à la main chaque nouvel appareil"
+
+[node name="TitreComptes" type="Label" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "👤 Comptes"
+
+[node name="FormulaireCompte" type="HBoxContainer" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+layout_mode = 2
+
+[node name="CompteNom" type="LineEdit" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireCompte"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Identifiant"
+
+[node name="CompteMotDePasse" type="LineEdit" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireCompte"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Mot de passe"
+secret = true
+
+[node name="CompteRole" type="OptionButton" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireCompte"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BoutonAjouterCompte" type="Button" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireCompte"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ajouter"
+
+[node name="ListeComptes" type="VBoxContainer" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TitreInvitations" type="Label" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "✉️ Invitations"
+
+[node name="FormulaireInvitation" type="HBoxContainer" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+layout_mode = 2
+
+[node name="LabelUsages" type="Label" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireInvitation"]
+layout_mode = 2
+tooltip_text = "0 = illimité"
+mouse_filter = 1
+text = "Usages"
+
+[node name="InvitationUsages" type="SpinBox" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireInvitation"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 100.0
+value = 1.0
+
+[node name="LabelDuree" type="Label" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireInvitation"]
+layout_mode = 2
+tooltip_text = "0 = sans limite"
+mouse_filter = 1
+text = "Heures"
+
+[node name="InvitationDuree" type="SpinBox" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireInvitation"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 720.0
+value = 24.0
+
+[node name="InvitationRole" type="OptionButton" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireInvitation"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BoutonCreerInvitation" type="Button" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces/FormulaireInvitation"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Créer"
+
+[node name="ListeInvitations" type="VBoxContainer" parent="Marges/Colonnes/Onglets/Acces/PanneauAcces"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Demandes" type="ScrollContainer" parent="Marges/Colonnes/Onglets"]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 1
+
+[node name="ListeDemandes" type="VBoxContainer" parent="Marges/Colonnes/Onglets/Demandes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Connectes" type="ScrollContainer" parent="Marges/Colonnes/Onglets"]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 2
+
+[node name="ListeJoueurs" type="VBoxContainer" parent="Marges/Colonnes/Onglets/Connectes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Bans" type="ScrollContainer" parent="Marges/Colonnes/Onglets"]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 3
+
+[node name="ListeAppareils" type="VBoxContainer" parent="Marges/Colonnes/Onglets/Bans"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Droite" type="VBoxContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="TitreJournal" type="Label" parent="Marges/Colonnes/Droite"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "📜 Journal"
+
+[node name="Journal" type="RichTextLabel" parent="Marges/Colonnes/Droite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+theme_override_font_sizes/mono_font_size = 11
+bbcode_enabled = true
+scroll_following = true
+
+[node name="Saisie" type="HBoxContainer" parent="Marges/Colonnes/Droite"]
+layout_mode = 2
+
+[node name="Message" type="LineEdit" parent="Marges/Colonnes/Droite/Saisie"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Annonce à tous…"
+
+[node name="BoutonEnvoyer" type="Button" parent="Marges/Colonnes/Droite/Saisie"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Envoyer"

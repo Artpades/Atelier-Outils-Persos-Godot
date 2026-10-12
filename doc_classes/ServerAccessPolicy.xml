@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ServerAccessPolicy" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		🚪 Règles d'accès d'un serveur : comptes, invitations, validation manuelle, rôles, bannissements et blocage après des échecs.
+	</brief_description>
+	<description>
+		Ressource à affecter à [member NetworkSession.access_policy] (et à sauvegarder en .tres pour la retrouver au prochain lancement). Elle décide qui peut se connecter, et avec quel rôle.
+		Trois modes ([member access_mode]) : [constant ACCESS_OPEN] (tout appareil qui a le jeu), [constant ACCESS_ACCOUNTS] (identifiant + mot de passe d'un compte créé avec [method add_account]) ou [constant ACCESS_INVITATIONS] (code créé avec [method create_invite], à usages et durée limités ; l'appareil invité est ensuite reconnu sans nouveau code).
+		Options cumulables : [member require_approval] (chaque nouvel appareil attend l'accord de l'administrateur, voir [signal NetworkSession.access_requested]), appareils et adresses IP bannis, blocage temporaire d'une adresse après [member max_failed_attempts] échecs.
+		Chaque appareil est reconnu par l'empreinte de sa clé d'identité, prouvée par une signature : un appareil ne peut pas se faire passer pour un autre en déclarant une fausse identité. Les mots de passe ne sont jamais stockés ni transmis en clair : la ressource garde une clé dérivée (PBKDF2-HMAC-SHA256, mêlée à une graine propre à ce serveur) et le client ne présente qu'une preuve HMAC sur un défi aléatoire. Un fichier .tres volé permettrait toutefois de se connecter à ce serveur sous ces comptes : le garder privé.
+		Le rôle ([enum Role]) est attribué par le serveur et visible dans les informations de chaque joueur ([code]role[/code]) : au jeu de l'utiliser (spectateurs sans personnage, commandes réservées aux modérateurs...).
+		Chaque modification émet [signal Resource.changed] : la connecter à [method ResourceSaver.save] pour sauvegarder automatiquement.
+		[codeblock]
+		var regles := ServerAccessPolicy.new()
+		regles.access_mode = ServerAccessPolicy.ACCESS_INVITATIONS
+		var code := regles.create_invite(3, 24.0) # 3 usages pendant 24 h
+		$NetworkSession.access_policy = regles
+		$NetworkSession.dedicated_server = true
+		$NetworkSession.host()
+		print($NetworkSession.create_connection_code("mon-serveur.example.org", code))
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_account">
+			<return type="int" enum="Error" />
+			<param index="0" name="username" type="String" />
+			<param index="1" name="password" type="String" />
+			<param index="2" name="role" type="int" enum="ServerAccessPolicy.Role" default="1" />
+			<description>
+				Crée (ou remplace) le compte [param username] avec le mot de passe [param password] et le rôle [param role]. L'identifiant ne tient compte ni de la casse ni des espaces autour. Renvoie [constant ERR_INVALID_PARAMETER] si l'identifiant ou le mot de passe est vide.
+			</description>
+		</method>
+		<method name="ban_address">
+			<return type="void" />
+			<param index="0" name="address" type="String" />
+			<description>
+				Bannit l'adresse IP [param address] : tout appareil qui s'y connecte depuis cette adresse est refusé ([constant NetworkSession.REASON_BANNED]).
+			</description>
+		</method>
+		<method name="ban_device">
+			<return type="void" />
+			<param index="0" name="fingerprint" type="String" />
+			<description>
+				Bannit l'appareil d'empreinte [param fingerprint] (et l'oublie s'il était reconnu).
+			</description>
+		</method>
+		<method name="create_invite">
+			<return type="String" />
+			<param index="0" name="uses" type="int" default="1" />
+			<param index="1" name="duration_hours" type="float" default="24.0" />
+			<param index="2" name="role" type="int" enum="ServerAccessPolicy.Role" default="1" />
+			<description>
+				Crée un code d'invitation (ex. [code]K7QF-9XM2-PL4D[/code], sans caractères ambigus) utilisable [param uses] fois (0 ou moins : illimité) pendant [param duration_hours] heures (0 : sans limite), qui donne le rôle [param role]. Un usage est décompté quand l'appareil est accepté.
+			</description>
+		</method>
+		<method name="forget_device">
+			<return type="void" />
+			<param index="0" name="fingerprint" type="String" />
+			<description>
+				Oublie l'appareil d'empreinte [param fingerprint] : il devra de nouveau être invité ou validé.
+			</description>
+		</method>
+		<method name="get_account_names" qualifiers="const">
+			<return type="PackedStringArray" />
+			<description>
+				Identifiants des comptes, tels qu'ils ont été saisis.
+			</description>
+		</method>
+		<method name="get_account_role" qualifiers="const">
+			<return type="int" enum="ServerAccessPolicy.Role" />
+			<param index="0" name="username" type="String" />
+			<description>
+				Rôle du compte [param username] (rôle par défaut s'il n'existe pas).
+			</description>
+		</method>
+		<method name="get_device_role" qualifiers="const">
+			<return type="int" enum="ServerAccessPolicy.Role" />
+			<param index="0" name="fingerprint" type="String" />
+			<description>
+				Rôle de l'appareil reconnu [param fingerprint] (rôle par défaut s'il est inconnu).
+			</description>
+		</method>
+		<method name="get_invites">
+			<return type="Array" />
+			<description>
+				Invitations encore valides : [Array] de [code]{ code, uses_left, expires_unix, role, created_unix }[/code] ([code]uses_left[/code] = -1 : illimitée ; [code]expires_unix[/code] = 0 : sans limite). Les invitations expirées sont retirées au passage.
+			</description>
+		</method>
+		<method name="get_known_devices" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Appareils reconnus (invités ou validés) : [Array] de [code]{ fingerprint, name, role, since_unix }[/code].
+			</description>
+		</method>
+		<method name="has_account" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="username" type="String" />
+			<description>
+				Vrai si le compte [param username] existe.
+			</description>
+		</method>
+		<method name="has_invite" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="code" type="String" />
+			<description>
+				Vrai si [param code] est une invitation valide (non expirée). Tirets, espaces et casse sont ignorés.
+			</description>
+		</method>
+		<method name="is_address_banned" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="address" type="String" />
+			<description>
+				Vrai si l'adresse IP [param address] est bannie.
+			</description>
+		</method>
+		<method name="is_device_banned" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="fingerprint" type="String" />
+			<description>
+				Vrai si l'appareil d'empreinte [param fingerprint] est banni.
+			</description>
+		</method>
+		<method name="is_device_known" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="fingerprint" type="String" />
+			<description>
+				Vrai si l'appareil d'empreinte [param fingerprint] a déjà été invité ou validé : il n'a plus besoin d'invitation ni de validation.
+			</description>
+		</method>
+		<method name="normalize_invite" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="code" type="String" />
+			<description>
+				Code d'invitation en majuscules, sans tirets ni espaces.
+			</description>
+		</method>
+		<method name="remember_device">
+			<return type="void" />
+			<param index="0" name="fingerprint" type="String" />
+			<param index="1" name="name" type="String" />
+			<param index="2" name="role" type="int" enum="ServerAccessPolicy.Role" />
+			<description>
+				Mémorise l'appareil [param fingerprint] (nom [param name], rôle [param role]) : il sera accepté sans invitation ni validation.
+			</description>
+		</method>
+		<method name="remove_account">
+			<return type="void" />
+			<param index="0" name="username" type="String" />
+			<description>
+				Supprime le compte [param username].
+			</description>
+		</method>
+		<method name="revoke_invite">
+			<return type="void" />
+			<param index="0" name="code" type="String" />
+			<description>
+				Annule l'invitation [param code].
+			</description>
+		</method>
+		<method name="set_account_password">
+			<return type="int" enum="Error" />
+			<param index="0" name="username" type="String" />
+			<param index="1" name="password" type="String" />
+			<description>
+				Change le mot de passe du compte [param username] (rôle conservé).
+			</description>
+		</method>
+		<method name="set_account_role">
+			<return type="void" />
+			<param index="0" name="username" type="String" />
+			<param index="1" name="role" type="int" enum="ServerAccessPolicy.Role" />
+			<description>
+				Change le rôle du compte [param username] (appliqué à la prochaine connexion).
+			</description>
+		</method>
+		<method name="unban_address">
+			<return type="void" />
+			<param index="0" name="address" type="String" />
+			<description>
+				Retire le bannissement de l'adresse [param address].
+			</description>
+		</method>
+		<method name="unban_device">
+			<return type="void" />
+			<param index="0" name="fingerprint" type="String" />
+			<description>
+				Retire le bannissement de l'appareil [param fingerprint].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="access_mode" type="int" setter="set_access_mode" getter="get_access_mode" enum="ServerAccessPolicy.AccessMode" default="0">
+			Qui peut se connecter : ouvert, comptes ou invitations.
+		</member>
+		<member name="account_seed" type="PackedByteArray" setter="set_account_seed" getter="get_account_seed" default="PackedByteArray(188, 62, 166, 134, 5, 233, 147, 136, 224, 97, 92, 25, 155, 60, 179, 223)">
+			Graine aléatoire de ce serveur, mêlée au sel de chaque compte : un même mot de passe donne une clé différente d'un serveur à l'autre. Ne pas modifier (les comptes existants ne fonctionneraient plus).
+		</member>
+		<member name="accounts" type="Dictionary" setter="set_accounts" getter="get_accounts" default="{}">
+			Comptes (stockage) : identifiant en minuscules → [code]{ name, key, role }[/code]. Utiliser [method add_account] et [method remove_account].
+		</member>
+		<member name="approval_timeout" type="float" setter="set_approval_timeout" getter="get_approval_timeout" default="120.0">
+			Durée maximale d'attente d'un appareil en cours de validation manuelle.
+		</member>
+		<member name="banned_addresses" type="PackedStringArray" setter="set_banned_addresses" getter="get_banned_addresses" default="PackedStringArray()">
+			Adresses IP bannies.
+		</member>
+		<member name="banned_devices" type="PackedStringArray" setter="set_banned_devices" getter="get_banned_devices" default="PackedStringArray()">
+			Empreintes des appareils bannis.
+		</member>
+		<member name="block_duration" type="float" setter="set_block_duration" getter="get_block_duration" default="60.0">
+			Durée du blocage d'une adresse après [member max_failed_attempts] échecs.
+		</member>
+		<member name="default_role" type="int" setter="set_default_role" getter="get_default_role" enum="ServerAccessPolicy.Role" default="1">
+			Rôle donné en mode ouvert, et aux appareils sans rôle particulier.
+		</member>
+		<member name="invites_data" type="Dictionary" setter="set_invites_data" getter="get_invites_data" default="{}">
+			Invitations (stockage). Utiliser [method create_invite], [method get_invites] et [method revoke_invite].
+		</member>
+		<member name="known_devices_data" type="Dictionary" setter="set_known_devices_data" getter="get_known_devices_data" default="{}">
+			Appareils reconnus (stockage). Utiliser [method remember_device], [method get_known_devices] et [method forget_device].
+		</member>
+		<member name="max_failed_attempts" type="int" setter="set_max_failed_attempts" getter="get_max_failed_attempts" default="5">
+			Nombre d'échecs d'authentification (mot de passe, compte, invitation) depuis une même adresse avant de la bloquer [member block_duration] secondes. 0 : jamais de blocage. Protège contre l'essai de mots de passe en série depuis Internet.
+		</member>
+		<member name="require_approval" type="bool" setter="set_require_approval" getter="is_approval_required" default="false">
+			Si vrai, chaque appareil inconnu (ni invité ni déjà validé) attend l'accord de l'administrateur du serveur ([signal NetworkSession.access_requested]). S'applique en plus du mode d'accès.
+		</member>
+	</members>
+	<constants>
+		<constant name="ACCESS_OPEN" value="0" enum="AccessMode">
+			Tout appareil qui exécute le jeu, sous réserve du mot de passe commun, des bannissements et de la validation manuelle.
+		</constant>
+		<constant name="ACCESS_ACCOUNTS" value="1" enum="AccessMode">
+			Identifiant + mot de passe d'un compte créé sur le serveur ; le rôle vient du compte.
+		</constant>
+		<constant name="ACCESS_INVITATIONS" value="2" enum="AccessMode">
+			Code d'invitation ; l'appareil invité est ensuite reconnu sans nouveau code, avec le rôle de l'invitation.
+		</constant>
+		<constant name="ROLE_SPECTATOR" value="0" enum="Role">
+			Spectateur.
+		</constant>
+		<constant name="ROLE_PLAYER" value="1" enum="Role">
+			Joueur.
+		</constant>
+		<constant name="ROLE_MODERATOR" value="2" enum="Role">
+			Modérateur.
+		</constant>
+		<constant name="ROLE_ADMIN" value="3" enum="Role">
+			Administrateur (rôle de l'hôte quand il joue).
+		</constant>
+	</constants>
+</class>

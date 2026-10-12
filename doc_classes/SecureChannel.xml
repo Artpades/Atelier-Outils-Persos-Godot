@@ -12,10 +12,10 @@
 		var emetteur := SecureChannel.new()
 		var recepteur := SecureChannel.new()
 		recepteur.set_key(emetteur.generate_key()) # la clé doit être transmise par un moyen sûr
-		var paquet := emetteur.encrypt(&quot;secret&quot;.to_utf8_buffer())
+		var paquet := emetteur.encrypt("secret".to_utf8_buffer())
 		var texte := recepteur.decrypt(paquet).get_string_from_utf8()
 		if recepteur.get_last_error() != OK:
-		    push_warning(&quot;Paquet refusé&quot;)
+		    push_warning("Paquet refusé")
 		[/codeblock]
 	</description>
 	<tutorials>

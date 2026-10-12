@@ -3,14 +3,15 @@ extends SceneTree
 ## 🧪 Lance la suite de tests du module Multijoueur (bibliothèque multiplayer), sans interface.
 ##
 ## Depuis le dossier du projet Godot :
-##   godot --headless --path . --quit-after 6000 -s "res://🧪Démos de modules/1.📁🔌/🗄️Multijoueur/lancer_tous_les_tests.gd"
+##   godot --headless --path . --max-fps 120 --quit-after 30000 -s "res://🧪Démos de modules/1.📁🔌/🗄️Multijoueur/lancer_tous_les_tests.gd"
 ## Code de sortie : nombre total d'échecs (0 = tout est passé).
-## Utilise les ports UDP/TCP 47700-47702 (découverte) et 47811 et suivants (sessions) sur 127.0.0.1.
+## Utilise les ports UDP/TCP 47700-47702 (découverte), 47811 et suivants puis 47901 et suivants (sessions) sur 127.0.0.1.
 
 const JournalTests := preload("../../2.🧭🌍/journal_tests.gd")
 
 const SUITES := {
 	"Multijoueur (SecureChannel, LanDiscovery, NetworkSession)": preload("suite_tests_multijoueur.gd"),
+	"Serveur à distance (ServerAccessPolicy, PortForwarder, accès)": preload("suite_tests_serveur.gd"),
 }
 
 

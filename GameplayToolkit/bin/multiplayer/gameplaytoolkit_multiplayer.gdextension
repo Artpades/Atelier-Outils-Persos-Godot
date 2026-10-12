@@ -11,6 +11,8 @@ reloadable = true
 SecureChannel = "res://🖼️Editor Icons/💾🔐/EncryptionKey Icon.png"
 LanDiscovery = "res://🖼️Editor Icons/🎮🔌/LanDiscovery Icon.png"
 NetworkSession = "res://🖼️Editor Icons/🎮🔌/NetworkSession Icon.png"
+ServerAccessPolicy = "res://🖼️Editor Icons/🎮🔌/ServerAccessPolicy Icon.png"
+PortForwarder = "res://🖼️Editor Icons/🎮🔌/PortForwarder Icon.png"
 
 [libraries]
 

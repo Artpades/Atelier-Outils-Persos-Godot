@@ -1,0 +1,272 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/1.📁🔌/🗄️Multijoueur/demo_client_distant.gd" id="1_client"]
+
+[node name="DémoClientDistant" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_client")
+
+[node name="Session" type="NetworkSession" parent="."]
+unique_name_in_owner = true
+connection_timeout = 10.0
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="Marges" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Colonnes" type="HBoxContainer" parent="Marges"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DefilementGauche" type="ScrollContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Gauche" type="VBoxContainer" parent="Marges/Colonnes/DefilementGauche"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Titre" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "💻 Rejoindre un serveur distant"
+
+[node name="LabelCode" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+text = "Code de connexion (donné par le serveur)"
+
+[node name="LigneCode" type="HBoxContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="Code" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/LigneCode"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "gtk://…"
+
+[node name="BoutonColler" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/LigneCode"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📋 Coller"
+
+[node name="AideCode" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.64, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Le code contient l'adresse, le port et l'empreinte du serveur : ce client vérifie qu'il parle bien au bon serveur. Sans code, saisir l'adresse ci-dessous (serveur non vérifié)."
+autowrap_mode = 3
+
+[node name="GrilleAdresse" type="GridContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+columns = 2
+
+[node name="LabelAdresse" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleAdresse"]
+layout_mode = 2
+text = "Adresse"
+
+[node name="Adresse" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleAdresse"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "IP ou nom de domaine"
+
+[node name="LabelPort" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleAdresse"]
+layout_mode = 2
+text = "Port"
+
+[node name="Port" type="SpinBox" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleAdresse"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1024.0
+max_value = 65535.0
+value = 47500.0
+
+[node name="LabelTransport" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleAdresse"]
+layout_mode = 2
+text = "Transport"
+
+[node name="Transport" type="OptionButton" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleAdresse"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ChiffrementTransport" type="CheckBox" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "🔒 Transport chiffré (comme le serveur)"
+
+[node name="Separateur" type="HSeparator" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="TitreIdentite" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "🪪 Identité et accès"
+
+[node name="GrilleIdentite" type="GridContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+columns = 2
+
+[node name="LabelNom" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+layout_mode = 2
+text = "Nom affiché"
+
+[node name="Nom" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelIdentifiant" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+layout_mode = 2
+text = "Identifiant"
+
+[node name="Identifiant" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "(mode Comptes)"
+
+[node name="LabelMotDePasseCompte" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+layout_mode = 2
+text = "Mot de passe"
+
+[node name="MotDePasseCompte" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "(du compte)"
+secret = true
+
+[node name="LabelInvitation" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+layout_mode = 2
+text = "Invitation"
+
+[node name="Invitation" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "(si absente du code)"
+
+[node name="LabelMotDePasseServeur" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+layout_mode = 2
+text = "MdP serveur"
+
+[node name="MotDePasseServeur" type="LineEdit" parent="Marges/Colonnes/DefilementGauche/Gauche/GrilleIdentite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "(mot de passe commun éventuel)"
+secret = true
+
+[node name="ExigerBoutEnBout" type="CheckBox" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Refuse un serveur qui ne propose pas le chiffrement de bout en bout."
+text = "🛡️ Exiger le chiffrement de bout en bout"
+
+[node name="Boutons" type="HBoxContainer" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+layout_mode = 2
+
+[node name="BoutonConnecter" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🔌 Se connecter"
+
+[node name="BoutonDeconnecter" type="Button" parent="Marges/Colonnes/DefilementGauche/Gauche/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🚪 Quitter"
+
+[node name="Etat" type="Label" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Securite" type="RichTextLabel" parent="Marges/Colonnes/DefilementGauche/Gauche"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+theme_override_font_sizes/mono_font_size = 11
+bbcode_enabled = true
+fit_content = true
+
+[node name="Milieu" type="VBoxContainer" parent="Marges/Colonnes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitreJoueurs" type="Label" parent="Marges/Colonnes/Milieu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "👥 Joueurs"
+
+[node name="Joueurs" type="RichTextLabel" parent="Marges/Colonnes/Milieu"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
+theme_override_font_sizes/mono_font_size = 12
+bbcode_enabled = true
+
+[node name="Droite" type="VBoxContainer" parent="Marges/Colonnes"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+
+[node name="TitreJournal" type="Label" parent="Marges/Colonnes/Droite"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "💬 Messages et journal"
+
+[node name="Journal" type="RichTextLabel" parent="Marges/Colonnes/Droite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+theme_override_font_sizes/mono_font_size = 11
+bbcode_enabled = true
+scroll_following = true
+
+[node name="Saisie" type="HBoxContainer" parent="Marges/Colonnes/Droite"]
+layout_mode = 2
+
+[node name="Message" type="LineEdit" parent="Marges/Colonnes/Droite/Saisie"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Message à tous…"
+
+[node name="BoutonEnvoyer" type="Button" parent="Marges/Colonnes/Droite/Saisie"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Envoyer"
