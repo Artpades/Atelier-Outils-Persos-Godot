@@ -28,3 +28,7 @@ android.debug.arm64 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.an
 android.release.arm64 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.android.release.arm64.so"
 android.debug.arm32 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.android.debug.arm32.so"
 android.release.arm32 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.android.release.arm32.so"
+web.debug.threads.wasm32 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.web.template_debug.wasm32.wasm"
+web.release.threads.wasm32 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.web.template_release.wasm32.wasm"
+web.debug.wasm32 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.web.template_debug.wasm32.nothreads.wasm"
+web.release.wasm32 = "res://bin/mobile_input/libgameplaytoolkit_mobile_input.web.template_release.wasm32.nothreads.wasm"

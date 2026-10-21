@@ -38,6 +38,9 @@
       <li><strong>Pas un effet de <code>PlayerFX</code></strong> : c'est un <code>Container</code> autonome. Pour faire grossir un seul bouton, voir <a href="agrandissement-retrecissement.html">🦣 Agrandissement</a>.</li>
     </ul>
   </div>
+  <figure class="media media-web" data-web="effets/floating-dock">
+    <figcaption>Le vrai FloatingDock dans le moteur : survoler les icônes, régler grossissement, rayon d'influence, écarts, ancrage, orientation et mode de redimensionnement.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -57,7 +60,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
 
@@ -66,11 +69,11 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>FloatingDock</code></strong> dans l'interface et l'ancrer en bas au centre (préréglage d'ancrage <em>Center Bottom</em>).
-      <div class="why">le dock prend la taille de ses éléments au repos ; les éléments agrandis débordent vers le haut (<code>item_anchor</code> = <em>End</em> par défaut) sans pousser le reste de l'interface.</div>
+      <div class="why">Le dock prend la taille de ses éléments au repos ; les éléments agrandis débordent vers le haut (<code>item_anchor</code> = <em>End</em> par défaut) sans pousser le reste de l'interface.</div>
     </li>
     <li>
       <strong>Ajouter des <code>TextureButton</code></strong> (ou <code>TextureRect</code>) comme enfants, avec <code>ignore_texture_size</code> et <code>stretch_mode</code> = <em>Keep Aspect Centered</em>.
-      <div class="why">en mode <code>RESIZE_SIZE</code>, l'élément reçoit une taille plus grande : il faut que son image s'étire avec lui.</div>
+      <div class="why">En mode <code>RESIZE_SIZE</code>, l'élément reçoit une taille plus grande : il faut que son image s'étire avec lui.</div>
     </li>
     <li>
       <strong>Régler <code>item_size</code>, <code>magnification</code> et <code>influence_radius</code></strong>.
@@ -84,6 +87,7 @@
       <div class="why"><code>hovered_item_changed</code> est émis à chaque changement de l'élément le plus proche du pointeur, et avec <code>null</code> quand le pointeur quitte le dock.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Un FloatingDock ancré en bas, sept icônes : elles grossissent sous le pointeur et le nom de l'outil survolé s'affiche.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -115,17 +119,20 @@
   <pre><code class="gdscript">$Dock.vertical = true
 $Dock.item_anchor = FloatingDock.ANCHOR_BEGIN   # collé à gauche, grossit vers la droite
 $Dock.hover_lift = 8.0                           # l'élément survolé se décale vers la droite</code></pre>
+  <figure class="media" data-video="ex-vertical"><figcaption>Dock vertical collé à gauche, qui grossit vers la droite, avec <code>hover_lift</code>.</figcaption></figure>
 
   <h3 id="ex-texte">Comment j'agrandis des boutons avec du texte ?</h3>
   <p>En mode taille, un bouton agrandi garde une police de même taille. <code>RESIZE_SCALE</code> met tout le rendu à l'échelle, texte compris :</p>
   <pre><code class="gdscript">$Menu.resize_mode = FloatingDock.RESIZE_SCALE
 $Menu.item_size = Vector2(160, 48)
 $Menu.magnification = 1.3</code></pre>
+  <figure class="media" data-video="ex-texte"><figcaption>Des boutons de menu avec texte : en RESIZE_SCALE le texte grossit avec eux.</figcaption></figure>
 
   <h3 id="ex-manette">Comment je l'utilise à la manette ?</h3>
   <p>Avec <code>follow_focus</code> (actif par défaut), l'élément qui a le focus est grossi quand la souris n'est pas sur le dock. Il suffit de donner le focus au premier élément :</p>
   <pre><code class="gdscript">func ouvrir_menu() -> void:
 	$Dock.get_child(0).grab_focus()</code></pre>
+  <figure class="media" data-video="ex-manette"><figcaption>Sans souris, <code>follow_focus</code> grossit l'élément qui a le focus : ici déplacé avec les flèches.</figcaption></figure>
 
   <h3 id="ex-raccourcis">Comment je relie le dock à une barre de raccourcis ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
@@ -135,6 +142,7 @@ $Menu.magnification = 1.3</code></pre>
 
 func utiliser_raccourci(index: int) -> void:
 	print("Raccourci ", index)</code></pre>
+  <figure class="media" data-video="ex-raccourcis"><figcaption>Chaque bouton du dock lance son raccourci au clic.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -188,6 +196,108 @@ func utiliser_raccourci(index: int) -> void:
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "FloatingDock.hover_lift": [
+    {
+      "video": "FloatingDock.hover_lift",
+      "legende": "0 et 14 px : les éléments influencés « sautent » vers le haut."
+    }
+  ],
+  "FloatingDock.hover_spacing": [
+    {
+      "video": "FloatingDock.hover_spacing",
+      "legende": "0 et 24 px : l'écart ajouté autour des éléments grossis."
+    }
+  ],
+  "FloatingDock.hovered_item_changed": [
+    {
+      "video": "FloatingDock.hovered_item_changed",
+      "legende": "<code>hovered_item_changed<\/code> à chaque changement d'élément survolé, puis avec null en quittant le dock."
+    }
+  ],
+  "FloatingDock.influence_radius": [
+    {
+      "video": "FloatingDock.influence_radius",
+      "legende": "80, 160 (défaut) et 320 px : jusqu'où les voisins grossissent encore."
+    }
+  ],
+  "FloatingDock.item_anchor": [
+    {
+      "video": "FloatingDock.item_anchor",
+      "legende": "BEGIN, CENTER et END (défaut) : le bord collé, donc le sens du grossissement."
+    }
+  ],
+  "FloatingDock.magnification": [
+    {
+      "video": "FloatingDock.magnification",
+      "legende": "1,3, 1,8 (défaut) et 2,5 : l'échelle de l'élément sous le pointeur."
+    }
+  ],
+  "FloatingDock.resize_mode": [
+    {
+      "video": "FloatingDock.resize_mode",
+      "legende": "RESIZE_SIZE agrandit la taille (le texte garde sa police) ; RESIZE_SCALE met tout à l'échelle."
+    }
+  ],
+  "FloatingDock.smoothing": [
+    {
+      "video": "FloatingDock.smoothing",
+      "legende": "4, 12 (défaut) et 0 (immédiat) : la rapidité de l'animation."
+    }
+  ],
+  "FloatingDock": [
+    {
+      "video": "classe-FloatingDock",
+      "legende": "Les éléments proches du pointeur grossissent et s'écartent, en douceur."
+    }
+  ],
+  "FloatingDock.follow_focus": [
+    {
+      "video": "ex-manette",
+      "legende": "Sans souris, <code>follow_focus<\/code> grossit l'élément qui a le focus : ici déplacé avec les flèches."
+    }
+  ],
+  "FloatingDock.get_hovered_item": [
+    {
+      "video": "FloatingDock.hovered_item_changed",
+      "legende": "<code>hovered_item_changed<\/code> à chaque changement d'élément survolé, puis avec null en quittant le dock."
+    }
+  ],
+  "FloatingDock.get_item_influence": [
+    {
+      "video": "FloatingDock.hovered_item_changed",
+      "legende": "<code>get_item_influence(i)<\/code> : 0 au repos, 1 au grossissement maximal (barres sous les icônes)."
+    }
+  ],
+  "FloatingDock.hover_margin": [
+    {
+      "video": "classe-FloatingDock",
+      "legende": "<code>hover_margin<\/code> : le pointeur compte encore comme au-dessus du dock un peu au-delà de ses bords, le grossissement ne s'arrête pas net."
+    }
+  ],
+  "FloatingDock.item_size": [
+    {
+      "video": "classe-FloatingDock",
+      "legende": "Les éléments proches du pointeur grossissent et s'écartent, en douceur."
+    }
+  ],
+  "FloatingDock.separation": [
+    {
+      "video": "classe-FloatingDock",
+      "legende": "Les éléments proches du pointeur grossissent et s'écartent, en douceur."
+    }
+  ],
+  "FloatingDock.vertical": [
+    {
+      "video": "ex-vertical",
+      "legende": "Dock vertical collé à gauche, qui grossit vers la droite, avec <code>hover_lift<\/code>."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "FloatingDock.vertical": "Dock sur un bord latéral : barre d'outils d'un éditeur de niveau, sélecteur de sorts.",

@@ -46,10 +46,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : un personnage 2D saute, attrape une liane (try_grab), grimpe, se balance en poussant gauche / droite puis saute pour atteindre une plateforme ; debug_mode de la corde (points jaunes) activé.</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/physique-de-corde" data-figure="1">
+    <figcaption>Deux lianes et un héros au clavier : E pour attraper, haut / bas pour grimper, gauche / droite pour se balancer, Espace pour lâcher ; réglages des cordes et du composant.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -66,8 +65,8 @@
   </div>
   <h3 id="mise-en-place">Mise en place</h3>
   <ol class="steps">
-    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">corde et composant font partie de la bibliothèque du mouvement.</div></li>
-    <li><strong>Prévoir une action « attraper »</strong> dans la carte des entrées.<div class="why">l'accroche n'est jamais automatique : <code>try_grab()</code> doit être appelé par votre script.</div></li>
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">Corde et composant font partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Prévoir une action « attraper »</strong> dans la carte des entrées.<div class="why">L'accroche n'est jamais automatique : <code>try_grab()</code> doit être appelé par votre script.</div></li>
   </ol>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
@@ -75,11 +74,11 @@
   <ol class="steps">
     <li>
       <strong>Ajouter une <code>Rope2D</code></strong> accrochée au plafond (sa position = point d'attache), <code>rope_length</code> = 200.
-      <div class="why">le premier point suit ce nœud ; sans ancrage d'arrivée, la corde pend dans le sens de sa <code>gravity</code>.</div>
+      <div class="why">Le premier point suit ce nœud ; sans ancrage d'arrivée, la corde pend dans le sens de sa <code>gravity</code>.</div>
     </li>
     <li>
       <strong>Sous le joueur (<code>CharacterBody2D</code>)</strong> : <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>RopeMovement2D</code>.
-      <div class="why">le directeur crée le contexte « corde » : actif dès que le corps est accroché, il désactive la marche.</div>
+      <div class="why">Le directeur crée le contexte « corde » : actif dès que le corps est accroché, il désactive la marche.</div>
     </li>
     <li>
       <strong>Appeler <code>try_grab()</code> sur une touche</strong>, et relayer l'intention au directeur :
@@ -89,9 +88,10 @@
 		$RopeMovement2D.try_grab()          # corde la plus proche à moins de grab_distance
 	if Input.is_action_just_pressed("ui_accept"):
 		$MovementDirector.jump()            # accroché : lâche la corde avec élan</code></pre>
-      <div class="why">accroché, <code>move.y</code> grimpe (haut) ou descend (bas), <code>move.x</code> balance la corde, le saut lâche avec la vitesse de la corde plus <code>jump_up_velocity</code>.</div>
+      <div class="why">Accroché, <code>move.y</code> grimpe (haut) ou descend (bas), <code>move.x</code> balance la corde, le saut lâche avec la vitesse de la corde plus <code>jump_up_velocity</code>.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Saut, <code>try_grab()</code> sur la liane, montée, balancement gauche / droite, puis saut vers la plateforme (<code>debug_mode</code> de la corde).</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -109,6 +109,7 @@
   <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
 	if not $GroundMovement2D.is_on_floor() and not $RopeMovement2D.is_attached():
 		$RopeMovement2D.try_grab()   # échoue tant que regrab_delay n'est pas écoulé après un lâcher</code></pre>
+  <figure class="media" data-video="ex-auto"><figcaption>En l'air, <code>try_grab()</code> à chaque image : le personnage attrape la corde en sautant dessus (sauf pendant <code>regrab_delay</code>).</figcaption></figure>
 
   <h3 id="ex-pont">Comment je fais un pont suspendu ou un câble tendu ?</h3>
   <pre><code class="gdscript">var cable := Rope2D.new()
@@ -117,6 +118,7 @@ cable.point_count = 24
 cable.end_anchor_path = NodePath("../PoteauDroit")
 cable.collide = true               # posé sur le décor plutôt que de le traverser
 $PoteauGauche.add_child(cable)</code></pre>
+  <figure class="media" data-video="ex-pont"><figcaption>Un câble (<code>end_anchor_path</code>) de 420 px entre deux poteaux, <code>collide</code> : il pend et se pose sur le décor.</figcaption></figure>
 
   <h3 id="ex-lanterne">Comment j'accroche une lanterne au bout d'une corde ?</h3>
   <p>Tout <code>Node2D</code> peut être accroché : il suit la corde et l'alourdit.</p>
@@ -127,11 +129,13 @@ $PoteauGauche.add_child(cable)</code></pre>
 
 func _on_coup_de_vent() -> void:
 	$Corde.apply_impulse_at($Corde.point_count - 1, Vector2(300, 0))</code></pre>
+  <figure class="media" data-video="ex-lanterne"><figcaption><code>attach_body</code> : une lanterne au bout de la corde ; <code>apply_impulse_at</code> : un coup de vent la balance.</figcaption></figure>
 
   <h3 id="ex-proche">Comment j'affiche une aide quand une corde est à portée ?</h3>
   <pre><code class="gdscript">func _process(_delta: float) -> void:
 	var info = Rope2D.find_nearest_info($Joueur.global_position, 40.0)
 	$AideAttraper.visible = info != null and not $Joueur/RopeMovement2D.is_attached()</code></pre>
+  <figure class="media" data-video="ex-proche"><figcaption><code>Rope2D.find_nearest_info()</code> : l'aide « Attraper » s'affiche quand une corde est à portée.</figcaption></figure>
 
   <h3 id="ex-visuel3d">Comment j'affiche une corde épaisse en 3D ?</h3>
   <p>La ligne d'un pixel de <code>Rope3D</code> sert surtout au prototype. Pour un vrai visuel, lire les points et les donner à une <code>Path3D</code> + <code>CSGPolygon3D</code> (ou un mesh de cylindres).</p>
@@ -140,6 +144,7 @@ func _on_coup_de_vent() -> void:
 	for p in $Corde.get_points():
 		courbe.add_point($Chemin.to_local(p))
 	$Chemin.curve = courbe   # Path3D suivi par un CSGPolygon3D en mode « Path »</code></pre>
+  <figure class="media" data-video="ex-visuel3d"><figcaption>Les points d'une Rope3D (<code>get_points()</code>) donnés à une Path3D + CSGPolygon3D : une corde épaisse.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -287,6 +292,521 @@ window.GTK_USAGES = {};
   window.GTK_USAGES["Rope2D.find_nearest_info"] = "Afficher une aide « attraper » quand une corde est à portée.";
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-index">
+<svg viewBox="0 0 640 260" role="img" aria-label="Index fractionnaires le long d'une corde">
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="40" y="30" width="80" height="12" fill="currentColor" fill-opacity="0.3"/>
+    <polyline points="80,60 150,64 220,76 290,96 360,124 430,160 500,204 570,256" fill="none" stroke="#c9a46b" stroke-width="4"/>
+    <circle cx="80" cy="60" r="6" fill="currentColor"/><text x="80" y="48" text-anchor="middle" font-size="12">0</text><circle cx="150" cy="64" r="6" fill="currentColor"/><text x="150" y="52" text-anchor="middle" font-size="12">1</text><circle cx="220" cy="76" r="6" fill="currentColor"/><text x="220" y="64" text-anchor="middle" font-size="12">2</text><circle cx="290" cy="96" r="6" fill="currentColor"/><text x="290" y="84" text-anchor="middle" font-size="12">3</text><circle cx="360" cy="124" r="6" fill="currentColor"/><text x="360" y="112" text-anchor="middle" font-size="12">4</text><circle cx="430" cy="160" r="6" fill="currentColor"/><text x="430" y="148" text-anchor="middle" font-size="12">5</text><circle cx="500" cy="204" r="6" fill="currentColor"/><text x="500" y="192" text-anchor="middle" font-size="12">6</text><circle cx="570" cy="256" r="6" fill="currentColor"/><text x="570" y="244" text-anchor="middle" font-size="12">7</text>
+    <circle cx="255.0" cy="86.0" r="7" fill="var(--accent)"/>
+    <text x="267.0" y="106.0" fill="var(--accent)" font-weight="700">2,5 : get_position_at(2.5)</text>
+    <text x="582" y="260">point_count - 1</text>
+    <text x="330" y="40" font-family="JetBrains Mono, monospace" font-size="11.5">get_segment_length() = rope_length / (point_count - 1)</text>
+    <text x="330" y="60" font-family="JetBrains Mono, monospace" font-size="11.5">get_closest_position(point) → index le plus proche</text>
+    <text x="330" y="80" font-family="JetBrains Mono, monospace" font-size="11.5">set_attached_position(corps, index) : grimper</text>
+    <text x="330" y="100" font-family="JetBrains Mono, monospace" font-size="11.5">get_attached_position(corps) · has_body · find_rope_of</text>
+    <text x="330" y="120" font-family="JetBrains Mono, monospace" font-size="11.5">get_velocity_at(index) · reset_points() · detach_body</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "Rope2D.attached_weight": [
+    {
+      "video": "Rope2D.attached_weight",
+      "legende": "Une lanterne accrochée : <code>attached_weight<\/code> 0, 1,5 (défaut) et 6."
+    }
+  ],
+  "Rope2D.collide": [
+    {
+      "video": "Rope2D.collide",
+      "legende": "<code>collide<\/code> false : la corde traverse le rocher · true : elle se pose dessus."
+    }
+  ],
+  "Rope2D.damping": [
+    {
+      "video": "Rope2D.damping",
+      "legende": "Même impulsion : <code>damping<\/code> 0, 0,01 (défaut) et 0,1."
+    }
+  ],
+  "Rope2D.debug_mode": [
+    {
+      "video": "Rope2D.debug_mode",
+      "legende": "<code>debug_mode<\/code> : points, origine, longueur et nombre de points."
+    }
+  ],
+  "Rope2D.gravity": [
+    {
+      "video": "Rope2D.gravity",
+      "legende": "<code>gravity<\/code> (0, 980) (défaut), (500, 600) (vent) et (0, -400) (flotte vers le haut)."
+    }
+  ],
+  "Rope2D.iterations": [
+    {
+      "video": "Rope2D.iterations",
+      "legende": "Une lourde charge au bout : <code>iterations<\/code> 1, 12 (défaut) et 50 ; peu de passes = la corde s'étire."
+    }
+  ],
+  "Rope2D.point_count": [
+    {
+      "video": "Rope2D.point_count",
+      "legende": "<code>point_count<\/code> 4, 16 (défaut) et 48 : la souplesse de la corde."
+    }
+  ],
+  "Rope2D.rope_length": [
+    {
+      "video": "Rope2D.rope_length",
+      "legende": "<code>rope_length<\/code> 100, 200 (défaut) et 350 px."
+    }
+  ],
+  "Rope2D.width": [
+    {
+      "video": "Rope2D.width",
+      "legende": "<code>width<\/code> et <code>color<\/code> : l'apparence du trait."
+    }
+  ],
+  "RopeMovement2D.climb_speed": [
+    {
+      "video": "RopeMovement2D.climb_speed",
+      "legende": "<code>climb_speed<\/code> 50, 110 (défaut) et 250 px/s."
+    }
+  ],
+  "RopeMovement2D.jump_up_velocity": [
+    {
+      "video": "RopeMovement2D.jump_up_velocity",
+      "legende": "Lâcher au même moment : <code>jump_up_velocity<\/code> 0, 320 (défaut) et 600."
+    }
+  ],
+  "RopeMovement2D.swing_force": [
+    {
+      "video": "RopeMovement2D.swing_force",
+      "legende": "<code>swing_force<\/code> 500, 2000 (défaut) et 5000 : l'amplitude du balancement."
+    }
+  ],
+  "Rope2D": [
+    {
+      "video": "classe-Rope2D",
+      "legende": "Cordes simulées (Verlet) : une liane qui pend, un câble tendu entre deux ancrages, une corde secouée."
+    }
+  ],
+  "Rope3D": [
+    {
+      "video": "classe-Rope3D",
+      "legende": "La même simulation en 3D : une corde pendue qu'on balance, un câble entre deux poteaux."
+    }
+  ],
+  "RopeMovement2D": [
+    {
+      "video": "classe-RopeMovement2D",
+      "legende": "Accroché à la corde : haut / bas pour grimper, gauche / droite pour se balancer, saut pour lâcher avec l'élan."
+    }
+  ],
+  "RopeMovement3D": [
+    {
+      "video": "classe-RopeMovement3D",
+      "legende": "En 3D : accroché, le personnage grimpe et se balance dans le plan de la commande."
+    }
+  ],
+  "Rope2D.apply_impulse_at": [
+    {
+      "video": "ex-lanterne",
+      "legende": "<code>attach_body<\/code> : une lanterne au bout de la corde ; <code>apply_impulse_at<\/code> : un coup de vent la balance."
+    }
+  ],
+  "Rope2D.attach_body": [
+    {
+      "video": "ex-lanterne",
+      "legende": "<code>attach_body<\/code> : une lanterne au bout de la corde ; <code>apply_impulse_at<\/code> : un coup de vent la balance."
+    }
+  ],
+  "Rope2D.body_attached": [
+    {
+      "video": "mode-emploi",
+      "legende": "Saut, <code>try_grab()<\/code> sur la liane, montée, balancement gauche / droite, puis saut vers la plateforme (<code>debug_mode<\/code> de la corde)."
+    }
+  ],
+  "Rope2D.body_detached": [
+    {
+      "video": "mode-emploi",
+      "legende": "Saut, <code>try_grab()<\/code> sur la liane, montée, balancement gauche / droite, puis saut vers la plateforme (<code>debug_mode<\/code> de la corde)."
+    }
+  ],
+  "Rope2D.collision_mask": [
+    {
+      "video": "Rope2D.collide",
+      "legende": "<code>collide<\/code> false : la corde traverse le rocher · true : elle se pose dessus."
+    }
+  ],
+  "Rope2D.color": [
+    {
+      "video": "Rope2D.width",
+      "legende": "<code>width<\/code> et <code>color<\/code> : l'apparence du trait."
+    }
+  ],
+  "Rope2D.detach_body": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.end_anchor_path": [
+    {
+      "video": "ex-pont",
+      "legende": "Un câble (<code>end_anchor_path<\/code>) de 420 px entre deux poteaux, <code>collide<\/code> : il pend et se pose sur le décor."
+    }
+  ],
+  "Rope2D.find_nearest_info": [
+    {
+      "video": "ex-proche",
+      "legende": "<code>Rope2D.find_nearest_info()<\/code> : l'aide « Attraper » s'affiche quand une corde est à portée."
+    }
+  ],
+  "Rope2D.find_rope_of": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.get_attached_position": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.get_closest_position": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.get_points": [
+    {
+      "video": "ex-visuel3d",
+      "legende": "Les points d'une Rope3D (<code>get_points()<\/code>) donnés à une Path3D + CSGPolygon3D : une corde épaisse."
+    }
+  ],
+  "Rope2D.get_position_at": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.get_segment_length": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.get_velocity_at": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.has_body": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.reset_points": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.set_attached_position": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope2D.start_anchor_path": [
+    {
+      "video": "ex-pont",
+      "legende": "Un câble (<code>end_anchor_path<\/code>) de 420 px entre deux poteaux, <code>collide<\/code> : il pend et se pose sur le décor."
+    }
+  ],
+  "Rope3D.apply_impulse_at": [
+    {
+      "video": "ex-lanterne",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.attach_body": [
+    {
+      "video": "ex-lanterne",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.attached_weight": [
+    {
+      "video": "Rope2D.attached_weight",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.body_attached": [
+    {
+      "video": "mode-emploi",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.body_detached": [
+    {
+      "video": "mode-emploi",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.collide": [
+    {
+      "video": "Rope2D.collide",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.collision_mask": [
+    {
+      "video": "Rope2D.collide",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.color": [
+    {
+      "video": "Rope2D.width",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.damping": [
+    {
+      "video": "Rope2D.damping",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.debug_mode": [
+    {
+      "video": "Rope2D.debug_mode",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.detach_body": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.end_anchor_path": [
+    {
+      "video": "ex-pont",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.find_rope_of": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.get_attached_position": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.get_closest_position": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.get_points": [
+    {
+      "video": "ex-visuel3d",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.get_position_at": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.get_segment_length": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.get_velocity_at": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.gravity": [
+    {
+      "video": "Rope2D.gravity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.has_body": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.iterations": [
+    {
+      "video": "Rope2D.iterations",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.point_count": [
+    {
+      "video": "Rope2D.point_count",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.reset_points": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.rope_length": [
+    {
+      "video": "Rope2D.rope_length",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Rope3D.set_attached_position": [
+    {
+      "schema": "schema-index",
+      "legende": "Les positions le long d'une corde sont des index fractionnaires : 0 = premier point, <code>point_count - 1<\/code> = dernier, 2,5 = à mi-chemin entre les points 2 et 3."
+    }
+  ],
+  "Rope3D.start_anchor_path": [
+    {
+      "video": "ex-pont",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement2D.get_rope": [
+    {
+      "video": "classe-RopeMovement2D",
+      "legende": "Accroché à la corde : haut / bas pour grimper, gauche / droite pour se balancer, saut pour lâcher avec l'élan."
+    }
+  ],
+  "RopeMovement2D.grab_distance": [
+    {
+      "video": "ex-auto",
+      "legende": "En l'air, <code>try_grab()<\/code> à chaque image : le personnage attrape la corde en sautant dessus (sauf pendant <code>regrab_delay<\/code>)."
+    }
+  ],
+  "RopeMovement2D.grabbed": [
+    {
+      "video": "mode-emploi",
+      "legende": "Saut, <code>try_grab()<\/code> sur la liane, montée, balancement gauche / droite, puis saut vers la plateforme (<code>debug_mode<\/code> de la corde)."
+    }
+  ],
+  "RopeMovement2D.is_attached": [
+    {
+      "video": "ex-proche",
+      "legende": "<code>Rope2D.find_nearest_info()<\/code> : l'aide « Attraper » s'affiche quand une corde est à portée."
+    }
+  ],
+  "RopeMovement2D.regrab_delay": [
+    {
+      "video": "ex-auto",
+      "legende": "En l'air, <code>try_grab()<\/code> à chaque image : le personnage attrape la corde en sautant dessus (sauf pendant <code>regrab_delay<\/code>)."
+    }
+  ],
+  "RopeMovement2D.release": [
+    {
+      "video": "RopeMovement2D.jump_up_velocity",
+      "legende": "Lâcher au même moment : <code>jump_up_velocity<\/code> 0, 320 (défaut) et 600."
+    }
+  ],
+  "RopeMovement2D.released": [
+    {
+      "video": "mode-emploi",
+      "legende": "Saut, <code>try_grab()<\/code> sur la liane, montée, balancement gauche / droite, puis saut vers la plateforme (<code>debug_mode<\/code> de la corde)."
+    }
+  ],
+  "RopeMovement2D.try_grab": [
+    {
+      "video": "mode-emploi",
+      "legende": "Saut, <code>try_grab()<\/code> sur la liane, montée, balancement gauche / droite, puis saut vers la plateforme (<code>debug_mode<\/code> de la corde)."
+    }
+  ],
+  "RopeMovement3D.climb_speed": [
+    {
+      "video": "RopeMovement2D.climb_speed",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.get_rope": [
+    {
+      "video": "classe-RopeMovement2D",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.grab_distance": [
+    {
+      "video": "ex-auto",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.grabbed": [
+    {
+      "video": "mode-emploi",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.is_attached": [
+    {
+      "video": "ex-proche",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.jump_up_velocity": [
+    {
+      "video": "RopeMovement2D.jump_up_velocity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.regrab_delay": [
+    {
+      "video": "ex-auto",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.release": [
+    {
+      "video": "RopeMovement2D.jump_up_velocity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.released": [
+    {
+      "video": "mode-emploi",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.swing_force": [
+    {
+      "video": "RopeMovement2D.swing_force",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "RopeMovement3D.try_grab": [
+    {
+      "video": "mode-emploi",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

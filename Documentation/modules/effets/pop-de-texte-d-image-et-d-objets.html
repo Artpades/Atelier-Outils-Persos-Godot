@@ -52,10 +52,9 @@
       <li><strong>Pas des objets ramassables</strong> : une pièce « poppée » n'a pas de collision ; pour de vrais objets, instancier une scène physique soi-même.</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF côte à côte : des chiffres de dégâts rouges qui jaillissent d'un ennemi 2D et retombent ; un coffre 3D d'où jaillissent cinq pièces qui rebondissent au sol (<code>use_floor</code>) avant de disparaître en fondu.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/pop-de-texte-d-image-et-d-objets" data-figure="1">
+    <figcaption>Cliquer dans la zone de jeu (dégâts au point d'impact) ou utiliser les boutons ; régler direction, dispersion, vitesse, gravité, durée de vie, apparition, police et rebond au sol.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -77,11 +76,11 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
     <li>
       <strong>Recommandé : créer un style partagé</strong> <code>res://pops/degats.tres</code> (<em>Nouvelle ressource › PopStyle</em>).
-      <div class="why">tous les ennemis utilisent alors la même allure ; une retouche du <code>.tres</code> s'applique partout.</div>
+      <div class="why">Tous les ennemis utilisent alors la même allure ; une retouche du <code>.tres</code> s'applique partout.</div>
     </li>
   </ol>
 
@@ -90,20 +89,21 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>PopSpawner</code> comme enfant de l'ennemi</strong>, régler <code>offset</code> à <code>(0, -40, 0)</code>.
-      <div class="why">les pops partent du parent ; l'<code>offset</code> (en pixels, y vers le bas) les fait partir au-dessus de la tête.</div>
+      <div class="why">Les pops partent du parent ; l'<code>offset</code> (en pixels, y vers le bas) les fait partir au-dessus de la tête.</div>
     </li>
     <li>
       <strong>Assigner le <code>style</code></strong> créé plus haut (ou laisser vide pour le style par défaut).
-      <div class="why">le style décide de l'élan, de la gravité, des couleurs des nombres positifs et négatifs.</div>
+      <div class="why">Le style décide de l'élan, de la gravité, des couleurs des nombres positifs et négatifs.</div>
     </li>
     <li>
       <strong>Appeler le spawner</strong> à chaque coup :
       <pre><code class="gdscript">func subir_degats(montant: int) -> void:
 	vie -= montant
 	$PopSpawner.pop_number(-montant)    # « -12 » en negative_color</code></pre>
-      <div class="why">le pop est ajouté à la scène courante, pas sous l'ennemi : il reste visible même si l'ennemi meurt aussitôt, puis se libère seul.</div>
+      <div class="why">Le pop est ajouté à la scène courante, pas sous l'ennemi : il reste visible même si l'ennemi meurt aussitôt, puis se libère seul.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Un PopSpawner sous l'ennemi (<code>offset</code> au-dessus de sa tête) : <code>pop_number(-montant)</code> à chaque coup.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -132,6 +132,7 @@
 	$PopSpawner.style = style
 	for i in 6:
 		$PopSpawner.pop_texture(preload("res://icones/piece.png"))</code></pre>
+  <figure class="media" data-video="ex-pieces"><figcaption>Coffre ouvert : six pièces jaillissent en gerbe, rebondissent au sol puis disparaissent.</figcaption></figure>
 
   <h3 id="ex-fx">Comment j'ajoute un « +1 » à la collecte sans code ?</h3>
   <p>Dans le <code>PlayerFX</code> de l'objet, un <code>FXChangeSize</code> (disparition) avec un <code>FXPop</code> en <code>effects_on_play_fx</code> (<code>text</code> = « +1 », <code>texture</code> = icône). Par code :</p>
@@ -143,6 +144,7 @@ disparition.final_scale = 0.0
 disparition.effects_on_play_fx = [plus_un]
 $PlayerFX.special_effects = [disparition]
 $PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-fx"><figcaption>Collecte : le cœur rétrécit et un « +1 » avec son icône jaillit (FXPop enchaîné à FXChangeSize).</figcaption></figure>
 
   <h3 id="ex-3d-ecran">Comment j'affiche des dégâts à taille constante sur un ennemi 3D ?</h3>
   <p>Un pop 3D rapetisse avec la distance. <code>screen_space_3d</code> le dessine en 2D par-dessus l'écran, à la position projetée de l'ennemi :</p>
@@ -150,12 +152,14 @@ $PlayerFX.play()</code></pre>
 # └─ PopSpawner (screen_space_3d = true, offset = (0, 2, 0) en mètres)
 func toucher(degats: int) -> void:
 	$PopSpawner.pop_number(-degats)   # null si l'ennemi est derrière la caméra</code></pre>
+  <figure class="media" data-video="ex-3d-ecran"><figcaption>Ennemis 3D à différentes distances : <code>screen_space_3d</code> garde les dégâts à taille constante.</figcaption></figure>
 
   <h3 id="ex-position">Comment je fais jaillir un pop à l'endroit de l'impact ?</h3>
   <p>Le paramètre <code>at</code> de <code>pop()</code> impose une position globale (<code>Vector2</code> en 2D, <code>Vector3</code> en 3D) :</p>
   <pre><code class="gdscript">func _on_impact(point: Vector2, critique: bool) -> void:
 	var texte := "CRITIQUE !" if critique else "Paf"
 	$PopSpawner.pop(texte, null, null, Color.ORANGE if critique else Color(0, 0, 0, 0), point)</code></pre>
+  <figure class="media" data-video="ex-position"><figcaption><code>pop(..., at = point)</code> : le pop part du point d'impact, « CRITIQUE ! » en orange.</figcaption></figure>
 
   <h3 id="ex-interface">Comment je fais un pop dans l'interface ?</h3>
   <p>Avec un <code>Control</code> pour cible, le pop part du centre du contrôle et est ajouté à son <code>CanvasLayer</code> : il s'affiche au-dessus du jeu.</p>
@@ -163,6 +167,7 @@ func toucher(degats: int) -> void:
 func gagner_or(montant: int) -> void:
 	or_total += montant
 	$HUD/CompteurOr/PopSpawner.pop_number(montant)</code></pre>
+  <figure class="media" data-video="ex-interface"><figcaption>Gain d'or : le pop part du compteur du HUD (CanvasLayer), au-dessus du jeu.</figcaption></figure>
 
   <h3 id="ex-popped">Comment j'ajoute un son ou une animation à chaque pop ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
@@ -173,6 +178,7 @@ func gagner_or(montant: int) -> void:
 		var texte := pop.get_node_or_null("Text")
 		if texte is Label:
 			texte.label_settings.outline_size = 12)</code></pre>
+  <figure class="media" data-video="ex-popped"><figcaption><code>popped</code> : chaque pop reçoit une teinte et un contour épais, et un son (coupé ici).</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -271,6 +277,401 @@ func gagner_or(montant: int) -> void:
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-courbes">
+<svg viewBox="0 0 640 240" role="img" aria-label="Échelle et opacité d'un pop selon son âge">
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <line x1="60" y1="190" x2="600" y2="190" stroke="currentColor" stroke-opacity="0.4"/>
+    <line x1="60" y1="30" x2="60" y2="190" stroke="currentColor" stroke-opacity="0.4"/>
+    <line x1="60" y1="90" x2="600" y2="90" stroke="currentColor" stroke-opacity="0.12" stroke-dasharray="4 4"/>
+    <text x="52" y="94" text-anchor="end">1</text><text x="52" y="194" text-anchor="end">0</text><text x="52" y="54" text-anchor="end">1,4</text>
+    <rect x="60" y="30" width="94" height="160" fill="var(--accent)" fill-opacity="0.08"/>
+    <rect x="424" y="30" width="156" height="160" fill="currentColor" fill-opacity="0.06"/>
+    <polyline points="60.0,170.0 61.3,167.2 62.6,164.4 63.9,161.7 65.2,158.9 66.5,156.1 67.8,153.3 69.1,150.6 70.4,147.8 71.7,145.0 73.0,142.2 74.3,139.4 75.6,136.7 76.9,133.9 78.2,131.1 79.5,128.3 80.8,125.6 82.1,122.8 83.4,120.0 84.7,117.2 86.0,114.4 87.3,111.7 88.6,108.9 89.9,106.1 91.2,103.3 92.5,100.6 93.8,97.8 95.1,95.0 96.4,92.2 97.7,89.4 99.0,86.7 100.3,83.9 101.6,81.1 102.9,78.3 104.2,75.6 105.5,72.8 106.8,70.0 108.1,67.2 109.4,64.4 110.7,61.7 112.0,58.9 113.3,56.1 114.6,53.3 115.9,50.6 117.2,51.1 118.5,52.5 119.8,53.9 121.1,55.3 122.4,56.7 123.7,58.1 125.0,59.4 126.3,60.8 127.6,62.2 128.9,63.6 130.2,65.0 131.5,66.4 132.8,67.8 134.1,69.2 135.4,70.6 136.7,71.9 138.0,73.3 139.3,74.7 140.6,76.1 141.9,77.5 143.2,78.9 144.5,80.3 145.8,81.7 147.1,83.1 148.4,84.4 149.7,85.8 151.0,87.2 152.3,88.6 153.6,90.0 154.9,90.0 156.2,90.0 157.5,90.0 158.8,90.0 160.1,90.0 161.4,90.0 162.7,90.0 164.0,90.0 165.3,90.0 166.6,90.0 167.9,90.0 169.2,90.0 170.5,90.0 171.8,90.0 173.1,90.0 174.4,90.0 175.7,90.0 177.0,90.0 178.3,90.0 179.6,90.0 180.9,90.0 182.2,90.0 183.5,90.0 184.8,90.0 186.1,90.0 187.4,90.0 188.7,90.0 190.0,90.0 191.3,90.0 192.6,90.0 193.9,90.0 195.2,90.0 196.5,90.0 197.8,90.0 199.1,90.0 200.4,90.0 201.7,90.0 203.0,90.0 204.3,90.0 205.6,90.0 206.9,90.0 208.2,90.0 209.5,90.0 210.8,90.0 212.1,90.0 213.4,90.0 214.7,90.0 216.0,90.0 217.3,90.0 218.6,90.0 219.9,90.0 221.2,90.0 222.5,90.0 223.8,90.0 225.1,90.0 226.4,90.0 227.7,90.0 229.0,90.0 230.3,90.0 231.6,90.0 232.9,90.0 234.2,90.0 235.5,90.0 236.8,90.0 238.1,90.0 239.4,90.0 240.7,90.0 242.0,90.0 243.3,90.0 244.6,90.0 245.9,90.0 247.2,90.0 248.5,90.0 249.8,90.0 251.1,90.0 252.4,90.0 253.7,90.0 255.0,90.0 256.3,90.0 257.6,90.0 258.9,90.0 260.2,90.0 261.5,90.0 262.8,90.0 264.1,90.0 265.4,90.0 266.7,90.0 268.0,90.0 269.3,90.0 270.6,90.0 271.9,90.0 273.2,90.0 274.5,90.0 275.8,90.0 277.1,90.0 278.4,90.0 279.7,90.0 281.0,90.0 282.3,90.0 283.6,90.0 284.9,90.0 286.2,90.0 287.5,90.0 288.8,90.0 290.1,90.0 291.4,90.0 292.7,90.0 294.0,90.0 295.3,90.0 296.6,90.0 297.9,90.0 299.2,90.0 300.5,90.0 301.8,90.0 303.1,90.0 304.4,90.0 305.7,90.0 307.0,90.0 308.3,90.0 309.6,90.0 310.9,90.0 312.2,90.0 313.5,90.0 314.8,90.0 316.1,90.0 317.4,90.0 318.7,90.0 320.0,90.0 321.3,90.0 322.6,90.0 323.9,90.0 325.2,90.0 326.5,90.0 327.8,90.0 329.1,90.0 330.4,90.0 331.7,90.0 333.0,90.0 334.3,90.0 335.6,90.0 336.9,90.0 338.2,90.0 339.5,90.0 340.8,90.0 342.1,90.0 343.4,90.0 344.7,90.0 346.0,90.0 347.3,90.0 348.6,90.0 349.9,90.0 351.2,90.0 352.5,90.0 353.8,90.0 355.1,90.0 356.4,90.0 357.7,90.0 359.0,90.0 360.3,90.0 361.6,90.0 362.9,90.0 364.2,90.0 365.5,90.0 366.8,90.0 368.1,90.0 369.4,90.0 370.7,90.0 372.0,90.0 373.3,90.0 374.6,90.0 375.9,90.0 377.2,90.0 378.5,90.0 379.8,90.0 381.1,90.0 382.4,90.0 383.7,90.0 385.0,90.0 386.3,90.0 387.6,90.0 388.9,90.0 390.2,90.0 391.5,90.0 392.8,90.0 394.1,90.0 395.4,90.0 396.7,90.0 398.0,90.0 399.3,90.0 400.6,90.0 401.9,90.0 403.2,90.0 404.5,90.0 405.8,90.0 407.1,90.0 408.4,90.0 409.7,90.0 411.0,90.0 412.3,90.0 413.6,90.0 414.9,90.0 416.2,90.0 417.5,90.0 418.8,90.0 420.1,90.0 421.4,90.0 422.7,90.0 424.0,90.0 425.3,90.3 426.6,90.7 427.9,91.0 429.2,91.3 430.5,91.7 431.8,92.0 433.1,92.3 434.4,92.7 435.7,93.0 437.0,93.3 438.3,93.7 439.6,94.0 440.9,94.3 442.2,94.7 443.5,95.0 444.8,95.3 446.1,95.7 447.4,96.0 448.7,96.3 450.0,96.7 451.3,97.0 452.6,97.3 453.9,97.7 455.2,98.0 456.5,98.3 457.8,98.7 459.1,99.0 460.4,99.3 461.7,99.7 463.0,100.0 464.3,100.3 465.6,100.7 466.9,101.0 468.2,101.3 469.5,101.7 470.8,102.0 472.1,102.3 473.4,102.7 474.7,103.0 476.0,103.3 477.3,103.7 478.6,104.0 479.9,104.3 481.2,104.7 482.5,105.0 483.8,105.3 485.1,105.7 486.4,106.0 487.7,106.3 489.0,106.7 490.3,107.0 491.6,107.3 492.9,107.7 494.2,108.0 495.5,108.3 496.8,108.7 498.1,109.0 499.4,109.3 500.7,109.7 502.0,110.0 503.3,110.3 504.6,110.7 505.9,111.0 507.2,111.3 508.5,111.7 509.8,112.0 511.1,112.3 512.4,112.7 513.7,113.0 515.0,113.3 516.3,113.7 517.6,114.0 518.9,114.3 520.2,114.7 521.5,115.0 522.8,115.3 524.1,115.7 525.4,116.0 526.7,116.3 528.0,116.7 529.3,117.0 530.6,117.3 531.9,117.7 533.2,118.0 534.5,118.3 535.8,118.7 537.1,119.0 538.4,119.3 539.7,119.7 541.0,120.0 542.3,120.3 543.6,120.7 544.9,121.0 546.2,121.3 547.5,121.7 548.8,122.0 550.1,122.3 551.4,122.7 552.7,123.0 554.0,123.3 555.3,123.7 556.6,124.0 557.9,124.3 559.2,124.7 560.5,125.0 561.8,125.3 563.1,125.7 564.4,126.0 565.7,126.3 567.0,126.7 568.3,127.0 569.6,127.3 570.9,127.7 572.2,128.0 573.5,128.3 574.8,128.7 576.1,129.0 577.4,129.3 578.7,129.7 580.0,130.0" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <polyline points="60.0,90.0 61.3,90.0 62.6,90.0 63.9,90.0 65.2,90.0 66.5,90.0 67.8,90.0 69.1,90.0 70.4,90.0 71.7,90.0 73.0,90.0 74.3,90.0 75.6,90.0 76.9,90.0 78.2,90.0 79.5,90.0 80.8,90.0 82.1,90.0 83.4,90.0 84.7,90.0 86.0,90.0 87.3,90.0 88.6,90.0 89.9,90.0 91.2,90.0 92.5,90.0 93.8,90.0 95.1,90.0 96.4,90.0 97.7,90.0 99.0,90.0 100.3,90.0 101.6,90.0 102.9,90.0 104.2,90.0 105.5,90.0 106.8,90.0 108.1,90.0 109.4,90.0 110.7,90.0 112.0,90.0 113.3,90.0 114.6,90.0 115.9,90.0 117.2,90.0 118.5,90.0 119.8,90.0 121.1,90.0 122.4,90.0 123.7,90.0 125.0,90.0 126.3,90.0 127.6,90.0 128.9,90.0 130.2,90.0 131.5,90.0 132.8,90.0 134.1,90.0 135.4,90.0 136.7,90.0 138.0,90.0 139.3,90.0 140.6,90.0 141.9,90.0 143.2,90.0 144.5,90.0 145.8,90.0 147.1,90.0 148.4,90.0 149.7,90.0 151.0,90.0 152.3,90.0 153.6,90.0 154.9,90.0 156.2,90.0 157.5,90.0 158.8,90.0 160.1,90.0 161.4,90.0 162.7,90.0 164.0,90.0 165.3,90.0 166.6,90.0 167.9,90.0 169.2,90.0 170.5,90.0 171.8,90.0 173.1,90.0 174.4,90.0 175.7,90.0 177.0,90.0 178.3,90.0 179.6,90.0 180.9,90.0 182.2,90.0 183.5,90.0 184.8,90.0 186.1,90.0 187.4,90.0 188.7,90.0 190.0,90.0 191.3,90.0 192.6,90.0 193.9,90.0 195.2,90.0 196.5,90.0 197.8,90.0 199.1,90.0 200.4,90.0 201.7,90.0 203.0,90.0 204.3,90.0 205.6,90.0 206.9,90.0 208.2,90.0 209.5,90.0 210.8,90.0 212.1,90.0 213.4,90.0 214.7,90.0 216.0,90.0 217.3,90.0 218.6,90.0 219.9,90.0 221.2,90.0 222.5,90.0 223.8,90.0 225.1,90.0 226.4,90.0 227.7,90.0 229.0,90.0 230.3,90.0 231.6,90.0 232.9,90.0 234.2,90.0 235.5,90.0 236.8,90.0 238.1,90.0 239.4,90.0 240.7,90.0 242.0,90.0 243.3,90.0 244.6,90.0 245.9,90.0 247.2,90.0 248.5,90.0 249.8,90.0 251.1,90.0 252.4,90.0 253.7,90.0 255.0,90.0 256.3,90.0 257.6,90.0 258.9,90.0 260.2,90.0 261.5,90.0 262.8,90.0 264.1,90.0 265.4,90.0 266.7,90.0 268.0,90.0 269.3,90.0 270.6,90.0 271.9,90.0 273.2,90.0 274.5,90.0 275.8,90.0 277.1,90.0 278.4,90.0 279.7,90.0 281.0,90.0 282.3,90.0 283.6,90.0 284.9,90.0 286.2,90.0 287.5,90.0 288.8,90.0 290.1,90.0 291.4,90.0 292.7,90.0 294.0,90.0 295.3,90.0 296.6,90.0 297.9,90.0 299.2,90.0 300.5,90.0 301.8,90.0 303.1,90.0 304.4,90.0 305.7,90.0 307.0,90.0 308.3,90.0 309.6,90.0 310.9,90.0 312.2,90.0 313.5,90.0 314.8,90.0 316.1,90.0 317.4,90.0 318.7,90.0 320.0,90.0 321.3,90.0 322.6,90.0 323.9,90.0 325.2,90.0 326.5,90.0 327.8,90.0 329.1,90.0 330.4,90.0 331.7,90.0 333.0,90.0 334.3,90.0 335.6,90.0 336.9,90.0 338.2,90.0 339.5,90.0 340.8,90.0 342.1,90.0 343.4,90.0 344.7,90.0 346.0,90.0 347.3,90.0 348.6,90.0 349.9,90.0 351.2,90.0 352.5,90.0 353.8,90.0 355.1,90.0 356.4,90.0 357.7,90.0 359.0,90.0 360.3,90.0 361.6,90.0 362.9,90.0 364.2,90.0 365.5,90.0 366.8,90.0 368.1,90.0 369.4,90.0 370.7,90.0 372.0,90.0 373.3,90.0 374.6,90.0 375.9,90.0 377.2,90.0 378.5,90.0 379.8,90.0 381.1,90.0 382.4,90.0 383.7,90.0 385.0,90.0 386.3,90.0 387.6,90.0 388.9,90.0 390.2,90.0 391.5,90.0 392.8,90.0 394.1,90.0 395.4,90.0 396.7,90.0 398.0,90.0 399.3,90.0 400.6,90.0 401.9,90.0 403.2,90.0 404.5,90.0 405.8,90.0 407.1,90.0 408.4,90.0 409.7,90.0 411.0,90.0 412.3,90.0 413.6,90.0 414.9,90.0 416.2,90.0 417.5,90.0 418.8,90.0 420.1,90.0 421.4,90.0 422.7,90.0 424.0,90.0 425.3,90.8 426.6,91.7 427.9,92.5 429.2,93.3 430.5,94.2 431.8,95.0 433.1,95.8 434.4,96.7 435.7,97.5 437.0,98.3 438.3,99.2 439.6,100.0 440.9,100.8 442.2,101.7 443.5,102.5 444.8,103.3 446.1,104.2 447.4,105.0 448.7,105.8 450.0,106.7 451.3,107.5 452.6,108.3 453.9,109.2 455.2,110.0 456.5,110.8 457.8,111.7 459.1,112.5 460.4,113.3 461.7,114.2 463.0,115.0 464.3,115.8 465.6,116.7 466.9,117.5 468.2,118.3 469.5,119.2 470.8,120.0 472.1,120.8 473.4,121.7 474.7,122.5 476.0,123.3 477.3,124.2 478.6,125.0 479.9,125.8 481.2,126.7 482.5,127.5 483.8,128.3 485.1,129.2 486.4,130.0 487.7,130.8 489.0,131.7 490.3,132.5 491.6,133.3 492.9,134.2 494.2,135.0 495.5,135.8 496.8,136.7 498.1,137.5 499.4,138.3 500.7,139.2 502.0,140.0 503.3,140.8 504.6,141.7 505.9,142.5 507.2,143.3 508.5,144.2 509.8,145.0 511.1,145.8 512.4,146.7 513.7,147.5 515.0,148.3 516.3,149.2 517.6,150.0 518.9,150.8 520.2,151.7 521.5,152.5 522.8,153.3 524.1,154.2 525.4,155.0 526.7,155.8 528.0,156.7 529.3,157.5 530.6,158.3 531.9,159.2 533.2,160.0 534.5,160.8 535.8,161.7 537.1,162.5 538.4,163.3 539.7,164.2 541.0,165.0 542.3,165.8 543.6,166.7 544.9,167.5 546.2,168.3 547.5,169.2 548.8,170.0 550.1,170.8 551.4,171.7 552.7,172.5 554.0,173.3 555.3,174.2 556.6,175.0 557.9,175.8 559.2,176.7 560.5,177.5 561.8,178.3 563.1,179.2 564.4,180.0 565.7,180.8 567.0,181.7 568.3,182.5 569.6,183.3 570.9,184.2 572.2,185.0 573.5,185.8 574.8,186.7 576.1,187.5 577.4,188.3 578.7,189.2 580.0,190.0" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="64" y="24" fill="var(--accent)">pop_in_duration</text>
+    <text x="428" y="24">fade_out_duration</text>
+    <text x="580" y="208" text-anchor="middle">lifetime</text>
+    <text x="60" y="208" text-anchor="middle">0</text>
+    <text x="200" y="80" fill="var(--accent)" font-weight="700">get_scale_at(âge)</text>
+    <text x="200" y="150" font-weight="700">get_alpha_at(âge) (pointillés)</text>
+    <text x="596" y="122" text-anchor="end" fill="var(--accent)">end_scale</text>
+    <text x="64" y="184" fill="var(--accent)" font-size="11">start_scale</text>
+    <text x="330" y="232" text-anchor="middle" fill-opacity="0.7">âge du pop (s) — style par défaut</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "FXPop.count": [
+    {
+      "video": "FXPop.count",
+      "legende": "<code>count<\/code> 1, 5 et 12 : le nombre de pops par jeu de l'effet."
+    }
+  ],
+  "PopSpawner.clear": [
+    {
+      "video": "PopSpawner.clear",
+      "legende": "<code>get_active_count()<\/code> en direct, puis <code>clear()<\/code> libère tous les pops vivants."
+    }
+  ],
+  "PopSpawner.max_pops": [
+    {
+      "video": "PopSpawner.max_pops",
+      "legende": "Rafale de pops : avec <code>max_pops = 8<\/code>, les plus anciens sont libérés d'un coup."
+    }
+  ],
+  "PopSpawner.pop_scene": [
+    {
+      "video": "PopSpawner.pop_scene",
+      "legende": "<code>pop_scene()<\/code> : une scène entière (ici une étoile animée) jaillit comme un pop."
+    }
+  ],
+  "PopSpawner.unit_scale_3d": [
+    {
+      "video": "PopSpawner.unit_scale_3d",
+      "legende": "Pops 3D avec <code>unit_scale_3d<\/code> 0,01 (défaut) et 0,02 : deux fois plus grands et rapides."
+    }
+  ],
+  "PopStyle.always_on_top_3d": [
+    {
+      "video": "PopStyle.always_on_top_3d",
+      "legende": "Derrière un mur : <code>always_on_top_3d<\/code> true (défaut) garde le pop lisible, false le cache."
+    }
+  ],
+  "PopStyle.bounce": [
+    {
+      "video": "PopStyle.bounce",
+      "legende": "<code>bounce<\/code> 0, 0,5 (défaut) et 0,9."
+    }
+  ],
+  "PopStyle.damping": [
+    {
+      "video": "PopStyle.damping",
+      "legende": "<code>damping<\/code> 0 (défaut) et 4 : le mouvement freine."
+    }
+  ],
+  "PopStyle.direction_degrees": [
+    {
+      "video": "PopStyle.direction_degrees",
+      "legende": "<code>direction_degrees<\/code> 0 (haut), 90 (droite) et 180 (bas)."
+    }
+  ],
+  "PopStyle.end_scale": [
+    {
+      "video": "PopStyle.end_scale",
+      "legende": "<code>end_scale<\/code> 0,2, 0,6 (défaut) et 1,5 : l'échelle atteinte en fin de vie."
+    }
+  ],
+  "PopStyle.fade_out_duration": [
+    {
+      "video": "PopStyle.fade_out_duration",
+      "legende": "<code>fade_out_duration<\/code> 0, 0,3 (défaut) et 1 s : fondu et réduction de fin de vie."
+    }
+  ],
+  "PopStyle.floor_friction": [
+    {
+      "video": "PopStyle.floor_friction",
+      "legende": "<code>floor_friction<\/code> 0,1 et 0,95 : la vitesse horizontale gardée à chaque rebond."
+    }
+  ],
+  "PopStyle.font_size": [
+    {
+      "video": "PopStyle.font_size",
+      "legende": "<code>font_size<\/code> 16, 32 (défaut) et 56 (police par défaut, ou <code>font<\/code>)."
+    }
+  ],
+  "PopStyle.gravity": [
+    {
+      "video": "PopStyle.gravity",
+      "legende": "<code>gravity<\/code> 600 (défaut), 0 et -300 (les pops s'envolent)."
+    }
+  ],
+  "PopStyle.icon_size": [
+    {
+      "video": "PopStyle.icon_size",
+      "legende": "<code>icon_size<\/code> 24, 32 (défaut) et 56 px, et <code>spacing<\/code> entre l'image et le texte."
+    }
+  ],
+  "PopStyle.lifetime": [
+    {
+      "video": "PopStyle.lifetime",
+      "legende": "<code>lifetime<\/code> 0,5, 1 (défaut) et 2 s."
+    }
+  ],
+  "PopStyle.negative_color": [
+    {
+      "video": "PopStyle.negative_color",
+      "legende": "<code>pop_number<\/code> : positifs en <code>positive_color<\/code>, négatifs en <code>negative_color<\/code> ; <code>pop_text<\/code> sans couleur : <code>text_color<\/code>."
+    }
+  ],
+  "PopStyle.outline_size": [
+    {
+      "video": "PopStyle.outline_size",
+      "legende": "<code>outline_size<\/code> 0, 8 (défaut) et 16, en <code>outline_color<\/code> noir puis violet."
+    }
+  ],
+  "PopStyle.pop_scale": [
+    {
+      "video": "PopStyle.pop_scale",
+      "legende": "<code>pop_scale<\/code> 1, 1,4 (défaut) et 2,2 : le « pop » d'apparition (de <code>start_scale<\/code> à <code>pop_scale<\/code>, puis 1, sur <code>pop_in_duration<\/code>)."
+    }
+  ],
+  "PopStyle.scale_curve": [
+    {
+      "video": "PopStyle.scale_curve",
+      "legende": "Une Curve de rebond remplace l'apparition et la réduction : échelle selon l'âge du pop."
+    }
+  ],
+  "PopStyle.spawn_radius": [
+    {
+      "video": "PopStyle.spawn_radius",
+      "legende": "<code>spawn_radius<\/code> 0 et 60 px : le disque d'où partent les pops."
+    }
+  ],
+  "PopStyle.speed_max": [
+    {
+      "video": "PopStyle.speed_max",
+      "legende": "Vitesses de départ 50-100, 150-250 (défaut) et 400-600 px/s."
+    }
+  ],
+  "PopStyle.spin_max": [
+    {
+      "video": "PopStyle.spin_max",
+      "legende": "Rotation tirée entre <code>spin_min<\/code> et <code>spin_max<\/code> : 0 puis -360 à 360 °/s."
+    }
+  ],
+  "PopStyle.spread_degrees": [
+    {
+      "video": "PopStyle.spread_degrees",
+      "legende": "<code>spread_degrees<\/code> 0, 40 (défaut) et 360 : la dispersion autour de la direction."
+    }
+  ],
+  "PopStyle.use_floor": [
+    {
+      "video": "PopStyle.use_floor",
+      "legende": "<code>use_floor<\/code> : un sol à <code>floor_offset<\/code> sous le point de départ, sur lequel les pops rebondissent."
+    }
+  ],
+  "PopStyle.z_index": [
+    {
+      "video": "PopStyle.z_index",
+      "legende": "<code>z_index<\/code> 100 (défaut) au-dessus du décor, -10 derrière."
+    }
+  ],
+  "FXPop": [
+    {
+      "video": "classe-FXPop",
+      "legende": "FXPop : un effet qui fait jaillir des pops à chaque jeu, ici enchaîné à une secousse."
+    }
+  ],
+  "PopSpawner": [
+    {
+      "video": "classe-PopSpawner",
+      "legende": "Texte, nombre, image ou scène : chaque appel crée un pop qui jaillit de la cible puis se libère seul."
+    }
+  ],
+  "PopStyle": [
+    {
+      "video": "classe-PopStyle",
+      "legende": "Trois styles pour les mêmes appels : éclat léger, chiffres lourds, bulles qui s'envolent."
+    }
+  ],
+  "FXPop.color": [
+    {
+      "video": "classe-FXPop",
+      "legende": "FXPop : un effet qui fait jaillir des pops à chaque jeu, ici enchaîné à une secousse."
+    }
+  ],
+  "FXPop.offset": [
+    {
+      "video": "classe-FXPop",
+      "legende": "FXPop : un effet qui fait jaillir des pops à chaque jeu, ici enchaîné à une secousse."
+    }
+  ],
+  "FXPop.scene": [
+    {
+      "video": "PopSpawner.pop_scene",
+      "legende": "<code>pop_scene()<\/code> : une scène entière (ici une étoile animée) jaillit comme un pop."
+    }
+  ],
+  "FXPop.screen_space_3d": [
+    {
+      "video": "ex-3d-ecran",
+      "legende": "Ennemis 3D à différentes distances : <code>screen_space_3d<\/code> garde les dégâts à taille constante."
+    }
+  ],
+  "FXPop.style": [
+    {
+      "video": "classe-PopStyle",
+      "legende": "Trois styles pour les mêmes appels : éclat léger, chiffres lourds, bulles qui s'envolent."
+    }
+  ],
+  "FXPop.text": [
+    {
+      "video": "classe-FXPop",
+      "legende": "FXPop : un effet qui fait jaillir des pops à chaque jeu, ici enchaîné à une secousse."
+    }
+  ],
+  "FXPop.texture": [
+    {
+      "video": "ex-fx",
+      "legende": "Collecte : le cœur rétrécit et un « +1 » avec son icône jaillit (FXPop enchaîné à FXChangeSize)."
+    }
+  ],
+  "FXPop.unit_scale_3d": [
+    {
+      "video": "PopSpawner.unit_scale_3d",
+      "legende": "Pops 3D avec <code>unit_scale_3d<\/code> 0,01 (défaut) et 0,02 : deux fois plus grands et rapides."
+    }
+  ],
+  "PopSpawner.container": [
+    {
+      "video": "ex-interface",
+      "legende": "Gain d'or : le pop part du compteur du HUD (CanvasLayer), au-dessus du jeu."
+    }
+  ],
+  "PopSpawner.get_active_count": [
+    {
+      "video": "PopSpawner.clear",
+      "legende": "<code>get_active_count()<\/code> en direct, puis <code>clear()<\/code> libère tous les pops vivants."
+    }
+  ],
+  "PopSpawner.get_active_pops": [
+    {
+      "video": "PopSpawner.clear",
+      "legende": "<code>get_active_count()<\/code> en direct, puis <code>clear()<\/code> libère tous les pops vivants."
+    }
+  ],
+  "PopSpawner.offset": [
+    {
+      "video": "mode-emploi",
+      "legende": "Un PopSpawner sous l'ennemi (<code>offset<\/code> au-dessus de sa tête) : <code>pop_number(-montant)<\/code> à chaque coup."
+    }
+  ],
+  "PopSpawner.pop": [
+    {
+      "video": "ex-position",
+      "legende": "<code>pop(..., at = point)<\/code> : le pop part du point d'impact, « CRITIQUE ! » en orange."
+    }
+  ],
+  "PopSpawner.pop_number": [
+    {
+      "video": "mode-emploi",
+      "legende": "Un PopSpawner sous l'ennemi (<code>offset<\/code> au-dessus de sa tête) : <code>pop_number(-montant)<\/code> à chaque coup."
+    }
+  ],
+  "PopSpawner.pop_text": [
+    {
+      "video": "classe-PopSpawner",
+      "legende": "Texte, nombre, image ou scène : chaque appel crée un pop qui jaillit de la cible puis se libère seul."
+    }
+  ],
+  "PopSpawner.pop_texture": [
+    {
+      "video": "ex-pieces",
+      "legende": "Coffre ouvert : six pièces jaillissent en gerbe, rebondissent au sol puis disparaissent."
+    }
+  ],
+  "PopSpawner.popped": [
+    {
+      "video": "ex-popped",
+      "legende": "<code>popped<\/code> : chaque pop reçoit une teinte et un contour épais, et un son (coupé ici)."
+    }
+  ],
+  "PopSpawner.screen_space_3d": [
+    {
+      "video": "ex-3d-ecran",
+      "legende": "Ennemis 3D à différentes distances : <code>screen_space_3d<\/code> garde les dégâts à taille constante."
+    }
+  ],
+  "PopSpawner.style": [
+    {
+      "video": "classe-PopStyle",
+      "legende": "Trois styles pour les mêmes appels : éclat léger, chiffres lourds, bulles qui s'envolent."
+    }
+  ],
+  "PopSpawner.target": [
+    {
+      "video": "classe-PopSpawner",
+      "legende": "Texte, nombre, image ou scène : chaque appel crée un pop qui jaillit de la cible puis se libère seul."
+    }
+  ],
+  "PopStyle.floor_offset": [
+    {
+      "video": "PopStyle.use_floor",
+      "legende": "<code>use_floor<\/code> : un sol à <code>floor_offset<\/code> sous le point de départ, sur lequel les pops rebondissent."
+    }
+  ],
+  "PopStyle.font": [
+    {
+      "video": "PopStyle.font_size",
+      "legende": "<code>font_size<\/code> 16, 32 (défaut) et 56 (police par défaut, ou <code>font<\/code>)."
+    }
+  ],
+  "PopStyle.get_alpha_at": [
+    {
+      "schema": "schema-courbes",
+      "legende": "Échelle (<code>get_scale_at<\/code>) et opacité (<code>get_alpha_at<\/code>) d'un pop selon son âge, avec le style par défaut : apparition de <code>start_scale<\/code> à <code>pop_scale<\/code> puis 1, fondu et réduction vers <code>end_scale<\/code> pendant <code>fade_out_duration<\/code>."
+    }
+  ],
+  "PopStyle.get_scale_at": [
+    {
+      "schema": "schema-courbes",
+      "legende": "Échelle (<code>get_scale_at<\/code>) et opacité (<code>get_alpha_at<\/code>) d'un pop selon son âge, avec le style par défaut : apparition de <code>start_scale<\/code> à <code>pop_scale<\/code> puis 1, fondu et réduction vers <code>end_scale<\/code> pendant <code>fade_out_duration<\/code>."
+    }
+  ],
+  "PopStyle.outline_color": [
+    {
+      "video": "PopStyle.outline_size",
+      "legende": "<code>outline_size<\/code> 0, 8 (défaut) et 16, en <code>outline_color<\/code> noir puis violet."
+    }
+  ],
+  "PopStyle.pop_in_duration": [
+    {
+      "video": "PopStyle.pop_scale",
+      "legende": "<code>pop_scale<\/code> 1, 1,4 (défaut) et 2,2 : le « pop » d'apparition (de <code>start_scale<\/code> à <code>pop_scale<\/code>, puis 1, sur <code>pop_in_duration<\/code>)."
+    }
+  ],
+  "PopStyle.positive_color": [
+    {
+      "video": "PopStyle.negative_color",
+      "legende": "<code>pop_number<\/code> : positifs en <code>positive_color<\/code>, négatifs en <code>negative_color<\/code> ; <code>pop_text<\/code> sans couleur : <code>text_color<\/code>."
+    }
+  ],
+  "PopStyle.spacing": [
+    {
+      "video": "PopStyle.icon_size",
+      "legende": "<code>icon_size<\/code> 24, 32 (défaut) et 56 px, et <code>spacing<\/code> entre l'image et le texte."
+    }
+  ],
+  "PopStyle.speed_min": [
+    {
+      "video": "PopStyle.speed_max",
+      "legende": "Vitesses de départ 50-100, 150-250 (défaut) et 400-600 px/s."
+    }
+  ],
+  "PopStyle.spin_min": [
+    {
+      "video": "PopStyle.spin_max",
+      "legende": "Rotation tirée entre <code>spin_min<\/code> et <code>spin_max<\/code> : 0 puis -360 à 360 °/s."
+    }
+  ],
+  "PopStyle.start_scale": [
+    {
+      "video": "PopStyle.pop_scale",
+      "legende": "<code>pop_scale<\/code> 1, 1,4 (défaut) et 2,2 : le « pop » d'apparition (de <code>start_scale<\/code> à <code>pop_scale<\/code>, puis 1, sur <code>pop_in_duration<\/code>)."
+    }
+  ],
+  "PopStyle.text_color": [
+    {
+      "video": "PopStyle.negative_color",
+      "legende": "<code>pop_number<\/code> : positifs en <code>positive_color<\/code>, négatifs en <code>negative_color<\/code> ; <code>pop_text<\/code> sans couleur : <code>text_color<\/code>."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "PopSpawner.style": "Un style par usage : dégâts (rapide, rouge), soins (lent, vert), pièces (gerbe, rebonds).",

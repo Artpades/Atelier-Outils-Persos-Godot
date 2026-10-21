@@ -90,11 +90,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons save_system</code></pre>
-      <div class="why">son registre est <code>save_system_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
+      <div class="why">Son registre est <code>save_system_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/save_system/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/save_system/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/save_system/…</code>.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/save_system/…</code>.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -102,11 +102,11 @@
     </li>
     <li>
       <strong>Changer la clé de chiffrement par défaut</strong> de vos <code>SaveData</code> (32 caractères, propriété <code>encryption_key</code>).
-      <div class="why">la clé par défaut, <code>REMPLACER_PAR_UNE_CLE_SECRETE_32</code>, est la même pour tous les projets qui utilisent ce module : un fichier chiffré avec elle est lisible par n'importe qui.</div>
+      <div class="why">La clé par défaut, <code>REMPLACER_PAR_UNE_CLE_SECRETE_32</code>, est la même pour tous les projets qui utilisent ce module : un fichier chiffré avec elle est lisible par n'importe qui.</div>
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>SaveDataBinder</code>, <kbd>Nouvelle ressource…</kbd> propose <code>SaveData</code> et <code>SaveConfig</code>. Au lancement, la console affiche « 💾Module de sauvegarde et de debug chargé avec succès ! » (les émojis de ce message peuvent s'afficher mal, sans conséquence).
-      <div class="why">si les classes manquent, la bibliothèque n'est pas chargée : voir l'erreur dans le panneau <em>Sortie</em>.</div>
+      <div class="why">Si les classes manquent, la bibliothèque n'est pas chargée : voir l'erreur dans le panneau <em>Sortie</em>.</div>
     </li>
   </ol>
   <p>Aucun autoload n'est requis : <code>SaveManager</code>, <code>SaveFileAccess</code> et <code>SaveSerializer</code> sont des classes statiques, appelées directement par leur nom.</p>
@@ -120,11 +120,11 @@
       <pre><code class="gdscript">extends CharacterBody2D
 var pv := 100
 var piece_or := 0</code></pre>
-      <div class="why">le binder lit et écrit des <em>propriétés</em> par leur nom ; nombres, textes et booléens survivent tels quels au passage par JSON.</div>
+      <div class="why">Le binder lit et écrit des <em>propriétés</em> par leur nom ; nombres, textes et booléens survivent tels quels au passage par JSON.</div>
     </li>
     <li>
       <strong>Ajouter un nœud <code>SaveDataBinder</code></strong> dans la scène, et régler <code>node_target</code> sur le joueur.
-      <div class="why">c'est la cible dont les propriétés seront lues à la sauvegarde et réécrites au chargement.</div>
+      <div class="why">C'est la cible dont les propriétés seront lues à la sauvegarde et réécrites au chargement.</div>
     </li>
     <li>
       <strong>Créer son <code>save_data</code></strong> (<kbd>Nouveau SaveData</kbd>) et régler <code>system_id</code> = <code>joueur</code> et une <code>encryption_key</code> de 32 caractères.
@@ -132,7 +132,7 @@ var piece_or := 0</code></pre>
     </li>
     <li>
       <strong>Lister les propriétés suivies</strong> : <code>tracked_properties</code> = <code>pv</code>, <code>piece_or</code>.
-      <div class="why">seules ces propriétés sont écrites et restaurées.</div>
+      <div class="why">Seules ces propriétés sont écrites et restaurées.</div>
     </li>
     <li>
       <strong>Charger au démarrage, sauvegarder à la fermeture</strong> :

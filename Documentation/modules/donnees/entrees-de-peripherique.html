@@ -93,11 +93,11 @@
     <li>
       <strong>Compiler le module</strong> si besoin :
       <pre><code class="language-shell">scons input_devices</code></pre>
-      <div class="why">son registre est <code>input_devices_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
+      <div class="why">Son registre est <code>input_devices_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
     </li>
     <li>
       <strong>Copier <code>bin/input_devices/</code></strong> dans <code>res://bin/input_devices/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/input_devices/…</code>.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/input_devices/…</code>.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -105,7 +105,7 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>PlayerInput</code>, <code>InputRebinder</code> et <code>PlayerInputUI</code> ; l'inspecteur d'un <code>PlayerInput</code> commence par un bouton « 🕹️ Éditeur d'entrées ». La console affiche « 🕹️Module Entrées de périphérique chargé avec succès ! ».
-      <div class="why">sans le bouton, le plugin d'éditeur n'est pas chargé : voir le panneau <em>Sortie</em>.</div>
+      <div class="why">Sans le bouton, le plugin d'éditeur n'est pas chargé : voir le panneau <em>Sortie</em>.</div>
     </li>
   </ol>
   <p>Aucun autoload ni réglage de projet n'est requis.</p>
@@ -116,19 +116,19 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>PlayerInput</code></strong> comme enfant du personnage.
-      <div class="why">c'est lui qui lit les périphériques à chaque image ; le chemin des liaisons est relatif à ce nœud (le personnage est donc <code>..</code>).</div>
+      <div class="why">C'est lui qui lit les périphériques à chaque image ; le chemin des liaisons est relatif à ce nœud (le personnage est donc <code>..</code>).</div>
     </li>
     <li>
       <strong>Cliquer sur « 🕹️ Éditeur d'entrées »</strong> en tête de l'inspecteur, puis ajouter un contexte nommé <code>jeu</code>.
-      <div class="why">un contexte regroupe les actions actives ensemble ; plus tard, un contexte <code>menu</code> pourra les bloquer pendant une pause. (Tout se fait aussi dans l'inspecteur : <code>contexts</code> › <kbd>Nouveau InputContext</kbd>.)</div>
+      <div class="why">Un contexte regroupe les actions actives ensemble ; plus tard, un contexte <code>menu</code> pourra les bloquer pendant une pause. (Tout se fait aussi dans l'inspecteur : <code>contexts</code> › <kbd>Nouveau InputContext</kbd>.)</div>
     </li>
     <li>
       <strong>Ajouter une action <code>InputCircleAction</code> nommée <code>marche</code></strong>.
-      <div class="why">elle combine déjà WASD (ZQSD sur un clavier AZERTY, grâce aux touches physiques), le stick gauche et la croix directionnelle, avec zone morte et normalisation des diagonales.</div>
+      <div class="why">Elle combine déjà WASD (ZQSD sur un clavier AZERTY, grâce aux touches physiques), le stick gauche et la croix directionnelle, avec zone morte et normalisation des diagonales.</div>
     </li>
     <li>
       <strong>Ajouter une action <code>InputButtonAction</code> nommée <code>saut</code></strong> ; avec le bouton 🎯, capturer <kbd>Espace</kbd> pour <code>key</code> et le bouton A de la manette pour <code>joy_button</code>.
-      <div class="why">une action réunit plusieurs entrées : le joueur saute au clavier comme à la manette, sans code supplémentaire.</div>
+      <div class="why">Une action réunit plusieurs entrées : le joueur saute au clavier comme à la manette, sans code supplémentaire.</div>
     </li>
     <li>
       <strong>Lire les actions dans le script du personnage</strong> :
@@ -142,11 +142,11 @@ func _physics_process(delta: float) -> void:
 	if entrees.is_just_pressed(&"saut") and is_on_floor():
 		velocity.y = -450.0
 	move_and_slide()</code></pre>
-      <div class="why">cocher <code>process_in_physics</code> sur le <code>PlayerInput</code> pour que les actions soient mises à jour au même rythme que <code>_physics_process</code> : sinon <code>is_just_pressed</code> peut être manqué ou vu deux fois.</div>
+      <div class="why">Cocher <code>process_in_physics</code> sur le <code>PlayerInput</code> pour que les actions soient mises à jour au même rythme que <code>_physics_process</code> : sinon <code>is_just_pressed</code> peut être manqué ou vu deux fois.</div>
     </li>
     <li>
       <strong>Tester sans manette</strong> : lancer la scène, puis dans l'onglet 🐞 Débogage de l'Éditeur d'entrées, glisser dans la jauge de <code>marche</code>.
-      <div class="why">la valeur glissée est simulée dans le jeu en cours : idéal pour régler un comportement sans le bon périphérique.</div>
+      <div class="why">La valeur glissée est simulée dans le jeu en cours : idéal pour régler un comportement sans le bon périphérique.</div>
     </li>
   </ol>
 

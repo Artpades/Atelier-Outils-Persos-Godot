@@ -38,10 +38,9 @@
       <li><strong>Pas une boucle</strong> : un aller au jeu, un retour à l'arrêt. Pour une pulsation, enchaîner jeu et arrêt (voir <a href="#ex-pulse">exemple</a>).</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : trois boutons de menu ; le survol fait grossir le bouton visé avec un léger dépassement (courbe <em>Back</em>), la sortie le ramène à sa taille.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/agrandissement-retrecissement" data-figure="1">
+    <figcaption>Survoler les boutons avec la souris : <code>mouse_entered</code> joue l'agrandissement, <code>mouse_exited</code> l'arrête. Tous les réglages et la courbe d'échelle.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -63,7 +62,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
 
@@ -73,20 +72,21 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>PlayerFX</code> sous le <code>Button</code></strong>, avec un <code>FXChangeSize</code> dans <code>special_effects</code>.
-      <div class="why">le bouton (parent) est la cible ; son pivot sera automatiquement placé au centre.</div>
+      <div class="why">Le bouton (parent) est la cible ; son pivot sera automatiquement placé au centre.</div>
     </li>
     <li>
       <strong>Régler</strong> <code>final_scale</code> = 1,15 et <code>duration</code> = 0,15.
-      <div class="why">un grossissement léger et rapide se lit comme un retour d'interface ; la courbe <em>Back</em> par défaut ajoute un petit rebond.</div>
+      <div class="why">Un grossissement léger et rapide se lit comme un retour d'interface ; la courbe <em>Back</em> par défaut ajoute un petit rebond.</div>
     </li>
     <li>
       <strong>Relier les signaux du bouton</strong> (onglet <em>Nœud</em>, ou par code) :
       <pre><code class="gdscript">func _ready() -> void:
 	$Bouton.mouse_entered.connect($Bouton/PlayerFX.play)
 	$Bouton.mouse_exited.connect($Bouton/PlayerFX.stop)</code></pre>
-      <div class="why">le jeu anime vers <code>final_scale</code>, l'arrêt vers <code>original_value</code> (1) ; une sortie rapide interrompt proprement l'agrandissement.</div>
+      <div class="why">Le jeu anime vers <code>final_scale</code>, l'arrêt vers <code>original_value</code> (1) ; une sortie rapide interrompt proprement l'agrandissement.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Le pointeur survole les boutons : <code>mouse_entered</code> → <code>play()</code> (agrandir), <code>mouse_exited</code> → <code>stop()</code> (revenir).</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -107,6 +107,7 @@
 	$PlayerFX.play()
 	await get_tree().create_timer(disparition.duration).timeout
 	queue_free()</code></pre>
+  <figure class="media" data-video="ex-disparition"><figcaption>Ramasser : léger gonflement (Back, ease In) puis disparition, et <code>queue_free()</code> après la durée.</figcaption></figure>
 
   <h3 id="ex-pulse">Comment je fais « pulser » un objet ?</h3>
   <p>Un aller-retour : jeu, puis arrêt au bout de la durée. Le même code en boucle donne un battement.</p>
@@ -114,12 +115,14 @@
 	$PlayerFX.play()
 	await get_tree().create_timer(0.15).timeout
 	$PlayerFX.stop()</code></pre>
+  <figure class="media" data-video="ex-pulse"><figcaption>Jeu puis arrêt 0,15 s plus tard, en boucle : un battement.</figcaption></figure>
 
   <h3 id="ex-echelle">Comment je l'utilise sur un objet qui n'est pas à l'échelle 1 ?</h3>
   <p><code>original_value</code> n'est pas lu sur l'objet : le régler à son échelle de repos.</p>
   <pre><code class="gdscript">var grossir := FXChangeSize.new()
 grossir.original_value = $Arbre.scale.x   # ex. 3.0
 grossir.final_scale = $Arbre.scale.x * 1.1</code></pre>
+  <figure class="media" data-video="ex-echelle"><figcaption>Un arbre à l'échelle 3 : <code>original_value</code> et <code>final_scale</code> sont calculés depuis son échelle.</figcaption></figure>
 
   <h3 id="ex-combo">Comment je combine agrandissement et son ?</h3>
   <pre><code class="gdscript">var grossir := FXChangeSize.new()
@@ -127,6 +130,7 @@ var clic := FXAudio.new()
 clic.stream = preload("res://sons/survol.wav")
 grossir.effects_on_play_fx = [clic]
 $Bouton/PlayerFX.special_effects = [grossir]</code></pre>
+  <figure class="media" data-video="ex-combo"><figcaption>Agrandissement au survol, avec un son de clic enchaîné (<code>effects_on_play_fx</code>).</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -175,6 +179,48 @@ $Bouton/PlayerFX.special_effects = [grossir]</code></pre>
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "FXChangeSize.duration": [
+    {
+      "video": "FXChangeSize.duration",
+      "legende": "0,15 s, 0,5 s et 1,2 s, à l'aller comme au retour. Courbe : échelle au cours du temps."
+    }
+  ],
+  "FXChangeSize.ease_type": [
+    {
+      "video": "FXChangeSize.ease_type",
+      "legende": "Courbe Back en In, Out et In-Out : où se place le dépassement."
+    }
+  ],
+  "FXChangeSize.final_scale": [
+    {
+      "video": "FXChangeSize.final_scale",
+      "legende": "0,5 (rétrécir), 1,2 et 2 : l'échelle atteinte au jeu."
+    }
+  ],
+  "FXChangeSize.original_value": [
+    {
+      "video": "FXChangeSize.original_value",
+      "legende": "Un objet au repos à l'échelle 2 : avec <code>original_value = 1<\/code> il rapetisse à l'arrêt, avec 2 il revient bien à sa taille."
+    }
+  ],
+  "FXChangeSize.transition": [
+    {
+      "video": "FXChangeSize.transition",
+      "legende": "Linear, Sine, Back (défaut) et Elastic, en ease Out : la forme de la courbe d'échelle."
+    }
+  ],
+  "FXChangeSize": [
+    {
+      "video": "classe-FXChangeSize",
+      "legende": "Le même effet sur un Node2D, un Control et un Node3D : agrandissement au jeu, retour à <code>original_value<\/code> à l'arrêt."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "FXChangeSize.final_scale": "1,1-1,2 pour un survol de bouton, 1,5+ pour un ennemi qui enfle, 0 pour une disparition.",

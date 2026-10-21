@@ -85,11 +85,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons entity_algorithm</code></pre>
-      <div class="why">compile uniquement la bibliothèque <em>Entités &amp; Algorithme</em> (dialogue, comportement, personnages, capacités) et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+      <div class="why">Compile uniquement la bibliothèque <em>Entités &amp; Algorithme</em> (dialogue, comportement, personnages, capacités) et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/entity_algorithm/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/entity_algorithm/</code>.
-      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/entity_algorithm/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/entity_algorithm/…</code> ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -97,7 +97,7 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>DialogueSystem</code> et <code>DialogueBox</code>, et <kbd>Nouvelle ressource</kbd> doit proposer <code>DialogueResource</code>. La console affiche « 🧍Module Entités &amp; Algorithme … chargé avec succès ! ».
-      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+      <div class="why">Si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
     </li>
   </ol>
   <p>Aucun autoload n'est requis. Les PNJ trouvent le premier <code>DialogueSystem</code> de la scène tout seuls (<code>DialogueSystem.get_main()</code>) ; un seul par scène suffit en général.</p>
@@ -115,15 +115,15 @@
   <ol class="steps">
     <li>
       <strong>Créer la ressource</strong> : dans le FileSystem, <em>Nouvelle ressource › DialogueResource</em>, l'enregistrer en <code>res://dialogues/garde.tres</code>.
-      <div class="why">le dialogue est une donnée indépendante des scènes : le même fichier peut servir à plusieurs PNJ et se modifie sans toucher au code.</div>
+      <div class="why">Le dialogue est une donnée indépendante des scènes : le même fichier peut servir à plusieurs PNJ et se modifie sans toucher au code.</div>
     </li>
     <li>
       <strong>Ouvrir l'éditeur en graphe</strong> : sélectionner le fichier, puis cliquer sur <kbd>💬 Éditeur de dialogue</kbd> en haut de l'inspecteur.
-      <div class="why">la fenêtre montre les nœuds et leurs liens en arbre ; toutes les modifications y sont annulables (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).</div>
+      <div class="why">La fenêtre montre les nœuds et leurs liens en arbre ; toutes les modifications y sont annulables (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).</div>
     </li>
     <li>
       <strong>Clic droit sur le fond › Ajouter › 🗨️ Réplique</strong>, puis, en cliquant le nœud, régler dans l'inspecteur <code>speaker</code> = « Garde » et <code>text</code> = « Halte, {nom} ! ».
-      <div class="why">le premier nœud ajouté sert de départ ; <code>{nom}</code> sera remplacé par la variable <code>nom</code> au moment de l'affichage.</div>
+      <div class="why">Le premier nœud ajouté sert de départ ; <code>{nom}</code> sera remplacé par la variable <code>nom</code> au moment de l'affichage.</div>
     </li>
     <li>
       <strong>Clic droit sur la réplique › Ajouter après › 🔀 Choix</strong>, puis remplir ses <code>options</code> : « Qui es-tu ? » et « Au revoir ».
@@ -131,7 +131,7 @@
     </li>
     <li>
       <strong>Ajouter une réplique de réponse et un nœud 🏁 Fin</strong>, puis relier chaque option à sa suite par <kbd>Maj</kbd> + glisser d'un nœud à l'autre (ou en tapant l'identifiant dans <code>next</code>).
-      <div class="why">les liens sont des identifiants de nœud ; un lien vide termine aussi le dialogue, mais un nœud Fin rend la sortie visible dans le graphe.</div>
+      <div class="why">Les liens sont des identifiants de nœud ; un lien vide termine aussi le dialogue, mais un nœud Fin rend la sortie visible dans le graphe.</div>
     </li>
     <li>
       <strong>Cliquer sur <kbd>Vérifier</kbd> puis <kbd>💾 Enregistrer</kbd></strong>.
@@ -143,7 +143,7 @@
   <ol class="steps">
     <li>
       <strong>Dans la scène, ajouter un <code>CanvasLayer</code> avec deux enfants : <code>DialogueSystem</code> et <code>DialogueBox</code></strong>. Ancrer la <code>DialogueBox</code> en bas de l'écran (préréglage <em>Bas large</em>).
-      <div class="why">le <code>DialogueSystem</code> exécute, la <code>DialogueBox</code> affiche ; la boîte se branche toute seule sur le premier <code>DialogueSystem</code> de la scène et se masque tant qu'aucun dialogue n'est en cours.</div>
+      <div class="why">Le <code>DialogueSystem</code> exécute, la <code>DialogueBox</code> affiche ; la boîte se branche toute seule sur le premier <code>DialogueSystem</code> de la scène et se masque tant qu'aucun dialogue n'est en cours.</div>
     </li>
     <li>
       <strong>Lancer le dialogue</strong> depuis un script, par exemple quand le joueur parle au garde :
@@ -154,7 +154,7 @@
     </li>
     <li>
       <strong>Lancer la scène</strong> et appuyer sur <kbd>Entrée</kbd> / <kbd>Espace</kbd> (action <code>ui_accept</code>).
-      <div class="why">un premier appui termine l'écriture lettre par lettre, le suivant passe à la réplique suivante ; les options se choisissent à la souris ou au clavier (le premier bouton reçoit le focus).</div>
+      <div class="why">Un premier appui termine l'écriture lettre par lettre, le suivant passe à la réplique suivante ; les options se choisissent à la souris ou au clavier (le premier bouton reçoit le focus).</div>
     </li>
   </ol>
 

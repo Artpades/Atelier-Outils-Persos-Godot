@@ -1,0 +1,50 @@
+<svg viewBox="0 0 640 218" role="img" aria-label="États et signaux d'un ScreenFader">
+  <defs><marker id="f-69887" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="85" y="20" text-anchor="middle" font-weight="700">Découvert</text>
+    <rect x="14" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="85" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress = 0</text>
+    <line x1="85" y1="64" x2="85" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="14" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="85" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="132" lengthAdjust="spacingAndGlyphs">is_covered() = false</text>
+    <line x1="85" y1="106" x2="85" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="14" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="85" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="132" lengthAdjust="spacingAndGlyphs">is_fading() = false</text>
+    <line x1="158" y1="49.0" x2="168" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <text x="242" y="20" text-anchor="middle" font-weight="700">fade_out()</text>
+    <rect x="170" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="242" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress 0 → 1</text>
+    <line x1="242" y1="64" x2="242" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="170" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="242" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_fading() = true</text>
+    <line x1="242" y1="106" x2="242" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="170" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="242" y="138" text-anchor="middle">tween de duration s</text>
+    <line x1="315" y1="49.0" x2="325" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <text x="398" y="20" text-anchor="middle" font-weight="700">Couvert</text>
+    <rect x="327" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="398" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress = 1</text>
+    <line x1="398" y1="64" x2="398" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="327" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="398" y="96" text-anchor="middle">fade_finished(1.0)</text>
+    <line x1="398" y1="106" x2="398" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="327" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="398" y="138" text-anchor="middle">signal faded_out</text>
+    <line x1="398" y1="148" x2="398" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="327" y="160" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="398" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="132" lengthAdjust="spacingAndGlyphs">is_covered() = true</text>
+    <line x1="472" y1="49.0" x2="482" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <text x="555" y="20" text-anchor="middle" font-weight="700">fade_in()</text>
+    <rect x="484" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="555" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress 1 → 0</text>
+    <line x1="555" y1="64" x2="555" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="484" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="555" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_fading() = true</text>
+    <line x1="555" y1="106" x2="555" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="484" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="555" y="138" text-anchor="middle">fade_finished(0.0)</text>
+    <line x1="555" y1="148" x2="555" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="484" y="160" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="555" y="180" text-anchor="middle">signal faded_in</text>
+  </g>
+</svg>

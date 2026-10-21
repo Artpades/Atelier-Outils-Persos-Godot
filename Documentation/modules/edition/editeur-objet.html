@@ -89,23 +89,23 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons tool_editor</code></pre>
-      <div class="why">le registre <code>tool_editor_register.cpp</code> donne l'identifiant <code>tool_editor</code> : seule cette bibliothèque est recompilée et son <code>.gdextension</code> régénéré.</div>
+      <div class="why">Le registre <code>tool_editor_register.cpp</code> donne l'identifiant <code>tool_editor</code> : seule cette bibliothèque est recompilée et son <code>.gdextension</code> régénéré.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/tool_editor/</code></strong> dans le projet, à l'emplacement <code>res://bin/tool_editor/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/tool_editor/…</code> absolus.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/tool_editor/…</code> absolus.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
-      <div class="why">les extensions ne sont découvertes qu'au démarrage, et le plugin d'éditeur (bouton de l'inspecteur, menu Outils, ouverture automatique, plugin d'export) est installé à ce moment-là.</div>
+      <div class="why">Les extensions ne sont découvertes qu'au démarrage, et le plugin d'éditeur (bouton de l'inspecteur, menu Outils, ouverture automatique, plugin d'export) est installé à ce moment-là.</div>
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>ProceduralEditor</code> et <code>GizmoHost</code> ; le menu <em>Projet › Outils</em> contient « Éditeur d'objet : interfaces par type… ».
-      <div class="why">si ces entrées manquent, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+      <div class="why">Si ces entrées manquent, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
     </li>
     <li>
       <strong>(Optionnel) Réglages de projet</strong> <code>gameplay_toolkit/object_editor/layout_database</code> (chemin de la base) et <code>gameplay_toolkit/object_editor/default_style</code> (style par défaut) ; réglage d'éditeur <code>gameplay_toolkit/object_editor/auto_open</code>.
-      <div class="why">ils sont déclarés au chargement du module avec leur valeur par défaut, et ne sont écrits dans <code>project.godot</code> que si on les modifie.</div>
+      <div class="why">Ils sont déclarés au chargement du module avec leur valeur par défaut, et ne sont écrits dans <code>project.godot</code> que si on les modifie.</div>
     </li>
   </ol>
   <p>Aucun autoload n'est requis : le <code>LayoutLinker</code> (liens par type en jeu) est créé par le module lui-même. À l'export, la base des interfaces et ses dépendances sont ajoutées automatiquement, même en export « ressources sélectionnées ».</p>
@@ -125,15 +125,15 @@
       <pre><code class="gdscript">func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_inspecter"):
 		ObjectEditorWindow.open_for($Joueur)</code></pre>
-      <div class="why">la fenêtre est créée sous la racine du jeu, lit les variables exportées du script (interface générale) et crée un widget par variable.</div>
+      <div class="why">La fenêtre est créée sous la racine du jeu, lit les variables exportées du script (interface générale) et crée un widget par variable.</div>
     </li>
     <li>
       <strong>Modifier une valeur</strong> dans la fenêtre : elle est appliquée immédiatement ; <kbd>Ctrl+Z</kbd> l'annule.
-      <div class="why">chaque édition est une action d'un historique propre au jeu (<code>RuntimeUndoBackend</code>) ; un glissement de curseur ne compte que pour une action.</div>
+      <div class="why">Chaque édition est une action d'un historique propre au jeu (<code>RuntimeUndoBackend</code>) ; un glissement de curseur ne compte que pour une action.</div>
     </li>
     <li>
       <strong>Laisser le jeu tourner</strong> : les valeurs modifiées par le jeu se mettent à jour dans la fenêtre (toutes les 0,1 s), même en pause.
-      <div class="why">le <code>SyncController</code> relit les widgets visibles ; un champ en cours de saisie n'est pas écrasé.</div>
+      <div class="why">Le <code>SyncController</code> relit les widgets visibles ; un champ en cours de saisie n'est pas écrasé.</div>
     </li>
   </ol>
 
@@ -141,19 +141,19 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>ProceduralEditor</code></strong> dans un <code>Control</code> de la scène et régler <code>target_path</code> sur le nœud à éditer (ou <code>target_resource</code> sur un <code>.tres</code>).
-      <div class="why">en jeu, la cible déclarée est appliquée au <code>_ready</code> ; dans l'éditeur, le nœud reste vide pour ne pas modifier la scène par accident.</div>
+      <div class="why">En jeu, la cible déclarée est appliquée au <code>_ready</code> ; dans l'éditeur, le nœud reste vide pour ne pas modifier la scène par accident.</div>
     </li>
     <li>
       <strong>Cliquer sur « Configurer l'interface »</strong> en tête de l'inspecteur.
-      <div class="why">la fenêtre liste les membres de la cible (onglet Données) avec un aperçu en direct ; le registre ainsi construit est enregistré avec la scène.</div>
+      <div class="why">La fenêtre liste les membres de la cible (onglet Données) avec un aperçu en direct ; le registre ainsi construit est enregistré avec la scène.</div>
     </li>
     <li>
       <strong>Pour chaque donnée, choisir le widget</strong> (ex. <em>HSlider</em> pour un volume), décocher les données à masquer, puis ranger les données dans des <em>Groupes</em>.
-      <div class="why">seuls les widgets compatibles avec le type sont proposés ; les réglages (bornes, icône, style) se règlent sous le tableau.</div>
+      <div class="why">Seuls les widgets compatibles avec le type sont proposés ; les réglages (bornes, icône, style) se règlent sous le tableau.</div>
     </li>
     <li>
       <strong>Lancer la scène</strong> : l'interface s'affiche telle que configurée.
-      <div class="why">si le script de la cible gagne une variable, elle apparaîtra automatiquement (widget Auto) ; une variable supprimée est marquée manquante, jamais effacée.</div>
+      <div class="why">Si le script de la cible gagne une variable, elle apparaîtra automatiquement (widget Auto) ; une variable supprimée est marquée manquante, jamais effacée.</div>
     </li>
   </ol>
 
@@ -161,15 +161,15 @@
   <ol class="steps">
     <li>
       <strong>Ouvrir <em>Projet › Outils › « Éditeur d'objet : interfaces par type… »</em></strong>, puis « Créer » la base si elle n'existe pas.
-      <div class="why">la base est le fichier désigné par le réglage <code>gameplay_toolkit/object_editor/layout_database</code>.</div>
+      <div class="why">La base est le fichier désigné par le réglage <code>gameplay_toolkit/object_editor/layout_database</code>.</div>
     </li>
     <li>
       <strong>Ajouter un type</strong> (ex. <code>Ennemi</code>, le <code>class_name</code> d'un script) et configurer ses onglets Données, Groupes, Gizmos, Style, Comportements ; « Enregistrer ».
-      <div class="why">les membres sont lus sur une instance d'exemple du type ; la base n'est écrite qu'au clic sur « Enregistrer ».</div>
+      <div class="why">Les membres sont lus sur une instance d'exemple du type ; la base n'est écrite qu'au clic sur « Enregistrer ».</div>
     </li>
     <li>
       <strong>Sélectionner un nœud <code>Ennemi</code></strong> dans la scène : la fenêtre « Éditeur d'objet » s'ouvre avec son interface, et ses gizmos apparaissent dans la vue.
-      <div class="why">le plugin écoute la sélection ; tant que la fenêtre n'est pas épinglée, elle suit les objets sélectionnés. Les modifications rejoignent l'historique de l'éditeur.</div>
+      <div class="why">Le plugin écoute la sélection ; tant que la fenêtre n'est pas épinglée, elle suit les objets sélectionnés. Les modifications rejoignent l'historique de l'éditeur.</div>
     </li>
   </ol>
 

@@ -49,10 +49,9 @@
       <li><strong>Pas d'accessibilité manette</strong> : l'affichage suit le survol de la souris (voir <a href="#limitations">Limitations</a>).</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Capture : une case d'inventaire survolée, avec l'infobulle « Épée de feu » (titre, icône 64 × 64, texte « +12 dégâts de feu » en orange), puis la même infobulle basculée à gauche de la souris près du bord droit de l'écran.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/infobulle-personnalisable" data-figure="1">
+    <figcaption>Survoler les cases d'inventaire avec la souris ; éditer le contenu de la première (titre, BBCode, icône, largeur) et l'affichage de toutes (délai, fondu, suivi, décalage, style).</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -74,7 +73,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
   <div class="callout warn">
@@ -87,21 +86,22 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>CustomTooltip</code> comme enfant du <code>Button</code></strong> (ou de tout <code>Control</code>).
-      <div class="why">sans <code>target</code>, c'est le parent qui est surveillé : il doit émettre <code>mouse_entered</code> / <code>mouse_exited</code>, ce que fait tout <code>Control</code> dont le <code>mouse_filter</code> n'est pas <em>Ignore</em>.</div>
+      <div class="why">Sans <code>target</code>, c'est le parent qui est surveillé : il doit émettre <code>mouse_entered</code> / <code>mouse_exited</code>, ce que fait tout <code>Control</code> dont le <code>mouse_filter</code> n'est pas <em>Ignore</em>.</div>
     </li>
     <li>
       <strong>Dans <code>content</code>, créer un <code>TooltipContent</code></strong> : <code>title</code>, <code>icon</code>, <code>text</code> (BBCode, ex. <code>[color=orange]+12[/color] dégâts</code>).
-      <div class="why">les éléments vides sont simplement omis ; un texte plus large que <code>max_width</code> revient à la ligne.</div>
+      <div class="why">Les éléments vides sont simplement omis ; un texte plus large que <code>max_width</code> revient à la ligne.</div>
     </li>
     <li>
       <strong>Ajuster <code>delay</code></strong> (0,5 s par défaut) et, si besoin, <code>panel_style</code>.
-      <div class="why">un délai évite que des infobulles clignotent quand la souris traverse l'interface.</div>
+      <div class="why">Un délai évite que des infobulles clignotent quand la souris traverse l'interface.</div>
     </li>
     <li>
       <strong>Lancer le jeu et survoler le bouton</strong>.
-      <div class="why">l'infobulle apparaît en fondu près de la souris, la suit, et change de côté près des bords de l'écran.</div>
+      <div class="why">L'infobulle apparaît en fondu près de la souris, la suit, et change de côté près des bords de l'écran.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Survol d'une case d'inventaire : après <code>delay</code>, l'infobulle apparaît en fondu près de la souris, la suit, et passe à gauche près du bord droit.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -120,6 +120,7 @@ func _ready() -> void:
 	infos.title = "Coffre ancien"
 	infos.text = "Verrouillé. Il faut une [b]clé de bronze[/b]."
 	$Coffre/CustomTooltip.content = infos</code></pre>
+  <figure class="media" data-video="ex-monde"><figcaption>Un coffre du monde (Area2D) avec son infobulle.</figcaption></figure>
 
   <h3 id="ex-inventaire">Comment je mets à jour l'infobulle d'une case d'inventaire ?</h3>
   <p>Le contenu est relu à chaque modification : il suffit de changer la ressource, même pendant l'affichage.</p>
@@ -132,6 +133,7 @@ func _ready() -> void:
 
 func vider_case() -> void:
 	$CustomTooltip.content = null   # plus d'infobulle (masquée si affichée)</code></pre>
+  <figure class="media" data-video="ex-inventaire"><figcaption>Le contenu change pendant l'affichage (objet suivant), puis <code>content = null</code> masque l'infobulle.</figcaption></figure>
 
   <h3 id="ex-video">Comment je montre une capacité en vidéo ?</h3>
   <pre><code class="gdscript">var aide := TooltipContent.new()
@@ -140,6 +142,7 @@ aide.video = preload("res://videos/double_saut.ogv")
 aide.video_size = Vector2(240, 135)
 aide.text = "Appuyez de nouveau sur [b]Saut[/b] en l'air."
 $ArbreCompetences/DoubleSaut/CustomTooltip.content = aide</code></pre>
+  <figure class="media" data-video="ex-video"><figcaption>Une infobulle de compétence avec une vidéo (VideoStreamTheora) qui boucle.</figcaption></figure>
 
   <h3 id="ex-style">Comment je donne un style à toutes mes infobulles ?</h3>
   <pre><code class="gdscript">var fond := StyleBoxFlat.new()
@@ -150,6 +153,7 @@ fond.set_corner_radius_all(6)
 fond.set_content_margin_all(10)
 for infobulle in get_tree().get_nodes_in_group("infobulles"):
 	infobulle.panel_style = fond</code></pre>
+  <figure class="media" data-video="ex-style"><figcaption>Le même <code>panel_style</code> (StyleBoxFlat doré) appliqué à toutes les infobulles du groupe.</figcaption></figure>
 
   <h3 id="ex-tuto">Comment j'affiche une infobulle sans survol (tutoriel) ?</h3>
   <pre><code class="gdscript">func montrer_astuce() -> void:
@@ -157,10 +161,12 @@ for infobulle in get_tree().get_nodes_in_group("infobulles"):
 	$Inventaire/CustomTooltip.show_tooltip()     # à la position actuelle de la souris
 	await get_tree().create_timer(4.0).timeout
 	$Inventaire/CustomTooltip.hide_tooltip()</code></pre>
+  <figure class="media" data-video="ex-tuto"><figcaption>Astuce de tutoriel : <code>show_tooltip()</code> sans survol, puis <code>hide_tooltip()</code> 4 s plus tard.</figcaption></figure>
 
   <h3 id="ex-pause">Comment j'utilise des infobulles dans un menu de pause ?</h3>
   <p>Le délai et le suivi tournent dans <code>_process</code> : passer le <code>CustomTooltip</code> en mode <em>Always</em>, sinon il ne s'affiche jamais pendant la pause.</p>
   <pre><code class="gdscript">$MenuPause/Options/CustomTooltip.process_mode = Node.PROCESS_MODE_ALWAYS</code></pre>
+  <figure class="media" data-video="ex-pause"><figcaption>Jeu en pause : l'infobulle en PROCESS_MODE_ALWAYS s'affiche, l'autre jamais.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -246,6 +252,209 @@ for infobulle in get_tree().get_nodes_in_group("infobulles"):
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-panneau">
+<svg viewBox="0 0 640 260" role="img" aria-label="Structure interne d'une infobulle">
+  <defs><marker id="f-43190" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="164" y="20" text-anchor="middle" font-weight="700">CustomTooltip</text>
+    <rect x="14" y="34" width="299" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="164" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">CanvasLayer (layer = 128)</text>
+    <line x1="164" y1="64" x2="164" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="14" y="76" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">PanelContainer = get_panel()</text>
+    <line x1="164" y1="106" x2="164" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="14" y="118" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="138" text-anchor="middle" fill-opacity="0.7">panel_style / tooltip_theme</text>
+    <line x1="164" y1="148" x2="164" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="14" y="160" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_tooltip_visible()</text>
+    <line x1="315" y1="49.0" x2="325" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <text x="476" y="20" text-anchor="middle" font-weight="700">TooltipContent (de haut en bas)</text>
+    <rect x="327" y="34" width="299" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="476" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">title (HeaderSmall)</text>
+    <line x1="476" y1="64" x2="476" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="327" y="76" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="96" text-anchor="middle">icon (≤ icon_max_size)</text>
+    <line x1="476" y1="106" x2="476" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="327" y="118" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="138" text-anchor="middle">video (video_size)</text>
+    <line x1="476" y1="148" x2="476" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="327" y="160" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="180" text-anchor="middle">text BBCode (≤ max_width)</text>
+    <line x1="476" y1="190" x2="476" y2="201" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-43190)"/>
+    <rect x="327" y="202" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="222" text-anchor="middle">custom_scene</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "CustomTooltip.delay": [
+    {
+      "video": "CustomTooltip.delay",
+      "legende": "<code>delay<\/code> 0, 0,5 (défaut) et 1,5 s : le temps de survol avant l'apparition."
+    }
+  ],
+  "CustomTooltip.fade_duration": [
+    {
+      "video": "CustomTooltip.fade_duration",
+      "legende": "<code>fade_duration<\/code> 0, 0,15 (défaut) et 0,6 s : le fondu d'apparition et de disparition."
+    }
+  ],
+  "CustomTooltip.follow_mouse": [
+    {
+      "video": "CustomTooltip.follow_mouse",
+      "legende": "true : l'infobulle suit la souris · false : elle reste là où elle est apparue."
+    }
+  ],
+  "CustomTooltip.offset": [
+    {
+      "video": "CustomTooltip.offset",
+      "legende": "<code>offset<\/code> (16, 16) (défaut) puis (40, -70) : le décalage par rapport à la pointe de la souris."
+    }
+  ],
+  "TooltipContent.max_width": [
+    {
+      "video": "TooltipContent.max_width",
+      "legende": "<code>max_width<\/code> 160 puis 320 (défaut) : le texte revient à la ligne au-delà."
+    }
+  ],
+  "CustomTooltip": [
+    {
+      "video": "classe-CustomTooltip",
+      "legende": "Une infobulle par bouton ; à droite, les signaux <code>tooltip_shown<\/code> / <code>tooltip_hidden<\/code>."
+    }
+  ],
+  "TooltipContent": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "CustomTooltip.content": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "CustomTooltip.get_panel": [
+    {
+      "schema": "schema-panneau",
+      "legende": "Structure d'une infobulle : un CanvasLayer (<code>layer<\/code>) qui porte le PanelContainer (<code>get_panel()<\/code>, <code>panel_style<\/code>, <code>tooltip_theme<\/code>) et ses éléments, empilés dans l'ordre."
+    }
+  ],
+  "CustomTooltip.hide_tooltip": [
+    {
+      "video": "ex-tuto",
+      "legende": "Astuce de tutoriel : <code>show_tooltip()<\/code> sans survol, puis <code>hide_tooltip()<\/code> 4 s plus tard."
+    }
+  ],
+  "CustomTooltip.is_tooltip_visible": [
+    {
+      "video": "classe-CustomTooltip",
+      "legende": "Une infobulle par bouton ; à droite, les signaux <code>tooltip_shown<\/code> / <code>tooltip_hidden<\/code>."
+    }
+  ],
+  "CustomTooltip.layer": [
+    {
+      "schema": "schema-panneau",
+      "legende": "Structure d'une infobulle : un CanvasLayer (<code>layer<\/code>) qui porte le PanelContainer (<code>get_panel()<\/code>, <code>panel_style<\/code>, <code>tooltip_theme<\/code>) et ses éléments, empilés dans l'ordre."
+    }
+  ],
+  "CustomTooltip.panel_style": [
+    {
+      "video": "ex-style",
+      "legende": "Le même <code>panel_style<\/code> (StyleBoxFlat doré) appliqué à toutes les infobulles du groupe."
+    }
+  ],
+  "CustomTooltip.show_tooltip": [
+    {
+      "video": "ex-tuto",
+      "legende": "Astuce de tutoriel : <code>show_tooltip()<\/code> sans survol, puis <code>hide_tooltip()<\/code> 4 s plus tard."
+    }
+  ],
+  "CustomTooltip.target": [
+    {
+      "video": "ex-monde",
+      "legende": "Un coffre du monde (Area2D) avec son infobulle."
+    }
+  ],
+  "CustomTooltip.tooltip_hidden": [
+    {
+      "video": "classe-CustomTooltip",
+      "legende": "Une infobulle par bouton ; à droite, les signaux <code>tooltip_shown<\/code> / <code>tooltip_hidden<\/code>."
+    }
+  ],
+  "CustomTooltip.tooltip_shown": [
+    {
+      "video": "classe-CustomTooltip",
+      "legende": "Une infobulle par bouton ; à droite, les signaux <code>tooltip_shown<\/code> / <code>tooltip_hidden<\/code>."
+    }
+  ],
+  "CustomTooltip.tooltip_theme": [
+    {
+      "schema": "schema-panneau",
+      "legende": "Structure d'une infobulle : un CanvasLayer (<code>layer<\/code>) qui porte le PanelContainer (<code>get_panel()<\/code>, <code>panel_style<\/code>, <code>tooltip_theme<\/code>) et ses éléments, empilés dans l'ordre."
+    }
+  ],
+  "TooltipContent.custom_scene": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "TooltipContent.icon": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "TooltipContent.icon_max_size": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "TooltipContent.text": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "TooltipContent.title": [
+    {
+      "video": "classe-TooltipContent",
+      "legende": "Les éléments d'un contenu : titre, puis icône, puis texte BBCode, puis scène personnalisée ; les éléments vides sont omis."
+    }
+  ],
+  "TooltipContent.video": [
+    {
+      "video": "ex-video",
+      "legende": "Une infobulle de compétence avec une vidéo (VideoStreamTheora) qui boucle."
+    }
+  ],
+  "TooltipContent.video_loop": [
+    {
+      "video": "ex-video",
+      "legende": "Une infobulle de compétence avec une vidéo (VideoStreamTheora) qui boucle."
+    }
+  ],
+  "TooltipContent.video_muted": [
+    {
+      "video": "ex-video",
+      "legende": "Une infobulle de compétence avec une vidéo (VideoStreamTheora) qui boucle."
+    }
+  ],
+  "TooltipContent.video_size": [
+    {
+      "video": "ex-video",
+      "legende": "Une infobulle de compétence avec une vidéo (VideoStreamTheora) qui boucle."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "CustomTooltip.content": "La description de l'objet survolé ; la remplacer quand la case d'inventaire change d'objet.",

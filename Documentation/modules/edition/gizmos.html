@@ -80,11 +80,11 @@
     <li>
       <strong>Compiler la bibliothèque</strong> si nécessaire :
       <pre><code class="language-shell">scons tool_editor</code></pre>
-      <div class="why">compile la bibliothèque des outils d'édition et régénère son <code>.gdextension</code>.</div>
+      <div class="why">Compile la bibliothèque des outils d'édition et régénère son <code>.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code>, puis <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/tool_editor/…</code> dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/tool_editor/…</code> dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
     </li>
   </ol>
   <p>Aucun nœud, autoload ni réglage : les deux classes sont statiques.</p>
@@ -101,7 +101,7 @@ var gizmo_vitesse: RID
 
 func _ready() -> void:
 	gizmo_vitesse = Gizmos3D.create_3D_gizmo(get_viewport())</code></pre>
-      <div class="why">un gizmo est un objet du serveur de rendu, rattaché au monde 3D du viewport. On le garde dans une variable (<code>RID</code>) pour le redessiner et le libérer.</div>
+      <div class="why">Un gizmo est un objet du serveur de rendu, rattaché au monde 3D du viewport. On le garde dans une variable (<code>RID</code>) pour le redessiner et le libérer.</div>
     </li>
     <li>
       <strong>Le redessiner chaque frame</strong> :
@@ -109,13 +109,13 @@ func _ready() -> void:
 	move_and_slide()
 	var bout := global_position + velocity * 0.3
 	Gizmos3D.draw_3D_arrow(gizmo_vitesse, global_position, bout, Color.CYAN, 0.2, 2.0)</code></pre>
-      <div class="why">chaque appel remplace la forme précédente : la flèche suit le personnage. Les coordonnées sont globales.</div>
+      <div class="why">Chaque appel remplace la forme précédente : la flèche suit le personnage. Les coordonnées sont globales.</div>
     </li>
     <li>
       <strong>Le libérer</strong> quand le nœud quitte l'arbre :
       <pre><code class="gdscript">func _exit_tree() -> void:
 	Gizmos3D.free_3D_gizmo(gizmo_vitesse)</code></pre>
-      <div class="why">le gizmo n'appartient à aucun nœud : sans cette ligne, la flèche resterait affichée après la disparition du personnage.</div>
+      <div class="why">Le gizmo n'appartient à aucun nœud : sans cette ligne, la flèche resterait affichée après la disparition du personnage.</div>
     </li>
   </ol>
   <p>En 2D, c'est identique avec <code>Gizmos2D.create_2D_gizmo</code>, <code>draw_2D_*</code> et <code>free_2D_gizmo</code>.</p>

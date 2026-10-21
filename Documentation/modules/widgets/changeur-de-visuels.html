@@ -84,11 +84,11 @@
     <li>
       <strong>Compiler</strong> (si besoin) :
       <pre><code class="language-shell">scons visuals_swapper</code></pre>
-      <div class="why">compile la bibliothèque du registre <code>visuals_swapper_register.cpp</code>.</div>
+      <div class="why">Compile la bibliothèque du registre <code>visuals_swapper_register.cpp</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/visuals_swapper/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/visuals_swapper/…</code> absolus ; extensions découvertes au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/visuals_swapper/…</code> absolus ; extensions découvertes au démarrage.</div>
     </li>
   </ol>
   <p>Contrairement à d'autres modules, ces classes fonctionnent aussi dans l'éditeur (un <code>@tool</code> peut appeler <code>swap</code> pour prévisualiser).</p>
@@ -98,19 +98,19 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>VisualsSwapper</code></strong> comme enfant du personnage, à côté de son <code>Sprite2D</code> nommé <code>Corps</code>.
-      <div class="why">les chemins des changements sont résolus depuis ce nœud : <code>../Corps</code> désignera le sprite.</div>
+      <div class="why">Les chemins des changements sont résolus depuis ce nœud : <code>../Corps</code> désignera le sprite.</div>
     </li>
     <li>
       <strong>Dans <code>visuals_assets</code>, ajouter un <code>Nouveau VisualsAsset</code></strong> et régler <code>suit_type_name</code> = <code>feu</code>.
-      <div class="why">ce nom sert à retrouver l'apparence par code ; l'asset peut être enregistré en <code>.tres</code> pour d'autres personnages.</div>
+      <div class="why">Ce nom sert à retrouver l'apparence par code ; l'asset peut être enregistré en <code>.tres</code> pour d'autres personnages.</div>
     </li>
     <li>
       <strong>Dans ses <code>visuals_registers</code>, ajouter un <code>Nouveau VisualsRegister</code></strong> : <code>node_visual</code> = <code>../Corps</code>, <code>texture</code> = l'image du corps en feu.
-      <div class="why">le nœud ciblé étant un <code>Sprite2D</code>, seule la texture est utilisée.</div>
+      <div class="why">Le nœud ciblé étant un <code>Sprite2D</code>, seule la texture est utilisée.</div>
     </li>
     <li>
       <strong>Répéter pour une apparence <code>normal</code></strong> avec la texture d'origine.
-      <div class="why">c'est elle qui permettra de revenir en arrière : rien n'est mémorisé automatiquement.</div>
+      <div class="why">C'est elle qui permettra de revenir en arrière : rien n'est mémorisé automatiquement.</div>
     </li>
     <li>
       <strong>Déclencher</strong> :

@@ -73,15 +73,15 @@
   <ol class="steps">
     <li>
       <strong>Activer la classe</strong> (modification de code, à faire par le mainteneur) : dans <code>tool_editor_register.cpp</code>, inclure <code>"✋Système de Handles/handlers_manager.hpp"</code> et ajouter <code>GDREGISTER_CLASS(HandlersManager);</code> au niveau <code>SCENE</code>, après <code>ManagerBuilder</code>.
-      <div class="why">c'est l'étape qui manque aujourd'hui : l'enregistrement rend la classe, ses méthodes et ses signaux visibles de Godot et permet à <code>ManagerBuilder</code> de l'instancier.</div>
+      <div class="why">C'est l'étape qui manque aujourd'hui : l'enregistrement rend la classe, ses méthodes et ses signaux visibles de Godot et permet à <code>ManagerBuilder</code> de l'instancier.</div>
     </li>
     <li>
       <strong>Compiler</strong> : <pre><code class="language-shell">scons tool_editor</code></pre>
-      <div class="why">reconstruit la bibliothèque ; le Sconstruct génère alors <code>doc_classes/HandlersManager.xml</code> à jour (méthodes et signaux), ce qui remplira la section API de cette page.</div>
+      <div class="why">Reconstruit la bibliothèque ; le Sconstruct génère alors <code>doc_classes/HandlersManager.xml</code> à jour (méthodes et signaux), ce qui remplira la section API de cette page.</div>
     </li>
     <li>
       <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code> et redémarrer l'éditeur.
-      <div class="why">chemins <code>res://bin/tool_editor/…</code> dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/tool_editor/…</code> dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
     </li>
   </ol>
   <p>Aucun autoload : le gestionnaire est créé à la demande sous la racine de l'arbre par <code>HandlersManager.get_singleton()</code>.</p>
@@ -99,26 +99,26 @@ var handles
 func _ready() -> void:
 	handles = HandlersManager.get_singleton()
 	handles.handle_2d_moved.connect(_on_handle_moved)</code></pre>
-      <div class="why">un seul gestionnaire existe pour tout le projet ; il est créé au premier appel et ajouté à l'arbre à la fin de la frame.</div>
+      <div class="why">Un seul gestionnaire existe pour tout le projet ; il est créé au premier appel et ajouté à l'arbre à la fin de la frame.</div>
     </li>
     <li>
       <strong>Enregistrer une poignée</strong> sous un identifiant unique :
       <pre><code class="gdscript">	var zone := Rect2(position - Vector2(8, 8), Vector2(16, 16))
 	handles.register_handle_2d(&"sprite_pos", zone, get_viewport())</code></pre>
-      <div class="why">le rectangle est la zone sensible, en coordonnées du viewport ; le viewport indique où dessiner la poignée et où lire la souris.</div>
+      <div class="why">Le rectangle est la zone sensible, en coordonnées du viewport ; le viewport indique où dessiner la poignée et où lire la souris.</div>
     </li>
     <li>
       <strong>Appliquer le déplacement</strong> reçu :
       <pre><code class="gdscript">func _on_handle_moved(id: StringName, coin: Vector2) -> void:
 	if id == &"sprite_pos":
 		position = coin + Vector2(8, 8)  # le signal donne le coin supérieur gauche</code></pre>
-      <div class="why">le gestionnaire ne modifie aucun objet lui-même : c'est l'écouteur qui décide de ce que représente la poignée.</div>
+      <div class="why">Le gestionnaire ne modifie aucun objet lui-même : c'est l'écouteur qui décide de ce que représente la poignée.</div>
     </li>
     <li>
       <strong>Retirer la poignée</strong> en quittant l'arbre :
       <pre><code class="gdscript">func _exit_tree() -> void:
 	handles.unregister_handle_2d(&"sprite_pos")</code></pre>
-      <div class="why">libère le gizmo de la poignée ; sinon elle reste affichée et testée.</div>
+      <div class="why">Libère le gizmo de la poignée ; sinon elle reste affichée et testée.</div>
     </li>
   </ol>
 

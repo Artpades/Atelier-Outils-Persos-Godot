@@ -71,11 +71,11 @@
     <li>
       <strong>Compiler</strong> (si besoin) :
       <pre><code class="language-shell">scons spatial_hud</code></pre>
-      <div class="why">compile la bibliothèque du registre <code>spatial_hud_register.cpp</code>.</div>
+      <div class="why">Compile la bibliothèque du registre <code>spatial_hud_register.cpp</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/spatial_hud/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/spatial_hud/…</code> absolus ; extensions découvertes au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/spatial_hud/…</code> absolus ; extensions découvertes au démarrage.</div>
     </li>
   </ol>
   <p>Le nœud fonctionne aussi dans l'éditeur pour l'<strong>affichage</strong> (le contenu est visible dans la vue 3D) ; l'interaction, elle, n'est active qu'en jeu.</p>
@@ -85,15 +85,15 @@
   <ol class="steps">
     <li>
       <strong>Créer la scène d'interface</strong> <code>terminal_ui.tscn</code> : un <code>Panel</code> racine avec un <code>Button</code> nommé <code>Valider</code> (cocher <em>Accès en tant que nom unique</em>).
-      <div class="why">c'est une scène <code>Control</code> ordinaire, testable seule ; elle sera étirée sur tout le panneau.</div>
+      <div class="why">C'est une scène <code>Control</code> ordinaire, testable seule ; elle sera étirée sur tout le panneau.</div>
     </li>
     <li>
       <strong>Dans la scène 3D, ajouter un <code>InteractiveHUD3D</code></strong> et régler <code>content_scene</code> = <code>terminal_ui.tscn</code>.
-      <div class="why">le nœud crée lui-même le <code>SubViewport</code> et le quad, en enfants internes : rien d'autre à ajouter dans l'arbre.</div>
+      <div class="why">Le nœud crée lui-même le <code>SubViewport</code> et le quad, en enfants internes : rien d'autre à ajouter dans l'arbre.</div>
     </li>
     <li>
       <strong>Régler la taille</strong> : <code>viewport_size</code> = résolution de l'interface (512 × 320 px par défaut), <code>pixel_size</code> = mètres par pixel (0,0025 : panneau de 1,28 × 0,8 m).
-      <div class="why">la résolution règle la netteté, <code>pixel_size</code> la taille dans le monde ; les deux sont indépendants.</div>
+      <div class="why">La résolution règle la netteté, <code>pixel_size</code> la taille dans le monde ; les deux sont indépendants.</div>
     </li>
     <li>
       <strong>Réagir au bouton</strong> :
@@ -103,7 +103,7 @@
     </li>
     <li>
       <strong>Lancer</strong> : avec la souris libre, survoler et cliquer le panneau. Pour un FPS à souris capturée, régler <code>pointer_source</code> = <em>Screen Center</em>.
-      <div class="why">en <em>Screen Center</em>, c'est le centre de l'écran (le viseur) qui pointe ; les clics de la souris restent utilisés.</div>
+      <div class="why">En <em>Screen Center</em>, c'est le centre de l'écran (le viseur) qui pointe ; les clics de la souris restent utilisés.</div>
     </li>
   </ol>
 

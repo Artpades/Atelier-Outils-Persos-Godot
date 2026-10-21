@@ -46,10 +46,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : un personnage saute, ouvre sa cape (plané) et dérive dans un courant ascendant (ForceZone2D) ; à côté, des feuilles (RigidBody2D avec flutter_frequency) qui tombent en zigzag.</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/physique-aerodynamique" data-figure="1">
+    <figcaption>Planer depuis une tour en maintenant le saut, se laisser porter par un courant ascendant, voler librement, et lâcher des feuilles aux réglages de traînée, portance et battement.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -67,8 +66,8 @@
   </div>
   <h3 id="mise-en-place">Mise en place</h3>
   <ol class="steps">
-    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le composant fait partie de la bibliothèque du mouvement.</div></li>
-    <li><strong>Placer le composant sous le corps</strong> : <code>CharacterBody</code> pour un personnage, <code>RigidBody</code> pour un objet.<div class="why">le type du parent décide du comportement (contrôlé ou passif).</div></li>
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">Le composant fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Placer le composant sous le corps</strong> : <code>CharacterBody</code> pour un personnage, <code>RigidBody</code> pour un objet.<div class="why">Le type du parent décide du comportement (contrôlé ou passif).</div></li>
   </ol>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
@@ -77,7 +76,7 @@
   <ol class="steps">
     <li>
       <strong>Sous le <code>CharacterBody2D</code></strong> : <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>AerodynamicMovement2D</code> (<code>mode</code> = <em>Glide</em>).
-      <div class="why">le directeur crée un contexte « plané » actif quand le personnage est en l'air, en chute et que le saut est maintenu.</div>
+      <div class="why">Le directeur crée un contexte « plané » actif quand le personnage est en l'air, en chute et que le saut est maintenu.</div>
     </li>
     <li>
       <strong>Envoyer saut / relâchement au directeur</strong> :
@@ -87,19 +86,21 @@
 		$MovementDirector.jump()
 	elif Input.is_action_just_released("ui_accept"):
 		$MovementDirector.release_jump()</code></pre>
-      <div class="why">sauter, puis garder le bouton enfoncé : dès que le personnage redescend, il plane ; relâcher le fait retomber normalement.</div>
+      <div class="why">Sauter, puis garder le bouton enfoncé : dès que le personnage redescend, il plane ; relâcher le fait retomber normalement.</div>
     </li>
     <li>
       <strong>Régler</strong> <code>glide_fall_speed</code> (vitesse de descente) et <code>glide_speed</code> (vitesse horizontale).
-      <div class="why">ce sont les deux réglages qui définissent la « finesse » du planeur.</div>
+      <div class="why">Ce sont les deux réglages qui définissent la « finesse » du planeur.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-plane"><figcaption>Saut maintenu : dès que le personnage redescend, le contexte « plané » s'active ; relâcher le fait retomber.</figcaption></figure>
 
   <h3 id="tuto-feuille">B. Une feuille qui tombe en zigzag</h3>
   <ol class="steps">
-    <li><strong>Créer un <code>RigidBody2D</code></strong> léger avec un sprite de feuille, et lui ajouter un <code>AerodynamicMovement2D</code>.<div class="why">sur un corps rigide, traînée et portance s'appliquent à chaque image, que le composant soit actif ou non.</div></li>
-    <li><strong>Régler</strong> <code>drag_coefficient</code> = 0,02, <code>lift_coefficient</code> = 0,01, <code>flutter_frequency</code> = 1,5.<div class="why">la traînée limite la vitesse de chute, la portance qui change de sens 1,5 fois par seconde fait osciller la trajectoire.</div></li>
+    <li><strong>Créer un <code>RigidBody2D</code></strong> léger avec un sprite de feuille, et lui ajouter un <code>AerodynamicMovement2D</code>.<div class="why">Sur un corps rigide, traînée et portance s'appliquent à chaque image, que le composant soit actif ou non.</div></li>
+    <li><strong>Régler</strong> <code>drag_coefficient</code> = 0,02, <code>lift_coefficient</code> = 0,01, <code>flutter_frequency</code> = 1,5.<div class="why">La traînée limite la vitesse de chute, la portance qui change de sens 1,5 fois par seconde fait osciller la trajectoire.</div></li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-feuille"><figcaption>Des feuilles (RigidBody2D légers) avec traînée, portance et <code>flutter_frequency</code> : chute en zigzag.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -125,6 +126,7 @@ func _ready() -> void:
 	$MovementDirector.contexts = [sol, air]
 	$AerodynamicMovement2D.flapped.connect(func(): $AnimationPlayer.play("battement"))</code></pre>
   <p>Conséquence : tout le temps passé en l'air est en plané (gravité réduite, y compris à la montée du saut).</p>
+  <figure class="media" data-video="ex-battements"><figcaption>Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2</code>) en l'air, signal <code>flapped</code>.</figcaption></figure>
 
   <h3 id="ex-vol">Comment je fais voler librement un personnage (fée, jetpack) ?</h3>
   <pre><code class="gdscript"># AerodynamicMovement2D en mode Fly : le directeur crée un contexte « vol » manuel.
@@ -133,12 +135,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		$MovementDirector.set_context(&amp;"vol")
 	elif event.is_action_pressed("atterrir"):
 		$MovementDirector.clear_forced_context()</code></pre>
+  <figure class="media" data-video="ex-vol"><figcaption>Mode Fly : <code>set_context(&"vol")</code> pour voler librement, <code>clear_forced_context()</code> pour atterrir.</figcaption></figure>
 
   <h3 id="ex-parapente">Comment je fais un parapente sensible aux courants ?</h3>
   <pre><code class="gdscript">$AerodynamicMovement2D.wind_influence = 4.0   # le vent compte 4 fois plus
 $AerodynamicMovement2D.glide_fall_speed = 40.0
 $CourantAscendant.direction = Vector2.UP       # ForceZone2D
 $CourantAscendant.strength = 300.0</code></pre>
+  <figure class="media" data-video="ex-parapente"><figcaption>Parapente : <code>wind_influence = 4</code> et un courant ascendant (ForceZone2D) qui le fait monter.</figcaption></figure>
 
   <h3 id="ex-confettis">Comment je fais tomber des confettis ou des plumes en 3D ?</h3>
   <pre><code class="gdscript"># confetti : un RigidBody3D léger (petite BoxShape3D + mesh plat), créé ou instancié avant l'appel
@@ -150,6 +154,7 @@ func lancer_confetti(c: RigidBody3D, position_depart: Vector3) -> void:
 	c.add_child(aero)
 	add_child(c)
 	c.global_position = position_depart</code></pre>
+  <figure class="media" data-video="ex-confettis"><figcaption>Des confettis 3D (RigidBody3D) avec un AerodynamicMovement3D chacun : traînée, portance et fréquence de battement aléatoire.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -232,6 +237,222 @@ window.GTK_USAGES = {};
   window.GTK_USAGES["AerodynamicMovement3D.camera_relative"] = "Joueur : planer vers où regarde la caméra.";
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "AerodynamicMovement2D.drag_coefficient": [
+    {
+      "video": "AerodynamicMovement2D.drag_coefficient",
+      "legende": "Feuilles avec <code>drag_coefficient<\/code> 0,002 (défaut), 0,02 et 0,08 : la vitesse limite de chute."
+    }
+  ],
+  "AerodynamicMovement2D.flutter_frequency": [
+    {
+      "video": "AerodynamicMovement2D.flutter_frequency",
+      "legende": "<code>flutter_frequency<\/code> 0, 1,5 et 4 Hz : la portance change de sens, la feuille volette."
+    }
+  ],
+  "AerodynamicMovement2D.glide_fall_speed": [
+    {
+      "video": "AerodynamicMovement2D.glide_fall_speed",
+      "legende": "<code>glide_fall_speed<\/code> 30, 70 (défaut) et 200 px/s ; <code>glide_gravity_scale<\/code> ralentit la chute avant d'atteindre cette vitesse."
+    }
+  ],
+  "AerodynamicMovement2D.glide_speed": [
+    {
+      "video": "AerodynamicMovement2D.glide_speed",
+      "legende": "<code>glide_speed<\/code> 120, 260 (défaut) et 450 px/s, rejointe à <code>glide_acceleration<\/code>."
+    }
+  ],
+  "AerodynamicMovement2D.lift_coefficient": [
+    {
+      "video": "AerodynamicMovement2D.lift_coefficient",
+      "legende": "<code>lift_coefficient<\/code> 0, 0,01 et 0,03 (avec <code>flutter_frequency<\/code> 1,5) : la portance fait osciller la trajectoire."
+    }
+  ],
+  "AerodynamicMovement2D.wind_influence": [
+    {
+      "video": "AerodynamicMovement2D.wind_influence",
+      "legende": "Dans un courant ascendant : <code>wind_influence<\/code> 0,5, 2 (défaut) et 4."
+    }
+  ],
+  "AerodynamicMovement2D": [
+    {
+      "video": "classe-AerodynamicMovement2D",
+      "legende": "Un personnage qui plane et des feuilles qui volettent : le même composant, sur un personnage ou un corps rigide."
+    }
+  ],
+  "AerodynamicMovement3D": [
+    {
+      "video": "classe-AerodynamicMovement3D",
+      "legende": "En 3D : un personnage qui plane depuis une tour, et des confettis."
+    }
+  ],
+  "AerodynamicMovement2D.flap_velocity": [
+    {
+      "video": "ex-battements",
+      "legende": "Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2<\/code>) en l'air, signal <code>flapped<\/code>."
+    }
+  ],
+  "AerodynamicMovement2D.flapped": [
+    {
+      "video": "ex-battements",
+      "legende": "Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2<\/code>) en l'air, signal <code>flapped<\/code>."
+    }
+  ],
+  "AerodynamicMovement2D.fly_acceleration": [
+    {
+      "video": "ex-vol",
+      "legende": "Mode Fly : <code>set_context(&\"vol\")<\/code> pour voler librement, <code>clear_forced_context()<\/code> pour atterrir."
+    }
+  ],
+  "AerodynamicMovement2D.fly_drag": [
+    {
+      "video": "ex-vol",
+      "legende": "Mode Fly : <code>set_context(&\"vol\")<\/code> pour voler librement, <code>clear_forced_context()<\/code> pour atterrir."
+    }
+  ],
+  "AerodynamicMovement2D.fly_speed": [
+    {
+      "video": "ex-vol",
+      "legende": "Mode Fly : <code>set_context(&\"vol\")<\/code> pour voler librement, <code>clear_forced_context()<\/code> pour atterrir."
+    }
+  ],
+  "AerodynamicMovement2D.get_flaps_left": [
+    {
+      "video": "ex-battements",
+      "legende": "Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2<\/code>) en l'air, signal <code>flapped<\/code>."
+    }
+  ],
+  "AerodynamicMovement2D.glide_acceleration": [
+    {
+      "video": "AerodynamicMovement2D.glide_speed",
+      "legende": "<code>glide_speed<\/code> 120, 260 (défaut) et 450 px/s, rejointe à <code>glide_acceleration<\/code>."
+    }
+  ],
+  "AerodynamicMovement2D.glide_gravity_scale": [
+    {
+      "video": "AerodynamicMovement2D.glide_fall_speed",
+      "legende": "<code>glide_fall_speed<\/code> 30, 70 (défaut) et 200 px/s ; <code>glide_gravity_scale<\/code> ralentit la chute avant d'atteindre cette vitesse."
+    }
+  ],
+  "AerodynamicMovement2D.max_flaps": [
+    {
+      "video": "ex-battements",
+      "legende": "Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2<\/code>) en l'air, signal <code>flapped<\/code>."
+    }
+  ],
+  "AerodynamicMovement2D.mode": [
+    {
+      "video": "ex-vol",
+      "legende": "Mode Fly : <code>set_context(&\"vol\")<\/code> pour voler librement, <code>clear_forced_context()<\/code> pour atterrir."
+    }
+  ],
+  "AerodynamicMovement3D.camera_relative": [
+    {
+      "video": "classe-AerodynamicMovement3D",
+      "legende": "En 3D : un personnage qui plane depuis une tour, et des confettis."
+    }
+  ],
+  "AerodynamicMovement3D.drag_coefficient": [
+    {
+      "video": "AerodynamicMovement2D.drag_coefficient",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.flap_velocity": [
+    {
+      "video": "ex-battements",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.flapped": [
+    {
+      "video": "ex-battements",
+      "legende": "Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2<\/code>) en l'air, signal <code>flapped<\/code>."
+    }
+  ],
+  "AerodynamicMovement3D.flutter_frequency": [
+    {
+      "video": "AerodynamicMovement2D.flutter_frequency",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.fly_acceleration": [
+    {
+      "video": "ex-vol",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.fly_drag": [
+    {
+      "video": "ex-vol",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.fly_speed": [
+    {
+      "video": "ex-vol",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.get_flaps_left": [
+    {
+      "video": "ex-battements",
+      "legende": "Contexte « air » (In Air) : jusqu'à deux battements d'ailes (<code>max_flaps = 2<\/code>) en l'air, signal <code>flapped<\/code>."
+    }
+  ],
+  "AerodynamicMovement3D.glide_acceleration": [
+    {
+      "video": "AerodynamicMovement2D.glide_speed",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.glide_fall_speed": [
+    {
+      "video": "AerodynamicMovement2D.glide_fall_speed",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.glide_gravity_scale": [
+    {
+      "video": "AerodynamicMovement2D.glide_fall_speed",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.glide_speed": [
+    {
+      "video": "AerodynamicMovement2D.glide_speed",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.lift_coefficient": [
+    {
+      "video": "AerodynamicMovement2D.lift_coefficient",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.max_flaps": [
+    {
+      "video": "ex-battements",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.mode": [
+    {
+      "video": "ex-vol",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "AerodynamicMovement3D.wind_influence": [
+    {
+      "video": "AerodynamicMovement2D.wind_influence",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

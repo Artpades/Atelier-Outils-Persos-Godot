@@ -1,0 +1,152 @@
+{
+	"_aide": "Démos de la documentation, par page (chemin relatif à Documentation/modules/, sans .html). sequences : plans filmés en vidéo par Documentation/generer_medias.py ; apercu : scène interactive de l'export web (lanceur_web.tscn ?demo=<page>), légendée par legende_apercu ; son : true garde le son des vidéos.",
+	"effets/secousse": {
+		"titre": "💥 Secousse",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/💥Secousse/sequences_secousse.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/💥Secousse/apercu_secousse.tscn",
+		"legende_apercu": "Essayer la secousse dans le moteur : écran de jeu (Camera2D), objet, bouton ou caméra 3D, avec les quatre réglages et le code correspondant."
+	},
+	"effets/socle-effets": {
+		"titre": "✨ Socle des effets",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/✨Socle des effets/sequences_socle_effets.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/✨Socle des effets/apercu_socle_effets.tscn",
+		"legende_apercu": "Composer la liste <code>special_effects</code> d'un PlayerFX, enchaîner des effets au jeu ou à l'arrêt de la secousse, changer de cible et suivre les signaux."
+	},
+	"effets/agrandissement-retrecissement": {
+		"titre": "🦣🫘 Agrandissement",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🦣🫘Agrandissement/sequences_agrandissement.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🦣🫘Agrandissement/apercu_agrandissement.tscn",
+		"legende_apercu": "Survoler les boutons avec la souris : <code>mouse_entered</code> joue l'agrandissement, <code>mouse_exited</code> l'arrête. Tous les réglages et la courbe d'échelle.",
+		"son": [
+			"ex-combo"
+		]
+	},
+	"effets/fondu-couleur": {
+		"titre": "🌈 Fondu couleur",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🌈Fondu Couleur/sequences_fondu_couleur.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🌈Fondu Couleur/apercu_fondu_couleur.tscn",
+		"legende_apercu": "En haut, FXFade sur un objet (couleur ou texture, courbe, <code>revert_on_stop</code>) ; en bas, un ScreenFader sur un écran de jeu (masques, douceur, <code>block_input</code>, <code>fade_out</code> / <code>fade_in</code> / <code>fade_to</code>)."
+	},
+	"effets/effet-joueur-de-son": {
+		"titre": "🔊 Effet joueur de son",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🔊Effet joueur de son/sequences_joueur_son.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🔊Effet joueur de son/apercu_joueur_son.tscn",
+		"legende_apercu": "Choisir un son (synthétisé), régler volume, hauteur, hauteur aléatoire, spatialisation (déplacer l'objet) et coupure à l'arrêt, puis Jouer.",
+		"son": true
+	},
+	"effets/changeur-du-visuel-du-curseur": {
+		"titre": "👆 Changeur du curseur",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/👆Changeur du visuel du curseur/sequences_curseur.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/👆Changeur du visuel du curseur/apercu_curseur.tscn",
+		"legende_apercu": "Avec la vraie souris : curseur de base au choix, main au survol du coffre (fermée pendant le clic), sablier activé à la demande et sa vitesse d'animation."
+	},
+	"effets/ciblage-d-objet": {
+		"titre": "🌻 Ciblage d'objet",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🌻Ciblage d'objet/sequences_ciblage.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🌻Ciblage d'objet/apercu_ciblage.tscn",
+		"legende_apercu": "Une tourelle 2D vise la souris (avec ou sans interpolation, seule ou en moyenne avec un drone) ; une caméra 3D cadre un groupe dont on règle l'écartement."
+	},
+	"effets/floating-dock": {
+		"titre": "🛟 Floating Dock",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🛟Floating Dock/sequences_floating_dock.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🛟Floating Dock/apercu_floating_dock.tscn",
+		"legende_apercu": "Le vrai FloatingDock dans le moteur : survoler les icônes, régler grossissement, rayon d'influence, écarts, ancrage, orientation et mode de redimensionnement."
+	},
+	"effets/follow": {
+		"titre": "〰️ Follow",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/〰️Follow/sequences_follow.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/〰️Follow/apercu_follow.tscn",
+		"legende_apercu": "Une Camera2D suit deux joueurs (le bleu suit la souris) : écartement, vitesse de suivi, zoom automatique, marge et bornes du zoom, avec le rectangle englobant en surimpression."
+	},
+	"effets/infobulle-personnalisable": {
+		"titre": "🗨️ Infobulle personnalisable",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🗨️Infobulle Personnalisable/sequences_infobulle.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🗨️Infobulle Personnalisable/apercu_infobulle.tscn",
+		"legende_apercu": "Survoler les cases d'inventaire avec la souris ; éditer le contenu de la première (titre, BBCode, icône, largeur) et l'affichage de toutes (délai, fondu, suivi, décalage, style)."
+	},
+	"effets/ralentissement-arret-du-temps": {
+		"titre": "⏯️ Ralentissement",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/⏯️Ralentissement/sequences_ralentissement.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/⏯️Ralentissement/apercu_ralentissement.tscn",
+		"legende_apercu": "Geler le jeu (durée et vitesse du gel), le ralentir ou l'accélérer, régler la vitesse de retour, et suivre <code>Engine.time_scale</code> sur des balles qui rebondissent."
+	},
+	"effets/squash-and-stretch": {
+		"titre": "🪗 Squash and stretch",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🪗Squash and Stretch/sequences_squash.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🪗Squash and Stretch/apercu_squash.tscn",
+		"legende_apercu": "Une balle qui rebondit (cliquer pour la relancer vers la souris) : étirement, vitesse de référence, seuil et force de l'écrasement, lissage, orientation."
+	},
+	"effets/music-looper": {
+		"titre": "🔁 Music Looper",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/🔁Music Looper/sequences_music_looper.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/🔁Music Looper/apercu_music_looper.tscn",
+		"legende_apercu": "Un morceau synthétisé joué par le vrai MusicLooper : régler la boucle, le nombre de boucles, le volume, les fondus et la pause en écoutant.",
+		"son": true
+	},
+	"effets/pop-de-texte-d-image-et-d-objets": {
+		"titre": "💥 Pop",
+		"sequences": "res://🎥Démos de documentation/3.✨🎵/💥Pop/sequences_pop.gd",
+		"apercu": "res://🎥Démos de documentation/3.✨🎵/💥Pop/apercu_pop.tscn",
+		"legende_apercu": "Cliquer dans la zone de jeu (dégâts au point d'impact) ou utiliser les boutons ; régler direction, dispersion, vitesse, gravité, durée de vie, apparition, police et rebond au sol."
+	},
+	"mouvement/socle-mouvement": {
+		"titre": "🧩 Socle du mouvement",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🧩Socle du mouvement/sequences_socle_mouvement.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🧩Socle du mouvement/apercu_socle_mouvement.tscn",
+		"legende_apercu": "Un héros avec un GroundMovement2D, au clavier (flèches, Espace, Maj) : gizmos de débogage, composant actif ou non, tampon de saut et nombre de sauts."
+	},
+	"mouvement/orchestrateur-de-mouvement": {
+		"titre": "🎬 Orchestrateur",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🎬Orchestrateur/sequences_orchestrateur.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🎬Orchestrateur/apercu_orchestrateur.tscn",
+		"legende_apercu": "Un héros qui marche, nage et glisse aux murs, au clavier : contextes et conditions en direct, forçage d'un contexte, changement automatique et priorité du mur."
+	},
+	"mouvement/deplacement-au-sol": {
+		"titre": "🦶 Déplacement au sol",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🦶Déplacement au sol/sequences_sol.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🦶Déplacement au sol/apercu_sol.tscn",
+		"legende_apercu": "Un héros au clavier sur des plateformes : mode plateforme ou vue de dessus, vitesse, accélération, contrôle en l'air, saut, nombre de sauts, temps de grâce, coupure de saut, gravité et course."
+	},
+	"mouvement/deplacement-aquatique": {
+		"titre": "🌊 Déplacement aquatique",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🌊Déplacement aquatique/sequences_aquatique.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🌊Déplacement aquatique/apercu_aquatique.tscn",
+		"legende_apercu": "Un héros qui marche et nage au clavier dans un bassin : style de nage, vitesses, coups de nage, sortie de l'eau ; lâcher des caisses et régler flottaison et courant."
+	},
+	"mouvement/deplacement-mural": {
+		"titre": "🧗 Déplacement mural",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🧗Déplacement mural/sequences_mural.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🧗Déplacement mural/apercu_mural.tscn",
+		"legende_apercu": "Un héros au clavier, un puits et une paroi : glissade, sauts muraux, escalade, avec les réglages du composant et son état en direct."
+	},
+	"mouvement/physique-aerodynamique": {
+		"titre": "🪂 Physique aérodynamique",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🪂Physique aérodynamique/sequences_aero.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🪂Physique aérodynamique/apercu_aero.tscn",
+		"legende_apercu": "Planer depuis une tour en maintenant le saut, se laisser porter par un courant ascendant, voler librement, et lâcher des feuilles aux réglages de traînée, portance et battement."
+	},
+	"mouvement/physique-de-corde": {
+		"titre": "🪢 Physique de corde",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🪢Physique de corde/sequences_corde.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🪢Physique de corde/apercu_corde.tscn",
+		"legende_apercu": "Deux lianes et un héros au clavier : E pour attraper, haut / bas pour grimper, gauche / droite pour se balancer, Espace pour lâcher ; réglages des cordes et du composant."
+	},
+	"mouvement/physique-tremousse": {
+		"titre": "🫨 Physique trémousse",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🫨Physique trémousse/sequences_tremousse.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🫨Physique trémousse/apercu_tremousse.tscn",
+		"legende_apercu": "Le support suit la souris : une antenne (réglable), une gelée et une queue en chaîne trémoussent ; clic pour une impulsion."
+	},
+	"mouvement/recul": {
+		"titre": "🌬️ Recul",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🌬️Recul/sequences_recul.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🌬️Recul/apercu_recul.tscn",
+		"legende_apercu": "Un héros au clavier repoussé par un ennemi à pointes, des caisses ; un clic déclenche une explosion qui repousse tout autour. Force, durée, freinage et part vers le haut."
+	},
+	"mouvement/zone-de-force": {
+		"titre": "🧲 Zone de force",
+		"sequences": "res://🎥Démos de documentation/5.🌀🫗/🧲Zone de force/sequences_zone_force.gd",
+		"apercu": "res://🎥Démos de documentation/5.🌀🫗/🧲Zone de force/apercu_zone_force.tscn",
+		"legende_apercu": "Une zone réglable (mode, direction, intensité, atténuation, turbulence) traversée par un héros au clavier et par des caisses lâchées à la demande, avec la force subie en direct."
+	}
+}

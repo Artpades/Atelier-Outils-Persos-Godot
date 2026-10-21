@@ -47,10 +47,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : un personnage 2D touché par un ennemi est projeté en arrière et vers le haut, glisse puis reprend le contrôle ; à côté, une caisse (RigidBody2D) frappée qui part en tournoyant. debug_mode : cercle qui rétrécit avec le temps de recul.</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/recul" data-figure="1">
+    <figcaption>Un héros au clavier repoussé par un ennemi à pointes, des caisses ; un clic déclenche une explosion qui repousse tout autour. Force, durée, freinage et part vers le haut.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -68,8 +67,8 @@
   </div>
   <h3 id="mise-en-place">Mise en place</h3>
   <ol class="steps">
-    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le recul fait partie de la bibliothèque du mouvement.</div></li>
-    <li><strong>Ajouter un <code>Knockback2D</code> (ou 3D) comme enfant direct</strong> de chaque corps qui peut être repoussé.<div class="why">les composants de mouvement et l'orchestrateur ne cherchent le recul que parmi les enfants directs du corps.</div></li>
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">Le recul fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Ajouter un <code>Knockback2D</code> (ou 3D) comme enfant direct</strong> de chaque corps qui peut être repoussé.<div class="why">Les composants de mouvement et l'orchestrateur ne cherchent le recul que parmi les enfants directs du corps.</div></li>
   </ol>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
@@ -77,7 +76,7 @@
   <ol class="steps">
     <li>
       <strong>Sous le joueur (<code>CharacterBody2D</code> + <code>GroundMovement2D</code>), ajouter un <code>Knockback2D</code></strong>.
-      <div class="why">pendant le recul, <code>GroundMovement2D</code> ignore la commande et le saut et freine la vitesse avec <code>friction</code> au lieu de son accélération.</div>
+      <div class="why">Pendant le recul, <code>GroundMovement2D</code> ignore la commande et le saut et freine la vitesse avec <code>friction</code> au lieu de son accélération.</div>
     </li>
     <li>
       <strong>Déclencher le recul au contact d'un ennemi</strong> (script de la zone de dégâts de l'ennemi) :
@@ -89,9 +88,10 @@
     </li>
     <li>
       <strong>Régler le ressenti</strong> : <code>base_force</code> (distance), <code>duration</code> (temps sans contrôle), <code>friction</code> (glissade).
-      <div class="why">un recul court et fort paraît « sec » ; long et faible, il paraît « flottant ».</div>
+      <div class="why">Un recul court et fort paraît « sec » ; long et faible, il paraît « flottant ».</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Au contact de l'ennemi : <code>apply_knockback_from(position_ennemi)</code>, projeté en arrière et un peu vers le haut, glissade, puis reprise du contrôle.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -109,11 +109,13 @@
 		var d: float = corps.global_position.distance_to(centre)
 		if recul and d &lt; rayon:
 			recul.apply_knockback_from(centre, 2.0 * (1.0 - d / rayon))</code></pre>
+  <figure class="media" data-video="ex-explosion"><figcaption>Explosion : tout ce qui est dans le rayon est repoussé, plus fort près du centre.</figcaption></figure>
 
   <h3 id="ex-invincible">Comment je rends le joueur invincible pendant le recul ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
 	$Knockback2D.knocked_back.connect(func(_v): $Hurtbox.set_deferred("monitoring", false))
 	$Knockback2D.recovered.connect(func(): $Hurtbox.set_deferred("monitoring", true))</code></pre>
+  <figure class="media" data-video="ex-invincible"><figcaption><code>knocked_back</code> coupe la zone de dégâts, <code>recovered</code> la rétablit : pas de double coup.</figcaption></figure>
 
   <h3 id="ex-effets">Comment je combine le recul avec un flash et une secousse ?</h3>
   <p>Avec le module <em>✨ Effets spéciaux</em> : un <code>PlayerFX</code> qui contient un <code>FXFade</code> rouge et un <code>FXShake</code>.</p>
@@ -122,15 +124,18 @@
 	$PlayerFX.play()                     # flash + secousse
 	await $Knockback2D.recovered
 	$PlayerFX.stop()</code></pre>
+  <figure class="media" data-video="ex-effets"><figcaption>Recul + flash rouge + secousse (PlayerFX), arrêtés à <code>recovered</code>.</figcaption></figure>
 
   <h3 id="ex-topdown">Comment je l'utilise en vue de dessus ?</h3>
   <pre><code class="gdscript">$Knockback2D.upward_bias = 0.0   # sinon le recul part toujours un peu vers le haut de l'écran
 $Knockback2D.friction = 1500.0</code></pre>
+  <figure class="media" data-video="ex-topdown"><figcaption>Vue de dessus : <code>upward_bias = 0</code>, <code>friction = 1500</code>.</figcaption></figure>
 
   <h3 id="ex-seul">Comment je repousse un PNJ qui n'a pas de composant de mouvement ?</h3>
   <p>Sans composant actif, le recul déplace lui-même le <code>CharacterBody</code> (freinage, gravité si <code>gravity_affect</code>). Avec un orchestrateur, ajouter un contexte « recul » sans composant (voir <a href="orchestrateur-de-mouvement.html#ex-recul">🎬 Orchestrateur</a>).</p>
   <pre><code class="gdscript">$PNJ/Knockback2D.gravity_affect = true
 $PNJ/Knockback2D.apply_knockback(Vector2.LEFT, 1.5)</code></pre>
+  <figure class="media" data-video="ex-seul"><figcaption>Un PNJ sans composant de mouvement : le Knockback2D le déplace lui-même (<code>gravity_affect</code>).</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -246,6 +251,228 @@ window.GTK_USAGES = {};
   });
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "Knockback2D.add_torque": [
+    {
+      "video": "Knockback2D.add_torque",
+      "legende": "<code>add_torque<\/code> false et true (<code>torque_factor<\/code> 0,02) : la caisse tourne."
+    }
+  ],
+  "Knockback2D.base_force": [
+    {
+      "video": "Knockback2D.base_force",
+      "legende": "<code>base_force<\/code> 200, 450 (défaut) et 900 px/s."
+    }
+  ],
+  "Knockback2D.debug_mode": [
+    {
+      "video": "Knockback2D.debug_mode",
+      "legende": "<code>debug_mode<\/code> : flèche de vitesse, cercle du temps restant (<code>get_lock_remaining()<\/code>)."
+    }
+  ],
+  "Knockback2D.duration": [
+    {
+      "video": "Knockback2D.duration",
+      "legende": "<code>duration<\/code> 0,1, 0,3 (défaut) et 0,8 s de commandes bloquées (le personnage pousse vers l'ennemi)."
+    }
+  ],
+  "Knockback2D.enabled": [
+    {
+      "video": "Knockback2D.enabled",
+      "legende": "<code>enabled = false<\/code> : le coup est ignoré (invincibilité, poids lourd)."
+    }
+  ],
+  "Knockback2D.friction": [
+    {
+      "video": "Knockback2D.friction",
+      "legende": "<code>friction<\/code> 300, 900 (défaut) et 3000 : glissade longue ou arrêt sec."
+    }
+  ],
+  "Knockback2D.rigid_mode": [
+    {
+      "video": "Knockback2D.rigid_mode",
+      "legende": "Corps rigides : RIGID_IMPULSE (instantané) et RIGID_CONTINUOUS (force pendant <code>duration<\/code>)."
+    }
+  ],
+  "Knockback2D.upward_bias": [
+    {
+      "video": "Knockback2D.upward_bias",
+      "legende": "<code>upward_bias<\/code> 0, 0,35 (défaut) et 1 : la part « vers le haut »."
+    }
+  ],
+  "Knockback2D": [
+    {
+      "video": "classe-Knockback2D",
+      "legende": "Un personnage et une caisse (RigidBody2D) repoussés par le même type de nœud."
+    }
+  ],
+  "Knockback3D": [
+    {
+      "video": "classe-Knockback3D",
+      "legende": "En 3D : un personnage et des caisses repoussés par un coup."
+    }
+  ],
+  "Knockback2D.active_on": [
+    {
+      "video": "classe-Knockback2D",
+      "legende": "Un personnage et une caisse (RigidBody2D) repoussés par le même type de nœud."
+    }
+  ],
+  "Knockback2D.apply_knockback": [
+    {
+      "video": "ex-seul",
+      "legende": "Un PNJ sans composant de mouvement : le Knockback2D le déplace lui-même (<code>gravity_affect<\/code>)."
+    }
+  ],
+  "Knockback2D.apply_knockback_from": [
+    {
+      "video": "mode-emploi",
+      "legende": "Au contact de l'ennemi : <code>apply_knockback_from(position_ennemi)<\/code>, projeté en arrière et un peu vers le haut, glissade, puis reprise du contrôle."
+    }
+  ],
+  "Knockback2D.get_lock_remaining": [
+    {
+      "video": "Knockback2D.debug_mode",
+      "legende": "<code>debug_mode<\/code> : flèche de vitesse, cercle du temps restant (<code>get_lock_remaining()<\/code>)."
+    }
+  ],
+  "Knockback2D.gravity_affect": [
+    {
+      "video": "ex-seul",
+      "legende": "Un PNJ sans composant de mouvement : le Knockback2D le déplace lui-même (<code>gravity_affect<\/code>)."
+    }
+  ],
+  "Knockback2D.is_knocked": [
+    {
+      "video": "ex-invincible",
+      "legende": "<code>knocked_back<\/code> coupe la zone de dégâts, <code>recovered<\/code> la rétablit : pas de double coup."
+    }
+  ],
+  "Knockback2D.knocked_back": [
+    {
+      "video": "ex-invincible",
+      "legende": "<code>knocked_back<\/code> coupe la zone de dégâts, <code>recovered<\/code> la rétablit : pas de double coup."
+    }
+  ],
+  "Knockback2D.recovered": [
+    {
+      "video": "ex-invincible",
+      "legende": "<code>knocked_back<\/code> coupe la zone de dégâts, <code>recovered<\/code> la rétablit : pas de double coup."
+    }
+  ],
+  "Knockback2D.torque_factor": [
+    {
+      "video": "Knockback2D.add_torque",
+      "legende": "<code>add_torque<\/code> false et true (<code>torque_factor<\/code> 0,02) : la caisse tourne."
+    }
+  ],
+  "Knockback3D.active_on": [
+    {
+      "video": "classe-Knockback2D",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.add_torque": [
+    {
+      "video": "Knockback2D.add_torque",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.apply_knockback": [
+    {
+      "video": "ex-seul",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.apply_knockback_from": [
+    {
+      "video": "classe-Knockback3D",
+      "legende": "En 3D : un personnage et des caisses repoussés par un coup."
+    }
+  ],
+  "Knockback3D.base_force": [
+    {
+      "video": "Knockback2D.base_force",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.debug_mode": [
+    {
+      "video": "Knockback2D.debug_mode",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.duration": [
+    {
+      "video": "Knockback2D.duration",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.enabled": [
+    {
+      "video": "Knockback2D.enabled",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.friction": [
+    {
+      "video": "Knockback2D.friction",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.get_lock_remaining": [
+    {
+      "video": "Knockback2D.debug_mode",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.gravity_affect": [
+    {
+      "video": "ex-seul",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.is_knocked": [
+    {
+      "video": "ex-invincible",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.knocked_back": [
+    {
+      "video": "ex-invincible",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.recovered": [
+    {
+      "video": "ex-invincible",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.rigid_mode": [
+    {
+      "video": "Knockback2D.rigid_mode",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.torque_factor": [
+    {
+      "video": "Knockback2D.add_torque",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "Knockback3D.upward_bias": [
+    {
+      "video": "Knockback2D.upward_bias",
+      "legende": "Même réglage qu'en 2D, en m/s (voir la vidéo 2D)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

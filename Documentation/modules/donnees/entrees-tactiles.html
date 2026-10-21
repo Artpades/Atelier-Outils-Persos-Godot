@@ -81,11 +81,11 @@
     <li>
       <strong>Compiler le module</strong> si besoin :
       <pre><code class="language-shell">scons mobile_input</code></pre>
-      <div class="why">son registre est <code>mobile_input_register.cpp</code> : seule cette bibliothèque est compilée et son <code>.gdextension</code> régénéré.</div>
+      <div class="why">Son registre est <code>mobile_input_register.cpp</code> : seule cette bibliothèque est compilée et son <code>.gdextension</code> régénéré.</div>
     </li>
     <li>
       <strong>Copier <code>bin/mobile_input/</code></strong> dans <code>res://bin/mobile_input/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/mobile_input/…</code>.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/mobile_input/…</code>.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -93,11 +93,11 @@
     </li>
     <li>
       <strong>Sur ordinateur, activer <em>Emulate Touch From Mouse</em></strong> (<em>Paramètres du projet › Périphériques d'entrée › Pointage</em>).
-      <div class="why">sans écran tactile, la souris produit alors des évènements de toucher : tap, appui long et swipe se testent sans téléphone (pas le pincement, qui demande deux doigts).</div>
+      <div class="why">Sans écran tactile, la souris produit alors des évènements de toucher : tap, appui long et swipe se testent sans téléphone (pas le pincement, qui demande deux doigts).</div>
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>MobileInput</code>, et la console affiche « 📱Module Entrées mobiles chargé avec succès ! » au lancement.
-      <div class="why">sinon, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+      <div class="why">Sinon, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
     </li>
   </ol>
 
@@ -107,11 +107,11 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>MobileInput</code></strong> dans la scène (n'importe où).
-      <div class="why">il reçoit tous les évènements tactiles de la fenêtre, avant l'interface (<code>_input</code>), et les capteurs à chaque image.</div>
+      <div class="why">Il reçoit tous les évènements tactiles de la fenêtre, avant l'interface (<code>_input</code>), et les capteurs à chaque image.</div>
     </li>
     <li>
       <strong>Désactiver les capteurs inutiles</strong> : décocher <code>use_gyroscope</code>, <code>use_accelerometer</code>, <code>use_gravity</code>, <code>use_magnetometer</code>.
-      <div class="why">chaque capteur actif émet un signal <code>_updated</code> à chaque image : inutile si on ne s'en sert pas.</div>
+      <div class="why">Chaque capteur actif émet un signal <code>_updated</code> à chaque image : inutile si on ne s'en sert pas.</div>
     </li>
     <li>
       <strong>Connecter les gestes</strong> :
@@ -128,7 +128,7 @@ func _sur_swipe(direction: int, _depart: Vector2, _vitesse: Vector2) -> void:
 		page_suivante()
 	elif direction == MobileInput.SWIPE_RIGHT:
 		page_precedente()</code></pre>
-      <div class="why">le facteur de pincement est relatif au début du geste : on mémorise le zoom à <code>pinch_started</code>. Un swipe n'est émis qu'au relâchement d'un glissement assez long (<code>swipe_min_distance</code>) et rapide (<code>swipe_min_velocity</code>).</div>
+      <div class="why">Le facteur de pincement est relatif au début du geste : on mémorise le zoom à <code>pinch_started</code>. Un swipe n'est émis qu'au relâchement d'un glissement assez long (<code>swipe_min_distance</code>) et rapide (<code>swipe_min_velocity</code>).</div>
     </li>
   </ol>
 

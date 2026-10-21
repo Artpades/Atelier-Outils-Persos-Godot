@@ -80,11 +80,11 @@
     <li>
       <strong>Compiler la bibliothèque</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons tool_editor</code></pre>
-      <div class="why">compile uniquement la bibliothèque des outils d'édition (<code>tool_editor_register.cpp</code>) et régénère son <code>.gdextension</code>.</div>
+      <div class="why">Compile uniquement la bibliothèque des outils d'édition (<code>tool_editor_register.cpp</code>) et régénère son <code>.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/tool_editor/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/tool_editor/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/tool_editor/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/tool_editor/…</code> ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -100,18 +100,18 @@
       <strong>Remplacer un <code>print</code> par <code>L.log_it</code></strong> :
       <pre><code class="gdscript">L.log_it("Partie chargée")
 # [14:02:31] Partie chargée</code></pre>
-      <div class="why">l'heure (horloge du système, à la seconde) permet de situer le message par rapport aux autres.</div>
+      <div class="why">L'heure (horloge du système, à la seconde) permet de situer le message par rapport aux autres.</div>
     </li>
     <li>
       <strong>Signer le message</strong> en passant l'émetteur en deuxième argument :
       <pre><code class="gdscript">L.log_it("Porte ouverte", self)          # nom du nœud, ex. « Porte »
 L.log_it("Sauvegarde écrite", "SaveSystem") # texte libre</code></pre>
-      <div class="why">quand plusieurs objets écrivent dans la console, le nom en gras dit immédiatement d'où vient la ligne.</div>
+      <div class="why">Quand plusieurs objets écrivent dans la console, le nom en gras dit immédiatement d'où vient la ligne.</div>
     </li>
     <li>
       <strong>Colorer et illustrer</strong> avec du BBCode et une icône :
       <pre><code class="gdscript">L.log_it("[color=red]Coffre verrouillé[/color]", self, "res://icones/cadenas_16.png")</code></pre>
-      <div class="why">le rouge attire l'œil sur les problèmes ; l'icône identifie un système d'un coup d'œil. Utiliser une image déjà petite (16 px) : elle est affichée à sa taille d'origine.</div>
+      <div class="why">Le rouge attire l'œil sur les problèmes ; l'icône identifie un système d'un coup d'œil. Utiliser une image déjà petite (16 px) : elle est affichée à sa taille d'origine.</div>
     </li>
   </ol>
 

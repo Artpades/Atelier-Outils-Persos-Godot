@@ -85,15 +85,15 @@
     <li>
       <strong>Compiler</strong> (si besoin) :
       <pre><code class="language-shell">scons achievements</code></pre>
-      <div class="why">compile la bibliothèque du registre <code>achievements_register.cpp</code>.</div>
+      <div class="why">Compile la bibliothèque du registre <code>achievements_register.cpp</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/achievements/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/achievements/…</code> absolus ; extensions découvertes au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/achievements/…</code> absolus ; extensions découvertes au démarrage.</div>
     </li>
     <li>
       <strong>Créer une scène <code>succes.tscn</code></strong> dont la racine est un <code>AchievementManager</code>, et la <strong>déclarer en autoload</strong> sous le nom <code>Achievements</code>.
-      <div class="why">le gestionnaire n'est pas un singleton automatique : en autoload, il survit aux changements de scène et reste accessible partout ; sa sauvegarde est rechargée une seule fois.</div>
+      <div class="why">Le gestionnaire n'est pas un singleton automatique : en autoload, il survit aux changements de scène et reste accessible partout ; sa sauvegarde est rechargée une seule fois.</div>
     </li>
   </ol>
 
@@ -103,18 +103,18 @@
   <ol class="steps">
     <li>
       <strong>Dans <code>achievements</code> du gestionnaire, ajouter un <code>Nouveau Achievement</code></strong> : <code>id</code> = <code>slime_slayer</code>, <code>display_name</code> = « Tueur de slimes », une <code>icon</code>.
-      <div class="why">l'<code>id</code> identifie le succès dans le code et dans la sauvegarde : ne plus le changer une fois le jeu publié.</div>
+      <div class="why">L'<code>id</code> identifie le succès dans le code et dans la sauvegarde : ne plus le changer une fois le jeu publié.</div>
     </li>
     <li>
       <strong>Dans ses <code>conditions</code>, ajouter une <code>Nouvelle AchievementCounterCondition</code></strong> : <code>event_name</code> = <code>enemy_killed</code>, <code>event_ids</code> = <code>["slime"]</code>, <code>target</code> = 10.
-      <div class="why">la condition n'écoute que les évènements <code>enemy_killed</code> d'identifiant <code>slime</code> et ajoute leur quantité (1 par défaut) au compteur.</div>
+      <div class="why">La condition n'écoute que les évènements <code>enemy_killed</code> d'identifiant <code>slime</code> et ajoute leur quantité (1 par défaut) au compteur.</div>
     </li>
     <li>
       <strong>Annoncer l'évènement</strong> là où l'ennemi meurt :
       <pre><code class="gdscript">func mourir() -> void:
 	Achievements.notify(&amp;"enemy_killed", type_id)   # type_id = "slime"
 	queue_free()</code></pre>
-      <div class="why">le code de l'ennemi ignore tout des succès : il décrit seulement ce qui s'est passé.</div>
+      <div class="why">Le code de l'ennemi ignore tout des succès : il décrit seulement ce qui s'est passé.</div>
     </li>
     <li>
       <strong>Lancer et tuer 10 slimes</strong> : la notification apparaît, et la progression est sauvegardée dans <code>user://achievements.cfg</code>.

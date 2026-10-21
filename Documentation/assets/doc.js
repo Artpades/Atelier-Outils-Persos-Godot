@@ -6,16 +6,26 @@
 //   data-page="modules/effets/x.html"         sa propre entrée dans modules.js (navigation)
 // et place ses tableaux d'API avec <div data-api="ClasseA ClasseB"></div>.
 // La colonne « 🎓 Dans quel cas je peux l'utiliser » vient de window.GTK_USAGES = { "Classe.membre": "..." }.
+//
+// 🎥 Démos (produites par Documentation/generer_medias.py, dans medias/<page sans modules/ ni .html>/) :
+//   <figure class="media" data-video="mode-emploi"><figcaption>...</figcaption></figure>   vidéo <nom>.mp4
+//   <figure class="media media-web" data-web="effets/secousse"><figcaption>...</figcaption></figure>
+//                                     aperçu interactif (demos/web/index.html?demo=...), affiche apercu.jpg
+//   window.GTK_DEMOS = { "Classe": ..., "Classe.membre": ... } : démos des cartes de classe et des lignes d'API.
+//     Valeur : "légende" (vidéo classe-<Classe>.mp4 ou <Classe.membre>.mp4), { video: "nom", legende },
+//     { schema: "id d'un <template> de la page", legende } (membres sans effet visible), ou un tableau de ces valeurs.
 (function () {
   "use strict";
 
   const API = (window.GTK_API && window.GTK_API.classes) || {};
   const MODULES = window.GTK_MODULES || [];
   const USAGES = window.GTK_USAGES || {};
+  const DEMOS = window.GTK_DEMOS || {};
   const body = document.body;
   const ROOT = body.dataset.root || "";
   const PAGE = body.dataset.page || "";
   const GODOT_DOC = "https://docs.godotengine.org/fr/4.x/classes/";
+  const MEDIA_BASE = ROOT + "medias/" + PAGE.replace(/^modules\//, "").replace(/\.html$/, "") + "/";
 
   // 🎨 Thème (préférence locale facultative : le site fonctionne sans stockage)
   function storedTheme() {
@@ -128,6 +138,8 @@
     return href ? '<a href="' + href + '"' + (href.startsWith("http") ? ' target="_blank" rel="noopener"' : "") + ">" + code + "</a>" : code;
   }
   const descOrMissing = (d) => d || '<span class="missing">Non documenté.</span>';
+  const demoBtn = (owner, name) => DEMOS[owner + "." + name]
+    ? ' <button type="button" class="api-demo-btn" data-demo="' + owner + "." + name + '" aria-expanded="false" title="Voir la démo">🎬</button>' : "";
   const usage = (cls, name) => USAGES[cls + "." + name] || '<span class="missing">—</span>';
 
   // 🧾 Tableaux d'API
@@ -142,7 +154,7 @@
     return API[owner].members.map((m) => {
       const access = m.setter ? "public" : "public · lecture seule";
       return '<tr id="member-' + cls + "-" + m.name + '" data-class="' + owner + '"' + (inherited ? ' class="inherited"' : "") + ">"
-        + '<td class="name"><code>' + esc(m.name) + "</code></td>"
+        + '<td class="name"><code>' + esc(m.name) + "</code>" + demoBtn(owner, m.name) + "</td>"
         + '<td class="type">' + typeHtml(m.type) + (m.default ? '<span class="default">= ' + esc(m.default) + "</span>" : "") + "</td>"
         + "<td>" + descOrMissing(m.description) + "</td>"
         + "<td>" + usage(owner, m.name) + "</td>"
@@ -158,7 +170,7 @@
       const access = virtual ? '<span class="access protected">protected · virtuelle</span>' : '<span class="access">public</span>';
       const quals = m.qualifiers && !virtual ? ' <span class="default">' + esc(m.qualifiers) + "</span>" : "";
       return '<tr id="method-' + cls + "-" + m.name + '" data-class="' + owner + '"' + (inherited ? ' class="inherited"' : "") + ">"
-        + '<td class="name"><code>' + esc(m.name) + "(" + params + ")</code>" + quals + "</td>"
+        + '<td class="name"><code>' + esc(m.name) + "(" + params + ")</code>" + quals + demoBtn(owner, m.name) + "</td>"
         + '<td class="type">' + typeHtml(m.return) + "</td>"
         + "<td>" + descOrMissing(m.description) + "</td>"
         + "<td>" + usage(owner, m.name) + "</td>"
@@ -171,7 +183,7 @@
     return API[owner].signals.map((s) => {
       const params = s.params.length ? s.params.map((p) => "<code>" + esc(p.name) + ": " + esc(p.type) + "</code>").join("<br>") : '<span class="missing">aucun</span>';
       return '<tr id="signal-' + cls + "-" + s.name + '" data-class="' + owner + '"' + (inherited ? ' class="inherited"' : "") + ">"
-        + '<td class="name"><code>' + esc(s.name) + "</code></td>"
+        + '<td class="name"><code>' + esc(s.name) + "</code>" + demoBtn(owner, s.name) + "</td>"
         + "<td>" + params + "</td>"
         + "<td>" + descOrMissing(s.description) + "</td>"
         + "<td>" + usage(owner, s.name) + "</td>"
@@ -219,6 +231,11 @@
       card.innerHTML = "<h4><code>" + name + "</code></h4>"
         + '<div class="inherits">Hérite de : ' + (chain.filter(Boolean).map((c) => '<a class="xref" data-kind="class" data-ref="' + c + '"><code>' + c + "</code></a>").join(" ‹ ") || "—") + "</div>"
         + (cls.brief || "") + (cls.description ? "<details><summary>Description complète</summary>" + cls.description + "</details>" : "");
+      if (DEMOS[name]) {
+        const figures = mediaFigures(DEMOS[name], "classe-" + name);
+        const holder = figures.length > 1 ? card.appendChild(el("div", { class: "media-grid" })) : card;
+        figures.forEach((f) => holder.appendChild(f));
+      }
       container.appendChild(card);
     });
 
@@ -243,6 +260,22 @@
       container.appendChild(wrap);
     });
 
+    container.querySelectorAll(".api-demo-btn").forEach((btn) => btn.addEventListener("click", () => {
+      const tr = btn.closest("tr");
+      const open = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", open ? "false" : "true");
+      let row = tr.nextElementSibling;
+      if (!row || !row.classList.contains("media-row")) {
+        row = el("tr", { class: "media-row" });
+        const td = el("td", { colspan: tr.children.length });
+        mediaFigures(DEMOS[btn.dataset.demo], btn.dataset.demo).forEach((f) => td.appendChild(f));
+        row.appendChild(td);
+        tr.after(row);
+        watchVideos(row);
+      }
+      row.hidden = open;
+    }));
+
     const filter = tools.querySelector("input[type=search]");
     const toggle = tools.querySelector(".show-inherited");
     function refresh() {
@@ -250,12 +283,105 @@
       const showInh = toggle ? toggle.checked : false;
       container.querySelectorAll("tbody tr").forEach((tr) => {
         const okInh = showInh || !tr.classList.contains("inherited");
+        if (tr.classList.contains("media-row")) return;
         tr.hidden = !(okInh && (!q || tr.textContent.toLowerCase().includes(q)));
+        const next = tr.nextElementSibling;
+        if (next && next.classList.contains("media-row")) {
+          next.hidden = tr.hidden || tr.querySelector(".api-demo-btn").getAttribute("aria-expanded") !== "true";
+        }
       });
     }
     filter.addEventListener("input", refresh);
     if (toggle) toggle.addEventListener("change", refresh);
     refresh();
+  }
+
+  // 🎥 Médias de démonstration
+  function videoFigure(name, legende) {
+    const fig = el("figure", { class: "media", "data-video": name });
+    if (legende) fig.appendChild(el("figcaption", null, legende));
+    buildVideo(fig);
+    return fig;
+  }
+
+  function schemaFigure(id, legende) {
+    const fig = el("figure", { class: "media schema" });
+    const box = fig.appendChild(el("div", { class: "schema-svg" }));
+    const tpl = document.getElementById(id);
+    if (tpl) box.appendChild(tpl.content.cloneNode(true));
+    else box.innerHTML = '<span class="missing">Schéma introuvable : ' + esc(id) + "</span>";
+    if (legende) fig.appendChild(el("figcaption", null, legende));
+    return fig;
+  }
+
+  // Valeur de GTK_DEMOS -> figures ; `defaut` : nom de la vidéo quand la valeur n'est qu'une légende.
+  function mediaFigures(value, defaut) {
+    return [].concat(value).map((v) => {
+      if (typeof v === "string") return videoFigure(defaut, v);
+      if (v.schema) return schemaFigure(v.schema, v.legende);
+      return videoFigure(v.video || defaut, v.legende);
+    });
+  }
+
+  function buildVideo(fig) {
+    if (fig.querySelector("video")) return;
+    const video = el("video", { muted: "", loop: "", playsinline: "", preload: "none", title: "Cliquer : pause / lecture",
+      "data-src": MEDIA_BASE + fig.dataset.video + ".mp4" });
+    video.muted = true;
+    video.addEventListener("click", () => { if (video.paused) video.play(); else video.pause(); video.dataset.user = "1"; });
+    fig.insertBefore(video, fig.firstChild);
+  }
+
+  // Lecture seulement à l'écran : chargement au premier passage, pause hors de la vue.
+  const videoSpy = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      const video = e.target;
+      if (e.isIntersecting) {
+        if (!video.src) video.src = video.dataset.src;
+        if (!video.dataset.user) video.play().catch(() => {});
+      } else if (!video.paused) {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.35 }) : null;
+
+  function watchVideos(root) {
+    root.querySelectorAll("video[data-src]").forEach((video) => {
+      if (videoSpy) videoSpy.observe(video);
+      else { video.src = video.dataset.src; video.controls = true; }
+    });
+  }
+
+  function buildWeb(fig) {
+    const demo = fig.dataset.web;
+    const url = ROOT + "demos/web/index.html?demo=" + encodeURIComponent(demo);
+    const poster = el("img", { class: "media-poster", src: MEDIA_BASE + "apercu.jpg", alt: "Aperçu de la démo interactive" });
+    const launch = el("div", { class: "media-launch" });
+    launch.innerHTML = '<button type="button">▶ Lancer la démo interactive</button><small>Godot en WebAssembly · ≈ 75 Mo au premier lancement</small>';
+    fig.insertBefore(launch, fig.firstChild);
+    fig.insertBefore(poster, fig.firstChild);
+    const caption = fig.querySelector("figcaption") || fig.appendChild(el("figcaption"));
+    caption.insertAdjacentHTML("beforeend", '<a href="' + url + '" target="_blank" rel="noopener">Ouvrir en plein écran ↗</a>');
+    launch.querySelector("button").addEventListener("click", () => {
+      if (location.protocol === "file:") {
+        if (!fig.querySelector(".media-file")) {
+          fig.appendChild(el("div", { class: "media-file" }, "Les démos web ne fonctionnent pas en ouvrant le fichier directement (<code>file://</code>). "
+            + "Servir la documentation en HTTP : <code>python -m http.server -d Documentation</code>, puis ouvrir "
+            + "<code>http://localhost:8000/" + esc(PAGE) + "</code>."));
+        }
+        return;
+      }
+      const frame = el("iframe", { src: url, title: "Démo interactive", allow: "fullscreen; gamepad; autoplay", allowfullscreen: "" });
+      poster.replaceWith(frame);
+      launch.remove();
+      frame.focus();
+    });
+  }
+
+  function renderMedia(root) {
+    root.querySelectorAll("figure.media[data-video]").forEach(buildVideo);
+    root.querySelectorAll("figure.media-web[data-web]").forEach(buildWeb);
+    watchVideos(root);
   }
 
   // 🔤 Coloration GDScript (légère, sans dépendance)
@@ -370,6 +496,7 @@
   function init() {
     document.querySelectorAll("[data-api]").forEach(renderApi);
     document.querySelectorAll("[data-module-index]").forEach(renderIndex);
+    renderMedia(document);
     buildChrome();
     resolveRefs(document, "");
     enhanceCode(document);

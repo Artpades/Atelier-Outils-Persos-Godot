@@ -85,11 +85,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons entity_algorithm</code></pre>
-      <div class="why">compile uniquement la bibliothèque <em>Entités &amp; Algorithme</em> et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+      <div class="why">Compile uniquement la bibliothèque <em>Entités &amp; Algorithme</em> et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/entity_algorithm/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/entity_algorithm/</code>.
-      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/entity_algorithm/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/entity_algorithm/…</code> ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -97,7 +97,7 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>BehaviorTree</code>, <code>BTSequence</code>, <code>StateMachine</code>, <code>State</code>… et l'inspecteur d'une <code>StateMachine</code> doit afficher le bouton <kbd>🗺️ Éditeur de comportement</kbd>.
-      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+      <div class="why">Si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
     </li>
   </ol>
   <p>Aucun autoload ni réglage de projet n'est requis. Le débogage en direct fonctionne automatiquement pour un jeu lancé depuis l'éditeur (F5 / F6) ; il est inactif dans un export.</p>
@@ -115,15 +115,15 @@
   <ol class="steps">
     <li>
       <strong>Sous le nœud de l'ennemi (par exemple un <code>CharacterBody2D</code>), ajouter un <code>BehaviorTree</code></strong> et régler <code>process_callback</code> sur <em>Physics</em>.
-      <div class="why">l'arbre pilote son parent (l'« agent ») ; l'exécuter dans la boucle physique le synchronise avec les déplacements.</div>
+      <div class="why">L'arbre pilote son parent (l'« agent ») ; l'exécuter dans la boucle physique le synchronise avec les déplacements.</div>
     </li>
     <li>
       <strong>Sous le <code>BehaviorTree</code>, ajouter un <code>BTSelector</code></strong> et cocher <code>reactive</code>.
-      <div class="why">c'est la racine : elle essaie ses branches dans l'ordre de priorité. En mode réactif, la branche prioritaire (fuir) est réévaluée à chaque tick et peut interrompre la patrouille.</div>
+      <div class="why">C'est la racine : elle essaie ses branches dans l'ordre de priorité. En mode réactif, la branche prioritaire (fuir) est réévaluée à chaque tick et peut interrompre la patrouille.</div>
     </li>
     <li>
       <strong>Sous le sélecteur, ajouter un <code>BTSequence</code> contenant un <code>BTCondition</code> (<code>expression</code> = <code>vie &lt; 30</code>) puis un <code>BTAction</code></strong> nommé « Fuir ».
-      <div class="why">une séquence n'exécute l'action que si la condition réussit : « si blessé, alors fuir ». La condition lit la clé <code>vie</code> du tableau noir.</div>
+      <div class="why">Une séquence n'exécute l'action que si la condition réussit : « si blessé, alors fuir ». La condition lit la clé <code>vie</code> du tableau noir.</div>
     </li>
     <li>
       <strong>Attacher un script à « Fuir »</strong> :
@@ -143,11 +143,11 @@ func _tick(_delta: float) -> int:
 	vie -= montant
 	$BehaviorTree.blackboard.set_value("vie", vie)
 	$BehaviorTree.blackboard.set_value("menace", source)</code></pre>
-      <div class="why">le tableau noir est la mémoire partagée de l'arbre : le jeu y écrit, les conditions et actions y lisent.</div>
+      <div class="why">Le tableau noir est la mémoire partagée de l'arbre : le jeu y écrit, les conditions et actions y lisent.</div>
     </li>
     <li>
       <strong>Lancer la scène, puis sélectionner le <code>BehaviorTree</code> et cliquer sur <kbd>🗺️ Éditeur de comportement</kbd></strong>.
-      <div class="why">la fenêtre montre l'arbre en direct pendant que le jeu tourne : branche en cours en ambre, succès en vert, échecs en rouge.</div>
+      <div class="why">La fenêtre montre l'arbre en direct pendant que le jeu tourne : branche en cours en ambre, succès en vert, échecs en rouge.</div>
     </li>
   </ol>
 
@@ -155,11 +155,11 @@ func _tick(_delta: float) -> int:
   <ol class="steps">
     <li>
       <strong>Sous le garde, ajouter une <code>StateMachine</code>, puis deux <code>State</code> enfants : « Patrouille » et « Alerte »</strong>.
-      <div class="why">un seul état enfant est actif à la fois ; le premier est l'état initial (modifiable avec <code>initial_state</code>). La machine démarre seule (<code>autostart</code>).</div>
+      <div class="why">Un seul état enfant est actif à la fois ; le premier est l'état initial (modifiable avec <code>initial_state</code>). La machine démarre seule (<code>autostart</code>).</div>
     </li>
     <li>
       <strong>Sur « Patrouille », ajouter une transition</strong> dans <code>transitions</code> : <code>target_state</code> = <code>../Alerte</code>, <code>condition</code> = <code>distance &lt; 120</code>. Sur « Alerte », la transition inverse avec <code>distance &gt; 220</code>.
-      <div class="why">sans <code>event</code>, la transition est automatique : vérifiée à chaque image. Les deux seuils différents évitent les allers-retours incessants à la frontière.</div>
+      <div class="why">Sans <code>event</code>, la transition est automatique : vérifiée à chaque image. Les deux seuils différents évitent les allers-retours incessants à la frontière.</div>
     </li>
     <li>
       <strong>Attacher un script à chaque état</strong> pour son comportement :
@@ -176,13 +176,13 @@ func _on_physics_update(_delta: float) -> void:
       <strong>Mettre à jour la distance dans le tableau noir</strong>, depuis le script du garde :
       <pre><code class="gdscript">func _physics_process(_delta: float) -> void:
 	$StateMachine.blackboard.set_value("distance", global_position.distance_to(intrus))</code></pre>
-      <div class="why">les conditions des transitions ne lisent que le tableau noir et l'agent : c'est le point de contact entre le jeu et la machine.</div>
+      <div class="why">Les conditions des transitions ne lisent que le tableau noir et l'agent : c'est le point de contact entre le jeu et la machine.</div>
     </li>
     <li>
       <strong>Envoyer un événement</strong> pour les réactions ponctuelles : ajouter un état « Etourdi », une transition depuis « Patrouille » avec <code>event</code> = <code>etourdir</code>, et une transition retour avec <code>min_time_in_state</code> = <code>2</code>, puis :
       <pre><code class="gdscript">func _on_coup_recu() -> void:
 	$StateMachine.send_event(&amp;"etourdir")</code></pre>
-      <div class="why">un événement n'est pris en compte que si l'état actif (ou un parent) a une transition qui l'attend : le garde déjà étourdi ignore un second coup.</div>
+      <div class="why">Un événement n'est pris en compte que si l'état actif (ou un parent) a une transition qui l'attend : le garde déjà étourdi ignore un second coup.</div>
     </li>
   </ol>
 

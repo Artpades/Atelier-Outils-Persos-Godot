@@ -293,6 +293,12 @@ LIBRARY_PATTERNS = [
     ("android.release.arm64", "lib{name}.android.release.arm64.so"),
     ("android.debug.arm32", "lib{name}.android.debug.arm32.so"),
     ("android.release.arm32", "lib{name}.android.release.arm32.so"),
+    # Web (Emscripten 4.0.11, celui des modèles officiels 4.7.2) : scons platform=web [threads=no].
+    # Sans threads : la page n'a pas besoin des en-têtes COOP/COEP (démos de la documentation).
+    ("web.debug.threads.wasm32", "lib{name}.web.template_debug.wasm32.wasm"),
+    ("web.release.threads.wasm32", "lib{name}.web.template_release.wasm32.wasm"),
+    ("web.debug.wasm32", "lib{name}.web.template_debug.wasm32.nothreads.wasm"),
+    ("web.release.wasm32", "lib{name}.web.template_release.wasm32.nothreads.wasm"),
 ]
 
 

@@ -32,3 +32,7 @@ android.debug.arm64 = "res://bin/drawing/libgameplaytoolkit_drawing.android.debu
 android.release.arm64 = "res://bin/drawing/libgameplaytoolkit_drawing.android.release.arm64.so"
 android.debug.arm32 = "res://bin/drawing/libgameplaytoolkit_drawing.android.debug.arm32.so"
 android.release.arm32 = "res://bin/drawing/libgameplaytoolkit_drawing.android.release.arm32.so"
+web.debug.threads.wasm32 = "res://bin/drawing/libgameplaytoolkit_drawing.web.template_debug.wasm32.wasm"
+web.release.threads.wasm32 = "res://bin/drawing/libgameplaytoolkit_drawing.web.template_release.wasm32.wasm"
+web.debug.wasm32 = "res://bin/drawing/libgameplaytoolkit_drawing.web.template_debug.wasm32.nothreads.wasm"
+web.release.wasm32 = "res://bin/drawing/libgameplaytoolkit_drawing.web.template_release.wasm32.nothreads.wasm"

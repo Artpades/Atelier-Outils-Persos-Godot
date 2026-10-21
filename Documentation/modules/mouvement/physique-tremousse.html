@@ -47,10 +47,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : un personnage 2D qui court puis s'arrête, son antenne (Jiggle2D) continue de balancer ; un slime 3D (Jiggle3D) qui s'écrase et rebondit après un saut. debug_mode activé (cercle de max_offset, trait vers la position de repos).</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/physique-tremousse" data-figure="1">
+    <figcaption>Le support suit la souris : une antenne (réglable), une gelée et une queue en chaîne trémoussent ; clic pour une impulsion.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -67,7 +66,7 @@
   </div>
   <h3 id="mise-en-place">Mise en place</h3>
   <ol class="steps">
-    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">le nœud fait partie de la bibliothèque du mouvement, mais ne dépend d'aucun composant de mouvement.</div></li>
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">Le nœud fait partie de la bibliothèque du mouvement, mais ne dépend d'aucun composant de mouvement.</div></li>
   </ol>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
@@ -75,23 +74,24 @@
   <ol class="steps">
     <li>
       <strong>Insérer un <code>Jiggle2D</code></strong> entre le personnage et le sprite de l'antenne : <code>Personnage › Jiggle2D › Antenne (Sprite2D)</code>.
-      <div class="why">c'est le <code>Jiggle2D</code> qui bouge ; tout ce qui est dessous suit.</div>
+      <div class="why">C'est le <code>Jiggle2D</code> qui bouge ; tout ce qui est dessous suit.</div>
     </li>
     <li>
       <strong>Placer le <code>Jiggle2D</code> à l'endroit de la base de l'antenne</strong> dans l'éditeur.
-      <div class="why">cette pose (position, rotation, échelle) est capturée au lancement comme pose de repos ; l'inclinaison se fait autour de ce point.</div>
+      <div class="why">Cette pose (position, rotation, échelle) est capturée au lancement comme pose de repos ; l'inclinaison se fait autour de ce point.</div>
     </li>
     <li>
       <strong>Lancer le jeu et déplacer le personnage.</strong> Ajuster <code>stiffness</code> (raideur) et <code>damping</code> (amortissement).
-      <div class="why">faible raideur + faible amortissement = gelée ; forte raideur + fort amortissement = ressort sec.</div>
+      <div class="why">Faible raideur + faible amortissement = gelée ; forte raideur + fort amortissement = ressort sec.</div>
     </li>
     <li>
       <strong>Secouer à la demande</strong> :
       <pre><code class="gdscript">func _on_ground_movement_2d_landed() -> void:
 	$Jiggle2D.impulse(Vector2(0, 400))   # l'antenne s'écrase à l'atterrissage</code></pre>
-      <div class="why">l'impulsion ajoute une vitesse à la masse simulée, qui oscille ensuite d'elle-même.</div>
+      <div class="why">L'impulsion ajoute une vitesse à la masse simulée, qui oscille ensuite d'elle-même.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Personnage › Jiggle2D › antenne : l'antenne traîne quand il court, balance quand il s'arrête, s'écrase à l'atterrissage (<code>impulse</code>).</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -113,6 +113,7 @@
       </tbody>
     </table>
   </div>
+  <figure class="media" data-video="ex-recettes"><figcaption>Les quatre recettes : antenne (ressort), gelée (slime), chapeau lourd, queue qui pend.</figcaption></figure>
 
   <h3 id="ex-chaine">Comment je fais une queue ou une tresse souple ?</h3>
   <p>Enchaîner plusieurs <code>Jiggle2D</code>, chacun enfant du précédent : chaque segment traîne derrière le suivant.</p>
@@ -128,15 +129,18 @@
 		segment.add_child(sprite)
 		parent.add_child(segment)
 		parent = segment</code></pre>
+  <figure class="media" data-video="ex-chaine"><figcaption>Quatre Jiggle2D enchaînés, de plus en plus mous : une queue souple.</figcaption></figure>
 
   <h3 id="ex-coup">Comment je fais trembler un objet touché ?</h3>
   <pre><code class="gdscript">func encaisser(direction: Vector3) -> void:
 	$Jiggle3D.impulse(direction.normalized() * 4.0)</code></pre>
+  <figure class="media" data-video="ex-coup"><figcaption><code>encaisser()</code> : <code>impulse</code> dans la direction du coup, l'objet 3D tremble.</figcaption></figure>
 
   <h3 id="ex-teleport">Comment j'évite un grand « fouet » après une téléportation ?</h3>
   <pre><code class="gdscript">func teleporter(vers: Vector2) -> void:
 	global_position = vers
 	$Jiggle2D.reset()   # repart au repos au lieu de rattraper toute la distance</code></pre>
+  <figure class="media" data-video="ex-teleport"><figcaption>Téléportation : sans <code>reset()</code> l'antenne fouette pour rattraper la distance ; avec, elle repart au repos.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -210,6 +214,168 @@ window.GTK_USAGES = {};
   });
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "Jiggle2D.damping": [
+    {
+      "video": "Jiggle2D.damping",
+      "legende": "<code>damping<\/code> 1,5, 7 (défaut) et 20 : rebonds longs ou retour sec."
+    }
+  ],
+  "Jiggle2D.debug_mode": [
+    {
+      "video": "Jiggle2D.debug_mode",
+      "legende": "<code>debug_mode<\/code> : position de repos, cercle de <code>max_offset<\/code> et décalage courant (<code>get_offset()<\/code>)."
+    }
+  ],
+  "Jiggle2D.enabled": [
+    {
+      "video": "Jiggle2D.enabled",
+      "legende": "<code>enabled = false<\/code> : retour au repos, plus de simulation ; true : elle reprend."
+    }
+  ],
+  "Jiggle2D.gravity": [
+    {
+      "video": "Jiggle2D.gravity",
+      "legende": "<code>gravity<\/code> (0, 0) (défaut) et (0, 400) : la masse pend."
+    }
+  ],
+  "Jiggle2D.lean_amount": [
+    {
+      "video": "Jiggle2D.lean_amount",
+      "legende": "<code>lean_amount<\/code> 0, 0,02 (défaut) et 0,06 : l'inclinaison selon le décalage."
+    }
+  ],
+  "Jiggle2D.max_offset": [
+    {
+      "video": "Jiggle2D.max_offset",
+      "legende": "<code>max_offset<\/code> 8, 24 (défaut) et 60 px : l'écart maximal au repos."
+    }
+  ],
+  "Jiggle2D.squash_amount": [
+    {
+      "video": "Jiggle2D.squash_amount",
+      "legende": "<code>squash_amount<\/code> 0, 0,0015 (défaut) et 0,005, borné par <code>max_stretch<\/code> : l'étirement selon la vitesse."
+    }
+  ],
+  "Jiggle2D.stiffness": [
+    {
+      "video": "Jiggle2D.stiffness",
+      "legende": "<code>stiffness<\/code> 40, 140 (défaut) et 400 : mou et traînant, ou vif."
+    }
+  ],
+  "Jiggle2D": [
+    {
+      "video": "classe-Jiggle2D",
+      "legende": "Trois Jiggle2D sur le même support qui bouge : antenne, gelée, queue qui pend."
+    }
+  ],
+  "Jiggle3D": [
+    {
+      "video": "classe-Jiggle3D",
+      "legende": "Un slime 3D (Jiggle3D) qui s'écrase et rebondit après chaque saut."
+    }
+  ],
+  "Jiggle2D.get_offset": [
+    {
+      "video": "Jiggle2D.debug_mode",
+      "legende": "<code>debug_mode<\/code> : position de repos, cercle de <code>max_offset<\/code> et décalage courant (<code>get_offset()<\/code>)."
+    }
+  ],
+  "Jiggle2D.impulse": [
+    {
+      "video": "mode-emploi",
+      "legende": "Personnage › Jiggle2D › antenne : l'antenne traîne quand il court, balance quand il s'arrête, s'écrase à l'atterrissage (<code>impulse<\/code>)."
+    }
+  ],
+  "Jiggle2D.max_stretch": [
+    {
+      "video": "Jiggle2D.squash_amount",
+      "legende": "<code>squash_amount<\/code> 0, 0,0015 (défaut) et 0,005, borné par <code>max_stretch<\/code> : l'étirement selon la vitesse."
+    }
+  ],
+  "Jiggle2D.reset": [
+    {
+      "video": "ex-teleport",
+      "legende": "Téléportation : sans <code>reset()<\/code> l'antenne fouette pour rattraper la distance ; avec, elle repart au repos."
+    }
+  ],
+  "Jiggle3D.damping": [
+    {
+      "video": "Jiggle2D.damping",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.debug_mode": [
+    {
+      "video": "Jiggle2D.debug_mode",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.enabled": [
+    {
+      "video": "Jiggle2D.enabled",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.get_offset": [
+    {
+      "video": "Jiggle2D.debug_mode",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.gravity": [
+    {
+      "video": "Jiggle2D.gravity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.impulse": [
+    {
+      "video": "ex-coup",
+      "legende": "<code>encaisser()<\/code> : <code>impulse<\/code> dans la direction du coup, l'objet 3D tremble."
+    }
+  ],
+  "Jiggle3D.lean_amount": [
+    {
+      "video": "Jiggle2D.lean_amount",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.max_offset": [
+    {
+      "video": "Jiggle2D.max_offset",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.max_stretch": [
+    {
+      "video": "Jiggle2D.squash_amount",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.reset": [
+    {
+      "video": "ex-teleport",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.squash_amount": [
+    {
+      "video": "Jiggle2D.squash_amount",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "Jiggle3D.stiffness": [
+    {
+      "video": "Jiggle2D.stiffness",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

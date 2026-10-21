@@ -13,6 +13,7 @@
 
 # Compiled Dynamic libraries
 *.so
+GameplayToolkit/bin/**/*.wasm
 *.dylib
 *.dll
 

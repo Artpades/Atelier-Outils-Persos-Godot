@@ -54,10 +54,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Capture de l'inspecteur d'un <code>PlayerFX</code> enfant d'un Sprite2D : liste <code>special_effects</code> dépliée avec un FXShake et un FXFade, et les boutons « Jouer effet » / « Arrêter effet » visibles ; à côté, GIF du sprite qui secoue et flashe au clic sur « Jouer effet ».</div>
-  </div>
+  <figure class="media media-web" data-web="effets/socle-effets" data-figure="1">
+    <figcaption>Composer la liste <code>special_effects</code> d'un PlayerFX, enchaîner des effets au jeu ou à l'arrêt de la secousse, changer de cible et suivre les signaux.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -79,11 +78,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons fx</code></pre>
-      <div class="why">compile uniquement la bibliothèque des effets (<code>fx_register.cpp</code>) et régénère <code>bin/fx/gameplaytoolkit_fx.gdextension</code>.</div>
+      <div class="why">Compile uniquement la bibliothèque des effets (<code>fx_register.cpp</code>) et régénère <code>bin/fx/gameplaytoolkit_fx.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/fx/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/fx/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/fx/…</code> absolus.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/fx/…</code> absolus.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -91,7 +90,7 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>PlayerFX</code>, et le panneau <em>Sortie</em> affiche « ✨Module d'effets spéciaux chargé avec succès ! ».
-      <div class="why">si la classe est absente, la bibliothèque n'est pas chargée : l'erreur de chargement est dans ce même panneau.</div>
+      <div class="why">Si la classe est absente, la bibliothèque n'est pas chargée : l'erreur de chargement est dans ce même panneau.</div>
     </li>
   </ol>
   <p>Aucun autoload ni réglage de projet n'est requis.</p>
@@ -103,39 +102,41 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>PlayerFX</code> comme enfant</strong> de l'objet à animer (un <code>Sprite2D</code> par exemple).
-      <div class="why">sans autre réglage, le <code>PlayerFX</code> joue ses effets sur son <strong>parent</strong>. Pour viser un autre nœud, renseigner <code>node_to_play_effects</code>.</div>
+      <div class="why">Sans autre réglage, le <code>PlayerFX</code> joue ses effets sur son <strong>parent</strong>. Pour viser un autre nœud, renseigner <code>node_to_play_effects</code>.</div>
     </li>
     <li>
       <strong>Dans <code>special_effects</code>, ajouter deux éléments</strong> : <code>Nouveau FXShake</code> et <code>Nouveau FXChangeSize</code>.
-      <div class="why">tous les effets de la liste sont joués ensemble, sur la même cible, et arrêtés ensemble.</div>
+      <div class="why">Tous les effets de la liste sont joués ensemble, sur la même cible, et arrêtés ensemble.</div>
     </li>
     <li>
       <strong>Prévisualiser</strong> avec <kbd>Jouer effet</kbd>, puis <kbd>Arrêter effet</kbd>.
-      <div class="why">les effets tournent dans l'éditeur : on règle amplitude et durées sans lancer le jeu. Arrêter avant d'enregistrer, sinon l'état modifié (position, échelle) est sauvegardé.</div>
+      <div class="why">Les effets tournent dans l'éditeur : on règle amplitude et durées sans lancer le jeu. Arrêter avant d'enregistrer, sinon l'état modifié (position, échelle) est sauvegardé.</div>
     </li>
     <li>
       <strong>Déclencher depuis le jeu</strong> :
       <pre><code class="gdscript">func _on_ramasse() -> void:
 	$PlayerFX.play()</code></pre>
-      <div class="why">la secousse s'arrête seule après sa <code>duration</code> ; l'agrandissement reste jusqu'à <code>$PlayerFX.stop()</code>, qui ramène l'objet à sa taille.</div>
+      <div class="why">La secousse s'arrête seule après sa <code>duration</code> ; l'agrandissement reste jusqu'à <code>$PlayerFX.stop()</code>, qui ramène l'objet à sa taille.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-jouer"><figcaption>Un PlayerFX sous l'objet, FXShake et FXChangeSize dans <code>special_effects</code> : <code>play()</code> les joue ensemble, <code>stop()</code> rend la taille d'origine.</figcaption></figure>
 
   <h3 id="tuto-enchainer">B. Enchaîner des effets</h3>
   <ol class="steps">
     <li>
       <strong>Déplier un effet de la liste</strong> et remplir son <code>effects_on_play_fx</code> (par exemple un <code>FXAudio</code>).
-      <div class="why">un effet enchaîné au jeu est joué, mis à jour et arrêté avec son parent : on construit des « recettes » réutilisables.</div>
+      <div class="why">Un effet enchaîné au jeu est joué, mis à jour et arrêté avec son parent : on construit des « recettes » réutilisables.</div>
     </li>
     <li>
       <strong>Remplir <code>effects_on_stop_fx</code></strong> pour ce qui doit se produire à la fin (un son, un pop).
-      <div class="why">ces effets sont seulement <em>déclenchés</em> à l'arrêt, sans mise à jour ensuite : réservez-les aux effets instantanés (voir <a href="#limitations">Limitations</a>).</div>
+      <div class="why">Ces effets sont seulement <em>déclenchés</em> à l'arrêt, sans mise à jour ensuite : réservez-les aux effets instantanés (voir <a href="#limitations">Limitations</a>).</div>
     </li>
     <li>
       <strong>Enregistrer l'effet parent en <code>.tres</code></strong> (menu de la ressource › <em>Enregistrer</em>).
-      <div class="why">la recette complète (effet + enchaînés) se réutilise sur tous les objets du jeu.</div>
+      <div class="why">La recette complète (effet + enchaînés) se réutilise sur tous les objets du jeu.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-enchainer"><figcaption>Une « recette » : le flash rouge est enchaîné au jeu de la secousse, le passage au vert à son arrêt.</figcaption></figure>
 
   <h3 id="tuto-script">C. Écrire son propre effet</h3>
   <ol class="steps">
@@ -158,13 +159,14 @@ func _process_fx(delta: float, target: Node) -> void:
 func _stop_fx(target: Node) -> void:
 	if target is CanvasItem:
 		target.visible = true</code></pre>
-      <div class="why">les quatre méthodes virtuelles correspondent au cycle de vie ; <code>_stop_fx</code> restaure la cible.</div>
+      <div class="why">Les quatre méthodes virtuelles correspondent au cycle de vie ; <code>_stop_fx</code> restaure la cible.</div>
     </li>
     <li>
       <strong>L'ajouter à <code>special_effects</code></strong> : <code>FXClignote</code> apparaît dans la liste des nouveaux effets.
-      <div class="why">un effet scripté se joue, s'enchaîne et se prévisualise exactement comme un effet C++ (ajouter <code>@tool</code> au script pour la prévisualisation dans l'éditeur).</div>
+      <div class="why">Un effet scripté se joue, s'enchaîne et se prévisualise exactement comme un effet C++ (ajouter <code>@tool</code> au script pour la prévisualisation dans l'éditeur).</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-script"><figcaption><code>FXClignote</code>, effet écrit en GDScript (<code>extends Effect</code>), joué par un PlayerFX comme un effet C++.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -202,6 +204,7 @@ func _ready() -> void:
 
 func toucher() -> void:
 	$PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-degats"><figcaption>Un seul <code>play()</code> : secousse, flash rouge (et son, coupé ici) ensemble.</figcaption></figure>
 
   <h3 id="ex-autre-cible">Comment je joue les mêmes effets sur une autre cible ?</h3>
   <p><code>play(noeud)</code> vise un nœud ponctuellement ; cette cible devient celle des mises à jour et du <code>stop()</code> suivant.</p>
@@ -209,6 +212,7 @@ func toucher() -> void:
 	$PlayerFX.stop()        # arrête les effets sur la carte précédente
 	$PlayerFX.play(carte)</code></pre>
   <p>Ne pas jouer <em>en même temps</em> les mêmes instances d'effets sur deux cibles : l'état d'origine est stocké dans l'effet (voir <a href="#limitations">Limitations</a>). Utiliser plutôt un <code>PlayerFX</code> par cible.</p>
+  <figure class="media" data-video="ex-autre-cible"><figcaption><code>stop()</code> puis <code>play(carte)</code> : les mêmes effets passent d'une carte à l'autre.</figcaption></figure>
 
   <h3 id="ex-attendre">Comment je réagis à la fin d'un effet ?</h3>
   <p><code>fx_stopped</code> est émis quand l'effet s'arrête, y compris seul (fin de <code>duration</code> d'un <code>FXShake</code>). <code>fx_played</code> est émis au <em>début</em>.</p>
@@ -216,6 +220,7 @@ func toucher() -> void:
 $PlayerFX.play()
 await secousse.fx_stopped
 porte.ouvrir()</code></pre>
+  <figure class="media" data-video="ex-attendre"><figcaption><code>await secousse.fx_stopped</code> : la porte s'ouvre quand la secousse se termine seule.</figcaption></figure>
 
   <h3 id="ex-sans-player">Comment je joue un effet sans <code>PlayerFX</code> ?</h3>
   <p>Un effet se pilote aussi à la main : c'est alors à vous d'appeler les mises à jour. Les effets qui utilisent des chemins de nœuds (<code>FXFollower</code>, <code>FXTargeter</code>) ont besoin de <code>set_player_fx()</code>.</p>
@@ -230,11 +235,13 @@ func _process(delta: float) -> void:
 
 func calmer() -> void:
 	vibre.stop_fx($Icone)</code></pre>
+  <figure class="media" data-video="ex-sans-player"><figcaption>Sans PlayerFX : <code>play_fx</code>, puis <code>process_fx</code> appelé à chaque image par le script, puis <code>stop_fx</code>.</figcaption></figure>
 
   <h3 id="ex-pause">Comment je fais tourner les effets pendant la pause ?</h3>
   <p>Le <code>PlayerFX</code> est un nœud ordinaire : il se fige en pause. Pour animer un menu de pause, le passer en <code>PROCESS_MODE_ALWAYS</code> (les effets à base de <code>Tween</code>, comme <code>FXChangeSize</code>, dépendent eux du mode de la <em>cible</em>).</p>
   <pre><code class="gdscript">$MenuPause/Titre/PlayerFX.process_mode = Node.PROCESS_MODE_ALWAYS
 $MenuPause/Titre.process_mode = Node.PROCESS_MODE_ALWAYS</code></pre>
+  <figure class="media" data-video="ex-pause"><figcaption>Jeu en pause : le titre du menu (PROCESS_MODE_ALWAYS) continue de pulser, l'objet du jeu est figé.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -364,6 +371,263 @@ window.GTK_USAGES = {
   "PlayerFX.get_default_target": "Vérifier quel nœud sera animé, ou l'utiliser comme ancre dans un effet scripté."
 };
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-PlayerFX-play_effect">
+<svg viewBox="0 0 640 210" role="img" aria-label="Inspecteur d'un PlayerFX avec les boutons Jouer effet et Arrêter effet">
+  <g font-size="13" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="150" y="8" width="340" height="194" rx="8" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.3"/>
+    <text x="166" y="32" font-weight="700">Inspecteur · PlayerFX</text>
+    <line x1="150" y1="44" x2="490" y2="44" stroke="currentColor" stroke-opacity="0.2"/>
+    <text x="166" y="68" fill-opacity="0.75">Node To Play Effects</text><text x="474" y="68" text-anchor="end" fill-opacity="0.55">Assigner…</text>
+    <text x="166" y="96" fill-opacity="0.75">Special Effects</text><text x="474" y="96" text-anchor="end" fill-opacity="0.55">Array[Effect] (2)</text>
+    <text x="182" y="118" font-size="12" fill-opacity="0.6">0 : FXShake   ·   1 : FXFade</text>
+    <rect x="166" y="136" width="146" height="34" rx="6" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)"/>
+    <text x="239" y="158" text-anchor="middle" font-weight="600">▶ Jouer effet</text>
+    <rect x="328" y="136" width="146" height="34" rx="6" fill="currentColor" fill-opacity="0.06" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="401" y="158" text-anchor="middle" font-weight="600">■ Arrêter effet</text>
+    <text x="320" y="194" text-anchor="middle" font-size="11.5" fill-opacity="0.65">play_effect → play() · stop_effect → stop() (dans l'éditeur)</text>
+  </g>
+</svg>
+</template>
+<template id="schema-cycle">
+<svg viewBox="0 0 640 294" role="img" aria-label="Cycle de vie d'un Effect">
+  <defs><marker id="f-68471" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Jeu</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">play_fx(cible)</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">_play_fx(cible)</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle">signal fx_played</text>
+    <line x1="111" y1="148" x2="111" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="14" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="180" text-anchor="middle">effects_on_play_fx joués</text>
+    <line x1="211" y1="49.0" x2="221" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">À chaque image</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">process_fx(delta, cible)</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">_process_fx(delta, cible)</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle">effects_on_play_fx mis à jour</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle" fill-opacity="0.7">physique : _physics_process_fx</text>
+    <line x1="419" y1="49.0" x2="429" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Arrêt</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">stop_fx(cible)</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">_stop_fx(cible) : restaurer</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle">effects_on_play_fx arrêtés</text>
+    <line x1="529" y1="148" x2="529" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="431" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="180" text-anchor="middle">effects_on_stop_fx joués</text>
+    <line x1="529" y1="190" x2="529" y2="201" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-68471)"/>
+    <rect x="431" y="202" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="222" text-anchor="middle">signal fx_stopped</text>
+    <rect x="14" y="264" width="403" height="22" rx="11" fill="var(--accent)" fill-opacity="0.25"/>
+    <text x="216" y="279" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_activated() == true</text>
+  </g>
+</svg>
+</template>
+<template id="schema-lien-player">
+<svg viewBox="0 0 640 176" role="img" aria-label="Transmission du PlayerFX aux effets">
+  <defs><marker id="f-33388" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">PlayerFX</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">special_effects = [...]</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle">à l'affectation et à play()</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">set_player_fx(self)</text>
+    <line x1="211" y1="49.0" x2="221" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Effet</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ex. FXTargeter</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">get_player_fx() → PlayerFX</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle">NodePath relatif au PlayerFX</text>
+    <line x1="419" y1="49.0" x2="429" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Effets enchaînés</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">effects_on_*_fx</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle">reçoivent le même PlayerFX</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-33388)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">_get_node_from_player(path)</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "Effect.effects_on_play_fx": [
+    {
+      "video": "Effect.effects_on_play_fx",
+      "legende": "Le flash enchaîné au jeu commence avec la secousse et s'arrête avec elle (fin de <code>duration<\/code>)."
+    }
+  ],
+  "Effect.effects_on_stop_fx": [
+    {
+      "video": "Effect.effects_on_stop_fx",
+      "legende": "Effet enchaîné à l'arrêt : joué une seule fois quand la secousse se termine."
+    }
+  ],
+  "PlayerFX.node_to_play_effects": [
+    {
+      "video": "PlayerFX.node_to_play_effects",
+      "legende": "Vide : les effets visent le parent du PlayerFX. Renseigné : ils visent ce nœud."
+    }
+  ],
+  "PlayerFX.play_effect": [
+    {
+      "schema": "schema-PlayerFX-play_effect",
+      "legende": "Les boutons « Jouer effet » / « Arrêter effet » de l'inspecteur jouent les effets dans l'éditeur, sans lancer le jeu."
+    }
+  ],
+  "Effect": [
+    {
+      "video": "classe-Effect",
+      "legende": "Le cycle de vie d'un effet : chaque appel s'affiche au moment où il se produit."
+    },
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "PlayerFX": [
+    {
+      "video": "classe-PlayerFX",
+      "legende": "Un PlayerFX joue tous ses effets sur son parent, les met à jour à chaque image, puis les arrête ensemble."
+    }
+  ],
+  "Effect._physics_process_fx": [
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "Effect._play_fx": [
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "Effect._process_fx": [
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "Effect._stop_fx": [
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "Effect.fx_played": [
+    {
+      "video": "classe-Effect",
+      "legende": "Le cycle de vie d'un effet : chaque appel s'affiche au moment où il se produit."
+    }
+  ],
+  "Effect.fx_stopped": [
+    {
+      "video": "ex-attendre",
+      "legende": "<code>await secousse.fx_stopped<\/code> : la porte s'ouvre quand la secousse se termine seule."
+    }
+  ],
+  "Effect.get_player_fx": [
+    {
+      "schema": "schema-lien-player",
+      "legende": "Le PlayerFX se transmet à ses effets et à leurs effets enchaînés : leurs chemins de nœuds (NodePath) sont relatifs à lui."
+    }
+  ],
+  "Effect.is_activated": [
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "Effect.physics_process_fx": [
+    {
+      "schema": "schema-cycle",
+      "legende": "Ordre des appels : <code>play_fx<\/code> → <code>_play_fx<\/code> → <code>fx_played<\/code> → effets enchaînés au jeu ; à chaque image <code>process_fx<\/code> → <code>_process_fx<\/code> ; <code>stop_fx<\/code> → <code>_stop_fx<\/code> → enchaînés arrêtés puis effets d'arrêt → <code>fx_stopped<\/code>. <code>is_activated()<\/code> est vrai entre les deux."
+    }
+  ],
+  "Effect.play_fx": [
+    {
+      "video": "ex-sans-player",
+      "legende": "Sans PlayerFX : <code>play_fx<\/code>, puis <code>process_fx<\/code> appelé à chaque image par le script, puis <code>stop_fx<\/code>."
+    }
+  ],
+  "Effect.process_fx": [
+    {
+      "video": "ex-sans-player",
+      "legende": "Sans PlayerFX : <code>play_fx<\/code>, puis <code>process_fx<\/code> appelé à chaque image par le script, puis <code>stop_fx<\/code>."
+    }
+  ],
+  "Effect.set_player_fx": [
+    {
+      "schema": "schema-lien-player",
+      "legende": "Le PlayerFX se transmet à ses effets et à leurs effets enchaînés : leurs chemins de nœuds (NodePath) sont relatifs à lui."
+    }
+  ],
+  "Effect.stop_fx": [
+    {
+      "video": "ex-sans-player",
+      "legende": "Sans PlayerFX : <code>play_fx<\/code>, puis <code>process_fx<\/code> appelé à chaque image par le script, puis <code>stop_fx<\/code>."
+    }
+  ],
+  "PlayerFX.get_default_target": [
+    {
+      "video": "PlayerFX.node_to_play_effects",
+      "legende": "Vide : les effets visent le parent du PlayerFX. Renseigné : ils visent ce nœud."
+    }
+  ],
+  "PlayerFX.play": [
+    {
+      "video": "ex-autre-cible",
+      "legende": "<code>stop()<\/code> puis <code>play(carte)<\/code> : les mêmes effets passent d'une carte à l'autre."
+    }
+  ],
+  "PlayerFX.special_effects": [
+    {
+      "video": "classe-PlayerFX",
+      "legende": "Un PlayerFX joue tous ses effets sur son parent, les met à jour à chaque image, puis les arrête ensemble."
+    }
+  ],
+  "PlayerFX.stop": [
+    {
+      "video": "ex-autre-cible",
+      "legende": "<code>stop()<\/code> puis <code>play(carte)<\/code> : les mêmes effets passent d'une carte à l'autre."
+    }
+  ],
+  "PlayerFX.stop_effect": [
+    {
+      "schema": "schema-PlayerFX-play_effect",
+      "legende": "Les boutons « Jouer effet » / « Arrêter effet » de l'inspecteur jouent les effets dans l'éditeur, sans lancer le jeu."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

@@ -68,15 +68,15 @@
     <li>
       <strong>Compiler la bibliothèque</strong> si nécessaire :
       <pre><code class="language-shell">scons tool_editor</code></pre>
-      <div class="why">ne compile que la bibliothèque des outils d'édition et régénère <code>bin/tool_editor/gameplaytoolkit_tool_editor.gdextension</code>.</div>
+      <div class="why">Ne compile que la bibliothèque des outils d'édition et régénère <code>bin/tool_editor/gameplaytoolkit_tool_editor.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code>.
-      <div class="why">le <code>.gdextension</code> pointe vers ses binaires par des chemins <code>res://bin/tool_editor/…</code>.</div>
+      <div class="why">Le <code>.gdextension</code> pointe vers ses binaires par des chemins <code>res://bin/tool_editor/…</code>.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
-      <div class="why">les extensions ne sont découvertes qu'au démarrage ; ensuite, elles sont rechargées à chaud.</div>
+      <div class="why">Les extensions ne sont découvertes qu'au démarrage ; ensuite, elles sont rechargées à chaud.</div>
     </li>
   </ol>
   <p>Aucun autoload ni nœud à placer : <code>WindowEditor</code> est un objet que l'on crée par code.</p>
@@ -89,13 +89,13 @@
       <pre><code class="gdscript">extends Node
 
 var fenetre := WindowEditor.new()</code></pre>
-      <div class="why">la fenêtre est détruite en même temps que l'objet <code>WindowEditor</code>. Dans une variable locale, il disparaîtrait à la fin de la fonction, et la fenêtre avec lui.</div>
+      <div class="why">La fenêtre est détruite en même temps que l'objet <code>WindowEditor</code>. Dans une variable locale, il disparaîtrait à la fin de la fonction, et la fenêtre avec lui.</div>
     </li>
     <li>
       <strong>Ouvrir la fenêtre</strong> :
       <pre><code class="gdscript">func _ready() -> void:
 	fenetre.open_window()</code></pre>
-      <div class="why">le premier appel crée la <code>Window</code> sous la racine de l'arbre et la centre. Elle doit exister avant qu'on puisse y ajouter quoi que ce soit.</div>
+      <div class="why">Le premier appel crée la <code>Window</code> sous la racine de l'arbre et la centre. Elle doit exister avant qu'on puisse y ajouter quoi que ce soit.</div>
     </li>
     <li>
       <strong>Ajouter un contrôle qui remplit la fenêtre</strong> :
@@ -105,11 +105,11 @@ var fenetre := WindowEditor.new()</code></pre>
 	info.text = "Panneau de debug"
 	panneau.add_child(info)
 	fenetre.add_control_to_window(panneau)</code></pre>
-      <div class="why">la fenêtre ne redimensionne pas ses enfants : les ancres <code>PRESET_FULL_RECT</code> font suivre au panneau la taille de la fenêtre.</div>
+      <div class="why">La fenêtre ne redimensionne pas ses enfants : les ancres <code>PRESET_FULL_RECT</code> font suivre au panneau la taille de la fenêtre.</div>
     </li>
     <li>
       <strong>Tester</strong> : lancer la scène, fermer la fenêtre avec la croix, puis rappeler <code>fenetre.open_window()</code> (par exemple sur une touche).
-      <div class="why">la croix masque seulement la fenêtre : son contenu réapparaît intact.</div>
+      <div class="why">La croix masque seulement la fenêtre : son contenu réapparaît intact.</div>
     </li>
   </ol>
 

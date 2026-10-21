@@ -89,11 +89,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons entity_algorithm</code></pre>
-      <div class="why">compile uniquement cette bibliothèque et régénère <code>bin/entity_algorithm/gameplaytoolkit_entity_algorithm.gdextension</code>.</div>
+      <div class="why">Compile uniquement cette bibliothèque et régénère <code>bin/entity_algorithm/gameplaytoolkit_entity_algorithm.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/entity_algorithm/</code></strong> dans le projet, au même emplacement : <code>res://bin/entity_algorithm/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/entity_algorithm/…</code> absolus.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/entity_algorithm/…</code> absolus.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -101,30 +101,32 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>AbilitySystem</code>, et <kbd>Nouvelle ressource</kbd> propose <code>Ability</code>, <code>GameplayEffect</code>, <code>AttributeDefinition</code>, <code>AttributeModifier</code>.
-      <div class="why">si elles manquent, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+      <div class="why">Si elles manquent, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
     </li>
   </ol>
   <p>Aucun autoload ni réglage de projet. Conseil : ranger les ressources dans des dossiers dédiés (<code>res://capacites/</code>, <code>res://effets/</code>) pour les partager entre entités.</p>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
   <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
+
+  <h3 id="premier-essai">Premier essai : une boule de feu</h3>
   <p>Objectif : un héros avec du mana et une boule de feu qui inflige 30 dégâts à un ennemi.</p>
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>AbilitySystem</code></strong> comme enfant du héros, et un autre sous l'ennemi.
-      <div class="why">chaque entité qui a des attributs, reçoit des effets ou utilise des capacités a son propre système.</div>
+      <div class="why">Chaque entité qui a des attributs, reçoit des effets ou utilise des capacités a son propre système.</div>
     </li>
     <li>
       <strong>Déclarer les attributs</strong> : dans <code>attribute_definitions</code>, ajouter des <code>AttributeDefinition</code> — <code>mana</code> (base 50) pour le héros ; <code>health</code> (base 100) pour l'ennemi.
-      <div class="why">un attribut n'existe que s'il est déclaré : un coût ou un effet sur un attribut absent est refusé ou ignoré.</div>
+      <div class="why">Un attribut n'existe que s'il est déclaré : un coût ou un effet sur un attribut absent est refusé ou ignoré.</div>
     </li>
     <li>
       <strong>Créer l'effet de dégâts</strong> : nouvelle ressource <code>GameplayEffect</code> (<code>duration_policy</code> = <em>Instant</em>), avec un <code>AttributeModifier</code> : <code>attribute</code> = <code>health</code>, <code>operation</code> = <em>Add</em>, <code>magnitude</code> = <code>-30</code>. L'enregistrer en <code>degats_feu.tres</code>.
-      <div class="why">un effet instantané modifie la valeur de base une fois : ce sont des dégâts définitifs (jusqu'à un soin).</div>
+      <div class="why">Un effet instantané modifie la valeur de base une fois : ce sont des dégâts définitifs (jusqu'à un soin).</div>
     </li>
     <li>
       <strong>Créer la capacité</strong> : ressource <code>Ability</code>, <code>ability_id</code> = <code>boule_de_feu</code>, <code>costs</code> = <code>{ mana: 20 }</code>, <code>cooldown</code> = <code>1.5</code>, <code>effects_on_target</code> = <code>[degats_feu.tres]</code>. L'ajouter à <code>granted_abilities</code> du héros.
-      <div class="why">la capacité réunit conditions, prix et conséquences ; l'<code>AbilitySystem</code> conserve son état (recharge), donc la ressource est partageable.</div>
+      <div class="why">La capacité réunit conditions, prix et conséquences ; l'<code>AbilitySystem</code> conserve son état (recharge), donc la ressource est partageable.</div>
     </li>
     <li>
       <strong>Déclencher</strong> depuis le jeu :
@@ -133,9 +135,105 @@
 		var ok: bool = $Heros/AbilitySystem.activate(&"boule_de_feu", $Ennemi)
 		print("lancée" if ok else "refusée : " + $Heros/AbilitySystem.get_activation_failure(&"boule_de_feu"))
 	print("PV ennemi : ", $Ennemi/AbilitySystem.get_value(&"health"))</code></pre>
-      <div class="why">la cible est un nœud quelconque : son <code>AbilitySystem</code> est trouvé parmi ses enfants. Au deuxième appui immédiat, la réponse est <code>cooldown</code> ; au troisième (après recharge), <code>cost</code> si le mana est épuisé.</div>
+      <div class="why">La cible est un nœud quelconque : son <code>AbilitySystem</code> est trouvé parmi ses enfants. Au deuxième appui immédiat, la réponse est <code>cooldown</code> ; au troisième (après recharge), <code>cost</code> si le mana est épuisé.</div>
     </li>
   </ol>
+
+  <h3 id="creer-interaction">Créer un système d'interaction modulaire</h3>
+  <p>L'<code>Interactable</code> du module <a href="personnage-joueur-automate-pnj.html#ex-levier">🧑 Personnage</a> sait <em>quand</em> le joueur interagit (signal <code>interacted</code>), mais pas <em>quoi faire</em> : connecter une fonction au signal fige le comportement dans le script de l'objet. En confiant ce « quoi faire » à une <strong><code>Ability</code> portée par l'objet</strong>, l'interaction devient une ressource interchangeable : changer la capacité appelée change l'interaction, sans toucher au code, et l'on profite gratuitement des coûts (nombre d'utilisations), des recharges, des conditions par tags et des raisons d'échec.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rôle</th><th>Pièce</th></tr></thead>
+      <tbody>
+        <tr><td>Détecter l'interaction (portée, objet le plus proche, touche)</td><td><code>Interactable</code> + <code>PlayerController</code></td></tr>
+        <tr><td>Choisir la méthode à appeler</td><td>propriété <code>interaction</code> du relais (identifiant d'une capacité)</td></tr>
+        <tr><td>Exécuter l'interaction et ses règles</td><td><code>Ability</code> dans l'<code>AbilitySystem</code> de l'objet ; l'interacteur est la <strong>cible</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Objectif : un coffre qu'on ouvre une fois, puis qui, une fois vide, ne fait plus que « grincer ».</p>
+  <ol class="steps">
+    <li>
+      <strong>Monter l'objet</strong> : <code>Coffre</code> (<code>Node2D</code> ou <code>Node3D</code>) &gt; <code>Sprite2D</code> + <code>Interactable</code> + <code>AbilitySystem</code>.
+      <div class="why">L'<code>Interactable</code> mesure la portée depuis son parent ; l'<code>AbilitySystem</code> est le « répertoire » des interactions possibles de cet objet, chacune avec son propre état (recharge, charges).</div>
+    </li>
+    <li>
+      <strong>Écrire le relais</strong>, une fois pour tout le jeu, et l'attacher au nœud <code>Interactable</code> :
+      <pre><code class="gdscript"># interaction_relais.gd : relie Interactable → capacité de l'objet
+extends Interactable
+
+## Capacité de l'AbilitySystem frère appelée à chaque interaction : la « méthode » interchangeable.
+@export var interaction: StringName
+## Invites affichées selon la raison du refus (vide = refus silencieux).
+@export var messages_refus := {"cooldown": "Patientez…", "cost": "Plus rien à faire ici", "missing_tags": "Verrouillé"}
+
+signal refusee(raison: String)
+
+@onready var capacites: AbilitySystem = get_parent().get_node("AbilitySystem")
+
+func _ready() -> void:
+	interacted.connect(_sur_interaction)
+
+func _sur_interaction(par: Node) -> void:
+	if not capacites.activate(interaction, par):          # l'interacteur devient la cible de la capacité
+		refusee.emit(messages_refus.get(capacites.get_activation_failure(interaction, par), ""))
+
+## Change ce que fait l'interaction (et son invite) en cours de partie.
+func changer_interaction(id: StringName, invite := "") -> void:
+	interaction = id
+	if invite != "":
+		prompt = invite</code></pre>
+      <div class="why">Le relais ne contient aucune règle de jeu : il transmet. Tous les objets interactifs (coffres, leviers, fontaines, portes) utilisent le même script ; seule leur liste de capacités diffère.</div>
+    </li>
+    <li>
+      <strong>Écrire les interactions</strong> comme des capacités scriptées, dans <code>res://interactions/</code> :
+      <pre><code class="gdscript"># ouvrir_coffre.gd, enregistrée en ouvrir_coffre.tres (ability_id = ouvrir_coffre)
+extends Ability
+
+func _on_commit(system: Node, cible: Node) -> void:
+	var coffre := system.get_parent()
+	coffre.get_node("Sprite2D").frame = 1                    # couvercle ouvert
+	cible.get_node("Inventaire").ajouter(&"potion")         # « cible » = qui a interagi
+	coffre.get_node("Interactable").changer_interaction(&"grincer", "Fouiller")</code></pre>
+      <pre><code class="gdscript"># grincer.gd, enregistrée en grincer.tres (ability_id = grincer, cooldown = 1)
+extends Ability
+
+func _on_commit(system: Node, _cible: Node) -> void:
+	system.get_parent().get_node("SonGrincement").play()</code></pre>
+      <div class="why"><code>_on_commit</code> est le moment où l'interaction « a lieu », après les vérifications (coût, recharge, tags, <code>_can_activate</code>). La dernière ligne montre le cœur du système : l'interaction remplace elle-même la méthode appelée la prochaine fois.</div>
+    </li>
+    <li>
+      <strong>Configurer le coffre</strong> dans l'inspecteur : sur l'<code>AbilitySystem</code>, <code>granted_abilities</code> = <code>[ouvrir_coffre.tres, grincer.tres]</code> ; sur l'<code>Interactable</code>, <code>interaction</code> = <code>ouvrir_coffre</code>, <code>prompt</code> = « Ouvrir ».
+      <div class="why">Toutes les interactions possibles sont accordées d'avance : en changer revient à modifier un identifiant, sans créer ni charger de ressource en jeu.</div>
+    </li>
+    <li>
+      <strong>Tester</strong> avec un joueur (<code>Character2D</code> + <code>PlayerController</code>) : <kbd>E</kbd> près du coffre l'ouvre ; un second appui « grince », un troisième immédiat est refusé (<code>cooldown</code>) et <code>refusee</code> émet « Patientez… ».
+      <div class="why">Le <code>PlayerController</code> cherche déjà l'<code>Interactable</code> le plus proche et appelle <code>interact</code> ; le relais hérite d'<code>Interactable</code>, il est donc trouvé comme n'importe quel autre.</div>
+    </li>
+  </ol>
+
+  <h4>Réutiliser les règles du système de capacités</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Besoin</th><th>Réglage sur la capacité d'interaction</th></tr></thead>
+      <tbody>
+        <tr><td>Utilisable 3 fois (puits, buisson à baies)</td><td>Attribut <code>utilisations</code> (base 3) dans l'<code>AbilitySystem</code> de l'objet, <code>costs</code> = <code>{ utilisations: 1 }</code>. Refus : <code>cost</code>.</td></tr>
+        <tr><td>Levier qu'on ne peut pas actionner en boucle</td><td><code>cooldown</code> = <code>2</code>. Refus : <code>cooldown</code>.</td></tr>
+        <tr><td>Porte verrouillée tant qu'un mécanisme n'est pas activé</td><td><code>activation_required_tags</code> = <code>["etat.deverrouille"]</code> ; le mécanisme appelle <code>add_tag("etat.deverrouille")</code> sur le système de la porte. Refus : <code>missing_tags</code>.</td></tr>
+        <tr><td>Porte qui demande une clé au joueur</td><td><code>_can_activate(system, cible)</code> : <code>var s := AbilitySystem.find_on(cible)</code> puis <code>return s != null and s.has_tag("cle.rouge")</code>. Refus : <code>script</code>.</td></tr>
+        <tr><td>Fontaine qui soigne celui qui boit</td><td>Pas de script : un effet de soin (<code>health</code> +20) dans <code>effects_on_target</code>, l'interacteur étant la cible.</td></tr>
+        <tr><td>Fouille qui prend du temps (et s'interrompt)</td><td><code>cast_time</code> = <code>1.5</code> ; <code>cancel_ability</code> si le joueur s'éloigne (<code>is_in_range_of</code>).</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <div class="callout-title">À savoir</div>
+    <ul>
+      <li><strong>L'état vit dans l'<code>AbilitySystem</code> de l'objet</strong> : la même <code>ouvrir_coffre.tres</code> sert à tous les coffres, chacun ouvert indépendamment. Ne stockez rien dans la ressource elle-même (variables du script d'<code>Ability</code>), elle est partagée.</li>
+      <li><strong><code>one_shot</code> et <code>enabled</code></strong> de l'<code>Interactable</code> restent utilisables : <code>one_shot</code> désactive l'objet dès la première interaction, <strong>même si la capacité est refusée</strong>. Pour un usage unique soumis à conditions, préférez un coût en <code>utilisations</code>.</li>
+      <li>Une interaction refusée ne consomme <strong>ni coût ni charge</strong>. En revanche, une interaction annulée pendant son <code>cast_time</code> les a déjà consommés (voir <a href="#limitations">Limitations</a>).</li>
+    </ul>
+  </div>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -350,6 +448,10 @@ func fin_du_tour() -> void:
   <!-- ═══════════════════════════ Changelog ═══════════════════════════ -->
   <h2 id="changelog">🗒️ Changelog</h2>
   <div class="changelog">
+    <h3 id="v1-0-2">1.0.2 <span class="date">2026-10-21</span></h3>
+    <ul>
+      <li><span class="tag change">Modifié</span>Mode d'emploi : nouvelle partie « Créer un système d'interaction modulaire » (Interactable relayé vers une capacité de l'objet, interaction interchangeable en jeu, règles de coût / recharge / tags appliquées aux interactions). Aucun changement de comportement.</li>
+    </ul>
     <h3 id="v1-0-1">1.0.1 <span class="date">2026-10-08</span></h3>
     <ul>
       <li><span class="tag change">Modifié</span>Documentation complète : référence XML des cinq classes, commentaires des headers, page de module. Aucun changement de comportement.</li>

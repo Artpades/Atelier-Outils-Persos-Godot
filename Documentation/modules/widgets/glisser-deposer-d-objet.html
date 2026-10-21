@@ -81,11 +81,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons drag_and_drop</code></pre>
-      <div class="why">compile uniquement cette bibliothèque (registre <code>drag_and_drop_register.cpp</code>) et régénère son <code>.gdextension</code>.</div>
+      <div class="why">Compile uniquement cette bibliothèque (registre <code>drag_and_drop_register.cpp</code>) et régénère son <code>.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/drag_and_drop/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/drag_and_drop/</code>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/drag_and_drop/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/drag_and_drop/…</code> ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -93,7 +93,7 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>DragAndDropSystem</code>, et l'inspecteur permet de créer un <code>DraggableComponent</code>.
-      <div class="why">le panneau <em>Sortie</em> affiche « Module de glisser-déposer chargé avec succès ! » au chargement ; son absence indique une bibliothèque non chargée.</div>
+      <div class="why">Le panneau <em>Sortie</em> affiche « Module de glisser-déposer chargé avec succès ! » au chargement ; son absence indique une bibliothèque non chargée.</div>
     </li>
   </ol>
   <p>Aucun autoload n'est requis : un <code>DragAndDropSystem</code> par scène (ou par écran d'interface) suffit.</p>
@@ -104,19 +104,19 @@
   <ol class="steps">
     <li>
       <strong>Construire la scène</strong> : un <code>Node2D</code> racine avec un enfant <code>Carte</code> (un <code>Sprite2D</code> de 80 × 120 px) et un enfant <code>Emplacement</code> (un <code>Marker2D</code> à l'endroit où la carte doit se poser).
-      <div class="why">la carte prendra la <em>position globale</em> de l'emplacement : un simple marqueur suffit.</div>
+      <div class="why">La carte prendra la <em>position globale</em> de l'emplacement : un simple marqueur suffit.</div>
     </li>
     <li>
       <strong>Ajouter un nœud <code>DragAndDropSystem</code></strong> comme enfant de la racine.
-      <div class="why">c'est lui qui lit la souris ; les chemins des composants seront relatifs à lui (d'où les <code>../</code> ci-dessous).</div>
+      <div class="why">C'est lui qui lit la souris ; les chemins des composants seront relatifs à lui (d'où les <code>../</code> ci-dessous).</div>
     </li>
     <li>
       <strong>Dans <code>draggables</code>, ajouter un élément <code>Nouveau DraggableComponent</code></strong>, puis régler <code>target_node_path</code> = <code>../Carte</code> et <code>local_bounds_2d</code> = <code>(-40, -60, 80, 120)</code>.
-      <div class="why">la zone de saisie d'un <code>Node2D</code> n'est pas déduite du sprite : elle est donnée dans le repère local du nœud (ici centrée, comme un <code>Sprite2D</code> centré).</div>
+      <div class="why">La zone de saisie d'un <code>Node2D</code> n'est pas déduite du sprite : elle est donnée dans le repère local du nœud (ici centrée, comme un <code>Sprite2D</code> centré).</div>
     </li>
     <li>
       <strong>Dans <code>snap_targets</code>, ajouter <code>../Emplacement</code></strong>, et laisser <code>release_behavior</code> à <em>Snap To Valid Point</em> et <code>snap_distance_threshold</code> à 50.
-      <div class="why">au relâchement, la carte se pose sur l'emplacement si elle en est à moins de 50 px ; sinon elle revient à la position qu'elle avait au lancement.</div>
+      <div class="why">Au relâchement, la carte se pose sur l'emplacement si elle en est à moins de 50 px ; sinon elle revient à la position qu'elle avait au lancement.</div>
     </li>
     <li>
       <strong>Réagir au dépôt</strong> dans un script de la racine :
@@ -129,7 +129,7 @@ func _on_carte_posee(carte: Node, emplacement: Node) -> void:
     </li>
     <li>
       <strong>Lancer la scène</strong> et glisser la carte au clic gauche.
-      <div class="why">le nœud est une classe d'exécution : dans l'éditeur, rien ne bouge, c'est voulu.</div>
+      <div class="why">Le nœud est une classe d'exécution : dans l'éditeur, rien ne bouge, c'est voulu.</div>
     </li>
   </ol>
 

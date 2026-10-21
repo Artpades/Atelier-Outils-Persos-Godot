@@ -69,15 +69,15 @@
     <li>
       <strong>Compiler le module</strong> (si besoin) :
       <pre><code class="language-shell">scons scene_manager</code></pre>
-      <div class="why">compile la bibliothèque du registre <code>scene_manager_register.cpp</code>.</div>
+      <div class="why">Compile la bibliothèque du registre <code>scene_manager_register.cpp</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/scene_manager/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/scene_manager/…</code> absolus dans le <code>.gdextension</code> ; découverte des extensions au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/scene_manager/…</code> absolus dans le <code>.gdextension</code> ; découverte des extensions au démarrage.</div>
     </li>
     <li>
       <strong>Rendre le gestionnaire persistant</strong> : soit l'obtenir par <code>SceneManager.get_instance()</code> (avec <code>ManagerBuilder</code>, il est créé sous la racine de l'arbre), soit déclarer en autoload une scène dont la racine est un <code>SceneManager</code>.
-      <div class="why">le gestionnaire doit survivre au changement de scène pour émettre <code>load_finished</code> : placé dans la scène qui va être remplacée, il serait détruit avant.</div>
+      <div class="why">Le gestionnaire doit survivre au changement de scène pour émettre <code>load_finished</code> : placé dans la scène qui va être remplacée, il serait détruit avant.</div>
     </li>
   </ol>
 
@@ -88,7 +88,7 @@
       <strong>Depuis le menu principal, lancer le chargement</strong> :
       <pre><code class="gdscript">func _on_jouer_pressed() -> void:
 	SceneManager.get_instance().load_scene_async("res://niveaux/niveau_1.tscn")</code></pre>
-      <div class="why">le niveau se charge sur un autre fil d'exécution ; le menu reste affiché et animé pendant ce temps.</div>
+      <div class="why">Le niveau se charge sur un autre fil d'exécution ; le menu reste affiché et animé pendant ce temps.</div>
     </li>
     <li>
       <strong>Afficher la progression</strong> dans une <code>ProgressBar</code> du menu :
@@ -98,7 +98,7 @@
     </li>
     <li>
       <strong>Rien d'autre à faire</strong> : une fois chargé, le niveau remplace la scène courante, puis <code>load_finished</code> est émis.
-      <div class="why">le changement de scène est différé à la fin de l'image pour ne pas détruire la scène courante au milieu de son traitement.</div>
+      <div class="why">Le changement de scène est différé à la fin de l'image pour ne pas détruire la scène courante au milieu de son traitement.</div>
     </li>
   </ol>
 

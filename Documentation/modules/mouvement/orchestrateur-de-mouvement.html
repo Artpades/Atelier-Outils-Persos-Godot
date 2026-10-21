@@ -54,10 +54,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF d'un personnage 2D qui marche, saute dans l'eau, en ressort et glisse le long d'un mur, avec <code>debug_mode</code> du directeur activé (texte « 🎬 eau · eau », « 🎬 mur · mur », « 🎬 sol · sol » au-dessus de la tête).</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/orchestrateur-de-mouvement" data-figure="1">
+    <figcaption>Un héros qui marche, nage et glisse aux murs, au clavier : contextes et conditions en direct, forçage d'un contexte, changement automatique et priorité du mur.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -79,11 +78,11 @@
   <ol class="steps">
     <li>
       <strong>Installer la bibliothèque</strong> comme décrit sur la page du <a href="socle-mouvement.html#mise-en-place">🧩 Socle du mouvement</a> (<code>scons movement_physics</code>, copie de <code>bin/movement_physics/</code>, redémarrage).
-      <div class="why">le directeur fait partie de la même bibliothèque que les composants : il n'y a rien d'autre à installer.</div>
+      <div class="why">Le directeur fait partie de la même bibliothèque que les composants : il n'y a rien d'autre à installer.</div>
     </li>
     <li>
       <strong>Ajouter un <code>MovementDirector</code> comme enfant direct du corps</strong>, à côté de ses composants.
-      <div class="why">il considère comme siens les <code>MovementComponent</code> enfants directs de son parent ; ailleurs, il ne les voit pas.</div>
+      <div class="why">Il considère comme siens les <code>MovementComponent</code> enfants directs de son parent ; ailleurs, il ne les voit pas.</div>
     </li>
   </ol>
   <p>Aucun autoload ni réglage de projet n'est requis.</p>
@@ -95,15 +94,15 @@
   <ol class="steps">
     <li>
       <strong>Construire l'arbre</strong> : <code>CharacterBody2D</code> › <code>CollisionShape2D</code>, <code>Sprite2D</code>, <code>MovementDirector</code>, <code>GroundMovement2D</code>, <code>SwimMovement2D</code>, <code>WallMovement2D</code>.
-      <div class="why">chaque composant gère une situation ; le directeur choisira lequel est actif.</div>
+      <div class="why">Chaque composant gère une situation ; le directeur choisira lequel est actif.</div>
     </li>
     <li>
       <strong>Laisser <code>contexts</code> vide</strong> et <code>auto_configure</code> coché.
-      <div class="why">au démarrage, le directeur crée « eau » (priorité 50), « mur » (40) et « sol » (0, toujours vrai) d'après les composants trouvés.</div>
+      <div class="why">Au démarrage, le directeur crée « eau » (priorité 50), « mur » (40) et « sol » (0, toujours vrai) d'après les composants trouvés.</div>
     </li>
     <li>
       <strong>Ajouter une <code>WaterArea2D</code></strong> avec une <code>CollisionShape2D</code> rectangulaire dans le niveau.
-      <div class="why">c'est elle qui rend la condition « dans l'eau » vraie quand le corps la chevauche.</div>
+      <div class="why">C'est elle qui rend la condition « dans l'eau » vraie quand le corps la chevauche.</div>
     </li>
     <li>
       <strong>Envoyer l'intention au directeur seulement</strong> :
@@ -117,13 +116,14 @@ func _physics_process(_delta: float) -> void:
 		directeur.jump()
 	elif Input.is_action_just_released("ui_accept"):
 		directeur.release_jump()</code></pre>
-      <div class="why">le directeur relaie à tous les composants ; celui qui est actif agit, les autres attendent avec l'intention à jour.</div>
+      <div class="why">Le directeur relaie à tous les composants ; celui qui est actif agit, les autres attendent avec l'intention à jour.</div>
     </li>
     <li>
       <strong>Cocher <code>debug_mode</code></strong> sur le directeur et lancer le jeu.
-      <div class="why">le contexte courant et l'environnement détecté s'affichent au-dessus du personnage : on vérifie que les bascules ont lieu au bon moment.</div>
+      <div class="why">Le contexte courant et l'environnement détecté s'affichent au-dessus du personnage : on vérifie que les bascules ont lieu au bon moment.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-auto"><figcaption>Contextes créés automatiquement (eau 50, mur 40, sol 0) : le directeur active la nage dans l'eau, le mur contre une paroi, le sol ailleurs.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -139,10 +139,38 @@ func _physics_process(_delta: float) -> void:
 
   <h3 id="ex-manuel">Comment je configure les contextes moi-même dans l'inspecteur ?</h3>
   <p>Remplir <code>contexts</code> avec des <code>MovementContext</code> : <code>context_name</code>, <code>condition</code>, <code>priority</code> et <code>components</code> (chemins <strong>relatifs au directeur</strong>, ex. <code>../GroundMovement2D</code>). Un contexte « sol » en <em>Always</em> avec la priorité la plus basse sert de valeur par défaut. Dès que <code>contexts</code> n'est pas vide, la configuration automatique est ignorée.</p>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Capture de l'inspecteur d'un MovementDirector avec trois MovementContext dépliés (sol / Always / 0, eau / In Water / 50, mur / On Wall / 40) et leurs listes <code>components</code>.</div>
-  </div>
+  <figure class="media schema" data-schema="figure-2" data-figure="2"><div class="schema-svg"><svg viewBox="0 0 640 194" role="img" aria-label="Inspecteur d'un MovementDirector et trois contextes">
+  <defs><marker id="f-22227" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">contexts[0]</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">sol</text>
+    <rect x="14" y="70" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">condition : Always</text>
+    <rect x="14" y="106" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="126" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">priority : 0</text>
+    <rect x="14" y="142" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="162" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">../GroundMovement2D</text>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">contexts[1]</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">eau</text>
+    <rect x="223" y="70" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">condition : In Water</text>
+    <rect x="223" y="106" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="126" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">priority : 50</text>
+    <rect x="223" y="142" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="162" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">../SwimMovement2D</text>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">contexts[2]</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">mur</text>
+    <rect x="431" y="70" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">condition : On Wall</text>
+    <rect x="431" y="106" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="126" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">priority : 40</text>
+    <rect x="431" y="142" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="162" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">../WallMovement2D</text>
+  </g>
+</svg></div><figcaption>Inspecteur d'un MovementDirector avec trois MovementContext : sol (Always, 0), eau (In Water, 50) et mur (On Wall, 40), et leurs composants.</figcaption></figure>
 
   <h3 id="ex-code">Comment je crée les contextes par code sans qu'ils soient écrasés ?</h3>
   <p>La configuration automatique est lancée <em>en différé</em> à l'entrée dans l'arbre : des contextes affectés juste après <code>add_child</code> seraient remplacés. Les affecter <strong>avant</strong> l'ajout, ou désactiver <code>auto_configure</code>.</p>
@@ -160,6 +188,7 @@ func _physics_process(_delta: float) -> void:
 	d.contexts = [sol, air]      # AVANT add_child
 	corps.add_child(d)
 	return d</code></pre>
+  <figure class="media" data-video="ex-code"><figcaption>Contextes « sol » et « air » créés par code, affectés avant <code>add_child</code> : l'air (priorité 10) prend la main pendant les sauts.</figcaption></figure>
 
   <h3 id="ex-vol">Comment j'active un mode à la demande (vol, véhicule) ?</h3>
   <p>Un contexte en <em>Manual</em> ne s'active jamais seul : <code>set_context</code> le force, <code>clear_forced_context</code> rend la main. Un <code>AerodynamicMovement2D</code> en mode vol libre crée d'ailleurs automatiquement un contexte « vol » de ce type.</p>
@@ -168,6 +197,7 @@ func _physics_process(_delta: float) -> void:
 		$MovementDirector.set_context(&amp;"vol")
 	elif event.is_action_pressed("atterrir"):
 		$MovementDirector.clear_forced_context()</code></pre>
+  <figure class="media" data-video="ex-vol"><figcaption>Contexte « vol » en Manual : <code>set_context(&"vol")</code> le force, <code>clear_forced_context()</code> rend la main à l'automatique.</figcaption></figure>
 
   <h3 id="ex-expression">Comment j'écris une condition sur mesure ?</h3>
   <p><em>Custom</em> évalue une expression avec <code>body</code> et <code>director</code>. Ici, un sprint glissé quand on court vite en descente :</p>
@@ -177,6 +207,7 @@ glissade.condition = MovementContext.CONDITION_CUSTOM
 glissade.expression = "director.is_on_floor() and abs(body.velocity.x) > 300 and body.get_floor_angle() > 0.3"
 glissade.priority = 30
 glissade.components = [NodePath("../SlideMovement")]  # composant GDScript maison</code></pre>
+  <figure class="media" data-video="ex-expression"><figcaption>Condition Custom : « glissade » quand on court vite au sol (expression sur <code>body</code> et <code>director</code>).</figcaption></figure>
 
   <h3 id="ex-animation">Comment je change d'animation selon le contexte ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
@@ -187,6 +218,7 @@ func _sur_contexte(_avant: StringName, apres: StringName) -> void:
 		&amp;"eau": $AnimationPlayer.play("nage")
 		&amp;"mur": $AnimationPlayer.play("glissade")
 		_: $AnimationPlayer.play("marche")</code></pre>
+  <figure class="media" data-video="ex-animation"><figcaption><code>context_changed(avant, après)</code> : l'animation (ici la couleur) suit le contexte.</figcaption></figure>
 
   <h3 id="ex-recul">Comment je laisse le recul déplacer le personnage tout seul ?</h3>
   <p>Aucun contexte « recul » n'est créé automatiquement. En ajouter un <strong>sans composant</strong> : tous les composants cités ailleurs sont alors désactivés, et le <code>Knockback2D</code> déplace lui-même le corps (voir <a href="recul.html">🌬️ Recul</a>).</p>
@@ -194,11 +226,13 @@ func _sur_contexte(_avant: StringName, apres: StringName) -> void:
 recul.context_name = &amp;"recul"
 recul.condition = MovementContext.CONDITION_KNOCKED
 recul.priority = 100   # passe avant tout le reste</code></pre>
+  <figure class="media" data-video="ex-recul"><figcaption>Contexte « recul » (CONDITION_KNOCKED, priorité 100) sans composant : pendant le recul, le Knockback2D déplace seul le personnage.</figcaption></figure>
 
   <h3 id="ex-env">Comment j'affiche l'état du personnage pour le débogage ?</h3>
   <pre><code class="gdscript">func _process(_delta: float) -> void:
 	$Etiquette.text = str($MovementDirector.get_environment())
 	# {"on_floor": true, "in_water": false, "on_wall": false, "on_rope": false, "knocked": false, "context": &amp;"sol"}</code></pre>
+  <figure class="media" data-video="ex-env"><figcaption><code>get_environment()</code> affiché en direct : sol, eau, mur, corde, recul et contexte.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -353,6 +387,304 @@ window.GTK_USAGES = {
   "MovementContext.CONDITION_CUSTOM": "Toute autre règle exprimable en une ligne (glissade en pente, sprint rapide…)."
 };
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-conditions">
+<svg viewBox="0 0 640 164" role="img" aria-label="Conditions d'un MovementContext">
+  <defs><marker id="f-79107" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Toujours / manuel</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ALWAYS : toujours vrai</text>
+    <rect x="14" y="72" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">MANUAL : jamais seul</text>
+    <rect x="14" y="110" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">CUSTOM : expression</text>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Situation du corps</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ON_FLOOR / IN_AIR</text>
+    <rect x="223" y="72" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">IN_WATER (WaterArea)</text>
+    <rect x="223" y="110" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ON_WALL</text>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Autres composants</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ON_ROPE (Rope2D/3D)</text>
+    <rect x="431" y="72" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">KNOCKED (Knockback)</text>
+    <rect x="431" y="110" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_condition_met(ctx)</text>
+  </g>
+</svg>
+</template>
+<template id="schema-choix">
+<svg viewBox="0 0 640 218" role="img" aria-label="Choix du contexte à chaque image">
+  <defs><marker id="f-84891" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">update_context()</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">contexte forcé ?</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle">oui : set_context(nom)</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle">non : si auto_switch,</text>
+    <line x1="111" y1="148" x2="111" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="14" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="180" text-anchor="middle" fill-opacity="0.7">le plus prioritaire vrai</text>
+    <line x1="211" y1="49.0" x2="221" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Application</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">composants du contexte</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">active = true</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle">autres composants cités</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle" fill-opacity="0.7">active = false</text>
+    <line x1="419" y1="49.0" x2="429" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Résultat</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">get_current_context()</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">signal context_changed</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-84891)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="185" lengthAdjust="spacingAndGlyphs">get_components() / get_context()</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "MovementContext.priority": [
+    {
+      "video": "MovementContext.priority",
+      "legende": "Dans l'eau contre un mur : avec eau 50 / mur 40 la nage l'emporte ; en inversant les priorités, le mur l'emporte."
+    }
+  ],
+  "MovementDirector.auto_switch": [
+    {
+      "video": "MovementDirector.auto_switch",
+      "legende": "<code>auto_switch = false<\/code> : le contexte ne change plus seul, même dans l'eau ; seul <code>set_context<\/code> le change."
+    }
+  ],
+  "MovementContext": [
+    {
+      "video": "classe-MovementContext",
+      "legende": "Un contexte : un nom, une condition, une priorité et ses composants ; parmi les contextes vrais, le plus prioritaire l'emporte."
+    }
+  ],
+  "MovementDirector": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementContext.components": [
+    {
+      "video": "classe-MovementContext",
+      "legende": "Un contexte : un nom, une condition, une priorité et ses composants ; parmi les contextes vrais, le plus prioritaire l'emporte."
+    }
+  ],
+  "MovementContext.condition": [
+    {
+      "schema": "schema-conditions",
+      "legende": "Les conditions d'un MovementContext et ce qu'elles testent ; le directeur choisit, parmi les contextes vrais, celui de plus haute priorité."
+    }
+  ],
+  "MovementContext.context_name": [
+    {
+      "video": "classe-MovementContext",
+      "legende": "Un contexte : un nom, une condition, une priorité et ses composants ; parmi les contextes vrais, le plus prioritaire l'emporte."
+    }
+  ],
+  "MovementContext.evaluate_expression": [
+    {
+      "video": "ex-expression",
+      "legende": "Condition Custom : « glissade » quand on court vite au sol (expression sur <code>body<\/code> et <code>director<\/code>)."
+    }
+  ],
+  "MovementContext.expression": [
+    {
+      "video": "ex-expression",
+      "legende": "Condition Custom : « glissade » quand on court vite au sol (expression sur <code>body<\/code> et <code>director<\/code>)."
+    }
+  ],
+  "MovementDirector.auto_configure": [
+    {
+      "video": "mode-emploi-tuto-auto",
+      "legende": "Contextes créés automatiquement (eau 50, mur 40, sol 0) : le directeur active la nage dans l'eau, le mur contre une paroi, le sol ailleurs."
+    }
+  ],
+  "MovementDirector.clear_forced_context": [
+    {
+      "video": "ex-vol",
+      "legende": "Contexte « vol » en Manual : <code>set_context(&\"vol\")<\/code> le force, <code>clear_forced_context()<\/code> rend la main à l'automatique."
+    }
+  ],
+  "MovementDirector.context_changed": [
+    {
+      "video": "ex-animation",
+      "legende": "<code>context_changed(avant, après)<\/code> : l'animation (ici la couleur) suit le contexte."
+    }
+  ],
+  "MovementDirector.contexts": [
+    {
+      "video": "classe-MovementContext",
+      "legende": "Un contexte : un nom, une condition, une priorité et ses composants ; parmi les contextes vrais, le plus prioritaire l'emporte."
+    }
+  ],
+  "MovementDirector.create_default_contexts": [
+    {
+      "video": "mode-emploi-tuto-auto",
+      "legende": "Contextes créés automatiquement (eau 50, mur 40, sol 0) : le directeur active la nage dans l'eau, le mur contre une paroi, le sol ailleurs."
+    }
+  ],
+  "MovementDirector.debug_mode": [
+    {
+      "video": "mode-emploi-tuto-auto",
+      "legende": "Contextes créés automatiquement (eau 50, mur 40, sol 0) : le directeur active la nage dans l'eau, le mur contre une paroi, le sol ailleurs."
+    }
+  ],
+  "MovementDirector.get_body": [
+    {
+      "schema": "schema-choix",
+      "legende": "À chaque image physique, <code>update_context()<\/code> : contexte forcé, sinon le plus prioritaire dont la condition est vraie ; ses composants sont activés, les autres désactivés."
+    }
+  ],
+  "MovementDirector.get_components": [
+    {
+      "schema": "schema-choix",
+      "legende": "À chaque image physique, <code>update_context()<\/code> : contexte forcé, sinon le plus prioritaire dont la condition est vraie ; ses composants sont activés, les autres désactivés."
+    }
+  ],
+  "MovementDirector.get_context": [
+    {
+      "schema": "schema-choix",
+      "legende": "À chaque image physique, <code>update_context()<\/code> : contexte forcé, sinon le plus prioritaire dont la condition est vraie ; ses composants sont activés, les autres désactivés."
+    }
+  ],
+  "MovementDirector.get_current_context": [
+    {
+      "video": "ex-animation",
+      "legende": "<code>context_changed(avant, après)<\/code> : l'animation (ici la couleur) suit le contexte."
+    }
+  ],
+  "MovementDirector.get_environment": [
+    {
+      "video": "ex-env",
+      "legende": "<code>get_environment()<\/code> affiché en direct : sol, eau, mur, corde, recul et contexte."
+    }
+  ],
+  "MovementDirector.get_forced_context": [
+    {
+      "video": "ex-vol",
+      "legende": "Contexte « vol » en Manual : <code>set_context(&\"vol\")<\/code> le force, <code>clear_forced_context()<\/code> rend la main à l'automatique."
+    }
+  ],
+  "MovementDirector.get_move_input": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementDirector.is_condition_met": [
+    {
+      "schema": "schema-conditions",
+      "legende": "Les conditions d'un MovementContext et ce qu'elles testent ; le directeur choisit, parmi les contextes vrais, celui de plus haute priorité."
+    }
+  ],
+  "MovementDirector.is_in_air": [
+    {
+      "video": "ex-env",
+      "legende": "<code>get_environment()<\/code> affiché en direct : sol, eau, mur, corde, recul et contexte."
+    }
+  ],
+  "MovementDirector.is_in_water": [
+    {
+      "video": "ex-env",
+      "legende": "<code>get_environment()<\/code> affiché en direct : sol, eau, mur, corde, recul et contexte."
+    }
+  ],
+  "MovementDirector.is_jump_held": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementDirector.is_knocked": [
+    {
+      "video": "ex-recul",
+      "legende": "Contexte « recul » (CONDITION_KNOCKED, priorité 100) sans composant : pendant le recul, le Knockback2D déplace seul le personnage."
+    }
+  ],
+  "MovementDirector.is_on_floor": [
+    {
+      "video": "ex-env",
+      "legende": "<code>get_environment()<\/code> affiché en direct : sol, eau, mur, corde, recul et contexte."
+    }
+  ],
+  "MovementDirector.is_on_rope": [
+    {
+      "video": "ex-env",
+      "legende": "<code>get_environment()<\/code> affiché en direct : sol, eau, mur, corde, recul et contexte."
+    }
+  ],
+  "MovementDirector.is_on_wall": [
+    {
+      "video": "ex-env",
+      "legende": "<code>get_environment()<\/code> affiché en direct : sol, eau, mur, corde, recul et contexte."
+    }
+  ],
+  "MovementDirector.jump": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementDirector.move": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementDirector.release_jump": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementDirector.set_context": [
+    {
+      "video": "ex-vol",
+      "legende": "Contexte « vol » en Manual : <code>set_context(&\"vol\")<\/code> le force, <code>clear_forced_context()<\/code> rend la main à l'automatique."
+    }
+  ],
+  "MovementDirector.set_running": [
+    {
+      "video": "ex-expression",
+      "legende": "Condition Custom : « glissade » quand on court vite au sol (expression sur <code>body<\/code> et <code>director<\/code>)."
+    }
+  ],
+  "MovementDirector.set_vertical_input": [
+    {
+      "video": "classe-MovementDirector",
+      "legende": "Le directeur reçoit l'intention, la relaie à tous les composants et n'active que ceux du contexte courant."
+    }
+  ],
+  "MovementDirector.update_context": [
+    {
+      "schema": "schema-choix",
+      "legende": "À chaque image physique, <code>update_context()<\/code> : contexte forcé, sinon le plus prioritaire dont la condition est vraie ; ses composants sont activés, les autres désactivés."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

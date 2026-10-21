@@ -53,10 +53,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF d'un personnage 2D qui court, fait un double saut, saute juste après avoir quitté une plateforme (coyote time) et fait un petit saut en relâchant tôt ; debug_mode activé (texte « en l'air · sauts 2/2 »).</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/deplacement-au-sol" data-figure="1">
+    <figcaption>Un héros au clavier sur des plateformes : mode plateforme ou vue de dessus, vitesse, accélération, contrôle en l'air, saut, nombre de sauts, temps de grâce, coupure de saut, gravité et course.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -78,11 +77,11 @@
   <ol class="steps">
     <li>
       <strong>Installer la bibliothèque</strong> comme décrit sur la page du <a href="socle-mouvement.html#mise-en-place">🧩 Socle du mouvement</a>.
-      <div class="why">tous les composants de mouvement sont dans la même bibliothèque.</div>
+      <div class="why">Tous les composants de mouvement sont dans la même bibliothèque.</div>
     </li>
     <li>
       <strong>Pour un corps rigide uniquement</strong> : activer <code>contact_monitor</code> et mettre <code>max_contacts_reported</code> à 1 ou plus.
-      <div class="why">le saut d'un corps rigide n'est autorisé que s'il signale au moins un contact ; sans ces réglages, Godot n'en signale aucun et le saut ne part jamais (vérifié).</div>
+      <div class="why">Le saut d'un corps rigide n'est autorisé que s'il signale au moins un contact ; sans ces réglages, Godot n'en signale aucun et le saut ne part jamais (vérifié).</div>
     </li>
   </ol>
 
@@ -93,15 +92,15 @@
   <ol class="steps">
     <li>
       <strong>Créer un <code>CharacterBody2D</code></strong> avec une <code>CollisionShape2D</code> et un <code>Sprite2D</code>, au-dessus d'un sol.
-      <div class="why">le composant utilise <code>move_and_slide</code> et la détection de sol du <code>CharacterBody2D</code>.</div>
+      <div class="why">Le composant utilise <code>move_and_slide</code> et la détection de sol du <code>CharacterBody2D</code>.</div>
     </li>
     <li>
       <strong>Ajouter un enfant <code>GroundMovement2D</code></strong>, régler <code>visual_path</code> sur <code>../Sprite2D</code>.
-      <div class="why">le sprite sera retourné (<code>flip_h</code>) quand le personnage va à gauche.</div>
+      <div class="why">Le sprite sera retourné (<code>flip_h</code>) quand le personnage va à gauche.</div>
     </li>
     <li>
       <strong>Régler le saut</strong> : <code>jump_velocity</code> = 420, <code>max_jumps</code> = 2 pour un double saut.
-      <div class="why">les valeurs sont en pixels par seconde ; la gravité est celle du projet (980 par défaut), multipliée par <code>gravity_scale</code>.</div>
+      <div class="why">Les valeurs sont en pixels par seconde ; la gravité est celle du projet (980 par défaut), multipliée par <code>gravity_scale</code>.</div>
     </li>
     <li>
       <strong>Envoyer les commandes</strong> depuis le script du corps :
@@ -115,16 +114,17 @@
       <div class="why"><code>release_jump()</code> active la hauteur variable : relâcher pendant la montée multiplie la vitesse par <code>jump_cut</code>.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-2d"><figcaption>Double saut (<code>max_jumps = 2</code>), saut juste après un rebord (temps de grâce) et petit saut relâché tôt, avec <code>debug_mode</code>.</figcaption></figure>
 
   <h3 id="tuto-3d">B. Personnage 3D à la troisième personne</h3>
   <ol class="steps">
     <li>
       <strong>Créer un <code>CharacterBody3D</code></strong> avec sa forme, un modèle (<code>Modele</code>) et une <code>Camera3D</code> active dans la scène.
-      <div class="why">la caméra courante sert de repère pour « avant » quand <code>camera_relative</code> est actif.</div>
+      <div class="why">La caméra courante sert de repère pour « avant » quand <code>camera_relative</code> est actif.</div>
     </li>
     <li>
       <strong>Ajouter un <code>GroundMovement3D</code></strong> : cocher <code>camera_relative</code>, <code>visual_path</code> = <code>../Modele</code>.
-      <div class="why">seul le modèle tourne vers la direction de marche : la caméra éventuellement attachée au corps ne tourne pas avec lui.</div>
+      <div class="why">Seul le modèle tourne vers la direction de marche : la caméra éventuellement attachée au corps ne tourne pas avec lui.</div>
     </li>
     <li>
       <strong>Envoyer les commandes</strong> :
@@ -133,9 +133,10 @@
 	g.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))  # haut = avant
 	if Input.is_action_just_pressed("ui_accept"):
 		g.jump()</code></pre>
-      <div class="why">en 3D, <code>move.y</code> négatif signifie « vers l'avant » (de la caméra ou de l'axe -Z du monde).</div>
+      <div class="why">En 3D, <code>move.y</code> négatif signifie « vers l'avant » (de la caméra ou de l'axe -Z du monde).</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-3d"><figcaption>GroundMovement3D avec <code>camera_relative</code> : haut = vers l'avant de la caméra ; seul le modèle (<code>visual_path</code>) tourne.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -158,6 +159,7 @@
 func _physics_process(_delta: float) -> void:
 	$GroundMovement2D.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
 	$GroundMovement2D.set_running(Input.is_key_pressed(KEY_SHIFT))</code></pre>
+  <figure class="media" data-video="ex-topdown"><figcaption>Vue de dessus (<code>MODE_TOP_DOWN</code>) : déplacement libre, course avec Maj.</figcaption></figure>
 
   <h3 id="ex-glace">Comment je fais un sol glissant (glace) ?</h3>
   <p>Accélération et freinage faibles : le personnage met du temps à démarrer et à s'arrêter. Avec une <code>Area2D</code> sur la zone gelée :</p>
@@ -172,6 +174,7 @@ func _on_glace_body_exited(corps: Node2D) -> void:
 	if g:
 		g.acceleration = 1500.0
 		g.deceleration = 2000.0</code></pre>
+  <figure class="media" data-video="ex-glace"><figcaption>Sur la zone gelée (Area2D), accélération 300 et freinage 150 : le personnage glisse.</figcaption></figure>
 
   <h3 id="ex-effets">Comment je joue un son et une poussière au saut et à l'atterrissage ?</h3>
   <p>À combiner avec le module <em>✨ Effets spéciaux</em> (un <code>PlayerFX</code> par effet) :</p>
@@ -180,6 +183,7 @@ func _on_glace_body_exited(corps: Node2D) -> void:
 	$GroundMovement2D.landed.connect(func():
 		$Poussiere.restart()
 		$Jiggle2D.impulse(Vector2(0, 300)))   # le chapeau s'écrase (🫨 Trémousse)</code></pre>
+  <figure class="media" data-video="ex-effets"><figcaption><code>jumped</code> et <code>landed</code> : poussière à l'atterrissage, antenne écrasée (Jiggle2D).</figcaption></figure>
 
   <h3 id="ex-ia3d">Comment je fais suivre un chemin à un PNJ 3D ?</h3>
   <p>Avec <code>camera_relative</code> désactivé, <code>move(Vector2(x, z))</code> est une direction du monde : il suffit de la donner depuis un <code>NavigationAgent3D</code>.</p>
@@ -191,6 +195,7 @@ func _physics_process(_delta: float) -> void:
 		return
 	var vers := agent.get_next_path_position() - global_position
 	$GroundMovement3D.move(Vector2(vers.x, vers.z).normalized())</code></pre>
+  <figure class="media" data-video="ex-ia3d"><figcaption>Un PNJ 3D suit le chemin de son NavigationAgent3D autour d'un obstacle : <code>move(Vector2(x, z))</code>.</figcaption></figure>
 
   <h3 id="ex-gravite">Comment j'inverse la gravité ?</h3>
   <p><code>gravity_scale</code> négatif fait « tomber » vers le haut. Attention : la direction du saut, la vitesse de chute maximale et la détection du sol restent pensées pour une gravité vers le bas ; il faut aussi changer <code>up_direction</code> du <code>CharacterBody2D</code>.</p>
@@ -198,6 +203,7 @@ func _physics_process(_delta: float) -> void:
 	$GroundMovement2D.gravity_scale *= -1.0
 	up_direction = -up_direction
 	$Sprite2D.flip_v = not $Sprite2D.flip_v</code></pre>
+  <figure class="media" data-video="ex-gravite"><figcaption><code>gravity_scale *= -1</code> et <code>up_direction</code> inversée : le personnage marche au plafond.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -222,10 +228,30 @@ func _physics_process(_delta: float) -> void:
     <li>Les réglages communs vivent dans la structure C++ <code>GroundSettings</code>, partagée par les deux classes ; les valeurs par défaut 3D sont converties en mètres dans le constructeur de <code>GroundMovement3D</code>.</li>
     <li>Ordre de calcul du saut : temps de grâce et compteur remis à zéro au sol → demande de saut mémorisée (<code>has_jump_request</code>) → <code>try_jump</code> (sol, temps de grâce, ou saut en l'air restant) → coupure de hauteur si le saut est relâché pendant la montée.</li>
   </ul>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Schéma (ou capture debug_mode 3D) montrant les flèches : intention convertie en monde (jaune), direction du regard (rose), normale du sol (rouge), vitesse (vert).</div>
-  </div>
+  <figure class="media schema" data-schema="figure-2" data-figure="2"><div class="schema-svg"><svg viewBox="0 0 640 250" role="img" aria-label="Flèches de debug_mode d'un GroundMovement3D : intention dans le monde, regard, normale du sol, vitesse">
+  <defs>
+    <marker id="f3d-j" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e0b000"/></marker>
+    <marker id="f3d-r" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#ff5fc8"/></marker>
+    <marker id="f3d-n" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e5484d"/></marker>
+    <marker id="f3d-v" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2fa84f"/></marker>
+  </defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <polygon points="60,200 360,200 460,140 160,140" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.3"/>
+    <ellipse cx="260" cy="170" rx="22" ry="8" fill="currentColor" fill-opacity="0.15"/>
+    <rect x="246" y="96" width="28" height="74" rx="14" fill="var(--accent)" fill-opacity="0.5" stroke="var(--accent)"/>
+    <line x1="260" y1="170" x2="360" y2="150" stroke="#e0b000" stroke-width="3" marker-end="url(#f3d-j)"/>
+    <line x1="260" y1="120" x2="330" y2="104" stroke="#ff5fc8" stroke-width="3" marker-end="url(#f3d-r)"/>
+    <line x1="200" y1="182" x2="200" y2="120" stroke="#e5484d" stroke-width="3" marker-end="url(#f3d-n)"/>
+    <line x1="260" y1="150" x2="380" y2="118" stroke="#2fa84f" stroke-width="3" marker-end="url(#f3d-v)"/>
+    <text x="480" y="60" fill="#e0b000" font-weight="700">jaune : intention (monde)</text>
+    <text x="480" y="78" font-size="11.5" fill-opacity="0.75">get_world_input()</text>
+    <text x="480" y="104" fill="#ff5fc8" font-weight="700">rose : regard</text>
+    <text x="480" y="122" font-size="11.5" fill-opacity="0.75">get_facing()</text>
+    <text x="480" y="148" fill="#e5484d" font-weight="700">rouge : normale du sol</text>
+    <text x="480" y="174" fill="#2fa84f" font-weight="700">vert : vitesse</text>
+    <text x="260" y="234" text-anchor="middle" fill-opacity="0.7">camera_relative : l'intention suit la caméra, ramenée à l'horizontale</text>
+  </g>
+</svg></div><figcaption>Les flèches de <code>debug_mode</code> en 3D : intention convertie en direction du monde (jaune, <code>get_world_input()</code>), regard (rose, <code>get_facing()</code>), normale du sol (rouge), vitesse (vert).</figcaption></figure>
 
   <h3 id="couplage">Dépendances et couplage</h3>
   <ul>
@@ -305,6 +331,272 @@ window.GTK_USAGES = {};
   });
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-figure-2">
+<svg viewBox="0 0 640 250" role="img" aria-label="Flèches de debug_mode d'un GroundMovement3D : intention dans le monde, regard, normale du sol, vitesse">
+  <defs>
+    <marker id="f3d-j" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e0b000"/></marker>
+    <marker id="f3d-r" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#ff5fc8"/></marker>
+    <marker id="f3d-n" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e5484d"/></marker>
+    <marker id="f3d-v" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2fa84f"/></marker>
+  </defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <polygon points="60,200 360,200 460,140 160,140" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-opacity="0.3"/>
+    <ellipse cx="260" cy="170" rx="22" ry="8" fill="currentColor" fill-opacity="0.15"/>
+    <rect x="246" y="96" width="28" height="74" rx="14" fill="var(--accent)" fill-opacity="0.5" stroke="var(--accent)"/>
+    <line x1="260" y1="170" x2="360" y2="150" stroke="#e0b000" stroke-width="3" marker-end="url(#f3d-j)"/>
+    <line x1="260" y1="120" x2="330" y2="104" stroke="#ff5fc8" stroke-width="3" marker-end="url(#f3d-r)"/>
+    <line x1="200" y1="182" x2="200" y2="120" stroke="#e5484d" stroke-width="3" marker-end="url(#f3d-n)"/>
+    <line x1="260" y1="150" x2="380" y2="118" stroke="#2fa84f" stroke-width="3" marker-end="url(#f3d-v)"/>
+    <text x="480" y="60" fill="#e0b000" font-weight="700">jaune : intention (monde)</text>
+    <text x="480" y="78" font-size="11.5" fill-opacity="0.75">get_world_input()</text>
+    <text x="480" y="104" fill="#ff5fc8" font-weight="700">rose : regard</text>
+    <text x="480" y="122" font-size="11.5" fill-opacity="0.75">get_facing()</text>
+    <text x="480" y="148" fill="#e5484d" font-weight="700">rouge : normale du sol</text>
+    <text x="480" y="174" fill="#2fa84f" font-weight="700">vert : vitesse</text>
+    <text x="260" y="234" text-anchor="middle" fill-opacity="0.7">camera_relative : l'intention suit la caméra, ramenée à l'horizontale</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "GroundMovement2D.acceleration": [
+    {
+      "video": "GroundMovement2D.acceleration",
+      "legende": "<code>acceleration<\/code> / <code>deceleration<\/code> 300 / 150 (glissant), 1500 / 2000 (défaut) et 6000 / 8000 (instantané)."
+    }
+  ],
+  "GroundMovement2D.air_control": [
+    {
+      "video": "GroundMovement2D.air_control",
+      "legende": "Saut vers la droite puis demi-tour en l'air : <code>air_control<\/code> 0, 0,6 (défaut) et 1."
+    }
+  ],
+  "GroundMovement2D.coyote_time": [
+    {
+      "video": "GroundMovement2D.coyote_time",
+      "legende": "Saut 0,1 s après avoir quitté le rebord : refusé avec <code>coyote_time = 0<\/code>, accepté avec 0,15."
+    }
+  ],
+  "GroundMovement2D.gravity_scale": [
+    {
+      "video": "GroundMovement2D.gravity_scale",
+      "legende": "<code>gravity_scale<\/code> 0,5, 1 et 2 : même saut, gravité différente."
+    }
+  ],
+  "GroundMovement2D.jump_cut": [
+    {
+      "video": "GroundMovement2D.jump_cut",
+      "legende": "Saut relâché tôt : <code>jump_cut<\/code> 1 (aucune coupure), 0,5 (défaut) et 0,2."
+    }
+  ],
+  "GroundMovement2D.jump_velocity": [
+    {
+      "video": "GroundMovement2D.jump_velocity",
+      "legende": "<code>jump_velocity<\/code> 300, 420 (défaut) et 600 px/s."
+    }
+  ],
+  "GroundMovement2D.max_fall_speed": [
+    {
+      "video": "GroundMovement2D.max_fall_speed",
+      "legende": "Chute depuis très haut : <code>max_fall_speed<\/code> 300 et 1500 (défaut)."
+    }
+  ],
+  "GroundMovement2D.max_jumps": [
+    {
+      "video": "GroundMovement2D.max_jumps",
+      "legende": "Trois appuis sur saut : <code>max_jumps<\/code> 1, 2 et 3 (0 désactive le saut)."
+    }
+  ],
+  "GroundMovement2D.max_speed": [
+    {
+      "video": "GroundMovement2D.max_speed",
+      "legende": "<code>max_speed<\/code> 100, 200 (défaut) et 400 px/s."
+    }
+  ],
+  "GroundMovement2D.run_multiplier": [
+    {
+      "video": "GroundMovement2D.run_multiplier",
+      "legende": "En course : <code>run_multiplier<\/code> 1,2, 1,6 (défaut) et 2,5."
+    }
+  ],
+  "GroundMovement2D.visual_path": [
+    {
+      "video": "GroundMovement2D.visual_path",
+      "legende": "<code>visual_path<\/code> vers le sprite : il est retourné selon la direction ; <code>get_facing()<\/code> (flèche) suit."
+    }
+  ],
+  "GroundMovement3D.camera_relative": [
+    {
+      "video": "GroundMovement3D.camera_relative",
+      "legende": "La caméra tourne : avec <code>camera_relative<\/code>, « avant » suit la caméra ; sans, c'est toujours -Z du monde."
+    }
+  ],
+  "GroundMovement3D.turn_speed": [
+    {
+      "video": "GroundMovement3D.turn_speed",
+      "legende": "<code>turn_speed<\/code> 3, 12 (défaut) et 40 : la vitesse à laquelle le modèle se tourne vers sa marche."
+    }
+  ],
+  "GroundMovement2D": [
+    {
+      "video": "classe-GroundMovement2D",
+      "legende": "Deux modes : plateforme (gravité, sauts) et vue de dessus (déplacement libre en x et y)."
+    }
+  ],
+  "GroundMovement3D": [
+    {
+      "video": "classe-GroundMovement3D",
+      "legende": "Marche dans le plan XZ, sauts selon Y, modèle tourné vers la direction de marche."
+    }
+  ],
+  "GroundMovement2D.deceleration": [
+    {
+      "video": "GroundMovement2D.acceleration",
+      "legende": "<code>acceleration<\/code> / <code>deceleration<\/code> 300 / 150 (glissant), 1500 / 2000 (défaut) et 6000 / 8000 (instantané)."
+    }
+  ],
+  "GroundMovement2D.get_facing": [
+    {
+      "video": "GroundMovement2D.visual_path",
+      "legende": "<code>visual_path<\/code> vers le sprite : il est retourné selon la direction ; <code>get_facing()<\/code> (flèche) suit."
+    }
+  ],
+  "GroundMovement2D.is_on_floor": [
+    {
+      "video": "mode-emploi-tuto-2d",
+      "legende": "Double saut (<code>max_jumps = 2<\/code>), saut juste après un rebord (temps de grâce) et petit saut relâché tôt, avec <code>debug_mode<\/code>."
+    }
+  ],
+  "GroundMovement2D.jumped": [
+    {
+      "video": "ex-effets",
+      "legende": "<code>jumped<\/code> et <code>landed<\/code> : poussière à l'atterrissage, antenne écrasée (Jiggle2D)."
+    }
+  ],
+  "GroundMovement2D.landed": [
+    {
+      "video": "ex-effets",
+      "legende": "<code>jumped<\/code> et <code>landed<\/code> : poussière à l'atterrissage, antenne écrasée (Jiggle2D)."
+    }
+  ],
+  "GroundMovement2D.mode": [
+    {
+      "video": "classe-GroundMovement2D",
+      "legende": "Deux modes : plateforme (gravité, sauts) et vue de dessus (déplacement libre en x et y)."
+    }
+  ],
+  "GroundMovement3D.acceleration": [
+    {
+      "video": "GroundMovement2D.acceleration",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.air_control": [
+    {
+      "video": "GroundMovement2D.air_control",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.coyote_time": [
+    {
+      "video": "GroundMovement2D.coyote_time",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.deceleration": [
+    {
+      "video": "GroundMovement2D.acceleration",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.get_facing": [
+    {
+      "schema": "schema-figure-2",
+      "legende": "Les flèches de <code>debug_mode<\/code> en 3D : intention convertie en direction du monde (jaune, <code>get_world_input()<\/code>), regard (rose, <code>get_facing()<\/code>), normale du sol (rouge), vitesse (vert)."
+    }
+  ],
+  "GroundMovement3D.get_world_input": [
+    {
+      "schema": "schema-figure-2",
+      "legende": "Les flèches de <code>debug_mode<\/code> en 3D : intention convertie en direction du monde (jaune, <code>get_world_input()<\/code>), regard (rose, <code>get_facing()<\/code>), normale du sol (rouge), vitesse (vert)."
+    }
+  ],
+  "GroundMovement3D.gravity_scale": [
+    {
+      "video": "GroundMovement2D.gravity_scale",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.is_on_floor": [
+    {
+      "video": "classe-GroundMovement3D",
+      "legende": "Marche dans le plan XZ, sauts selon Y, modèle tourné vers la direction de marche."
+    }
+  ],
+  "GroundMovement3D.jump_cut": [
+    {
+      "video": "GroundMovement2D.jump_cut",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.jump_velocity": [
+    {
+      "video": "GroundMovement2D.jump_velocity",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.jumped": [
+    {
+      "video": "classe-GroundMovement3D",
+      "legende": "Marche dans le plan XZ, sauts selon Y, modèle tourné vers la direction de marche."
+    }
+  ],
+  "GroundMovement3D.landed": [
+    {
+      "video": "classe-GroundMovement3D",
+      "legende": "Marche dans le plan XZ, sauts selon Y, modèle tourné vers la direction de marche."
+    }
+  ],
+  "GroundMovement3D.max_fall_speed": [
+    {
+      "video": "GroundMovement2D.max_fall_speed",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.max_jumps": [
+    {
+      "video": "GroundMovement2D.max_jumps",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.max_speed": [
+    {
+      "video": "GroundMovement2D.max_speed",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.rotate_toward_movement": [
+    {
+      "video": "GroundMovement3D.turn_speed",
+      "legende": "<code>turn_speed<\/code> 3, 12 (défaut) et 40 : la vitesse à laquelle le modèle se tourne vers sa marche."
+    }
+  ],
+  "GroundMovement3D.run_multiplier": [
+    {
+      "video": "GroundMovement2D.run_multiplier",
+      "legende": "Même réglage que GroundMovement2D, en m/s (voir la vidéo 2D)."
+    }
+  ],
+  "GroundMovement3D.visual_path": [
+    {
+      "video": "mode-emploi-tuto-3d",
+      "legende": "GroundMovement3D avec <code>camera_relative<\/code> : haut = vers l'avant de la caméra ; seul le modèle (<code>visual_path<\/code>) tourne."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

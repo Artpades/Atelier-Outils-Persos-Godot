@@ -80,11 +80,11 @@
     <li>
       <strong>Compiler la bibliothèque</strong> si nécessaire :
       <pre><code class="language-shell">scons tool_editor</code></pre>
-      <div class="why">compile la bibliothèque des outils d'édition et régénère son <code>.gdextension</code>.</div>
+      <div class="why">Compile la bibliothèque des outils d'édition et régénère son <code>.gdextension</code>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/tool_editor/</code></strong> dans <code>res://bin/tool_editor/</code>, puis <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/tool_editor/…</code> codés dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/tool_editor/…</code> codés dans le <code>.gdextension</code> ; extension découverte au démarrage.</div>
     </li>
   </ol>
   <p>Aucun autoload à déclarer : c'est précisément ce que le module remplace.</p>
@@ -102,13 +102,13 @@ var objets: Array[String] = []
 func _enter_tree() -> void:
 	if ManagerBuilder.init_instance(&"Inventaire", self) != self:
 		return  # une instance existe déjà : celle-ci va être détruite</code></pre>
-      <div class="why">le premier inventaire devient l'instance de référence ; les suivants sont détruits par <code>queue_free</code> et ne doivent rien initialiser.</div>
+      <div class="why">Le premier inventaire devient l'instance de référence ; les suivants sont détruits par <code>queue_free</code> et ne doivent rien initialiser.</div>
     </li>
     <li>
       <strong>Se désenregistrer en sortant de l'arbre</strong> :
       <pre><code class="gdscript">func _exit_tree() -> void:
 	ManagerBuilder.unregister_instance(&"Inventaire", self)</code></pre>
-      <div class="why">sans cela, un nœud sorti de l'arbre mais pas encore libéré resterait renvoyé par <code>make_getter</code>. Un doublon qui se désenregistre n'efface pas l'instance de référence.</div>
+      <div class="why">Sans cela, un nœud sorti de l'arbre mais pas encore libéré resterait renvoyé par <code>make_getter</code>. Un doublon qui se désenregistre n'efface pas l'instance de référence.</div>
     </li>
     <li>
       <strong>Le récupérer depuis n'importe quel script</strong> :
@@ -124,7 +124,7 @@ if inventaire:
 		return  # doublon (son _ready est quand même appelé)
 	if get_parent() != get_tree().root:
 		reparent.call_deferred(get_tree().root)</code></pre>
-      <div class="why">un nœud placé dans une scène est détruit avec elle ; sous la racine, il survit à <code>change_scene_to_file</code>. Les nœuds créés par <code>make_getter</code> y sont placés d'office.</div>
+      <div class="why">Un nœud placé dans une scène est détruit avec elle ; sous la racine, il survit à <code>change_scene_to_file</code>. Les nœuds créés par <code>make_getter</code> y sont placés d'office.</div>
     </li>
   </ol>
 

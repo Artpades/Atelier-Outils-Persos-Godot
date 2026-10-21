@@ -89,15 +89,15 @@
     <li>
       <strong>Compiler</strong> (si besoin) :
       <pre><code class="language-shell">scons drawing</code></pre>
-      <div class="why">compile la bibliothèque du registre <code>drawing_register.cpp</code>, qui enregistre aussi le plugin d'éditeur au niveau <em>EDITOR</em>.</div>
+      <div class="why">Compile la bibliothèque du registre <code>drawing_register.cpp</code>, qui enregistre aussi le plugin d'éditeur au niveau <em>EDITOR</em>.</div>
     </li>
     <li>
       <strong>Copier <code>bin/drawing/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/drawing/…</code> absolus ; le plugin et l'onglet « Dessin » n'apparaissent qu'au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/drawing/…</code> absolus ; le plugin et l'onglet « Dessin » n'apparaissent qu'au démarrage.</div>
     </li>
     <li>
       <strong>Vérifier</strong> : un onglet <kbd>Dessin</kbd> apparaît à côté de 2D / 3D / Script, et un clic droit sur une image du FileSystem propose « Ouvrir dans l'atelier de dessin ».
-      <div class="why">ce sont les deux points d'entrée du plugin ; une image enregistrée depuis l'atelier est réimportée automatiquement.</div>
+      <div class="why">Ce sont les deux points d'entrée du plugin ; une image enregistrée depuis l'atelier est réimportée automatiquement.</div>
     </li>
   </ol>
 
@@ -108,15 +108,15 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>DrawingStudio</code></strong> dans une scène d'interface, ancré en plein écran (<em>Full Rect</em>).
-      <div class="why">l'atelier construit lui-même ses panneaux et sa toile ; il lui faut seulement de la place.</div>
+      <div class="why">L'atelier construit lui-même ses panneaux et sa toile ; il lui faut seulement de la place.</div>
     </li>
     <li>
       <strong>Lancer la scène</strong>.
-      <div class="why">sans document assigné, la toile crée un dessin de 1280 × 720 au lancement (<code>default_document_size</code>, vérifié).</div>
+      <div class="why">Sans document assigné, la toile crée un dessin de 1280 × 720 au lancement (<code>default_document_size</code>, vérifié).</div>
     </li>
     <li>
       <strong>Dessiner</strong> : <kbd>B</kbd> pinceau, <kbd>E</kbd> gomme, <kbd>G</kbd> pot, molette pour zoomer, <kbd>Espace</kbd> + glisser pour déplacer, <kbd>Ctrl</kbd>+<kbd>Z</kbd> pour annuler.
-      <div class="why">les raccourcis reprennent ceux de Clip Studio Paint ; le stylet transmet sa pression.</div>
+      <div class="why">Les raccourcis reprennent ceux de Clip Studio Paint ; le stylet transmet sa pression.</div>
     </li>
     <li>
       <strong>Récupérer le dessin</strong> par code :
@@ -131,11 +131,11 @@
   <ol class="steps">
     <li>
       <strong>Clic droit sur un <code>.png</code> du dock FileSystem › Ouvrir dans l'atelier de dessin.</strong>
-      <div class="why">l'onglet « Dessin » s'affiche avec l'image comme unique calque.</div>
+      <div class="why">L'onglet « Dessin » s'affiche avec l'image comme unique calque.</div>
     </li>
     <li>
       <strong>Modifier, puis <kbd>Ctrl</kbd>+<kbd>S</kbd>.</strong>
-      <div class="why">l'image est réécrite (calques fusionnés) et réimportée : les scènes qui l'utilisent sont à jour. Pour garder les calques, <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd> en <code>.tres</code>.</div>
+      <div class="why">L'image est réécrite (calques fusionnés) et réimportée : les scènes qui l'utilisent sont à jour. Pour garder les calques, <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd> en <code>.tres</code>.</div>
     </li>
   </ol>
 

@@ -38,10 +38,9 @@
       <li><strong>Pas une IA de visée</strong> : ni anticipation du mouvement, ni ligne de vue, ni limite d'angle de rotation.</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF côte à côte : une tourelle 2D qui pivote en douceur (<code>add_lerp</code>) vers le joueur qui se déplace ; en 3D, une caméra qui s'oriente vers trois personnages et recule quand ils s'écartent.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/ciblage-d-objet" data-figure="1">
+    <figcaption>Une tourelle 2D vise la souris (avec ou sans interpolation, seule ou en moyenne avec un drone) ; une caméra 3D cadre un groupe dont on règle l'écartement.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -63,7 +62,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
 
@@ -73,15 +72,15 @@
   <ol class="steps">
     <li>
       <strong>Dessiner le canon de la tourelle pointant vers la droite</strong> (axe +X) dans son <code>Sprite2D</code>.
-      <div class="why">en 2D, c'est l'axe +X de la cible qui est orienté vers la cible visée, comme <code>look_at</code>.</div>
+      <div class="why">En 2D, c'est l'axe +X de la cible qui est orienté vers la cible visée, comme <code>look_at</code>.</div>
     </li>
     <li>
       <strong>Ajouter un <code>PlayerFX</code> sous la tourelle</strong>, et dans <code>special_effects</code> un <code>FXTargeter</code> avec <code>nodes_to_target</code> = <code>../../Joueur</code>.
-      <div class="why">le chemin part du <code>PlayerFX</code> ; la tourelle (parent) est la cible qui tourne.</div>
+      <div class="why">Le chemin part du <code>PlayerFX</code> ; la tourelle (parent) est la cible qui tourne.</div>
     </li>
     <li>
       <strong>Activer <code>add_lerp</code></strong> et régler <code>lerp_speed</code> à 3.
-      <div class="why">sans interpolation, la tourelle est toujours parfaitement alignée ; avec, elle a un temps de réaction que le joueur peut exploiter.</div>
+      <div class="why">Sans interpolation, la tourelle est toujours parfaitement alignée ; avec, elle a un temps de réaction que le joueur peut exploiter.</div>
     </li>
     <li>
       <strong>Lancer l'effet</strong> quand le joueur est détecté, l'arrêter quand il s'éloigne :
@@ -90,9 +89,10 @@
 
 func _on_detection_body_exited(_corps: Node2D) -> void:
 	$PlayerFX.stop()   # la tourelle garde son orientation</code></pre>
-      <div class="why">l'effet n'a pas de durée : il vise tant qu'il est actif.</div>
+      <div class="why">L'effet n'a pas de durée : il vise tant qu'il est actif.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>La tourelle vise le joueur pendant qu'il est dans la zone de détection (<code>play()</code>), puis garde son orientation (<code>stop()</code>).</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -114,6 +114,7 @@ func _on_detection_body_exited(_corps: Node2D) -> void:
 	cadrage.depth_margin = 1.8
 	$Camera3D/PlayerFX.special_effects = [cadrage]
 	$Camera3D/PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-camera-groupe"><figcaption>Trois combattants qui se dispersent puis se regroupent : la caméra tourne vers leur centre et avance ou recule.</figcaption></figure>
 
   <h3 id="ex-yeux">Comment je fais suivre la souris par des yeux ?</h3>
   <p>Les nœuds visés doivent être des <code>Node2D</code> : on déplace un <code>Marker2D</code> à la position de la souris.</p>
@@ -127,6 +128,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	$CibleSouris.global_position = get_global_mouse_position()</code></pre>
+  <figure class="media" data-video="ex-yeux"><figcaption>Deux yeux visent un Marker2D placé sous la souris.</figcaption></figure>
 
   <h3 id="ex-projecteur">Comment j'oriente un projecteur 3D vers le joueur ?</h3>
   <p>Une <code>SpotLight3D</code> éclaire le long de son axe -Z : exactement l'axe orienté par <code>FXTargeter</code> en 3D.</p>
@@ -135,6 +137,7 @@ suivi_lumiere.nodes_to_target = [NodePath("../../Joueur")]
 suivi_lumiere.add_lerp = true
 $Projecteur/PlayerFX.special_effects = [suivi_lumiere]
 $Projecteur/PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-projecteur"><figcaption>Une SpotLight3D suit le joueur : son axe -Z est celui orienté par FXTargeter.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -187,6 +190,60 @@ $Projecteur/PlayerFX.play()</code></pre>
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "FXTargeter.add_lerp": [
+    {
+      "video": "FXTargeter.add_lerp",
+      "legende": "Sans interpolation la tourelle est toujours alignée ; avec, elle a un temps de réaction."
+    }
+  ],
+  "FXTargeter.depth_margin": [
+    {
+      "video": "FXTargeter.depth_margin",
+      "legende": "<code>depth_margin<\/code> 1, 1,5 et 2,5 : la marge de cadrage autour du groupe."
+    }
+  ],
+  "FXTargeter.enable_camera_3d_depth_control": [
+    {
+      "video": "FXTargeter.enable_camera_3d_depth_control",
+      "legende": "Le groupe s'écarte : avec le contrôle de distance la caméra recule pour le garder dans le champ, sans elle elle ne fait que tourner."
+    }
+  ],
+  "FXTargeter.lerp_speed": [
+    {
+      "video": "FXTargeter.lerp_speed",
+      "legende": "<code>lerp_speed<\/code> 1, 3 et 10 (avec <code>add_lerp<\/code>) : vitesse à laquelle l'écart est rattrapé."
+    }
+  ],
+  "FXTargeter.nodes_to_target": [
+    {
+      "video": "FXTargeter.nodes_to_target",
+      "legende": "Deux nœuds visés : la tourelle vise la moyenne de leurs positions (croix)."
+    }
+  ],
+  "FXTargeter": [
+    {
+      "video": "classe-FXTargeter",
+      "legende": "En 2D, l'axe +X de la cible pointe vers les nœuds visés ; en 3D, l'axe -Z d'une caméra, qui recule aussi pour les cadrer."
+    }
+  ],
+  "FXTargeter.max_distance": [
+    {
+      "video": "FXTargeter.enable_camera_3d_depth_control",
+      "legende": "La distance de la caméra au centre du groupe reste entre <code>min_distance<\/code> et <code>max_distance<\/code>."
+    }
+  ],
+  "FXTargeter.min_distance": [
+    {
+      "video": "FXTargeter.enable_camera_3d_depth_control",
+      "legende": "La distance de la caméra au centre du groupe reste entre <code>min_distance<\/code> et <code>max_distance<\/code>."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "FXTargeter.nodes_to_target": "Le joueur pour une tourelle, un marqueur sous la souris pour des yeux, tous les combattants pour une caméra.",

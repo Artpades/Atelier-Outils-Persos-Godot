@@ -85,15 +85,15 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) :
       <pre><code class="language-shell">scons camera</code></pre>
-      <div class="why">compile uniquement la bibliothèque des caméras (registre <code>camera_register.cpp</code>). Ajouter <code>scons tool_editor</code> pour la création automatique du gestionnaire.</div>
+      <div class="why">Compile uniquement la bibliothèque des caméras (registre <code>camera_register.cpp</code>). Ajouter <code>scons tool_editor</code> pour la création automatique du gestionnaire.</div>
     </li>
     <li>
       <strong>Copier <code>bin/camera/</code></strong> (et éventuellement <code>bin/tool_editor/</code>) dans <code>res://bin/</code>, puis <strong>redémarrer l'éditeur</strong>.
-      <div class="why">les <code>.gdextension</code> référencent leurs binaires par des chemins <code>res://bin/…</code> absolus ; les nouvelles extensions ne sont découvertes qu'au démarrage.</div>
+      <div class="why">Les <code>.gdextension</code> référencent leurs binaires par des chemins <code>res://bin/…</code> absolus ; les nouvelles extensions ne sont découvertes qu'au démarrage.</div>
     </li>
     <li>
       <strong>(Recommandé) Déclarer un autoload <code>CameraManager</code></strong> : une scène dont la racine est un nœud <code>CameraManager</code>, avec ses durées par défaut réglées.
-      <div class="why">sans <code>ManagerBuilder</code>, c'est obligatoire pour que <code>get_instance()</code> trouve le gestionnaire ; avec, cela permet de régler <code>transition_duration_2d/3d</code> dans l'inspecteur au lieu de les régler par code.</div>
+      <div class="why">Sans <code>ManagerBuilder</code>, c'est obligatoire pour que <code>get_instance()</code> trouve le gestionnaire ; avec, cela permet de régler <code>transition_duration_2d/3d</code> dans l'inspecteur au lieu de les régler par code.</div>
     </li>
   </ol>
   <p>Les trois classes sont des <strong>classes d'exécution</strong> : elles n'ont aucun effet dans l'éditeur (un <code>CameraPanner</code> ne bouge pas, un <code>OrbitalCamera</code> ne tourne pas).</p>
@@ -105,7 +105,7 @@
   <ol class="steps">
     <li>
       <strong>Placer deux <code>Camera3D</code></strong> dans la scène : <code>CameraJeu</code> (cochée <em>Current</em>) et <code>CameraPorte</code>, cadrée sur une porte.
-      <div class="why">la transition part de la caméra courante du Viewport : il en faut une au départ, sinon le changement est instantané.</div>
+      <div class="why">La transition part de la caméra courante du Viewport : il en faut une au départ, sinon le changement est instantané.</div>
     </li>
     <li>
       <strong>Appeler la transition</strong> depuis un script :
@@ -114,11 +114,11 @@
 	cameras.switch_3d_camera($CameraPorte, true, 1.0)
 	await cameras.current_camera_3d_switched
 	$Porte.ouvrir()</code></pre>
-      <div class="why">une caméra interne glisse de <code>CameraJeu</code> vers <code>CameraPorte</code> en 1 s (courbe cubique) ; le signal indique quand <code>CameraPorte</code> est réellement devenue courante.</div>
+      <div class="why">Une caméra interne glisse de <code>CameraJeu</code> vers <code>CameraPorte</code> en 1 s (courbe cubique) ; le signal indique quand <code>CameraPorte</code> est réellement devenue courante.</div>
     </li>
     <li>
       <strong>Revenir au jeu</strong> avec <code>switch_3d_camera($CameraJeu)</code>.
-      <div class="why">sans durée (−1), c'est <code>transition_duration_3d</code> (1 s) qui s'applique.</div>
+      <div class="why">Sans durée (−1), c'est <code>transition_duration_3d</code> (1 s) qui s'applique.</div>
     </li>
   </ol>
 
@@ -126,11 +126,11 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>CameraPanner</code></strong> dans la scène de la carte (cocher <em>Enabled</em>).
-      <div class="why">c'est une <code>Camera2D</code> : elle devient la vue du Viewport comme n'importe quelle caméra 2D.</div>
+      <div class="why">C'est une <code>Camera2D</code> : elle devient la vue du Viewport comme n'importe quelle caméra 2D.</div>
     </li>
     <li>
       <strong>Lancer</strong> : clic du milieu maintenu pour déplacer, molette pour zoomer vers le curseur, flèches du clavier ou stick (actions <code>ui_*</code>) pour se déplacer.
-      <div class="why">les réglages par défaut couvrent souris, trackpad et manette ; ajuster <code>min_zoom</code> / <code>max_zoom</code> à la taille de la carte.</div>
+      <div class="why">Les réglages par défaut couvrent souris, trackpad et manette ; ajuster <code>min_zoom</code> / <code>max_zoom</code> à la taille de la carte.</div>
     </li>
   </ol>
 
@@ -138,11 +138,11 @@
   <ol class="steps">
     <li>
       <strong>Construire la hiérarchie</strong> : <code>Joueur › OrbitalCamera › SpringArm3D › Camera3D</code>. Régler la longueur du <code>SpringArm3D</code> (<code>spring_length</code> = 4).
-      <div class="why">le bras gère la distance et les collisions avec les murs ; l'<code>OrbitalCamera</code> ne fait que l'orienter.</div>
+      <div class="why">Le bras gère la distance et les collisions avec les murs ; l'<code>OrbitalCamera</code> ne fait que l'orienter.</div>
     </li>
     <li>
       <strong>Assigner <code>arm_3d</code></strong> = le <code>SpringArm3D</code> dans l'inspecteur.
-      <div class="why">sans lui, une erreur est affichée au lancement et rien ne tourne.</div>
+      <div class="why">Sans lui, une erreur est affichée au lancement et rien ne tourne.</div>
     </li>
     <li>
       <strong>Transmettre la souris</strong> :
@@ -152,7 +152,7 @@
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		$OrbitalCamera.look_around(event.relative)</code></pre>
-      <div class="why">l'<code>OrbitalCamera</code> ne lit aucune entrée : on choisit la source (souris, stick, gyroscope…).</div>
+      <div class="why">L'<code>OrbitalCamera</code> ne lit aucune entrée : on choisit la source (souris, stick, gyroscope…).</div>
     </li>
   </ol>
 

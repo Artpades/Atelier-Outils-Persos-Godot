@@ -44,10 +44,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : un personnage frappe un ennemi, l'image se fige une fraction de seconde (hit stop), puis une esquive déclenche un ralenti à 0,3 qui revient progressivement à la vitesse normale ; afficher <code>Engine.time_scale</code> en surimpression.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/ralentissement-arret-du-temps" data-figure="1">
+    <figcaption>Geler le jeu (durée et vitesse du gel), le ralentir ou l'accélérer, régler la vitesse de retour, et suivre <code>Engine.time_scale</code> sur des balles qui rebondissent.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -69,11 +68,11 @@
     <li>
       <strong>Compiler et installer la bibliothèque des effets</strong> : <code>scons fx</code>, puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
       <pre><code class="language-shell">scons fx</code></pre>
-      <div class="why">mêmes étapes que pour tout le module d'effets : voir <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Mêmes étapes que pour tout le module d'effets : voir <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
     <li>
       <strong>Créer une scène <code>temps.tscn</code> dont la racine est un <code>TimeManipulatorFX</code></strong>, et la déclarer en autoload sous le nom <code>Temps</code>.
-      <div class="why">la vitesse du jeu est globale : un seul gestionnaire doit la piloter, et il ne doit pas disparaître au changement de scène (à sa sortie de l'arbre, il remet la vitesse à 1).</div>
+      <div class="why">La vitesse du jeu est globale : un seul gestionnaire doit la piloter, et il ne doit pas disparaître au changement de scène (à sa sortie de l'arbre, il remet la vitesse à 1).</div>
     </li>
   </ol>
   <div class="callout warn">
@@ -88,7 +87,7 @@
       <strong>Geler le jeu à l'impact</strong> :
       <pre><code class="gdscript">func _on_coup_porte() -> void:
 	Temps.trigger_hit_stop(0.08)</code></pre>
-      <div class="why">le jeu passe immédiatement à la vitesse 0 pendant 80 ms de temps réel, puis reprend à la vitesse d'avant. Un gel déjà en cours n'est pas prolongé.</div>
+      <div class="why">Le jeu passe immédiatement à la vitesse 0 pendant 80 ms de temps réel, puis reprend à la vitesse d'avant. Un gel déjà en cours n'est pas prolongé.</div>
     </li>
     <li>
       <strong>Ralentir progressivement</strong>, puis revenir à la normale :
@@ -98,9 +97,10 @@
     </li>
     <li>
       <strong>Régler <code>recovery_speed</code></strong> dans l'inspecteur de l'autoload (5 par défaut).
-      <div class="why">plus elle est haute, plus la transition est courte ; vers 1-2, on obtient un ralenti cinématographique.</div>
+      <div class="why">Plus elle est haute, plus la transition est courte ; vers 1-2, on obtient un ralenti cinématographique.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Un coup : <code>trigger_hit_stop(0.08)</code> fige l'image ; une esquive : <code>set_time_scale(0.3)</code> ralentit progressivement, puis 1 revient en douceur.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -115,6 +115,7 @@
   <pre><code class="gdscript">func on_degats_infliges(degats: int) -> void:
 	var duree := clampf(degats * 0.004, 0.03, 0.15)
 	Temps.trigger_hit_stop(duree, 0.1 if degats > 30 else 0.0)</code></pre>
+  <figure class="media" data-video="ex-proportionnel"><figcaption>Plus le coup fait de dégâts, plus le gel dure ; au-delà de 30, un ralenti à 0,1 au lieu d'un arrêt.</figcaption></figure>
 
   <h3 id="ex-secousse">Comment je combine gel et secousse de caméra ?</h3>
   <p>Pendant un gel à 0, le <code>delta</code> des nœuds est nul : la secousse attend la fin du gel. On la déclenche sur <code>hit_stop_finished</code> pour qu'elle commence au moment où le jeu reprend.</p>
@@ -123,6 +124,7 @@
 
 func impact() -> void:
 	Temps.trigger_hit_stop(0.1)</code></pre>
+  <figure class="media" data-video="ex-secousse"><figcaption>Pendant un gel à 0 la secousse ne peut pas bouger : on la lance sur <code>hit_stop_finished</code>.</figcaption></figure>
 
   <h3 id="ex-mort-boss">Comment je fais un ralenti final qui revient tout seul ?</h3>
   <pre><code class="gdscript">func _on_boss_vaincu() -> void:
@@ -132,12 +134,14 @@ func impact() -> void:
 	Temps.recovery_speed = 1.5
 	Temps.set_time_scale(1.0)            # retour lent à la normale</code></pre>
   <p>Le minuteur est créé avec <code>ignore_time_scale = true</code> : sinon il durerait 7,5 s au ralenti.</p>
+  <figure class="media" data-video="ex-mort-boss"><figcaption>Boss vaincu : plongée rapide vers 0,2 (<code>recovery_speed</code> 8), puis retour lent à 1 (1,5).</figcaption></figure>
 
   <h3 id="ex-ui">Comment je garde une interface fluide pendant un ralenti ?</h3>
   <p>Les <code>Tween</code> et minuteurs de l'interface peuvent ignorer <code>time_scale</code> :</p>
   <pre><code class="gdscript">var tween := create_tween()
 tween.set_ignore_time_scale(true)
 tween.tween_property($Menu, "modulate:a", 1.0, 0.2)</code></pre>
+  <figure class="media" data-video="ex-ui"><figcaption>Pendant le ralenti, le panneau animé par un Tween qui ignore <code>time_scale</code> reste fluide ; l'autre est ralenti.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -201,6 +205,102 @@ tween.tween_property($Menu, "modulate:a", 1.0, 0.2)</code></pre>
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-etats">
+<svg viewBox="0 0 640 218" role="img" aria-label="Vitesse visée et gel">
+  <defs><marker id="f-23345" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Ralenti progressif</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">set_time_scale(0.3)</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">target_time_scale = 0.3</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle" textLength="185" lengthAdjust="spacingAndGlyphs">Engine.time_scale rejoint 0.3</text>
+    <line x1="111" y1="148" x2="111" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="14" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="180" text-anchor="middle" fill-opacity="0.7">à la vitesse recovery_speed</text>
+    <line x1="211" y1="49.0" x2="221" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Gel (hit stop)</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">trigger_hit_stop(0.08, 0)</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">signal hit_stop_started</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_hit_stopping() = true</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle" textLength="185" lengthAdjust="spacingAndGlyphs">time_scale = 0 pendant 80 ms réelles</text>
+    <line x1="419" y1="49.0" x2="429" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Fin du gel</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="185" lengthAdjust="spacingAndGlyphs">vitesse visée rétablie d'un coup</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle">signal hit_stop_finished</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-23345)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_hit_stopping() = false</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "TimeManipulatorFX.recovery_speed": [
+    {
+      "video": "TimeManipulatorFX.recovery_speed",
+      "legende": "Le même passage à 0,2 puis retour à 1 avec <code>recovery_speed<\/code> 1,5, 5 (défaut) et 20 : la courbe de <code>Engine.time_scale<\/code>."
+    }
+  ],
+  "TimeManipulatorFX.trigger_hit_stop": [
+    {
+      "video": "TimeManipulatorFX.trigger_hit_stop",
+      "legende": "Gels de 0,05, 0,15 et 0,4 s, puis un gel à 0,1 au lieu de 0 : le mouvement reste visible."
+    }
+  ],
+  "TimeManipulatorFX": [
+    {
+      "video": "classe-TimeManipulatorFX",
+      "legende": "Tout le jeu suit <code>Engine.time_scale<\/code> (affiché en haut), piloté en douceur par TimeManipulatorFX."
+    }
+  ],
+  "TimeManipulatorFX.hit_stop_finished": [
+    {
+      "video": "ex-secousse",
+      "legende": "Pendant un gel à 0 la secousse ne peut pas bouger : on la lance sur <code>hit_stop_finished<\/code>."
+    }
+  ],
+  "TimeManipulatorFX.hit_stop_started": [
+    {
+      "schema": "schema-etats",
+      "legende": "<code>set_time_scale<\/code> fixe la vitesse visée (<code>target_time_scale<\/code>) que <code>Engine.time_scale<\/code> rejoint en douceur ; <code>trigger_hit_stop<\/code> la remplace d'un coup pendant un temps réel, entre <code>hit_stop_started<\/code> et <code>hit_stop_finished<\/code> (<code>is_hit_stopping()<\/code>)."
+    }
+  ],
+  "TimeManipulatorFX.is_hit_stopping": [
+    {
+      "schema": "schema-etats",
+      "legende": "<code>set_time_scale<\/code> fixe la vitesse visée (<code>target_time_scale<\/code>) que <code>Engine.time_scale<\/code> rejoint en douceur ; <code>trigger_hit_stop<\/code> la remplace d'un coup pendant un temps réel, entre <code>hit_stop_started<\/code> et <code>hit_stop_finished<\/code> (<code>is_hit_stopping()<\/code>)."
+    }
+  ],
+  "TimeManipulatorFX.set_time_scale": [
+    {
+      "video": "classe-TimeManipulatorFX",
+      "legende": "Tout le jeu suit <code>Engine.time_scale<\/code> (affiché en haut), piloté en douceur par TimeManipulatorFX."
+    }
+  ],
+  "TimeManipulatorFX.target_time_scale": [
+    {
+      "video": "TimeManipulatorFX.recovery_speed",
+      "legende": "Le même passage à 0,2 puis retour à 1 avec <code>recovery_speed<\/code> 1,5, 5 (défaut) et 20 : la courbe de <code>Engine.time_scale<\/code>."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "TimeManipulatorFX.recovery_speed": "Haute (10+) pour des transitions sèches en combat, basse (1-2) pour un ralenti cinématographique.",

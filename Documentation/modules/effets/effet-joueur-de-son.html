@@ -38,10 +38,9 @@
       <li><strong>Pas un gestionnaire audio</strong> : ni banque de sons, ni limite globale de voix, ni sélection aléatoire parmi plusieurs fichiers (utiliser un <code>AudioStreamRandomizer</code> comme <code>stream</code> pour cela).</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Capture de l'inspecteur : un <code>FXShake</code> dont <code>effects_on_play_fx</code> contient un <code>FXAudio</code> (stream « impact.wav », <code>randomize_pitch_scale</code> coché, min 0,9 / max 1,15).</div>
-  </div>
+  <figure class="media media-web" data-web="effets/effet-joueur-de-son" data-figure="1">
+    <figcaption>Choisir un son (synthétisé), régler volume, hauteur, hauteur aléatoire, spatialisation (déplacer l'objet) et coupure à l'arrêt, puis Jouer.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -64,7 +63,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
 
@@ -73,21 +72,22 @@
   <ol class="steps">
     <li>
       <strong>Dans le <code>PlayerFX</code> de l'objet, ajouter un <code>FXAudio</code></strong> à <code>special_effects</code> (ou aux <code>effects_on_play_fx</code> d'un autre effet).
-      <div class="why">le son sera joué en même temps que les autres effets, à chaque <code>play()</code>.</div>
+      <div class="why">Le son sera joué en même temps que les autres effets, à chaque <code>play()</code>.</div>
     </li>
     <li>
       <strong>Choisir le <code>stream</code></strong> et le <code>bus</code> (<code>SFX</code>).
-      <div class="why">sans <code>stream</code>, l'effet ne fait rien ; le bus permet au joueur de régler le volume des bruitages.</div>
+      <div class="why">Sans <code>stream</code>, l'effet ne fait rien ; le bus permet au joueur de régler le volume des bruitages.</div>
     </li>
     <li>
       <strong>Cocher <code>randomize_pitch_scale</code></strong> pour un son fréquent (pas, coups, pièces).
-      <div class="why">une hauteur légèrement différente à chaque jeu évite la répétition mécanique.</div>
+      <div class="why">Une hauteur légèrement différente à chaque jeu évite la répétition mécanique.</div>
     </li>
     <li>
       <strong>Cocher <code>positional</code></strong> si le son doit venir de l'objet (gauche / droite, atténuation avec la distance).
-      <div class="why">un <code>AudioStreamPlayer2D</code> ou <code>3D</code> est alors créé selon la cible ; à régler <em>avant</em> le premier jeu.</div>
+      <div class="why">Un <code>AudioStreamPlayer2D</code> ou <code>3D</code> est alors créé selon la cible ; à régler <em>avant</em> le premier jeu.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Un FXAudio dans les effets enchaînés d'une secousse : à chaque coup, le son avec une hauteur tirée au hasard (avec le son).</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -106,6 +106,7 @@ func tirer() -> void:
 	var lecteur := tir.get_audio_player()
 	if lecteur and lecteur.max_polyphony == 1:
 		lecteur.max_polyphony = 4</code></pre>
+  <figure class="media" data-video="ex-rafale"><figcaption>Tirs rapprochés : une seule voix coupe le son précédent, <code>max_polyphony = 4</code> les superpose.</figcaption></figure>
 
   <h3 id="ex-mort">Comment je joue un son de mort sur un ennemi supprimé ?</h3>
   <p>Le lecteur est un enfant de la cible : si l'ennemi est libéré, le son s'arrête. Viser un nœud qui survit (ici, le niveau), ou attendre la fin du son :</p>
@@ -113,6 +114,7 @@ func tirer() -> void:
 	$PlayerFX.play(get_tree().current_scene)   # le lecteur est créé sous la scène
 	queue_free()</code></pre>
   <p>Attention : avec <code>positional</code>, la position du son est alors celle de la scène, pas de l'ennemi.</p>
+  <figure class="media" data-video="ex-mort"><figcaption>Joué sur l'ennemi supprimé, le son est coupé ; joué sur la scène, il va jusqu'au bout.</figcaption></figure>
 
   <h3 id="ex-variantes">Comment je varie le son lui-même, pas seulement sa hauteur ?</h3>
   <pre><code class="gdscript">var variantes := AudioStreamRandomizer.new()
@@ -122,6 +124,7 @@ variantes.add_stream(2, preload("res://sons/pas_3.wav"))
 var pas := FXAudio.new()
 pas.stream = variantes
 pas.bus = &amp;"SFX"</code></pre>
+  <figure class="media" data-video="ex-variantes"><figcaption>Un AudioStreamRandomizer de trois pas : le son lui-même change, pas seulement sa hauteur.</figcaption></figure>
 
   <h3 id="ex-boucle">Comment je fais un son en boucle tant qu'un état dure ?</h3>
   <p>Avec un flux qui boucle (option <em>Loop</em> à l'import) et <code>stop_sound_on_stop</code> :</p>
@@ -130,6 +133,7 @@ alarme.stream = preload("res://sons/alarme_boucle.ogg")
 alarme.stop_sound_on_stop = true
 $PlayerFX.special_effects = [alarme]
 $PlayerFX.play()   # ... jusqu'à $PlayerFX.stop()</code></pre>
+  <figure class="media" data-video="ex-boucle"><figcaption>Alarme en boucle tant que l'état dure : <code>stop_sound_on_stop</code> la coupe à <code>stop()</code>.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -178,6 +182,154 @@ $PlayerFX.play()   # ... jusqu'à $PlayerFX.stop()</code></pre>
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-FXAudio-bus">
+<svg viewBox="0 0 640 176" role="img" aria-label="Bus audio d'un FXAudio">
+  <defs><marker id="f-27310" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">FXAudio</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">bus = &amp;"SFX"</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle">stream, volume_db, pitch</text>
+    <line x1="211" y1="49.0" x2="221" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Bus SFX</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">SFX</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">volume « Bruitages »</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle" fill-opacity="0.7">effets : réverbération…</text>
+    <line x1="419" y1="49.0" x2="429" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Bus Master</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">Master</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle">volume général</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-27310)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle">sortie audio</text>
+  </g>
+</svg>
+</template>
+<template id="schema-lecteur">
+<svg viewBox="0 0 640 218" role="img" aria-label="Lecteur audio créé par FXAudio sous sa cible">
+  <defs><marker id="f-77969" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Cible Node / Control</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">Ennemi (Control)</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle">└ PlayerFX</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">└ AudioStreamPlayer</text>
+    <line x1="111" y1="148" x2="111" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="14" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="180" text-anchor="middle" fill-opacity="0.7">son non spatialisé</text>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Cible Node2D + positional</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">Ennemi (Node2D)</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">└ PlayerFX</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">└ AudioStreamPlayer2D</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle" fill-opacity="0.7">gauche / droite, distance</text>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Cible Node3D + positional</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">Ennemi (Node3D)</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle">└ PlayerFX</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">└ AudioStreamPlayer3D</text>
+    <line x1="529" y1="148" x2="529" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-77969)"/>
+    <rect x="431" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="180" text-anchor="middle" fill-opacity="0.7">position 3D, atténuation</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "FXAudio.bus": [
+    {
+      "schema": "schema-FXAudio-bus",
+      "legende": "Le son passe par le bus choisi (ex. SFX), lui-même mixé dans Master : un réglage « Bruitages » agit sur tous les sons de ce bus."
+    }
+  ],
+  "FXAudio.pitch_scale": [
+    {
+      "video": "FXAudio.pitch_scale",
+      "legende": "0,5 (une octave plus bas, plus lent), 1 et 2 (une octave plus haut)."
+    }
+  ],
+  "FXAudio.positional": [
+    {
+      "video": "FXAudio.positional",
+      "legende": "Un objet traverse l'écran : positionnel, le son passe de gauche à droite et s'atténue ; sinon il reste au centre."
+    }
+  ],
+  "FXAudio.randomize_pitch_scale": [
+    {
+      "video": "FXAudio.randomize_pitch_scale",
+      "legende": "Six pas : hauteur fixe (mécanique) puis tirée entre <code>min_pitch<\/code> 0,9 et <code>max_pitch<\/code> 1,15."
+    }
+  ],
+  "FXAudio.stop_sound_on_stop": [
+    {
+      "video": "FXAudio.stop_sound_on_stop",
+      "legende": "Le même son long, effet arrêté au bout de 0,5 s : coupé avec true, joué jusqu'au bout avec false."
+    }
+  ],
+  "FXAudio.stream": [
+    {
+      "video": "FXAudio.stream",
+      "legende": "Sans stream l'effet ne fait rien ; avec un stream, il le joue à chaque <code>play()<\/code>."
+    }
+  ],
+  "FXAudio.volume_db": [
+    {
+      "video": "FXAudio.volume_db",
+      "legende": "-20 dB, -8 dB et 0 dB : le VU-mètre montre le niveau de chaque son."
+    }
+  ],
+  "FXAudio": [
+    {
+      "video": "classe-FXAudio",
+      "legende": "Un son par objet ; avec <code>positional<\/code>, celui de gauche s'entend à gauche et celui de droite à droite."
+    }
+  ],
+  "FXAudio.get_audio_player": [
+    {
+      "schema": "schema-lecteur",
+      "legende": "Au premier jeu, FXAudio crée un lecteur sous la cible (AudioStreamPlayer, 2D ou 3D selon la cible et <code>positional<\/code>) : <code>get_audio_player()<\/code> le renvoie pour le régler finement."
+    }
+  ],
+  "FXAudio.max_pitch": [
+    {
+      "video": "FXAudio.randomize_pitch_scale",
+      "legende": "Six pas : hauteur fixe (mécanique) puis tirée entre <code>min_pitch<\/code> 0,9 et <code>max_pitch<\/code> 1,15."
+    }
+  ],
+  "FXAudio.min_pitch": [
+    {
+      "video": "FXAudio.randomize_pitch_scale",
+      "legende": "Six pas : hauteur fixe (mécanique) puis tirée entre <code>min_pitch<\/code> 0,9 et <code>max_pitch<\/code> 1,15."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "FXAudio.stream": "Le bruitage : impact, pas, pièce ramassée ; ou un <code>AudioStreamRandomizer</code> pour plusieurs variantes.",

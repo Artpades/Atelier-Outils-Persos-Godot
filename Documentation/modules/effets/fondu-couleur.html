@@ -54,10 +54,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF côte à côte : un Sprite2D qui flashe en rouge via FXFade, puis une transition d'écran en iris via ScreenFader.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/fondu-couleur" data-figure="1">
+    <figcaption>En haut, FXFade sur un objet (couleur ou texture, courbe, <code>revert_on_stop</code>) ; en bas, un ScreenFader sur un écran de jeu (masques, douceur, <code>block_input</code>, <code>fade_out</code> / <code>fade_in</code> / <code>fade_to</code>).</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -80,11 +79,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons fx</code></pre>
-      <div class="why">compile uniquement la bibliothèque des effets et régénère <code>bin/fx/gameplaytoolkit_fx.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+      <div class="why">Compile uniquement la bibliothèque des effets et régénère <code>bin/fx/gameplaytoolkit_fx.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/fx/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/fx/</code>.
-      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/fx/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Le fichier <code>.gdextension</code> référence ses binaires par des chemins absolus <code>res://bin/fx/…</code> ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -92,15 +91,35 @@
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>PlayerFX</code> et <code>ScreenFader</code>, et la ressource <code>FXFade</code> doit apparaître dans la liste <code>special_effects</code> d'un <code>PlayerFX</code>.
-      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+      <div class="why">Si les classes sont absentes, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
     </li>
   </ol>
   <p>Aucun autoload ni réglage de projet n'est requis. Pour les transitions entre scènes, il est toutefois recommandé de placer un <code>ScreenFader</code> dans un autoload (voir le <a href="#tuto-ecran">mode d'emploi</a>).</p>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Capture du FileSystem montrant <code>res://bin/fx/</code>, puis de la boîte « Ajouter un nœud » filtrée sur « Fader ».</div>
-  </div>
+  <figure class="media schema" data-schema="figure-2" data-figure="2"><div class="schema-svg"><svg viewBox="0 0 640 230" role="img" aria-label="Le dossier bin/fx dans le FileSystem, et ScreenFader trouvé dans la boîte Ajouter un nœud">
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="10" y="10" width="290" height="208" rx="8" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.3"/>
+    <text x="24" y="32" font-weight="700">Système de fichiers</text>
+    <line x1="10" y1="42" x2="300" y2="42" stroke="currentColor" stroke-opacity="0.2"/>
+    <text x="24" y="64">📁 res://</text>
+    <text x="40" y="88">📁 bin</text>
+    <text x="56" y="112" font-weight="700" fill="var(--accent)">📁 fx</text>
+    <text x="74" y="136" font-family="JetBrains Mono, monospace" font-size="11">gameplaytoolkit_fx.gdextension</text>
+    <text x="74" y="158" font-family="JetBrains Mono, monospace" font-size="11" fill-opacity="0.7">libgameplaytoolkit_fx…so / .dll</text>
+    <text x="40" y="184" fill-opacity="0.6">📁 scenes</text>
+    <text x="40" y="206" fill-opacity="0.6">📄 project.godot</text>
+    <rect x="320" y="10" width="310" height="208" rx="8" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.3"/>
+    <text x="334" y="32" font-weight="700">Créer un nouveau nœud</text>
+    <line x1="320" y1="42" x2="630" y2="42" stroke="currentColor" stroke-opacity="0.2"/>
+    <rect x="334" y="54" width="282" height="26" rx="5" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+    <text x="344" y="72">🔎 Fader</text>
+    <text x="344" y="106" fill-opacity="0.7">Node</text>
+    <text x="360" y="130" fill-opacity="0.7">└ CanvasLayer</text>
+    <rect x="370" y="140" width="200" height="26" rx="5" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)"/>
+    <text x="384" y="158" font-weight="700">└ 🌈 ScreenFader</text>
+    <text x="334" y="200" font-size="11.5" fill-opacity="0.65">Absent ? Vérifier bin/fx/ puis redémarrer l'éditeur.</text>
+  </g>
+</svg></div><figcaption>Le dossier <code>bin/fx/</code> dans le FileSystem, puis ScreenFader dans la boîte « Ajouter un nœud » (recherche « Fader »).</figcaption></figure>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
   <h2 id="mode-emploi">⚙️ Mode d'emploi</h2>
@@ -109,11 +128,11 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>PlayerFX</code> comme enfant</strong> du <code>Sprite2D</code> (ou de tout nœud ayant un <code>modulate</code>).
-      <div class="why">le <code>PlayerFX</code> joue ses effets sur son parent par défaut et les met à jour chaque frame ; c'est lui qu'on déclenche ensuite.</div>
+      <div class="why">Le <code>PlayerFX</code> joue ses effets sur son parent par défaut et les met à jour chaque frame ; c'est lui qu'on déclenche ensuite.</div>
     </li>
     <li>
       <strong>Dans <code>special_effects</code>, ajouter un élément et choisir <code>Nouveau FXFade</code>.</strong>
-      <div class="why">l'effet est une ressource : il se configure dans l'inspecteur et peut être enregistré en <code>.tres</code> pour être réutilisé sur d'autres objets.</div>
+      <div class="why">L'effet est une ressource : il se configure dans l'inspecteur et peut être enregistré en <code>.tres</code> pour être réutilisé sur d'autres objets.</div>
     </li>
     <li>
       <strong>Régler le fondu</strong> : <code>mode</code> = <em>Color</em>, <code>color</code> = rouge opaque, <code>duration</code> = <code>0.1</code>.
@@ -121,7 +140,7 @@
     </li>
     <li>
       <strong>Prévisualiser</strong> avec le bouton <kbd>Jouer effet</kbd> du <code>PlayerFX</code>, puis <kbd>Arrêter effet</kbd>.
-      <div class="why">permet d'ajuster couleur et durée sans lancer le jeu. L'arrêt ramène la couleur d'origine (<code>revert_on_stop</code>).</div>
+      <div class="why">Permet d'ajuster couleur et durée sans lancer le jeu. L'arrêt ramène la couleur d'origine (<code>revert_on_stop</code>).</div>
     </li>
     <li>
       <strong>Déclencher depuis le jeu</strong>, par exemple quand le personnage est touché :
@@ -132,16 +151,17 @@
       <div class="why"><code>play()</code> lance le fondu vers le rouge, <code>stop()</code> le fondu inverse : on obtient un flash aller-retour.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-objet"><figcaption>Touché : <code>play()</code> teinte le sprite en rouge, <code>stop()</code> 0,15 s plus tard le ramène à sa couleur.</figcaption></figure>
 
   <h3 id="tuto-ecran">B. Passer au noir entre deux scènes (ScreenFader)</h3>
   <ol class="steps">
     <li>
       <strong>Créer une scène dont la racine est un <code>ScreenFader</code></strong>, régler sa <code>layer</code> sur <code>100</code>, l'enregistrer en <code>res://fondu.tscn</code>.
-      <div class="why">une couche haute garantit que le voile passe au-dessus de toute l'interface du jeu.</div>
+      <div class="why">Une couche haute garantit que le voile passe au-dessus de toute l'interface du jeu.</div>
     </li>
     <li>
       <strong>Déclarer cette scène en autoload</strong> sous le nom <code>Fondu</code> (<em>Projet › Paramètres du projet › Globals</em>).
-      <div class="why">un autoload n'est pas détruit lors d'un changement de scène : le voile reste en place pendant que la scène suivante se charge.</div>
+      <div class="why">Un autoload n'est pas détruit lors d'un changement de scène : le voile reste en place pendant que la scène suivante se charge.</div>
     </li>
     <li>
       <strong>Encadrer le changement de scène</strong> par un fondu sortant et un fondu entrant :
@@ -150,9 +170,10 @@
 	await Fondu.faded_out     # attendre qu'il soit entièrement noir
 	get_tree().change_scene_to_file(chemin)
 	Fondu.fade_in()           # l'écran se découvre sur la nouvelle scène</code></pre>
-      <div class="why">le changement de scène se fait pendant que l'écran est couvert : le joueur ne voit ni la disparition de l'ancienne scène ni l'apparition de la nouvelle.</div>
+      <div class="why">Le changement de scène se fait pendant que l'écran est couvert : le joueur ne voit ni la disparition de l'ancienne scène ni l'apparition de la nouvelle.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-ecran"><figcaption><code>fade_out()</code>, <code>await faded_out</code>, changement de scène sous le voile, puis <code>fade_in()</code>.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -217,6 +238,7 @@
 	set_physics_process(false)             # plus d'IA pendant l'effacement
 	await get_tree().create_timer(effacement.duration).timeout
 	queue_free()</code></pre>
+  <figure class="media" data-video="ex-disparition"><figcaption>L'ennemi vaincu s'efface en 0,6 s (blanc transparent), puis <code>queue_free()</code>.</figcaption></figure>
 
   <h3 id="ex-texture">Comment je change l'apparence d'un objet en douceur (fondu enchaîné) ?</h3>
   <p>En mode texture sur un <code>Sprite2D</code> ou un <code>TextureRect</code>, les deux images sont réellement mélangées. Idéal pour un objet qui s'abîme, un portrait qui change d'expression, une saison qui passe…</p>
@@ -230,6 +252,7 @@ func ouvrir() -> void:
 	fondu.revert_on_stop = false    # la porte reste ouverte
 	$PlayerFX.special_effects = [fondu]
 	$PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-texture"><figcaption>Mode texture : la porte s'ouvre en fondu enchaîné (et le reste, <code>revert_on_stop = false</code>).</figcaption></figure>
 
   <h3 id="ex-lumiere">Comment je fais varier la couleur d'une lumière ou d'un matériau 3D ?</h3>
   <p><code>color_property</code> accepte n'importe quelle propriété <code>Color</code>, y compris dans une sous-ressource. Ici, une lampe d'alarme qui passe au rouge tant que l'alarme est active.</p>
@@ -249,6 +272,7 @@ func set_alarme(active: bool) -> void:
 
 # Sur un MeshInstance3D avec un StandardMaterial3D en material_override :
 # alarme.color_property = "material_override:albedo_color"</code></pre>
+  <figure class="media" data-video="ex-lumiere"><figcaption><code>color_property = "light_color"</code> : une OmniLight3D passe au rouge tant que l'alarme est active.</figcaption></figure>
 
   <h3 id="ex-enchainement">Comment je combine le fondu avec d'autres effets ?</h3>
   <p>Tout <code>Effect</code> peut en entraîner d'autres : <code>effects_on_play_fx</code> sont joués et arrêtés avec lui, <code>effects_on_stop_fx</code> sont joués à son arrêt.</p>
@@ -258,6 +282,7 @@ flash.duration = 0.05
 flash.effects_on_play_fx = [FXShake.new()]   # secousse en même temps que le flash
 $PlayerFX.special_effects = [flash]
 $PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-enchainement"><figcaption>Flash surexposé (2, 2, 2) avec une secousse enchaînée à son jeu.</figcaption></figure>
 
   <h3 id="ex-iris">Comment je fais une transition en iris ou en volet ?</h3>
   <p>Le <code>mask</code> est une image en niveaux de gris : le <strong>noir est couvert en premier</strong>, le blanc en dernier. Un <code>GradientTexture2D</code> radial suffit pour un iris ; pour un volet, un dégradé linéaire.</p>
@@ -271,6 +296,7 @@ $PlayerFX.play()</code></pre>
 	iris.fill_to = Vector2(1.0, 0.5)
 	Fondu.mask = iris              # les bords se ferment d'abord, le centre en dernier
 	Fondu.mask_smoothness = 0.05   # bord net</code></pre>
+  <figure class="media" data-video="ex-iris"><figcaption>Un GradientTexture2D radial comme <code>mask</code> : l'iris se ferme des bords vers le centre.</figcaption></figure>
 
   <h3 id="ex-pause">Comment j'assombris l'écran derrière un menu de pause ?</h3>
   <p><code>fade_to</code> vise un recouvrement partiel. <code>always_process</code> (actif par défaut) laisse le fondu tourner alors que le jeu est en pause.</p>
@@ -286,6 +312,7 @@ func fermer_pause() -> void:
 	await Fondu.faded_in
 	Fondu.block_input = true
 	get_tree().paused = false</code></pre>
+  <figure class="media" data-video="ex-pause"><figcaption>Menu de pause : <code>fade_to(0.6)</code> pendant la pause, le menu reste cliquable (<code>block_input = false</code>).</figcaption></figure>
 
   <h3 id="ex-await">Comment j'attends un fondu sans risquer de bloquer ?</h3>
   <p>Si le fondu est instantané (durée nulle, ou écran déjà couvert avec une durée nulle), le signal est émis <strong>avant</strong> le <code>await</code> qui l'attend. Tester l'état d'abord :</p>
@@ -293,6 +320,7 @@ func fermer_pause() -> void:
 	Fondu.fade_out(duree)
 	if not Fondu.is_covered():
 		await Fondu.faded_out</code></pre>
+  <figure class="media" data-video="ex-await"><figcaption>Fondu instantané : le signal partirait avant le <code>await</code> ; tester <code>is_covered()</code> d'abord évite le blocage.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -558,6 +586,238 @@ window.GTK_USAGES = {
   render();
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-etats">
+<svg viewBox="0 0 640 218" role="img" aria-label="États et signaux d'un ScreenFader">
+  <defs><marker id="f-69887" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="85" y="20" text-anchor="middle" font-weight="700">Découvert</text>
+    <rect x="14" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="85" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress = 0</text>
+    <line x1="85" y1="64" x2="85" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="14" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="85" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="132" lengthAdjust="spacingAndGlyphs">is_covered() = false</text>
+    <line x1="85" y1="106" x2="85" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="14" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="85" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="132" lengthAdjust="spacingAndGlyphs">is_fading() = false</text>
+    <line x1="158" y1="49.0" x2="168" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <text x="242" y="20" text-anchor="middle" font-weight="700">fade_out()</text>
+    <rect x="170" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="242" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress 0 → 1</text>
+    <line x1="242" y1="64" x2="242" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="170" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="242" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_fading() = true</text>
+    <line x1="242" y1="106" x2="242" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="170" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="242" y="138" text-anchor="middle">tween de duration s</text>
+    <line x1="315" y1="49.0" x2="325" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <text x="398" y="20" text-anchor="middle" font-weight="700">Couvert</text>
+    <rect x="327" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="398" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress = 1</text>
+    <line x1="398" y1="64" x2="398" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="327" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="398" y="96" text-anchor="middle">fade_finished(1.0)</text>
+    <line x1="398" y1="106" x2="398" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="327" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="398" y="138" text-anchor="middle">signal faded_out</text>
+    <line x1="398" y1="148" x2="398" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="327" y="160" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="398" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="132" lengthAdjust="spacingAndGlyphs">is_covered() = true</text>
+    <line x1="472" y1="49.0" x2="482" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <text x="555" y="20" text-anchor="middle" font-weight="700">fade_in()</text>
+    <rect x="484" y="34" width="142" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="555" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">progress 1 → 0</text>
+    <line x1="555" y1="64" x2="555" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="484" y="76" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="555" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_fading() = true</text>
+    <line x1="555" y1="106" x2="555" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="484" y="118" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="555" y="138" text-anchor="middle">fade_finished(0.0)</text>
+    <line x1="555" y1="148" x2="555" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-69887)"/>
+    <rect x="484" y="160" width="142" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="555" y="180" text-anchor="middle">signal faded_in</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "FXFade.color": [
+    {
+      "video": "FXFade.color",
+      "legende": "Rouge (flash), blanc transparent (disparition, valeur par défaut) et (2, 2, 2) surexposé (flash lumineux)."
+    }
+  ],
+  "FXFade.color_property": [
+    {
+      "video": "FXFade.color_property",
+      "legende": "<code>modulate<\/code> teinte le nœud et ses enfants, <code>self_modulate<\/code> seulement le nœud."
+    }
+  ],
+  "FXFade.duration": [
+    {
+      "video": "FXFade.duration",
+      "legende": "0,1 s, 0,5 s et 1,5 s, à l'aller comme au retour."
+    }
+  ],
+  "FXFade.mode": [
+    {
+      "video": "FXFade.mode",
+      "legende": "FADE_TEXTURE : les deux textures sont réellement mélangées pendant le fondu."
+    }
+  ],
+  "FXFade.revert_on_stop": [
+    {
+      "video": "FXFade.revert_on_stop",
+      "legende": "À l'arrêt : true refait le fondu inverse, false garde la nouvelle couleur."
+    }
+  ],
+  "FXFade.transition": [
+    {
+      "video": "FXFade.transition",
+      "legende": "Linear, Sine (défaut) et Bounce : la forme de la courbe ; ease_type règle où elle accélère."
+    }
+  ],
+  "ScreenFader.always_process": [
+    {
+      "video": "ScreenFader.always_process",
+      "legende": "Jeu en pause et <code>time_scale<\/code> bas : avec <code>always_process<\/code> le fondu avance quand même."
+    }
+  ],
+  "ScreenFader.block_input": [
+    {
+      "video": "ScreenFader.block_input",
+      "legende": "Écran couvert : avec <code>block_input<\/code> le clic est intercepté, sans lui il atteint le bouton."
+    }
+  ],
+  "ScreenFader.color": [
+    {
+      "video": "ScreenFader.color",
+      "legende": "Noir (défaut), blanc et rouge ; l'alpha de la couleur limite l'opacité maximale."
+    }
+  ],
+  "ScreenFader.fade_finished": [
+    {
+      "video": "ScreenFader.fade_finished",
+      "legende": "Les signaux au fil des fondus : <code>fade_finished(progress)<\/code> à chaque fin, puis <code>faded_out<\/code> ou <code>faded_in<\/code>."
+    }
+  ],
+  "ScreenFader.fade_to": [
+    {
+      "video": "ScreenFader.fade_to",
+      "legende": "<code>fade_to(0.6)<\/code> : voile partiel, puis <code>fade_in()<\/code>."
+    }
+  ],
+  "ScreenFader.mask": [
+    {
+      "video": "ScreenFader.mask",
+      "legende": "Sans masque, volet, iris, losanges et dissolution : les pixels sombres du masque se couvrent en premier."
+    }
+  ],
+  "ScreenFader.mask_smoothness": [
+    {
+      "video": "ScreenFader.mask_smoothness",
+      "legende": "0,02 (bord net) et 0,4 (bord flou), avec le même volet."
+    }
+  ],
+  "ScreenFader.progress": [
+    {
+      "video": "ScreenFader.progress",
+      "legende": "<code>progress<\/code> modifié directement (0 → 1) : utile avec un AnimationPlayer ou une jauge."
+    }
+  ],
+  "ScreenFader.texture": [
+    {
+      "video": "ScreenFader.texture",
+      "legende": "Une image (motif) à la place de la couleur unie, teintée par <code>color<\/code>."
+    }
+  ],
+  "FXFade": [
+    {
+      "video": "classe-FXFade",
+      "legende": "FXFade anime une propriété Color (ici <code>modulate<\/code>) ou remplace une texture en fondu."
+    }
+  ],
+  "ScreenFader": [
+    {
+      "video": "classe-ScreenFader",
+      "legende": "ScreenFader couvre puis découvre tout l'écran : uni, puis avec des masques."
+    }
+  ],
+  "FXFade.ease_type": [
+    {
+      "video": "FXFade.transition",
+      "legende": "Linear, Sine (défaut) et Bounce : la forme de la courbe ; ease_type règle où elle accélère."
+    }
+  ],
+  "FXFade.texture": [
+    {
+      "video": "FXFade.mode",
+      "legende": "FADE_TEXTURE : les deux textures sont réellement mélangées pendant le fondu."
+    }
+  ],
+  "FXFade.texture_property": [
+    {
+      "video": "FXFade.mode",
+      "legende": "FADE_TEXTURE : les deux textures sont réellement mélangées pendant le fondu."
+    }
+  ],
+  "ScreenFader.duration": [
+    {
+      "video": "classe-ScreenFader",
+      "legende": "<code>duration<\/code> : durée des fondus appelés sans durée (ici 0,8 s)."
+    }
+  ],
+  "ScreenFader.ease_type": [
+    {
+      "video": "FXFade.transition",
+      "legende": "Mêmes courbes que FXFade : <code>transition<\/code> et <code>ease_type<\/code>."
+    }
+  ],
+  "ScreenFader.fade_in": [
+    {
+      "video": "mode-emploi-tuto-ecran",
+      "legende": "<code>fade_out()<\/code>, <code>await faded_out<\/code>, changement de scène sous le voile, puis <code>fade_in()<\/code>."
+    }
+  ],
+  "ScreenFader.fade_out": [
+    {
+      "video": "mode-emploi-tuto-ecran",
+      "legende": "<code>fade_out()<\/code>, <code>await faded_out<\/code>, changement de scène sous le voile, puis <code>fade_in()<\/code>."
+    }
+  ],
+  "ScreenFader.faded_in": [
+    {
+      "video": "ScreenFader.fade_finished",
+      "legende": "Les signaux au fil des fondus : <code>fade_finished(progress)<\/code> à chaque fin, puis <code>faded_out<\/code> ou <code>faded_in<\/code>."
+    }
+  ],
+  "ScreenFader.faded_out": [
+    {
+      "video": "ScreenFader.fade_finished",
+      "legende": "Les signaux au fil des fondus : <code>fade_finished(progress)<\/code> à chaque fin, puis <code>faded_out<\/code> ou <code>faded_in<\/code>."
+    }
+  ],
+  "ScreenFader.is_covered": [
+    {
+      "schema": "schema-etats",
+      "legende": "<code>is_fading()<\/code> est vrai pendant un fondu, <code>is_covered()<\/code> quand <code>progress<\/code> vaut 1 ; chaque fondu se termine par <code>fade_finished<\/code> puis <code>faded_out<\/code> / <code>faded_in<\/code>."
+    }
+  ],
+  "ScreenFader.is_fading": [
+    {
+      "schema": "schema-etats",
+      "legende": "<code>is_fading()<\/code> est vrai pendant un fondu, <code>is_covered()<\/code> quand <code>progress<\/code> vaut 1 ; chaque fondu se termine par <code>fade_finished<\/code> puis <code>faded_out<\/code> / <code>faded_in<\/code>."
+    }
+  ],
+  "ScreenFader.transition": [
+    {
+      "video": "FXFade.transition",
+      "legende": "Mêmes courbes que FXFade : <code>transition<\/code> et <code>ease_type<\/code>."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

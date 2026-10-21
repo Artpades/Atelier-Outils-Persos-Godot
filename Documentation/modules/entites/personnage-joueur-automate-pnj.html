@@ -91,11 +91,11 @@
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt, ainsi que le mouvement :
       <pre><code class="language-shell">scons entity_algorithm
 scons movement_physics</code></pre>
-      <div class="why">chaque bibliothèque est compilée séparément et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+      <div class="why">Chaque bibliothèque est compilée séparément et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
     </li>
     <li>
       <strong>Copier les dossiers <code>bin/entity_algorithm/</code> et <code>bin/movement_physics/</code></strong> dans le projet Godot, au même emplacement (<code>res://bin/…</code>).
-      <div class="why">les fichiers <code>.gdextension</code> référencent leurs binaires par des chemins <code>res://bin/…</code> absolus ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Les fichiers <code>.gdextension</code> référencent leurs binaires par des chemins <code>res://bin/…</code> absolus ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -103,7 +103,7 @@ scons movement_physics</code></pre>
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> doit proposer <code>Character2D</code>, <code>PlayerController</code>, <code>HealthComponent</code>… et le panneau <em>Sortie</em> afficher « 🧍Module Entités &amp; Algorithme … chargé avec succès ».
-      <div class="why">si les classes sont absentes, la bibliothèque n'est pas chargée : le message d'erreur de chargement est dans ce même panneau.</div>
+      <div class="why">Si les classes sont absentes, la bibliothèque n'est pas chargée : le message d'erreur de chargement est dans ce même panneau.</div>
     </li>
   </ol>
   <p>Aucun autoload n'est requis. Les actions de l'InputMap du joueur (<code>move_left</code>, <code>jump</code>…) sont créées automatiquement au lancement si elles manquent (<code>PlayerController.create_missing_actions</code>).</p>
@@ -120,23 +120,23 @@ scons movement_physics</code></pre>
   <ol class="steps">
     <li>
       <strong>Créer une scène dont la racine est un <code>Character2D</code></strong>, avec un <code>Sprite2D</code> et un <code>CollisionShape2D</code> comme pour tout <code>CharacterBody2D</code>. Régler sa <code>faction</code> sur <code>joueur</code>.
-      <div class="why">le personnage est un vrai corps physique ; la faction servira à savoir qui est ennemi du joueur.</div>
+      <div class="why">Le personnage est un vrai corps physique ; la faction servira à savoir qui est ennemi du joueur.</div>
     </li>
     <li>
       <strong>Ajouter un <code>GroundMovement2D</code> enfant</strong> (module Mouvement &amp; Physique) et choisir son mode (plateforme ou vue de dessus).
-      <div class="why">c'est lui qui déplace réellement le corps ; le personnage se contente de lui transmettre l'intention.</div>
+      <div class="why">C'est lui qui déplace réellement le corps ; le personnage se contente de lui transmettre l'intention.</div>
     </li>
     <li>
       <strong>Ajouter un <code>PlayerController</code> enfant.</strong>
-      <div class="why">il lit le clavier et la manette à chaque image physique. Les actions manquantes sont créées au lancement : ZQSD / WASD et flèches, Espace pour sauter, Maj pour courir, E pour interagir.</div>
+      <div class="why">Il lit le clavier et la manette à chaque image physique. Les actions manquantes sont créées au lancement : ZQSD / WASD et flèches, Espace pour sauter, Maj pour courir, E pour interagir.</div>
     </li>
     <li>
       <strong>Ajouter un <code>HealthComponent</code> enfant</strong> et régler <code>max_health</code> depuis l'inspecteur du personnage (groupe « 🧩 HealthComponent »).
-      <div class="why">sans composant de vie, le personnage est immortel ; avec lui, il peut subir des dégâts et sa mort coupe automatiquement ses déplacements.</div>
+      <div class="why">Sans composant de vie, le personnage est immortel ; avec lui, il peut subir des dégâts et sa mort coupe automatiquement ses déplacements.</div>
     </li>
     <li>
       <strong>Lancer la scène</strong> : le personnage se déplace, saute et court.
-      <div class="why">si rien ne bouge, vérifier que le composant de mouvement est bien un enfant <em>direct</em> du personnage.</div>
+      <div class="why">Si rien ne bouge, vérifier que le composant de mouvement est bien un enfant <em>direct</em> du personnage.</div>
     </li>
   </ol>
 
@@ -144,15 +144,15 @@ scons movement_physics</code></pre>
   <ol class="steps">
     <li>
       <strong>Dupliquer la scène du personnage</strong>, retirer le <code>PlayerController</code> et ajouter à la place un <code>NPCController</code>.
-      <div class="why">le PNJ est un personnage comme les autres, seul son « cerveau » change.</div>
+      <div class="why">Le PNJ est un personnage comme les autres, seul son « cerveau » change.</div>
     </li>
     <li>
       <strong>Assigner sa propriété <code>dialogue</code></strong> (un <code>DialogueResource</code>) et placer un <code>DialogueSystem</code> + <code>DialogueBox</code> dans la scène.
-      <div class="why">le PNJ lance ce dialogue sur le <code>DialogueSystem</code> principal ; pendant la conversation, le <code>PlayerController</code> du joueur est automatiquement mis en pause.</div>
+      <div class="why">Le PNJ lance ce dialogue sur le <code>DialogueSystem</code> principal ; pendant la conversation, le <code>PlayerController</code> du joueur est automatiquement mis en pause.</div>
     </li>
     <li>
       <strong>Lancer la scène et s'approcher à moins de 64 px</strong>, puis appuyer sur <kbd>E</kbd>.
-      <div class="why">au démarrage, le PNJ a créé tout seul un <code>Interactable</code> (invite « Parler », portée 64 px) ; le joueur interagit toujours avec le plus proche à portée.</div>
+      <div class="why">Au démarrage, le PNJ a créé tout seul un <code>Interactable</code> (invite « Parler », portée 64 px) ; le joueur interagit toujours avec le plus proche à portée.</div>
     </li>
     <li>
       <strong>Afficher l'invite</strong> en écoutant le joueur :
@@ -161,7 +161,7 @@ scons movement_physics</code></pre>
 		$Interface/Invite.visible = objet != null
 		if objet:
 			$Interface/Invite.text = "[E] " + objet.prompt)</code></pre>
-      <div class="why">le module ne dessine aucune interface : il indique seulement l'objet visé.</div>
+      <div class="why">Le module ne dessine aucune interface : il indique seulement l'objet visé.</div>
     </li>
   </ol>
 
@@ -169,11 +169,11 @@ scons movement_physics</code></pre>
   <ol class="steps">
     <li>
       <strong>Sur un troisième personnage (faction <code>monstres</code>, <code>hostile_factions</code> = <code>["joueur"]</code>), ajouter un <code>AutomateController</code>.</strong>
-      <div class="why">l'automate calcule l'entrée de déplacement que le joueur donnerait au clavier.</div>
+      <div class="why">L'automate calcule l'entrée de déplacement que le joueur donnerait au clavier.</div>
     </li>
     <li>
       <strong>Remplir <code>patrol_points</code></strong> avec des <code>Vector2</code> (positions globales) et régler <code>start_mode</code> sur <em>Patrol</em>.
-      <div class="why">le garde part dès le lancement, marque une pause de <code>wait_time</code> à chaque point et boucle (<code>patrol_loop</code>).</div>
+      <div class="why">Le garde part dès le lancement, marque une pause de <code>wait_time</code> à chaque point et boucle (<code>patrol_loop</code>).</div>
     </li>
   </ol>
 

@@ -33,3 +33,7 @@ android.debug.arm64 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.andr
 android.release.arm64 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.android.release.arm64.so"
 android.debug.arm32 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.android.debug.arm32.so"
 android.release.arm32 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.android.release.arm32.so"
+web.debug.threads.wasm32 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.web.template_debug.wasm32.wasm"
+web.release.threads.wasm32 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.web.template_release.wasm32.wasm"
+web.debug.wasm32 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.web.template_debug.wasm32.nothreads.wasm"
+web.release.wasm32 = "res://bin/tool_editor/libgameplaytoolkit_tool_editor.web.template_release.wasm32.nothreads.wasm"

@@ -38,10 +38,9 @@
       <li><strong>Pas un agrandissement</strong> : pour grossir uniformément sur commande, voir <a href="agrandissement-retrecissement.html">🦣 Agrandissement</a>.</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : une balle 2D lancée en cloche qui s'allonge en vol, s'aplatit à l'atterrissage puis reprend sa forme ; à côté, la même balle avec <code>orient_to_velocity</code> qui s'étire dans l'axe de sa trajectoire.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/squash-and-stretch" data-figure="1">
+    <figcaption>Une balle qui rebondit (cliquer pour la relancer vers la souris) : étirement, vitesse de référence, seuil et force de l'écrasement, lissage, orientation.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -63,7 +62,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
 
@@ -72,7 +71,7 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>PlayerFX</code> sous le <code>Sprite2D</code> du personnage</strong> (pas sous le <code>CharacterBody2D</code>), avec un <code>FXStretchAndSquash</code>.
-      <div class="why">déformer le sprite laisse la forme de collision intacte ; le sprite bouge avec le corps, sa vitesse est donc celle du personnage.</div>
+      <div class="why">Déformer le sprite laisse la forme de collision intacte ; le sprite bouge avec le corps, sa vitesse est donc celle du personnage.</div>
     </li>
     <li>
       <strong>Régler <code>max_speed</code> à la vitesse maximale du personnage</strong> (en px/s) et <code>impact_threshold</code> à environ la moitié de sa vitesse de chute.
@@ -82,9 +81,10 @@
       <strong>Lancer l'effet une fois</strong> :
       <pre><code class="gdscript">func _ready() -> void:
 	$Sprite2D/PlayerFX.play()</code></pre>
-      <div class="why">l'effet n'a pas de durée : il réagit en continu aux déplacements tant qu'il est actif.</div>
+      <div class="why">L'effet n'a pas de durée : il réagit en continu aux déplacements tant qu'il est actif.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>PlayerFX sous le sprite du personnage : il s'allonge en sautant et s'écrase à l'atterrissage, la collision reste intacte.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -103,6 +103,7 @@ etirement.max_stretch = 0.8
 etirement.enable_impact_squash = false
 $Fleche/PlayerFX.special_effects = [etirement]
 $Fleche/PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-projectile"><figcaption>Des flèches lancées en cloche, orientées et étirées dans l'axe de leur vol.</figcaption></figure>
 
   <h3 id="ex-3d">Comment je l'utilise en 3D ?</h3>
   <p>Les vitesses sont alors en mètres par seconde : les valeurs par défaut (600, 300) sont à réduire fortement.</p>
@@ -112,6 +113,7 @@ souplesse.impact_threshold = 6.0   # perte de 6 m/s en une frame = atterrissage
 souplesse.max_stretch = 0.3
 $Joueur/Modele/PlayerFX.special_effects = [souplesse]
 $Joueur/Modele/PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-3d"><figcaption>En 3D, vitesses en m/s : <code>max_speed = 12</code>, <code>impact_threshold = 6</code>.</figcaption></figure>
 
   <h3 id="ex-ui">Comment je rends une interface « élastique » ?</h3>
   <p>Sur un <code>Control</code> déplacé par un <code>Tween</code>, la déformation suit la vitesse du glissement.</p>
@@ -121,6 +123,7 @@ $Joueur/Modele/PlayerFX.play()</code></pre>
 	tween.tween_property($Panneau, "position:x", 40.0, 0.4)
 	await tween.finished
 	$Panneau/PlayerFX.stop()   # échelle et rotation d'origine restaurées</code></pre>
+  <figure class="media" data-video="ex-ui"><figcaption>Un panneau qui glisse (Tween Back) se déforme selon sa vitesse, puis <code>stop()</code> restaure son échelle.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -171,6 +174,66 @@ $Joueur/Modele/PlayerFX.play()</code></pre>
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "FXStretchAndSquash.enable_impact_squash": [
+    {
+      "video": "FXStretchAndSquash.enable_impact_squash",
+      "legende": "Sans puis avec l'écrasement à l'impact."
+    }
+  ],
+  "FXStretchAndSquash.impact_recovery_speed": [
+    {
+      "video": "FXStretchAndSquash.impact_recovery_speed",
+      "legende": "4, 12 (défaut) et 30 : la rapidité avec laquelle l'écrasement se résorbe."
+    }
+  ],
+  "FXStretchAndSquash.impact_threshold": [
+    {
+      "video": "FXStretchAndSquash.impact_threshold",
+      "legende": "100, 300 (défaut) et 900 px/s : la perte de vitesse qui compte comme un choc."
+    }
+  ],
+  "FXStretchAndSquash.max_impact_squash": [
+    {
+      "video": "FXStretchAndSquash.max_impact_squash",
+      "legende": "0,2, 0,4 (défaut) et 0,8 : l'écrasement maximal d'un impact."
+    }
+  ],
+  "FXStretchAndSquash.max_speed": [
+    {
+      "video": "FXStretchAndSquash.max_speed",
+      "legende": "300, 600 (défaut) et 1200 px/s : la vitesse à laquelle l'étirement est maximal."
+    }
+  ],
+  "FXStretchAndSquash.max_stretch": [
+    {
+      "video": "FXStretchAndSquash.max_stretch",
+      "legende": "0,2, 0,5 (défaut) et 1 : l'allongement maximal."
+    }
+  ],
+  "FXStretchAndSquash.orient_to_velocity": [
+    {
+      "video": "FXStretchAndSquash.orient_to_velocity",
+      "legende": "false : étirement vertical / horizontal · true : la balle tourne et s'allonge dans l'axe de sa trajectoire."
+    }
+  ],
+  "FXStretchAndSquash.smooth_speed": [
+    {
+      "video": "FXStretchAndSquash.smooth_speed",
+      "legende": "4, 15 (défaut) et 40 : déformation molle ou nerveuse."
+    }
+  ],
+  "FXStretchAndSquash": [
+    {
+      "video": "classe-FXStretchAndSquash",
+      "legende": "Étirement dans le sens du mouvement, écrasement à l'impact, en 2D comme en 3D."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "FXStretchAndSquash.max_speed": "La vitesse de course ou de chute maximale du personnage, pour que l'étirement maximal corresponde au mouvement le plus rapide.",

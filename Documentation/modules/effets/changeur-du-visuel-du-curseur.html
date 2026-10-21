@@ -48,10 +48,9 @@
       <li><strong>Pas un pointeur de manette</strong> : sans souris, rien ne s'affiche.</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : le curseur « épée » du jeu devient une main ouverte au survol d'un coffre (Area2D), se ferme pendant le clic, puis redevient une épée en quittant le coffre ; en bas, l'arbre de scène avec les deux <code>CursorChanger</code>.</div>
-  </div>
+  <figure class="media media-web" data-web="effets/changeur-du-visuel-du-curseur" data-figure="1">
+    <figcaption>Avec la vraie souris : curseur de base au choix, main au survol du coffre (fermée pendant le clic), sablier activé à la demande et sa vitesse d'animation.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -72,11 +71,11 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
     <li>
       <strong>Importer les images de curseur sans filtre ni compression</strong> si elles sont en pixel art (onglet <em>Import</em>).
-      <div class="why">le curseur est affiché à sa taille native : un filtrage le rend flou.</div>
+      <div class="why">Le curseur est affiché à sa taille native : un filtrage le rend flou.</div>
     </li>
   </ol>
   <div class="callout warn">
@@ -89,21 +88,22 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>CursorChanger</code> à la racine de la scène principale</strong> (mode <em>Always</em> par défaut).
-      <div class="why">en mode permanent, il remplace le curseur dès son entrée dans l'arbre : c'est le curseur de base du jeu.</div>
+      <div class="why">En mode permanent, il remplace le curseur dès son entrée dans l'arbre : c'est le curseur de base du jeu.</div>
     </li>
     <li>
       <strong>Créer son <code>style</code></strong> : <code>Nouveau CursorStyle</code>, ajouter l'image dans <code>frames</code>, régler <code>hotspot</code> sur la pointe de l'image (par exemple <code>(2, 2)</code>).
-      <div class="why">le <code>hotspot</code> est le pixel qui clique : mal placé, les clics tombent à côté de ce que le joueur vise.</div>
+      <div class="why">Le <code>hotspot</code> est le pixel qui clique : mal placé, les clics tombent à côté de ce que le joueur vise.</div>
     </li>
     <li>
       <strong>Ajouter un second <code>CursorChanger</code> comme enfant d'un objet survolable</strong> (un <code>Button</code>, ou une <code>Area2D</code> avec <code>input_pickable</code> coché), en mode <em>Hover</em>, avec un autre style.
-      <div class="why">au survol, il passe au sommet de la pile ; en sortant, il se retire et le curseur de base revient tout seul.</div>
+      <div class="why">Au survol, il passe au sommet de la pile ; en sortant, il se retire et le curseur de base revient tout seul.</div>
     </li>
     <li>
       <strong>Facultatif : renseigner <code>pressed_style</code></strong> sur l'un ou l'autre.
-      <div class="why">affiché tant que <code>pressed_button</code> (gauche par défaut) est enfoncé : un retour visuel immédiat au clic.</div>
+      <div class="why">Affiché tant que <code>pressed_button</code> (gauche par défaut) est enfoncé : un retour visuel immédiat au clic.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Curseur « épée » permanent ; au survol du coffre (Area2D), un second CursorChanger en mode Hover affiche la main, fermée pendant le clic.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -123,6 +123,7 @@ func charger(chemin: String) -> void:
 	while ResourceLoader.load_threaded_get_status(chemin) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		await get_tree().process_frame
 	sablier.deactivate()   # le curseur précédent revient</code></pre>
+  <figure class="media" data-video="ex-chargement"><figcaption>Sablier animé (mode Manual) activé pendant le chargement, puis retiré : l'épée revient.</figcaption></figure>
 
   <h3 id="ex-visee">Comment je passe en curseur de visée selon l'état du jeu ?</h3>
   <pre><code class="gdscript">func set_mode_visee(actif: bool) -> void:
@@ -130,6 +131,7 @@ func charger(chemin: String) -> void:
 		$CurseurVisee.activate()
 	else:
 		$CurseurVisee.deactivate()</code></pre>
+  <figure class="media" data-video="ex-visee"><figcaption><code>set_mode_visee(true)</code> active le viseur par-dessus le curseur de base, <code>false</code> le retire.</figcaption></figure>
 
   <h3 id="ex-3d">Comment je change le curseur au survol d'un objet 3D ?</h3>
   <p>La cible doit émettre <code>mouse_entered</code> / <code>mouse_exited</code> : un <code>CollisionObject3D</code> avec <code>input_ray_pickable</code> (actif par défaut) et une caméra active.</p>
@@ -137,6 +139,7 @@ func charger(chemin: String) -> void:
 # └─ CursorChanger (activation_mode = Hover, style = main)
 # Rien à scripter. Pour viser un autre nœud que le parent :
 $CursorChanger.target = $Levier/ZoneCliquable</code></pre>
+  <figure class="media" data-video="ex-3d"><figcaption>Un levier 3D (StaticBody3D) avec un CursorChanger en mode Hover : la main apparaît à son survol, sans script.</figcaption></figure>
 
   <h3 id="ex-bouton">Comment je remplace aussi la main au-dessus des boutons ?</h3>
   <p>Un <code>Button</code> affiche la forme système <em>Pointing Hand</em>, pas <em>Arrow</em> : un style à la forme <em>Arrow</em> n'y est pas visible. Un second style sur cette forme la remplace partout :</p>
@@ -145,6 +148,41 @@ main.frames = [preload("res://curseurs/main.png")]
 main.shape = Input.CURSOR_POINTING_HAND
 $CurseurBoutons.style = main     # CursorChanger en mode Always, activé après le curseur de base</code></pre>
   <p>Attention : un seul <code>CursorChanger</code> dessine à la fois (le sommet de la pile). Pour remplacer plusieurs formes en même temps, régler la forme secondaire directement avec <code>Input.set_custom_mouse_cursor</code>.</p>
+  <figure class="media schema" data-schema="ex-bouton"><div class="schema-svg"><svg viewBox="0 0 640 218" role="img" aria-label="Formes de curseur système et styles">
+  <defs><marker id="f-98481" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Survol du décor</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">forme CURSOR_ARROW</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle">style.shape = ARROW</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle" fill-opacity="0.7">→ épée affichée</text>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Survol d'un Button</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">forme POINTING_HAND</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">style ARROW sans effet ici</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle" fill-opacity="0.7">→ main du système</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="185" lengthAdjust="spacingAndGlyphs">2e style shape = POINTING_HAND</text>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Survol d'un LineEdit</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">forme CURSOR_IBEAM</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle">autre forme système</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" fill-opacity="0.7">→ barre de texte</text>
+  </g>
+</svg></div><figcaption>Chaque forme système a son image : un style à la forme Arrow ne change pas la main affichée au-dessus d'un Button (Pointing Hand).</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -230,6 +268,145 @@ $CurseurBoutons.style = main     # CursorChanger en mode Always, activé après 
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-ex-bouton">
+<svg viewBox="0 0 640 218" role="img" aria-label="Formes de curseur système et styles">
+  <defs><marker id="f-98481" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Survol du décor</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">forme CURSOR_ARROW</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle">style.shape = ARROW</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle" fill-opacity="0.7">→ épée affichée</text>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Survol d'un Button</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">forme POINTING_HAND</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">style ARROW sans effet ici</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle" fill-opacity="0.7">→ main du système</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="185" lengthAdjust="spacingAndGlyphs">2e style shape = POINTING_HAND</text>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Survol d'un LineEdit</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">forme CURSOR_IBEAM</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle">autre forme système</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-98481)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" fill-opacity="0.7">→ barre de texte</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "CursorChanger.activate": [
+    {
+      "video": "CursorChanger.activate",
+      "legende": "<code>activate()<\/code> / <code>deactivate()<\/code> en mode Manual, avec <code>is_active()<\/code> et <code>is_current()<\/code> de chaque CursorChanger."
+    }
+  ],
+  "CursorChanger.activation_mode": [
+    {
+      "video": "CursorChanger.activation_mode",
+      "legende": "ALWAYS : dès l'entrée dans l'arbre · HOVER : au survol de la cible · MANUAL : à <code>activate()<\/code>."
+    }
+  ],
+  "CursorChanger.pressed_style": [
+    {
+      "video": "CursorChanger.pressed_style",
+      "legende": "Tant que <code>pressed_button<\/code> (gauche) est enfoncé, <code>pressed_style<\/code> remplace <code>style<\/code>."
+    }
+  ],
+  "CursorChanger.target": [
+    {
+      "video": "CursorChanger.target",
+      "legende": "Le CursorChanger est sous le coffre, mais <code>target<\/code> vise la serrure : seul son survol change le curseur."
+    }
+  ],
+  "CursorStyle.frames_per_second": [
+    {
+      "video": "CursorStyle.frames_per_second",
+      "legende": "Le même sablier à 3 et à 12 images par seconde."
+    }
+  ],
+  "CursorStyle.hotspot": [
+    {
+      "video": "CursorStyle.hotspot",
+      "legende": "Le point rouge est le pixel qui clique : hotspot (0, 0) sur un viseur clique à côté de la cible, (8, 8) en plein centre."
+    }
+  ],
+  "CursorChanger": [
+    {
+      "video": "classe-CursorChanger",
+      "legende": "La pile des curseurs : le dernier activé dessine le curseur ; quand il se retire, le précédent revient."
+    }
+  ],
+  "CursorStyle": [
+    {
+      "video": "classe-CursorStyle",
+      "legende": "Un style fixe (épée) et un style animé (sablier, quatre images), avec leur hotspot en rouge."
+    }
+  ],
+  "CursorChanger.deactivate": [
+    {
+      "video": "CursorChanger.activate",
+      "legende": "<code>activate()<\/code> / <code>deactivate()<\/code> en mode Manual, avec <code>is_active()<\/code> et <code>is_current()<\/code> de chaque CursorChanger."
+    }
+  ],
+  "CursorChanger.is_active": [
+    {
+      "video": "CursorChanger.activate",
+      "legende": "<code>activate()<\/code> / <code>deactivate()<\/code> en mode Manual, avec <code>is_active()<\/code> et <code>is_current()<\/code> de chaque CursorChanger."
+    }
+  ],
+  "CursorChanger.is_current": [
+    {
+      "video": "CursorChanger.activate",
+      "legende": "<code>activate()<\/code> / <code>deactivate()<\/code> en mode Manual, avec <code>is_active()<\/code> et <code>is_current()<\/code> de chaque CursorChanger."
+    }
+  ],
+  "CursorChanger.pressed_button": [
+    {
+      "video": "CursorChanger.pressed_style",
+      "legende": "Tant que <code>pressed_button<\/code> (gauche) est enfoncé, <code>pressed_style<\/code> remplace <code>style<\/code>."
+    }
+  ],
+  "CursorChanger.style": [
+    {
+      "video": "classe-CursorStyle",
+      "legende": "Un style fixe (épée) et un style animé (sablier, quatre images), avec leur hotspot en rouge."
+    }
+  ],
+  "CursorStyle.frames": [
+    {
+      "video": "classe-CursorStyle",
+      "legende": "Un style fixe (épée) et un style animé (sablier, quatre images), avec leur hotspot en rouge."
+    }
+  ],
+  "CursorStyle.get_frame_at": [
+    {
+      "video": "CursorStyle.frames_per_second",
+      "legende": "Le même sablier à 3 et à 12 images par seconde."
+    }
+  ],
+  "CursorStyle.shape": [
+    {
+      "schema": "schema-ex-bouton",
+      "legende": "Chaque forme système a son image : un style à la forme Arrow ne change pas la main affichée au-dessus d'un Button (Pointing Hand)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "CursorChanger.style": "Le curseur du jeu (épée, gant), ou celui d'un objet survolé (loupe, main, porte).",

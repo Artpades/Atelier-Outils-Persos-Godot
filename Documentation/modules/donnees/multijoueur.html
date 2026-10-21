@@ -87,19 +87,19 @@
     <li>
       <strong>Compiler le module</strong> si besoin :
       <pre><code class="language-shell">scons multiplayer</code></pre>
-      <div class="why">son registre est <code>multiplayer_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
+      <div class="why">Son registre est <code>multiplayer_register.cpp</code> : seule cette bibliothèque est compilée, et son <code>.gdextension</code> régénéré.</div>
     </li>
     <li>
       <strong>Copier <code>bin/multiplayer/</code></strong> dans <code>res://bin/multiplayer/</code>, puis <strong>redémarrer l'éditeur</strong>.
-      <div class="why">le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/multiplayer/…</code>, et Godot ne découvre les extensions qu'au démarrage.</div>
+      <div class="why">Le <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/multiplayer/…</code>, et Godot ne découvre les extensions qu'au démarrage.</div>
     </li>
     <li>
       <strong>Renseigner le nom et la version du projet</strong> (<em>Paramètres du projet › Application › Config › Name / Version</em>), ou <code>game_id</code> / <code>game_version</code> sur les nœuds.
-      <div class="why">c'est ce qui est comparé entre appareils : deux jeux différents ne peuvent pas se rejoindre, deux versions différentes non plus (sauf <code>allow_version_mismatch</code>).</div>
+      <div class="why">C'est ce qui est comparé entre appareils : deux jeux différents ne peuvent pas se rejoindre, deux versions différentes non plus (sauf <code>allow_version_mismatch</code>).</div>
     </li>
     <li>
       <strong>Vérifier</strong> : <kbd>Ajouter un nœud</kbd> propose <code>NetworkSession</code> et <code>LanDiscovery</code> ; la console affiche « 🗄️Module Multijoueur chargé avec succès ! ».
-      <div class="why">sinon, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
+      <div class="why">Sinon, la bibliothèque n'est pas chargée : voir le panneau <em>Sortie</em>.</div>
     </li>
   </ol>
 
@@ -109,7 +109,7 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>LanDiscovery</code> et une <code>NetworkSession</code></strong> dans la scène du salon (ou un autoload), puis régler <code>discovery</code> de la session sur le <code>LanDiscovery</code>.
-      <div class="why">relié ainsi, le <code>LanDiscovery</code> annonce automatiquement la partie hébergée (port, nombre de joueurs, mot de passe requis…). Avec <code>autostart</code>, il répond aux recherches dès le lancement.</div>
+      <div class="why">Relié ainsi, le <code>LanDiscovery</code> annonce automatiquement la partie hébergée (port, nombre de joueurs, mot de passe requis…). Avec <code>autostart</code>, il répond aux recherches dès le lancement.</div>
     </li>
     <li>
       <strong>Chercher les parties et afficher celles qu'on peut rejoindre</strong> :

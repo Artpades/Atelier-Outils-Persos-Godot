@@ -39,10 +39,9 @@
       <li><strong>Pas un déplacement physique</strong> : la position est imposée, sans collision ni pathfinding.</li>
     </ul>
   </div>
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF : deux personnages 2D qui s'éloignent puis se rapprochent ; la Camera2D reste centrée entre eux et dézoome / rezoome en douceur (afficher le rectangle englobant et la marge <code>zoom_margin</code> en surimpression).</div>
-  </div>
+  <figure class="media media-web" data-web="effets/follow" data-figure="1">
+    <figcaption>Une Camera2D suit deux joueurs (le bleu suit la souris) : écartement, vitesse de suivi, zoom automatique, marge et bornes du zoom, avec le rectangle englobant en surimpression.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -64,7 +63,7 @@
       <strong>Compiler et installer la bibliothèque des effets</strong> :
       <pre><code class="language-shell">scons fx</code></pre>
       puis copier <code>bin/fx/</code> dans <code>res://bin/fx/</code> et redémarrer l'éditeur.
-      <div class="why">procédure commune à tous les effets, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
+      <div class="why">Procédure commune à tous les effets, détaillée dans <a href="socle-effets.html#mise-en-place">✨ Socle des effets</a>.</div>
     </li>
   </ol>
 
@@ -74,23 +73,24 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un <code>PlayerFX</code> comme enfant de la <code>Camera2D</code></strong>.
-      <div class="why">la caméra (parent) devient la cible déplacée par l'effet.</div>
+      <div class="why">La caméra (parent) devient la cible déplacée par l'effet.</div>
     </li>
     <li>
       <strong>Dans <code>special_effects</code>, créer un <code>FXFollower</code></strong> et ajouter à <code>targets</code> les chemins des deux joueurs, par exemple <code>../../Joueur1</code> et <code>../../Joueur2</code>.
-      <div class="why">les chemins partent du <code>PlayerFX</code> (pas de la caméra) : <code>..</code> désigne la caméra, <code>../..</code> son parent.</div>
+      <div class="why">Les chemins partent du <code>PlayerFX</code> (pas de la caméra) : <code>..</code> désigne la caméra, <code>../..</code> son parent.</div>
     </li>
     <li>
       <strong>Lancer l'effet au démarrage</strong> :
       <pre><code class="gdscript">func _ready() -> void:
 	$Camera2D/PlayerFX.play()</code></pre>
-      <div class="why">l'effet n'a pas de durée : il suit les joueurs tant qu'il n'est pas arrêté.</div>
+      <div class="why">L'effet n'a pas de durée : il suit les joueurs tant qu'il n'est pas arrêté.</div>
     </li>
     <li>
       <strong>Régler <code>follow_speed</code>, <code>min_zoom</code>, <code>max_zoom</code> et <code>zoom_margin</code></strong>.
       <div class="why"><code>min_zoom</code> borne le dézoom quand les joueurs s'éloignent (en dessous, ils sortent de l'écran) ; <code>zoom_margin</code> évite qu'un joueur colle au bord.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>La Camera2D reste entre les deux joueurs et dézoome quand ils s'éloignent. En surimpression : leur rectangle englobant et la marge <code>zoom_margin</code>.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -112,6 +112,7 @@ func _ready() -> void:
 	suivi.follow_speed = 3.0
 	$Familier/PlayerFX.special_effects = [suivi]
 	$Familier/PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-familier"><figcaption>Le familier suit un Marker2D du joueur avec <code>follow_speed = 3</code> : un suivi élastique.</figcaption></figure>
 
   <h3 id="ex-ajout-joueur">Comment j'ajoute un joueur qui rejoint la partie ?</h3>
   <p><code>targets</code> est relu à chaque frame : il suffit de le remplacer (les chemins invalides sont ignorés, donc un joueur qui quitte la partie disparaît du calcul).</p>
@@ -120,6 +121,7 @@ func _ready() -> void:
 	var liste := suivi.targets
 	liste.append($Camera2D/PlayerFX.get_path_to(joueur))
 	suivi.targets = liste</code></pre>
+  <figure class="media" data-video="ex-ajout-joueur"><figcaption>Un troisième joueur rejoint la partie : on l'ajoute à <code>targets</code> et la caméra en tient compte.</figcaption></figure>
 
   <h3 id="ex-3d">Comment je combine suivi et visée en 3D ?</h3>
   <p>Un <code>FXFollower</code> déplace un pivot vers le groupe ; un <code>FXTargeter</code> oriente la caméra (enfant du pivot, décalée en arrière) vers ce même groupe.</p>
@@ -128,6 +130,7 @@ func _ready() -> void:
 func _ready() -> void:
 	$Pivot/PlayerFX.play()
 	$Pivot/Camera3D/PlayerFX.play()</code></pre>
+  <figure class="media" data-video="ex-3d"><figcaption>Un pivot suit le groupe (FXFollower) et la caméra, enfant du pivot, le vise (FXTargeter).</figcaption></figure>
 
   <h3 id="ex-cinematique">Comment je fige le suivi pendant une cinématique ?</h3>
   <pre><code class="gdscript">func debut_cinematique() -> void:
@@ -135,6 +138,7 @@ func _ready() -> void:
 	$AnimationPlayer.play("intro_boss")
 	await $AnimationPlayer.animation_finished
 	$Camera2D/PlayerFX.play()     # reprise en douceur vers les joueurs</code></pre>
+  <figure class="media" data-video="ex-cinematique"><figcaption><code>stop()</code> fige la caméra pendant la cinématique, <code>play()</code> la ramène en douceur vers les joueurs.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -189,6 +193,60 @@ func _ready() -> void:
 </div>
 </main>
 
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "FXFollower.auto_zoom_2d": [
+    {
+      "video": "FXFollower.auto_zoom_2d",
+      "legende": "Avec le zoom automatique, la caméra dézoome pour garder les deux joueurs ; sans, ils sortent de l'écran."
+    }
+  ],
+  "FXFollower.follow_speed": [
+    {
+      "video": "FXFollower.follow_speed",
+      "legende": "Trois suiveurs à <code>follow_speed<\/code> 1, 5 et 20 derrière la même cible."
+    }
+  ],
+  "FXFollower.min_zoom": [
+    {
+      "video": "FXFollower.min_zoom",
+      "legende": "Joueurs très écartés : <code>min_zoom<\/code> borne le dézoom (ils sortent alors de l'écran) ; proches : <code>max_zoom<\/code> borne le rapprochement."
+    }
+  ],
+  "FXFollower.use_interpolation": [
+    {
+      "video": "FXFollower.use_interpolation",
+      "legende": "true : la cible rejoint le centre en douceur · false : elle y est placée à chaque image."
+    }
+  ],
+  "FXFollower.zoom_margin": [
+    {
+      "video": "FXFollower.zoom_margin",
+      "legende": "<code>zoom_margin<\/code> 30 et 200 px : l'espace gardé autour des joueurs."
+    }
+  ],
+  "FXFollower": [
+    {
+      "video": "classe-FXFollower",
+      "legende": "La cible rejoint le centre des nœuds suivis ; une Camera2D règle aussi son zoom pour les garder à l'écran."
+    }
+  ],
+  "FXFollower.max_zoom": [
+    {
+      "video": "FXFollower.min_zoom",
+      "legende": "Joueurs très écartés : <code>min_zoom<\/code> borne le dézoom (ils sortent alors de l'écran) ; proches : <code>max_zoom<\/code> borne le rapprochement."
+    }
+  ],
+  "FXFollower.targets": [
+    {
+      "video": "mode-emploi",
+      "legende": "La Camera2D reste entre les deux joueurs et dézoome quand ils s'éloignent. En surimpression : leur rectangle englobant et la marge <code>zoom_margin<\/code>."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script>
 window.GTK_USAGES = {
   "FXFollower.targets": "Les joueurs d'un écran partagé, le maître d'un familier, les membres d'une escouade.",

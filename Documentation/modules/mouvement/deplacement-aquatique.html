@@ -54,10 +54,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>GIF côte à côte : des caisses (RigidBody2D) qui tombent dans une WaterArea2D, s'enfoncent puis remontent et dérivent ; un personnage qui plonge, nage en style Directionnel (corps incliné), puis saute hors de l'eau. debug_mode de la WaterArea2D activé (ligne de surface, flèche de courant).</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/deplacement-aquatique" data-figure="1">
+    <figcaption>Un héros qui marche et nage au clavier dans un bassin : style de nage, vitesses, coups de nage, sortie de l'eau ; lâcher des caisses et régler flottaison et courant.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -80,11 +79,11 @@
   <ol class="steps">
     <li>
       <strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).
-      <div class="why">l'eau et la nage font partie de la bibliothèque du mouvement.</div>
+      <div class="why">L'eau et la nage font partie de la bibliothèque du mouvement.</div>
     </li>
     <li>
       <strong>Vérifier les couches physiques</strong> : le <code>collision_mask</code> de la <code>WaterArea</code> doit inclure la couche des corps à faire flotter et des personnages, et <code>monitoring</code> doit rester actif.
-      <div class="why">la zone ne « voit » un corps que par le chevauchement du moteur physique ; sinon il ne flotte pas et le personnage n'est jamais considéré dans l'eau.</div>
+      <div class="why">La zone ne « voit » un corps que par le chevauchement du moteur physique ; sinon il ne flotte pas et le personnage n'est jamais considéré dans l'eau.</div>
     </li>
   </ol>
 
@@ -95,27 +94,28 @@
   <ol class="steps">
     <li>
       <strong>Ajouter une <code>WaterArea2D</code></strong> avec une <code>CollisionShape2D</code> enfant à <code>RectangleShape2D</code> (ex. 800 × 300).
-      <div class="why">le bord haut du rectangle devient la surface de l'eau.</div>
+      <div class="why">Le bord haut du rectangle devient la surface de l'eau.</div>
     </li>
     <li>
       <strong>Lâcher des <code>RigidBody2D</code></strong> au-dessus.
-      <div class="why">avec <code>buoyancy</code> = 2, un objet totalement immergé remonte avec une accélération égale à la gravité ; il se stabilise à mi-immersion.</div>
+      <div class="why">Avec <code>buoyancy</code> = 2, un objet totalement immergé remonte avec une accélération égale à la gravité ; il se stabilise à mi-immersion.</div>
     </li>
     <li>
       <strong>Régler un courant</strong> : <code>current</code> = <code>(80, 0)</code>, et cocher <code>debug_mode</code>.
-      <div class="why">les objets dérivent vers la droite ; le débogage montre la surface et la flèche du courant.</div>
+      <div class="why">Les objets dérivent vers la droite ; le débogage montre la surface et la flèche du courant.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-eau"><figcaption>Des caisses (RigidBody2D) tombent dans la WaterArea2D, s'enfoncent, remontent et dérivent avec le courant (80, 0) ; <code>debug_mode</code> montre la surface et le courant.</figcaption></figure>
 
   <h3 id="tuto-nage">B. Un personnage qui nage</h3>
   <ol class="steps">
     <li>
       <strong>Sous le <code>CharacterBody2D</code></strong> : ajouter <code>MovementDirector</code>, <code>GroundMovement2D</code> et <code>SwimMovement2D</code>.
-      <div class="why">le directeur crée automatiquement les contextes « eau » (nage, priorité 50) et « sol » (marche).</div>
+      <div class="why">Le directeur crée automatiquement les contextes « eau » (nage, priorité 50) et « sol » (marche).</div>
     </li>
     <li>
       <strong>Régler <code>visual_path</code> du <code>SwimMovement2D</code></strong> sur <code>../Sprite2D</code>.
-      <div class="why">sinon c'est le corps lui-même qui est incliné, forme de collision comprise.</div>
+      <div class="why">Sinon c'est le corps lui-même qui est incliné, forme de collision comprise.</div>
     </li>
     <li>
       <strong>Envoyer l'intention au directeur</strong> :
@@ -123,9 +123,10 @@
 	$MovementDirector.move(Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
 	if Input.is_action_just_pressed("ui_accept"):
 		$MovementDirector.jump()   # sous l'eau : coup de nage ; près de la surface : sortie</code></pre>
-      <div class="why">en 2D, <code>move.y</code> sert à plonger (bas) et remonter (haut) ; arrivé sous la surface, seul le saut fait sortir.</div>
+      <div class="why">En 2D, <code>move.y</code> sert à plonger (bas) et remonter (haut) ; arrivé sous la surface, seul le saut fait sortir.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi-tuto-nage"><figcaption>Le héros marche, plonge (contexte « eau » : nage Directionnelle, corps incliné), remonte et saute hors de l'eau.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -150,6 +151,7 @@
       </tbody>
     </table>
   </div>
+  <figure class="media" data-video="ex-styles"><figcaption>Les trois styles côte à côte, mêmes commandes : Directionnel, Poisson, Flottaison.</figcaption></figure>
 
   <h3 id="ex-oxygene">Comment je gère une jauge d'oxygène ?</h3>
   <p>À combiner avec le module <em>📊 Jauge</em> : on vide la jauge tant que le contexte est « eau ».</p>
@@ -160,11 +162,13 @@ func _physics_process(delta: float) -> void:
 		oxygene.add(-10.0 * delta)
 	else:
 		oxygene.fill()</code></pre>
+  <figure class="media" data-video="ex-oxygene"><figcaption>La jauge d'oxygène se vide tant que le contexte est « eau », se remplit dehors.</figcaption></figure>
 
   <h3 id="ex-plouf">Comment je joue une éclaboussure en sortant de l'eau ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
 	$SwimMovement2D.jumped_out.connect(func(): $Eclaboussure.restart())
 	$SwimMovement2D.stroked.connect(func(): $SonNage.play())</code></pre>
+  <figure class="media" data-video="ex-plouf"><figcaption><code>jumped_out</code> : éclaboussure en sortant de l'eau ; <code>stroked</code> : bulles à chaque coup de nage.</figcaption></figure>
 
   <h3 id="ex-3d">Comment je fais nager un personnage 3D vers là où regarde la caméra ?</h3>
   <pre><code class="gdscript">func _ready() -> void:
@@ -174,11 +178,13 @@ func _physics_process(delta: float) -> void:
 func _physics_process(_delta: float) -> void:
 	$MovementDirector.move(Input.get_vector("gauche", "droite", "avant", "arriere"))
 	$MovementDirector.set_vertical_input(Input.get_axis("descendre", "monter"))</code></pre>
+  <figure class="media" data-video="ex-3d"><figcaption>Nage 3D avec <code>camera_relative</code> : l'avant de la caméra (baissée) fait plonger.</figcaption></figure>
 
   <h3 id="ex-riviere">Comment je fais une rivière qui emporte tout ?</h3>
   <pre><code class="gdscript">$Riviere.current = Vector2(250, 0)   # caisses et nageurs dérivent
 $Riviere.linear_drag = 1.0           # moins de freinage : les objets prennent de la vitesse
 $Joueur/SwimMovement2D.drag = 0.5    # la dérive du nageur s'amortit lentement</code></pre>
+  <figure class="media" data-video="ex-riviere"><figcaption>Une rivière (<code>current = (250, 0)</code>, <code>linear_drag = 1</code>) emporte caisses et nageur.</figcaption></figure>
 
   <h3 id="ex-niveau">Comment je fais monter le niveau de l'eau ?</h3>
   <p>La surface suit la forme : agrandir le rectangle et le recentrer.</p>
@@ -187,6 +193,7 @@ $Joueur/SwimMovement2D.drag = 0.5    # la dérive du nageur s'amortit lentement<
 	var bas := $Eau/CollisionShape2D.position.y + forme.size.y / 2.0
 	forme.size.y += hauteur
 	$Eau/CollisionShape2D.position.y = bas - forme.size.y / 2.0</code></pre>
+  <figure class="media" data-video="ex-niveau"><figcaption><code>monter_eau()</code> agrandit le rectangle vers le haut : la surface monte, les caisses aussi.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -343,6 +350,447 @@ window.GTK_USAGES = {};
   window.GTK_USAGES["SwimMovement3D.camera_relative"] = "Joueur : nager vers où regarde la caméra, plonger en la baissant.";
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<template id="schema-surface">
+<svg viewBox="0 0 640 240" role="img" aria-label="Surface d'une WaterArea et profondeur d'un point">
+  <defs><marker id="surf-f" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="60" y="70" width="420" height="140" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)"/>
+    <line x1="40" y1="70" x2="500" y2="70" stroke="var(--accent)" stroke-width="2.5"/>
+    <text x="510" y="74" fill="var(--accent)" font-weight="700">get_surface_y()</text>
+    <text x="510" y="92" font-size="11.5" fill-opacity="0.75">bord haut du rectangle</text>
+    <text x="510" y="108" font-size="11.5" fill-opacity="0.75">(ou surface_offset)</text>
+    <circle cx="200" cy="150" r="5" fill="currentColor"/>
+    <line x1="200" y1="74" x2="200" y2="144" stroke="currentColor" marker-start="url(#surf-f)" marker-end="url(#surf-f)"/>
+    <text x="208" y="114">get_depth(point) &gt; 0</text>
+    <circle cx="200" cy="40" r="5" fill="currentColor" fill-opacity="0.6"/>
+    <text x="208" y="44" fill-opacity="0.75">au-dessus : get_depth &lt; 0</text>
+    <rect x="320" y="56" width="36" height="36" fill="#a0714f"/>
+    <line x1="370" y1="70" x2="370" y2="92" stroke="currentColor" marker-start="url(#surf-f)" marker-end="url(#surf-f)"/>
+    <text x="378" y="88" font-size="11.5">float_depth</text>
+    <text x="300" y="232" text-anchor="middle" fill-opacity="0.75">find_containing(corps) / get_water() : la zone qui contient le corps</text>
+  </g>
+</svg>
+</template>
+<script>
+window.GTK_DEMOS = {
+  "SwimMovement2D.align_to_heading": [
+    {
+      "video": "SwimMovement2D.align_to_heading",
+      "legende": "<code>align_to_heading<\/code> true : le visuel s'incline vers la direction de nage ; false : il reste droit."
+    }
+  ],
+  "SwimMovement2D.buoyancy": [
+    {
+      "video": "SwimMovement2D.buoyancy",
+      "legende": "Style Flottaison : remontée automatique à <code>float_depth<\/code> sous la surface, freinage <code>drag<\/code>."
+    }
+  ],
+  "SwimMovement2D.cruise_ratio": [
+    {
+      "video": "SwimMovement2D.cruise_ratio",
+      "legende": "Style Poisson : nage toujours vers l'avant (vitesse de croisière <code>cruise_ratio<\/code>), ondulation du corps (<code>undulation_*<\/code>)."
+    }
+  ],
+  "SwimMovement2D.jump_out_velocity": [
+    {
+      "video": "SwimMovement2D.jump_out_velocity",
+      "legende": "Saut près de la surface : <code>jump_out_velocity<\/code> 250, 380 (défaut) et 600 ; <code>surface_tolerance<\/code> = profondeur maximale pour sortir."
+    }
+  ],
+  "SwimMovement2D.stroke_velocity": [
+    {
+      "video": "SwimMovement2D.stroke_velocity",
+      "legende": "Coups de nage répétés (saut sous l'eau) : <code>stroke_velocity<\/code> 160 et <code>stroke_cooldown<\/code> 0,35 s entre deux coups."
+    }
+  ],
+  "SwimMovement2D.swim_speed": [
+    {
+      "video": "SwimMovement2D.swim_speed",
+      "legende": "<code>swim_speed<\/code> 80, 160 (défaut) et 320 px/s."
+    }
+  ],
+  "SwimMovement2D.turn_speed": [
+    {
+      "video": "SwimMovement2D.turn_speed",
+      "legende": "Demi-tours sous l'eau : <code>turn_speed<\/code> 1,5, 5 (défaut) et 15."
+    }
+  ],
+  "WaterArea2D.angular_drag": [
+    {
+      "video": "WaterArea2D.angular_drag",
+      "legende": "Caisses lancées en tournant : <code>angular_drag<\/code> 0 et 3 (défaut)."
+    }
+  ],
+  "WaterArea2D.buoyancy": [
+    {
+      "video": "WaterArea2D.buoyancy",
+      "legende": "<code>buoyancy<\/code> 0,5 (coule), 2 (défaut, mi-immergée) et 4 (flotte haut)."
+    }
+  ],
+  "WaterArea2D.debug_mode": [
+    {
+      "video": "WaterArea2D.debug_mode",
+      "legende": "<code>debug_mode<\/code> : contour, ligne de surface, flèche de courant, nombre de corps."
+    }
+  ],
+  "WaterArea2D.linear_drag": [
+    {
+      "video": "WaterArea2D.linear_drag",
+      "legende": "<code>linear_drag<\/code> 0,5, 3 (défaut) et 8 : la caisse entre dans l'eau plus ou moins freinée."
+    }
+  ],
+  "SwimMovement2D": [
+    {
+      "video": "classe-SwimMovement2D",
+      "legende": "Nage 2D : direction poussée, élan, inclinaison du visuel, coups de nage et sortie de l'eau."
+    }
+  ],
+  "SwimMovement3D": [
+    {
+      "video": "classe-SwimMovement3D",
+      "legende": "Nage 3D : avancer, plonger avec la commande verticale, remonter, sortir."
+    }
+  ],
+  "WaterArea2D": [
+    {
+      "video": "classe-WaterArea2D",
+      "legende": "Les corps rigides flottent, freinent et suivent le courant ; les personnages y nagent avec un SwimMovement2D."
+    }
+  ],
+  "WaterArea3D": [
+    {
+      "video": "classe-WaterArea3D",
+      "legende": "Le même bassin en 3D : caisses qui flottent et dérivent."
+    }
+  ],
+  "SwimMovement2D.acceleration": [
+    {
+      "video": "SwimMovement2D.swim_speed",
+      "legende": "<code>swim_speed<\/code> 80, 160 (défaut) et 320 px/s."
+    }
+  ],
+  "SwimMovement2D.drag": [
+    {
+      "video": "SwimMovement2D.buoyancy",
+      "legende": "Style Flottaison : remontée automatique à <code>float_depth<\/code> sous la surface, freinage <code>drag<\/code>."
+    }
+  ],
+  "SwimMovement2D.float_depth": [
+    {
+      "video": "SwimMovement2D.buoyancy",
+      "legende": "Style Flottaison : remontée automatique à <code>float_depth<\/code> sous la surface, freinage <code>drag<\/code>."
+    }
+  ],
+  "SwimMovement2D.get_heading": [
+    {
+      "video": "classe-SwimMovement2D",
+      "legende": "Nage 2D : direction poussée, élan, inclinaison du visuel, coups de nage et sortie de l'eau."
+    }
+  ],
+  "SwimMovement2D.get_speed": [
+    {
+      "video": "classe-SwimMovement2D",
+      "legende": "Nage 2D : direction poussée, élan, inclinaison du visuel, coups de nage et sortie de l'eau."
+    }
+  ],
+  "SwimMovement2D.get_water": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "SwimMovement2D.jumped_out": [
+    {
+      "video": "ex-plouf",
+      "legende": "<code>jumped_out<\/code> : éclaboussure en sortant de l'eau ; <code>stroked<\/code> : bulles à chaque coup de nage."
+    }
+  ],
+  "SwimMovement2D.run_multiplier": [
+    {
+      "video": "SwimMovement2D.swim_speed",
+      "legende": "<code>swim_speed<\/code> 80, 160 (défaut) et 320 px/s."
+    }
+  ],
+  "SwimMovement2D.stroke_cooldown": [
+    {
+      "video": "SwimMovement2D.stroke_velocity",
+      "legende": "Coups de nage répétés (saut sous l'eau) : <code>stroke_velocity<\/code> 160 et <code>stroke_cooldown<\/code> 0,35 s entre deux coups."
+    }
+  ],
+  "SwimMovement2D.stroked": [
+    {
+      "video": "ex-plouf",
+      "legende": "<code>jumped_out<\/code> : éclaboussure en sortant de l'eau ; <code>stroked<\/code> : bulles à chaque coup de nage."
+    }
+  ],
+  "SwimMovement2D.style": [
+    {
+      "video": "ex-styles",
+      "legende": "Les trois styles côte à côte, mêmes commandes : Directionnel, Poisson, Flottaison."
+    }
+  ],
+  "SwimMovement2D.surface_tolerance": [
+    {
+      "video": "SwimMovement2D.jump_out_velocity",
+      "legende": "Saut près de la surface : <code>jump_out_velocity<\/code> 250, 380 (défaut) et 600 ; <code>surface_tolerance<\/code> = profondeur maximale pour sortir."
+    }
+  ],
+  "SwimMovement2D.undulation_amplitude": [
+    {
+      "video": "SwimMovement2D.cruise_ratio",
+      "legende": "Style Poisson : nage toujours vers l'avant (vitesse de croisière <code>cruise_ratio<\/code>), ondulation du corps (<code>undulation_*<\/code>)."
+    }
+  ],
+  "SwimMovement2D.undulation_frequency": [
+    {
+      "video": "SwimMovement2D.cruise_ratio",
+      "legende": "Style Poisson : nage toujours vers l'avant (vitesse de croisière <code>cruise_ratio<\/code>), ondulation du corps (<code>undulation_*<\/code>)."
+    }
+  ],
+  "SwimMovement2D.visual_path": [
+    {
+      "video": "SwimMovement2D.align_to_heading",
+      "legende": "<code>align_to_heading<\/code> true : le visuel s'incline vers la direction de nage ; false : il reste droit."
+    }
+  ],
+  "SwimMovement3D.acceleration": [
+    {
+      "video": "SwimMovement2D.swim_speed",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.align_to_heading": [
+    {
+      "video": "SwimMovement2D.align_to_heading",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.buoyancy": [
+    {
+      "video": "SwimMovement2D.buoyancy",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.camera_relative": [
+    {
+      "video": "ex-3d",
+      "legende": "Nage 3D avec <code>camera_relative<\/code> : l'avant de la caméra (baissée) fait plonger."
+    }
+  ],
+  "SwimMovement3D.cruise_ratio": [
+    {
+      "video": "SwimMovement2D.cruise_ratio",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.drag": [
+    {
+      "video": "SwimMovement2D.buoyancy",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.float_depth": [
+    {
+      "video": "SwimMovement2D.buoyancy",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.get_heading": [
+    {
+      "video": "classe-SwimMovement3D",
+      "legende": "Nage 3D : avancer, plonger avec la commande verticale, remonter, sortir."
+    }
+  ],
+  "SwimMovement3D.get_speed": [
+    {
+      "video": "classe-SwimMovement3D",
+      "legende": "Nage 3D : avancer, plonger avec la commande verticale, remonter, sortir."
+    }
+  ],
+  "SwimMovement3D.get_water": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "SwimMovement3D.jump_out_velocity": [
+    {
+      "video": "SwimMovement2D.jump_out_velocity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.jumped_out": [
+    {
+      "video": "ex-plouf",
+      "legende": "<code>jumped_out<\/code> : éclaboussure en sortant de l'eau ; <code>stroked<\/code> : bulles à chaque coup de nage."
+    }
+  ],
+  "SwimMovement3D.run_multiplier": [
+    {
+      "video": "SwimMovement2D.swim_speed",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.stroke_cooldown": [
+    {
+      "video": "SwimMovement2D.stroke_velocity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.stroke_velocity": [
+    {
+      "video": "SwimMovement2D.stroke_velocity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.stroked": [
+    {
+      "video": "ex-plouf",
+      "legende": "<code>jumped_out<\/code> : éclaboussure en sortant de l'eau ; <code>stroked<\/code> : bulles à chaque coup de nage."
+    }
+  ],
+  "SwimMovement3D.style": [
+    {
+      "video": "ex-styles",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.surface_tolerance": [
+    {
+      "video": "SwimMovement2D.jump_out_velocity",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.swim_speed": [
+    {
+      "video": "SwimMovement2D.swim_speed",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.turn_speed": [
+    {
+      "video": "SwimMovement2D.turn_speed",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.undulation_amplitude": [
+    {
+      "video": "SwimMovement2D.cruise_ratio",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.undulation_frequency": [
+    {
+      "video": "SwimMovement2D.cruise_ratio",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "SwimMovement3D.visual_path": [
+    {
+      "video": "SwimMovement2D.align_to_heading",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea2D.current": [
+    {
+      "video": "mode-emploi-tuto-eau",
+      "legende": "Des caisses (RigidBody2D) tombent dans la WaterArea2D, s'enfoncent, remontent et dérivent avec le courant (80, 0) ; <code>debug_mode<\/code> montre la surface et le courant."
+    }
+  ],
+  "WaterArea2D.find_containing": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea2D.float_depth": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea2D.get_depth": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea2D.get_surface_y": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea2D.surface_offset": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea3D.angular_drag": [
+    {
+      "video": "WaterArea2D.angular_drag",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea3D.buoyancy": [
+    {
+      "video": "WaterArea2D.buoyancy",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea3D.current": [
+    {
+      "video": "mode-emploi-tuto-eau",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea3D.debug_mode": [
+    {
+      "video": "WaterArea2D.debug_mode",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea3D.find_containing": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea3D.float_depth": [
+    {
+      "schema": "schema-surface",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea3D.get_depth": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea3D.get_surface_y": [
+    {
+      "schema": "schema-surface",
+      "legende": "Surface et profondeur : <code>get_surface_y()<\/code> est le bord haut du rectangle (ou <code>surface_offset<\/code>), <code>get_depth(point)<\/code> la distance sous la surface ; un corps rigide est immergé au-delà de <code>float_depth<\/code>."
+    }
+  ],
+  "WaterArea3D.linear_drag": [
+    {
+      "video": "WaterArea2D.linear_drag",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ],
+  "WaterArea3D.surface_offset": [
+    {
+      "schema": "schema-surface",
+      "legende": "Même réglage qu'en 2D, en mètres (voir la vidéo 2D)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

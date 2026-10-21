@@ -47,10 +47,9 @@
     </ul>
   </div>
 
-  <div class="figure-todo">
-    <div><strong>📷 Image à insérer</strong></div>
-    <div>Quatre captures debug_mode côte à côte (grille de flèches bleues) : mode directionnel (vent), attraction, tourbillon, freinage ; puis GIF de caisses aspirées dans une tornade 3D.</div>
-  </div>
+  <figure class="media media-web" data-web="mouvement/zone-de-force" data-figure="1">
+    <figcaption>Une zone réglable (mode, direction, intensité, atténuation, turbulence) traversée par un héros au clavier et par des caisses lâchées à la demande, avec la force subie en direct.</figcaption>
+  </figure>
 
   <!-- ═══════════════════════════ Installation ═══════════════════════════ -->
   <h2 id="installation">🛠️ Installation</h2>
@@ -68,8 +67,8 @@
   </div>
   <h3 id="mise-en-place">Mise en place</h3>
   <ol class="steps">
-    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">la zone fait partie de la bibliothèque du mouvement.</div></li>
-    <li><strong>Régler le <code>collision_mask</code></strong> de la zone pour inclure les couches des corps à affecter, et laisser <code>monitoring</code> actif.<div class="why">la zone agit sur les corps que le moteur physique détecte en chevauchement ; un corps sur une autre couche est ignoré.</div></li>
+    <li><strong>Installer la bibliothèque</strong> (<a href="socle-mouvement.html#mise-en-place">🧩 Socle</a>).<div class="why">La zone fait partie de la bibliothèque du mouvement.</div></li>
+    <li><strong>Régler le <code>collision_mask</code></strong> de la zone pour inclure les couches des corps à affecter, et laisser <code>monitoring</code> actif.<div class="why">La zone agit sur les corps que le moteur physique détecte en chevauchement ; un corps sur une autre couche est ignoré.</div></li>
   </ol>
 
   <!-- ═══════════════════════════ Mode d'emploi ═══════════════════════════ -->
@@ -77,21 +76,22 @@
   <ol class="steps">
     <li>
       <strong>Ajouter une <code>ForceZone2D</code></strong> avec une <code>CollisionShape2D</code> rectangulaire au-dessus d'un ventilateur.
-      <div class="why">la forme définit où souffle le vent.</div>
+      <div class="why">La forme définit où souffle le vent.</div>
     </li>
     <li>
       <strong>Régler</strong> <code>mode</code> = <em>Directional</em>, <code>direction</code> = <code>(0, -1)</code>, <code>strength</code> = 1800.
-      <div class="why">une accélération vers le haut supérieure à la gravité (980) soulève le personnage ; plus faible, elle ralentit seulement sa chute.</div>
+      <div class="why">Une accélération vers le haut supérieure à la gravité (980) soulève le personnage ; plus faible, elle ralentit seulement sa chute.</div>
     </li>
     <li>
       <strong>Cocher <code>debug_mode</code></strong> et lancer le jeu.
-      <div class="why">une grille de flèches montre l'intensité et la direction de la force dans la zone ; le texte rappelle le mode et l'intensité.</div>
+      <div class="why">Une grille de flèches montre l'intensité et la direction de la force dans la zone ; le texte rappelle le mode et l'intensité.</div>
     </li>
     <li>
       <strong>Faire passer un personnage équipé de <code>GroundMovement2D</code></strong> et des <code>RigidBody2D</code> dans la zone.
-      <div class="why">les corps rigides sont poussés directement, le personnage via son composant.</div>
+      <div class="why">Les corps rigides sont poussés directement, le personnage via son composant.</div>
     </li>
   </ol>
+  <figure class="media" data-video="mode-emploi"><figcaption>Un ventilateur (ForceZone2D, direction (0, -1), strength 1800) soulève le personnage et les caisses ; <code>debug_mode</code> montre le champ.</figcaption></figure>
 
   <!-- ═══════════════════════════ API ═══════════════════════════ -->
   <h2 id="api">💻 API Accessible</h2>
@@ -115,6 +115,7 @@
 	aimant.affect_characters = false
 	aimant.collision_mask = 4          # couche des pièces
 	add_child(aimant)</code></pre>
+  <figure class="media" data-video="ex-aimant"><figcaption>Un aimant (ATTRACT, <code>affect_characters = false</code>) enfant du joueur : les pièces sont attirées, pas le joueur.</figcaption></figure>
 
   <h3 id="ex-rafales">Comment je fais un vent par rafales ?</h3>
   <pre><code class="gdscript">$Vent.turbulence = 0.8          # l'intensité varie de 0,2 à 1,8 fois
@@ -122,22 +123,26 @@ $Vent.turbulence_speed = 2.0    # rafales plus rapprochées
 # ou des rafales franches, par code :
 func _on_timer_timeout() -> void:
 	$Vent.enabled = not $Vent.enabled</code></pre>
+  <figure class="media" data-video="ex-rafales"><figcaption><code>turbulence = 0,8</code> : l'intensité varie ; puis des rafales franches avec <code>enabled</code>.</figcaption></figure>
 
   <h3 id="ex-planeur">Comment je fais un courant ascendant pour un planeur ?</h3>
   <p>Avec <a href="physique-aerodynamique.html">🪂 Aérodynamique</a> en plané, la force est multipliée par <code>wind_influence</code> (2 par défaut) : un courant modeste soulève fortement un planeur et peu un marcheur.</p>
   <pre><code class="gdscript">$Courant.direction = Vector2.UP
 $Courant.strength = 400.0
 $Joueur/AerodynamicMovement2D.wind_influence = 3.0</code></pre>
+  <figure class="media" data-video="ex-planeur"><figcaption>Un courant modeste (400) soulève fortement un planeur (<code>wind_influence = 3</code>) et peu un marcheur.</figcaption></figure>
 
   <h3 id="ex-boue">Comment je fais une flaque de boue qui ralentit ?</h3>
   <p>Le mode <em>Drag</em> s'oppose à la vitesse (<code>strength</code> = freinage par seconde). Il est efficace sur les corps rigides et sur les personnages en l'air ; au sol, réduire plutôt la vitesse du composant (voir limitations).</p>
   <pre><code class="gdscript">$Boue.mode = ForceZone2D.MODE_DRAG
 $Boue.strength = 4.0</code></pre>
+  <figure class="media" data-video="ex-boue"><figcaption>Une flaque de boue (DRAG, strength 4) : les caisses qui la traversent ralentissent.</figcaption></figure>
 
   <h3 id="ex-mesure">Comment je lis la force subie pour un effet visuel ?</h3>
   <pre><code class="gdscript">func _process(_delta: float) -> void:
 	var vent := ForceZone2D.get_acceleration_on($Joueur)
 	$Echarpe.rotation = vent.angle() if vent.length() > 10.0 else 0.0</code></pre>
+  <figure class="media" data-video="ex-mesure"><figcaption><code>ForceZone2D.get_acceleration_on($Joueur)</code> oriente une écharpe selon le vent subi.</figcaption></figure>
 
   <!-- ═══════════════════════════ Limitations ═══════════════════════════ -->
   <h2 id="limitations">🚧 Limitations</h2>
@@ -224,6 +229,192 @@ window.GTK_USAGES = {};
   });
 })();
 </script>
+<!-- 🎥 medias:debut (généré par generer_medias.py integrer : ne pas modifier à la main) -->
+<script>
+window.GTK_DEMOS = {
+  "ForceZone2D.affect_characters": [
+    {
+      "video": "ForceZone2D.affect_characters",
+      "legende": "<code>affect_characters<\/code> / <code>affect_rigid_bodies<\/code> : à gauche le vent pousse tout, à droite seulement les caisses."
+    }
+  ],
+  "ForceZone2D.falloff": [
+    {
+      "video": "ForceZone2D.falloff",
+      "legende": "Attraction avec <code>falloff<\/code> NONE, LINEAR et INVERSE_SQUARE (<code>falloff_radius<\/code> 200)."
+    }
+  ],
+  "ForceZone2D.local_direction": [
+    {
+      "video": "ForceZone2D.local_direction",
+      "legende": "Un ventilateur qui tourne : avec <code>local_direction<\/code>, le vent suit sa rotation."
+    }
+  ],
+  "ForceZone2D.mode": [
+    {
+      "video": "ForceZone2D.mode",
+      "legende": "Les quatre modes : DIRECTIONAL (vent), ATTRACT (aimant), VORTEX (tourbillon), DRAG (freinage), avec des caisses."
+    }
+  ],
+  "ForceZone2D.strength": [
+    {
+      "video": "ForceZone2D.strength",
+      "legende": "Ventilateurs à <code>strength<\/code> 600, 1200 et 1800 : seule une accélération supérieure à la gravité (980) soulève le personnage."
+    }
+  ],
+  "ForceZone2D": [
+    {
+      "video": "classe-ForceZone2D",
+      "legende": "Une zone de vent latéral : les caisses sont poussées directement, le personnage via son composant de mouvement."
+    }
+  ],
+  "ForceZone3D": [
+    {
+      "video": "classe-ForceZone3D",
+      "legende": "Un couloir de vent 3D qui emporte les cubes."
+    }
+  ],
+  "ForceZone2D.affect_rigid_bodies": [
+    {
+      "video": "ForceZone2D.affect_characters",
+      "legende": "<code>affect_characters<\/code> / <code>affect_rigid_bodies<\/code> : à gauche le vent pousse tout, à droite seulement les caisses."
+    }
+  ],
+  "ForceZone2D.compute_acceleration": [
+    {
+      "video": "ex-mesure",
+      "legende": "<code>ForceZone2D.get_acceleration_on($Joueur)<\/code> oriente une écharpe selon le vent subi."
+    }
+  ],
+  "ForceZone2D.debug_mode": [
+    {
+      "video": "mode-emploi",
+      "legende": "Un ventilateur (ForceZone2D, direction (0, -1), strength 1800) soulève le personnage et les caisses ; <code>debug_mode<\/code> montre le champ."
+    }
+  ],
+  "ForceZone2D.direction": [
+    {
+      "video": "ForceZone2D.local_direction",
+      "legende": "Un ventilateur qui tourne : avec <code>local_direction<\/code>, le vent suit sa rotation."
+    }
+  ],
+  "ForceZone2D.enabled": [
+    {
+      "video": "ex-rafales",
+      "legende": "<code>turbulence = 0,8<\/code> : l'intensité varie ; puis des rafales franches avec <code>enabled<\/code>."
+    }
+  ],
+  "ForceZone2D.falloff_radius": [
+    {
+      "video": "ForceZone2D.falloff",
+      "legende": "Attraction avec <code>falloff<\/code> NONE, LINEAR et INVERSE_SQUARE (<code>falloff_radius<\/code> 200)."
+    }
+  ],
+  "ForceZone2D.get_acceleration_on": [
+    {
+      "video": "ex-mesure",
+      "legende": "<code>ForceZone2D.get_acceleration_on($Joueur)<\/code> oriente une écharpe selon le vent subi."
+    }
+  ],
+  "ForceZone2D.turbulence": [
+    {
+      "video": "ex-rafales",
+      "legende": "<code>turbulence = 0,8<\/code> : l'intensité varie ; puis des rafales franches avec <code>enabled<\/code>."
+    }
+  ],
+  "ForceZone2D.turbulence_speed": [
+    {
+      "video": "ex-rafales",
+      "legende": "<code>turbulence = 0,8<\/code> : l'intensité varie ; puis des rafales franches avec <code>enabled<\/code>."
+    }
+  ],
+  "ForceZone3D.affect_characters": [
+    {
+      "video": "ForceZone2D.affect_characters",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.affect_rigid_bodies": [
+    {
+      "video": "ForceZone2D.affect_characters",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.compute_acceleration": [
+    {
+      "video": "ex-mesure",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.debug_mode": [
+    {
+      "video": "mode-emploi",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.direction": [
+    {
+      "video": "ForceZone2D.local_direction",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.enabled": [
+    {
+      "video": "ex-rafales",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.falloff": [
+    {
+      "video": "ForceZone2D.falloff",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.falloff_radius": [
+    {
+      "video": "ForceZone2D.falloff",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.get_acceleration_on": [
+    {
+      "video": "ex-mesure",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.local_direction": [
+    {
+      "video": "ForceZone2D.local_direction",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.mode": [
+    {
+      "video": "ForceZone2D.mode",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.strength": [
+    {
+      "video": "ForceZone2D.strength",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.turbulence": [
+    {
+      "video": "ex-rafales",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ],
+  "ForceZone3D.turbulence_speed": [
+    {
+      "video": "ex-rafales",
+      "legende": "Même réglage qu'en 2D, en m/s² (voir la vidéo 2D)."
+    }
+  ]
+};
+</script>
+<!-- 🎥 medias:fin -->
 <script src="../../assets/modules.js"></script>
 <script src="../../assets/api-data.js"></script>
 <script src="../../assets/doc.js"></script>

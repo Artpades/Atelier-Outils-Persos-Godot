@@ -80,11 +80,11 @@
     <li>
       <strong>Compiler le module</strong> (si les binaires ne sont pas déjà présents) depuis la racine du dépôt :
       <pre><code class="language-shell">scons stack_and_flow</code></pre>
-      <div class="why">compile uniquement cette bibliothèque (son registre est <code>stack_and_flow_register.cpp</code>) et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
+      <div class="why">Compile uniquement cette bibliothèque (son registre est <code>stack_and_flow_register.cpp</code>) et régénère son <code>.gdextension</code> ; inutile de recompiler tout le toolkit.</div>
     </li>
     <li>
       <strong>Copier le dossier <code>bin/stack_and_flow/</code></strong> dans le projet Godot, au même emplacement : <code>res://bin/stack_and_flow/</code>.
-      <div class="why">le fichier <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/stack_and_flow/…</code> ; ailleurs, Godot ne les trouve pas.</div>
+      <div class="why">Le fichier <code>.gdextension</code> référence ses binaires par des chemins <code>res://bin/stack_and_flow/…</code> ; ailleurs, Godot ne les trouve pas.</div>
     </li>
     <li>
       <strong>Redémarrer l'éditeur</strong> après le premier ajout.
@@ -92,7 +92,7 @@
     </li>
     <li>
       <strong>Vérifier</strong> : clic droit dans le FileSystem › <kbd>Nouvelle ressource…</kbd> doit proposer <code>Gauge</code>. Au lancement, la console affiche « 🌡️Module Stack And Flow chargé avec succès ! ».
-      <div class="why">si la classe est absente, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
+      <div class="why">Si la classe est absente, la bibliothèque n'est pas chargée : consulter le panneau <em>Sortie</em> pour l'erreur de chargement.</div>
     </li>
   </ol>
   <p>Aucun autoload, nœud ni réglage de projet n'est requis.</p>
@@ -104,11 +104,11 @@
     <li>
       <strong>Dans le script du personnage, exporter une jauge</strong> :
       <pre><code class="gdscript">@export var vie: Gauge</code></pre>
-      <div class="why">la jauge est une ressource : elle se règle dans l'inspecteur du personnage et peut être enregistrée en <code>.tres</code>.</div>
+      <div class="why">La jauge est une ressource : elle se règle dans l'inspecteur du personnage et peut être enregistrée en <code>.tres</code>.</div>
     </li>
     <li>
       <strong>Dans l'inspecteur, choisir <kbd>Nouveau Gauge</kbd></strong>, puis régler <code>max_value</code> = <code>100</code>, <code>current_value</code> = <code>100</code>, et cocher <em>Local to Scene</em> (section <em>Resource</em>).
-      <div class="why">les bornes viennent avant la valeur (sinon une valeur supérieure au maximum par défaut serait rognée). <em>Local to Scene</em> donne à chaque instance du personnage sa propre jauge : sans lui, tous les ennemis partageraient les mêmes PV.</div>
+      <div class="why">Les bornes viennent avant la valeur (sinon une valeur supérieure au maximum par défaut serait rognée). <em>Local to Scene</em> donne à chaque instance du personnage sa propre jauge : sans lui, tous les ennemis partageraient les mêmes PV.</div>
     </li>
     <li>
       <strong>Relier la barre et la mort</strong> :
@@ -120,7 +120,7 @@
 
 func mourir() -> void:
 	queue_free()</code></pre>
-      <div class="why">la barre ne lit plus la vie à chaque image : elle est prévenue. <code>depleted</code> n'est émis que si la valeur <em>change</em> et atteint le minimum : pas de double mort.</div>
+      <div class="why">La barre ne lit plus la vie à chaque image : elle est prévenue. <code>depleted</code> n'est émis que si la valeur <em>change</em> et atteint le minimum : pas de double mort.</div>
     </li>
     <li>
       <strong>Infliger des dégâts</strong> :

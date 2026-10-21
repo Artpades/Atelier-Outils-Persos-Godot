@@ -80,11 +80,11 @@
     <li>
       <strong>Compiler</strong> (si besoin) :
       <pre><code class="language-shell">scons spawner</code></pre>
-      <div class="why">compile la bibliothèque du registre <code>spawner_register.cpp</code> (dossier « 🏭Générateur d’objet », avec une apostrophe typographique).</div>
+      <div class="why">Compile la bibliothèque du registre <code>spawner_register.cpp</code> (dossier « 🏭Générateur d’objet », avec une apostrophe typographique).</div>
     </li>
     <li>
       <strong>Copier <code>bin/spawner/</code></strong> dans <code>res://bin/</code> et <strong>redémarrer l'éditeur</strong>.
-      <div class="why">chemins <code>res://bin/spawner/…</code> absolus ; extensions découvertes au démarrage.</div>
+      <div class="why">Chemins <code>res://bin/spawner/…</code> absolus ; extensions découvertes au démarrage.</div>
     </li>
   </ol>
   <p><code>Spawner</code> et <code>PoolSpawner</code> sont des <strong>classes d'exécution</strong> : rien n'est instancié dans l'éditeur. Les ressources <code>SpawnEntry</code> / <code>SpawnPoolEntry</code> se configurent normalement dans l'inspecteur.</p>
@@ -94,22 +94,22 @@
   <ol class="steps">
     <li>
       <strong>Ajouter un nœud <code>Spawner</code></strong> dans le niveau, avec trois enfants <code>Marker2D</code> placés aux points d'apparition.
-      <div class="why">sans positions renseignées, les enfants 2D / 3D du Spawner servent de points : c'est le réglage le plus rapide.</div>
+      <div class="why">Sans positions renseignées, les enfants 2D / 3D du Spawner servent de points : c'est le réglage le plus rapide.</div>
     </li>
     <li>
       <strong>Créer un nœud <code>Ennemis</code></strong> (un simple <code>Node2D</code>) et l'assigner à <code>parent_node</code>.
-      <div class="why">sans parent, les instances sont ajoutées à la racine de l'arbre et <strong>survivent au changement de niveau</strong>.</div>
+      <div class="why">Sans parent, les instances sont ajoutées à la racine de l'arbre et <strong>survivent au changement de niveau</strong>.</div>
     </li>
     <li>
       <strong>Dans <code>entries</code>, ajouter une <code>Nouvelle SpawnEntry</code></strong>, y glisser la scène <code>slime.tscn</code> dans <code>scenes</code>.
-      <div class="why">modes par défaut <em>Sequential</em> : un slime par appel, sur le marqueur suivant à chaque fois.</div>
+      <div class="why">Modes par défaut <em>Sequential</em> : un slime par appel, sur le marqueur suivant à chaque fois.</div>
     </li>
     <li>
       <strong>Déclencher</strong> :
       <pre><code class="gdscript">func _ready() -> void:
 	$Timer.timeout.connect($Spawner.spawn)
 	$Timer.start(3.0)</code></pre>
-      <div class="why">un slime toutes les 3 secondes, sur le marqueur 1, puis 2, puis 3, puis 1…</div>
+      <div class="why">Un slime toutes les 3 secondes, sur le marqueur 1, puis 2, puis 3, puis 1…</div>
     </li>
   </ol>
 
