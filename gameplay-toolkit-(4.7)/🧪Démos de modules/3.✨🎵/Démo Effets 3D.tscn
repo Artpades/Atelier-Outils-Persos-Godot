@@ -1,0 +1,217 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/3.✨🎵/demo_effets_3d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Dark/texture_01.png" id="3_sol"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Orange/texture_02.png" id="4_orange"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Purple/texture_08.png" id="5_violet"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Green/texture_05.png" id="6_vert"]
+[ext_resource type="AudioStream" path="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/son_blip.wav" id="7_blip"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Ciel_materiau"]
+
+[sub_resource type="Sky" id="Ciel"]
+sky_material = SubResource("Ciel_materiau")
+
+[sub_resource type="Environment" id="Environnement"]
+background_mode = 2
+sky = SubResource("Ciel")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="Materiau_sol"]
+albedo_texture = ExtResource("3_sol")
+uv1_scale = Vector3(8, 8, 8)
+
+[sub_resource type="PlaneMesh" id="Mesh_sol"]
+material = SubResource("Materiau_sol")
+size = Vector2(30, 16)
+
+[sub_resource type="StandardMaterial3D" id="Materiau_orange"]
+albedo_texture = ExtResource("4_orange")
+
+[sub_resource type="BoxMesh" id="Mesh_cube"]
+material = SubResource("Materiau_orange")
+
+[sub_resource type="StandardMaterial3D" id="Materiau_vert"]
+albedo_texture = ExtResource("6_vert")
+
+[sub_resource type="BoxMesh" id="Mesh_caisse"]
+material = SubResource("Materiau_vert")
+
+[sub_resource type="SphereMesh" id="Mesh_sphere"]
+
+[sub_resource type="StandardMaterial3D" id="Materiau_cible"]
+albedo_color = Color(0.85, 0.85, 0.9, 1)
+
+[sub_resource type="SphereMesh" id="Mesh_lune"]
+radius = 0.3
+height = 0.6
+
+[sub_resource type="StandardMaterial3D" id="Materiau_lune"]
+albedo_color = Color(0.4, 0.75, 1, 1)
+emission_enabled = true
+emission = Color(0.2, 0.5, 1, 1)
+
+[sub_resource type="PrismMesh" id="Mesh_drone"]
+size = Vector3(0.6, 0.4, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="Materiau_drone"]
+albedo_color = Color(1, 0.85, 0.3, 1)
+
+[sub_resource type="FXStretchAndSquash" id="FX_etirement"]
+max_speed = 12.0
+max_stretch = 0.6
+impact_threshold = 6.0
+max_impact_squash = 0.6
+
+[sub_resource type="FXAudio" id="FX_son"]
+stream = ExtResource("7_blip")
+positional = true
+
+[sub_resource type="FXChangeSize" id="FX_taille"]
+effects_on_play_fx = Array[Effect]([SubResource("FX_son")])
+final_scale = 1.6
+transition = 6
+
+[sub_resource type="FXFade" id="FX_rougeur"]
+color = Color(1, 0.15, 0.1, 1)
+color_property = "material_override:albedo_color"
+duration = 0.1
+
+[sub_resource type="FXShake" id="FX_secousse"]
+effects_on_play_fx = Array[Effect]([SubResource("FX_rougeur")])
+duration = 0.8
+frequency = 12.0
+max_amplitude = 0.25
+
+[sub_resource type="FXFade" id="FX_fondu_texture"]
+mode = 1
+texture = ExtResource("5_violet")
+duration = 0.8
+
+[sub_resource type="FXFollower" id="FX_suivi"]
+targets = Array[NodePath]([NodePath("../../LuneA"), NodePath("../../LuneB")])
+follow_speed = 2.0
+
+[sub_resource type="FXTargeter" id="FX_ciblage"]
+nodes_to_target = Array[NodePath]([NodePath("../../Lunes/LuneA"), NodePath("../../Lunes/LuneB"), NodePath("../../Etirement/Cube")])
+add_lerp = true
+lerp_speed = 3.0
+min_distance = 6.0
+max_distance = 30.0
+depth_margin = 1.6
+
+[node name="DémoEffets3D" type="Node3D"]
+script = ExtResource("1_demo")
+
+[node name="Environnement" type="WorldEnvironment" parent="."]
+environment = SubResource("Environnement")
+
+[node name="Soleil" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 6, 0)
+shadow_enabled = true
+
+[node name="Sol" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_sol")
+
+[node name="CameraFixe" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, -1.5, 5, 11)
+current = true
+
+[node name="CameraCiblage" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 14)
+
+[node name="PlayerFX" type="PlayerFX" parent="CameraCiblage"]
+special_effects = Array[Effect]([SubResource("FX_ciblage")])
+
+[node name="Etirement" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 0)
+
+[node name="Titre" type="Label3D" parent="Etirement"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
+text = "🪗 Squash & Stretch"
+
+[node name="Cube" type="MeshInstance3D" parent="Etirement"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("Mesh_cube")
+
+[node name="PlayerFX" type="PlayerFX" parent="Etirement/Cube"]
+special_effects = Array[Effect]([SubResource("FX_etirement")])
+
+[node name="Taille" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 0)
+
+[node name="Titre" type="Label3D" parent="Taille"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+text = "🦣🫘 Agrandissement"
+
+[node name="Caisse" type="MeshInstance3D" parent="Taille"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+mesh = SubResource("Mesh_caisse")
+
+[node name="PlayerFX" type="PlayerFX" parent="Taille/Caisse"]
+special_effects = Array[Effect]([SubResource("FX_taille")])
+
+[node name="Secousse" type="Node3D" parent="."]
+
+[node name="Titre" type="Label3D" parent="Secousse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+text = "💥 Secousse + 🌈 couleur"
+
+[node name="Sphere" type="MeshInstance3D" parent="Secousse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+material_override = SubResource("Materiau_cible")
+mesh = SubResource("Mesh_sphere")
+
+[node name="PlayerFX" type="PlayerFX" parent="Secousse/Sphere"]
+special_effects = Array[Effect]([SubResource("FX_secousse")])
+
+[node name="Fondu" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, 0)
+
+[node name="Titre" type="Label3D" parent="Fondu"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+text = "🌈 Fondu de texture (Sprite3D)"
+
+[node name="Panneau" type="Sprite3D" parent="Fondu"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+pixel_size = 0.0015
+texture = ExtResource("4_orange")
+
+[node name="PlayerFX" type="PlayerFX" parent="Fondu/Panneau"]
+special_effects = Array[Effect]([SubResource("FX_fondu_texture")])
+
+[node name="Lunes" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 0)
+
+[node name="Titre" type="Label3D" parent="Lunes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0)
+text = "〰️ Drone suiveur"
+
+[node name="LuneA" type="MeshInstance3D" parent="Lunes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1, 0)
+mesh = SubResource("Mesh_lune")
+surface_material_override/0 = SubResource("Materiau_lune")
+
+[node name="LuneB" type="MeshInstance3D" parent="Lunes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1, 0)
+mesh = SubResource("Mesh_lune")
+surface_material_override/0 = SubResource("Materiau_lune")
+
+[node name="Drone" type="MeshInstance3D" parent="Lunes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("Mesh_drone")
+surface_material_override/0 = SubResource("Materiau_drone")
+
+[node name="PlayerFX" type="PlayerFX" parent="Lunes/Drone"]
+special_effects = Array[Effect]([SubResource("FX_suivi")])
+
+[node name="Temps" type="TimeManipulatorFX" parent="."]
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "✨ Effets 3D"
+aide = "Les mêmes effets sur des nœuds 3D. La couleur de la sphère est animée par FXFade via le chemin « material_override:albedo_color ». La caméra de ciblage (FXTargeter) vise les lunes et le cube, et recule pour les garder tous dans le champ."

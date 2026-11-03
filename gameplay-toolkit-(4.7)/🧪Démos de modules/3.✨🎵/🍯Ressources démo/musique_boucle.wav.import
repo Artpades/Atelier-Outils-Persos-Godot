@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cl4ug3oqgbpgm"
+path="res://.godot/imported/musique_boucle.wav-cb9d24a5cdddd064c8595459e63cc92f.sample"
+
+[deps]
+
+source_file="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/musique_boucle.wav"
+dest_files=["res://.godot/imported/musique_boucle.wav-cb9d24a5cdddd064c8595459e63cc92f.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

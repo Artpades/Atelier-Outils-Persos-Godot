@@ -1,0 +1,73 @@
+[gd_scene format=3]
+
+[sub_resource type="StyleBoxFlat" id="Style_fond"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08, 0.09, 0.12, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.6, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[node name="PanneauControle" type="PanelContainer"]
+theme_override_styles/panel = SubResource("Style_fond")
+
+[node name="Lignes" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Titre" type="Label" parent="Lignes"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🎛️ Panneau de contrôle"
+horizontal_alignment = 1
+
+[node name="Couleur" type="Button" parent="Lignes"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🎨 Couleur suivante"
+
+[node name="LigneVitesse" type="HBoxContainer" parent="Lignes"]
+layout_mode = 2
+
+[node name="Etiquette" type="Label" parent="Lignes/LigneVitesse"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Vitesse"
+
+[node name="Vitesse" type="HSlider" parent="Lignes/LigneVitesse"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 5.0
+step = 0.1
+value = 1.0
+
+[node name="Rotation" type="CheckButton" parent="Lignes"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+button_pressed = true
+text = "Rotation du cube"
+
+[node name="Nom" type="LineEdit" parent="Lignes"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+placeholder_text = "Nom du cube (cliquer puis taper)"
+
+[node name="Clics" type="Label" parent="Lignes"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Clics sur ce panneau : 0"
+horizontal_alignment = 1

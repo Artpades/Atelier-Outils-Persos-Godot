@@ -1,0 +1,19 @@
+<svg viewBox="0 0 640 240" role="img" aria-label="Surface d'une WaterArea et profondeur d'un point">
+  <defs><marker id="surf-f" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="60" y="70" width="420" height="140" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)"/>
+    <line x1="40" y1="70" x2="500" y2="70" stroke="var(--accent)" stroke-width="2.5"/>
+    <text x="510" y="74" fill="var(--accent)" font-weight="700">get_surface_y()</text>
+    <text x="510" y="92" font-size="11.5" fill-opacity="0.75">bord haut du rectangle</text>
+    <text x="510" y="108" font-size="11.5" fill-opacity="0.75">(ou surface_offset)</text>
+    <circle cx="200" cy="150" r="5" fill="currentColor"/>
+    <line x1="200" y1="74" x2="200" y2="144" stroke="currentColor" marker-start="url(#surf-f)" marker-end="url(#surf-f)"/>
+    <text x="208" y="114">get_depth(point) &gt; 0</text>
+    <circle cx="200" cy="40" r="5" fill="currentColor" fill-opacity="0.6"/>
+    <text x="208" y="44" fill-opacity="0.75">au-dessus : get_depth &lt; 0</text>
+    <rect x="320" y="56" width="36" height="36" fill="#a0714f"/>
+    <line x1="370" y1="70" x2="370" y2="92" stroke="currentColor" marker-start="url(#surf-f)" marker-end="url(#surf-f)"/>
+    <text x="378" y="88" font-size="11.5">float_depth</text>
+    <text x="300" y="232" text-anchor="middle" fill-opacity="0.75">find_containing(corps) / get_water() : la zone qui contient le corps</text>
+  </g>
+</svg>

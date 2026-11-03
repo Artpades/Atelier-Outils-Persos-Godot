@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🎞️Caméras/demo_cameras_2d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/🎞️Caméras/decor_2d.gd" id="2_decor"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="3_panneau"]
+
+[node name="DémoCaméras2D" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Fond" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Couleur" type="ColorRect" parent="Fond"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.11, 0.12, 0.15, 1)
+
+[node name="Decor" type="Node2D" parent="."]
+script = ExtResource("2_decor")
+
+[node name="CamA" type="Camera2D" parent="."]
+
+[node name="CamB" type="Camera2D" parent="."]
+position = Vector2(1100, 500)
+rotation = 0.35
+offset = Vector2(0, -60)
+zoom = Vector2(1.8, 1.8)
+enabled = false
+ignore_rotation = false
+
+[node name="CamLibre" type="CameraPanner" parent="."]
+position = Vector2(400, 250)
+enabled = false
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("3_panneau")
+titre = "🎞️ Caméras 2D"
+aide = "CamA et CamB ont des positions, zooms, rotations et offsets différents. CamLibre (CameraPanner) : bouton du milieu maintenu pour déplacer, molette pour zoomer vers le curseur, flèches / Page haut-bas, glissement et pincement au trackpad."

@@ -1,0 +1,20 @@
+<svg viewBox="0 0 640 310" role="img" aria-label="Le dossier bin/movement_physics dans le FileSystem, et les classes du module dans la boîte Ajouter un nœud">
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="10" y="10" width="290" height="290" rx="8" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.3"/>
+    <text x="24" y="32" font-weight="700">Système de fichiers</text>
+    <line x1="10" y1="42" x2="300" y2="42" stroke="currentColor" stroke-opacity="0.2"/>
+    <text x="24" y="64">📁 res://</text>
+    <text x="40" y="88">📁 bin</text>
+    <text x="56" y="112" font-weight="700" fill="var(--accent)">📁 movement_physics</text>
+    <text x="74" y="136" font-family="JetBrains Mono, monospace" font-size="10.5" textLength="215" lengthAdjust="spacingAndGlyphs">gameplaytoolkit_movement_physics.gdextension</text>
+    <text x="74" y="158" font-family="JetBrains Mono, monospace" font-size="10.5" fill-opacity="0.7" textLength="215" lengthAdjust="spacingAndGlyphs">libgameplaytoolkit_movement_physics…</text>
+    <text x="40" y="184" fill-opacity="0.6">📄 project.godot</text>
+    <rect x="320" y="10" width="310" height="290" rx="8" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.3"/>
+    <text x="334" y="32" font-weight="700">Créer un nouveau nœud</text>
+    <line x1="320" y1="42" x2="630" y2="42" stroke="currentColor" stroke-opacity="0.2"/>
+    <rect x="334" y="54" width="282" height="26" rx="5" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+    <text x="344" y="72">🔎 Movement</text>
+    <text x="344" y="108" fill-opacity="0.7">Résultats :</text>
+    <text x="384" y="136" fill-opacity="0.45">└ MovementComponent (abstraite)</text><text x="384" y="158" >└ GroundMovement2D</text><text x="384" y="180" >└ SwimMovement2D</text><text x="384" y="202" >└ WallMovement2D</text><text x="384" y="224" >└ AerodynamicMovement2D</text><text x="384" y="246" >└ RopeMovement2D</text><text x="384" y="268" >└ MovementDirector</text>
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://🎥Démos de documentation/5.🌀🫗/🧩Socle du mouvement/apercu_socle_mouvement.gd" id="1"]
+
+[node name="ApercuSocleMouvement" type="Node2D"]
+script = ExtResource("1")

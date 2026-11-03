@@ -1,0 +1,153 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🧑Personnage/demo_personnages_2d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🧑Personnage/pion.gd" id="2_pion"]
+[ext_resource type="DialogueResource" path="res://🧪Démos de modules/4.🧍🧠/🧑Personnage/dialogue_meunier.tres" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/4.🧍🧠/🧑Personnage/slime.tscn" id="4_slime"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="5_panneau"]
+
+[sub_resource type="CircleShape2D" id="Forme_perso"]
+radius = 12.0
+
+[sub_resource type="AttributeDefinition" id="Vie_max"]
+attribute_name = &"max_health"
+base_value = 100.0
+
+[sub_resource type="AttributeDefinition" id="Vie"]
+attribute_name = &"health"
+base_value = 100.0
+max_attribute = &"max_health"
+
+[sub_resource type="AttributeDefinition" id="Mana_max"]
+attribute_name = &"max_mana"
+base_value = 50.0
+
+[sub_resource type="AttributeDefinition" id="Mana"]
+attribute_name = &"mana"
+base_value = 50.0
+max_attribute = &"max_mana"
+
+[sub_resource type="AttributeModifier" id="Degats_coup"]
+attribute = &"health"
+magnitude = -20.0
+
+[sub_resource type="GameplayEffect" id="Effet_coup"]
+modifiers = Array[AttributeModifier]([SubResource("Degats_coup")])
+
+[sub_resource type="Ability" id="Coup"]
+ability_id = &"coup"
+display_name = "Coup d'épée"
+cooldown = 0.4
+effects_on_target = Array[GameplayEffect]([SubResource("Effet_coup")])
+requires_target = true
+ability_tags = PackedStringArray("attaque.melee")
+
+[sub_resource type="AttributeModifier" id="Soin_vie"]
+attribute = &"health"
+magnitude = 30.0
+
+[sub_resource type="GameplayEffect" id="Effet_soin"]
+modifiers = Array[AttributeModifier]([SubResource("Soin_vie")])
+
+[sub_resource type="Ability" id="Soin"]
+ability_id = &"soin"
+display_name = "Soin"
+cooldown = 2.0
+costs = Dictionary[StringName, float]({
+&"mana": 20.0
+})
+effects_on_self = Array[GameplayEffect]([SubResource("Effet_soin")])
+
+[sub_resource type="AttributeModifier" id="Regen_mana"]
+attribute = &"mana"
+magnitude = 2.0
+
+[sub_resource type="GameplayEffect" id="Effet_regen"]
+duration_policy = 2
+period = 0.5
+modifiers = Array[AttributeModifier]([SubResource("Regen_mana")])
+effect_tags = PackedStringArray("regeneration.mana")
+
+[node name="DemoPersonnages" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Systeme" type="DialogueSystem" parent="."]
+
+[node name="Joueur" type="Character2D" parent="."]
+position = Vector2(150, 320)
+motion_mode = 1
+display_name = "Héros"
+faction = &"heros"
+hostile_factions = PackedStringArray("slimes")
+
+[node name="Forme" type="CollisionShape2D" parent="Joueur"]
+shape = SubResource("Forme_perso")
+
+[node name="Pion" type="Node2D" parent="Joueur"]
+script = ExtResource("2_pion")
+
+[node name="Deplacement" type="GroundMovement2D" parent="Joueur"]
+mode = 1
+max_speed = 160.0
+
+[node name="Vie" type="HealthComponent" parent="Joueur"]
+invulnerability_time = 0.4
+
+[node name="Capacites" type="AbilitySystem" parent="Joueur"]
+attribute_definitions = Array[AttributeDefinition]([SubResource("Vie_max"), SubResource("Vie"), SubResource("Mana_max"), SubResource("Mana")])
+granted_abilities = Array[Ability]([SubResource("Coup"), SubResource("Soin")])
+initial_effects = Array[GameplayEffect]([SubResource("Effet_regen")])
+
+[node name="PlayerController" type="PlayerController" parent="Joueur"]
+ability_actions = Dictionary[StringName, StringName]({
+&"attaque": &"coup",
+&"soin": &"soin"
+})
+auto_target_range = 50.0
+
+[node name="Meunier" type="Character2D" parent="."]
+position = Vector2(360, 190)
+motion_mode = 1
+display_name = "Meunier"
+faction = &"village"
+
+[node name="Forme" type="CollisionShape2D" parent="Meunier"]
+shape = SubResource("Forme_perso")
+
+[node name="Pion" type="Node2D" parent="Meunier"]
+script = ExtResource("2_pion")
+couleur = Color(1, 0.7, 0.3, 1)
+
+[node name="Deplacement" type="GroundMovement2D" parent="Meunier"]
+mode = 1
+max_speed = 50.0
+
+[node name="NPCController" type="NPCController" parent="Meunier"]
+start_mode = 4
+wander_radius = 40.0
+wait_time = 2.0
+dialogue = ExtResource("3_dialogue")
+
+[node name="Slimes" type="Node2D" parent="."]
+
+[node name="Slime" parent="Slimes" instance=ExtResource("4_slime")]
+position = Vector2(560, 420)
+
+[node name="Slime2" parent="Slimes" instance=ExtResource("4_slime")]
+position = Vector2(620, 190)
+
+[node name="Slime3" parent="Slimes" instance=ExtResource("4_slime")]
+position = Vector2(450, 570)
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Boite" type="DialogueBox" parent="Interface"]
+offset_left = 10.0
+offset_top = 478.0
+offset_right = 702.0
+offset_bottom = 638.0
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("5_panneau")
+titre = "🧑 Personnages, dialogue, capacités"
+aide = "ZQSD / flèches : bouger · Maj : courir · E : parler au meunier · J : frapper · K : se soigner. Les slimes (arbre de comportement) attaquent quand on approche. Le graphe montre leur comportement ou le dialogue en direct."

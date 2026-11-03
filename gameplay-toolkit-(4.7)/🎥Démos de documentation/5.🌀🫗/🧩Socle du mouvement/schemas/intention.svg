@@ -1,0 +1,46 @@
+<svg viewBox="0 0 640 260" role="img" aria-label="Intention stockée par MovementComponent">
+  <defs><marker id="f-97878" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Envoyée (joueur, IA)</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">move(direction)</text>
+    <line x1="111" y1="64" x2="111" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="14" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">set_vertical_input(v)</text>
+    <line x1="111" y1="106" x2="111" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="14" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">jump() / release_jump()</text>
+    <line x1="111" y1="148" x2="111" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="14" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">set_running(oui)</text>
+    <line x1="211" y1="49.0" x2="221" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Stockée par la base</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">dernière direction (≤ 1)</text>
+    <line x1="320" y1="64" x2="320" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="223" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="96" text-anchor="middle">commande verticale (-1 à 1)</text>
+    <line x1="320" y1="106" x2="320" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="223" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="138" text-anchor="middle" textLength="185" lengthAdjust="spacingAndGlyphs">demande de saut (jump_buffer_time)</text>
+    <line x1="320" y1="148" x2="320" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="223" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="180" text-anchor="middle">course</text>
+    <line x1="419" y1="49.0" x2="429" y2="49.0" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Relue par le composant</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">get_move_input()</text>
+    <line x1="529" y1="64" x2="529" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="431" y="76" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">get_vertical_input()</text>
+    <line x1="529" y1="106" x2="529" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="431" y="118" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">has_jump_request(consume)</text>
+    <line x1="529" y1="148" x2="529" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="431" y="160" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" textLength="185" lengthAdjust="spacingAndGlyphs">is_jump_held() · is_running()</text>
+    <line x1="529" y1="190" x2="529" y2="201" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-97878)"/>
+    <rect x="431" y="202" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">get_body()</text>
+  </g>
+</svg>

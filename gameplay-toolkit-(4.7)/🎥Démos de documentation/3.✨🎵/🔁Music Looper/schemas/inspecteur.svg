@@ -1,0 +1,29 @@
+<svg viewBox="0 0 640 218" role="img" aria-label="Inspecteur d'un MusicLooper">
+  <defs><marker id="f-31203" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="164" y="20" text-anchor="middle" font-weight="700">Propriétés</text>
+    <rect x="14" y="34" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">stream = musique.ogg</text>
+    <line x1="164" y1="64" x2="164" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-31203)"/>
+    <rect x="14" y="76" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="96" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">loop_start / loop_end / loop_count</text>
+    <line x1="164" y1="106" x2="164" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-31203)"/>
+    <rect x="14" y="118" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">autoplay : au lancement de la scène</text>
+    <line x1="164" y1="148" x2="164" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-31203)"/>
+    <rect x="14" y="160" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">bus = &amp;"Musique"</text>
+    <text x="476" y="20" text-anchor="middle" font-weight="700">Boutons de l'inspecteur</text>
+    <rect x="327" y="34" width="299" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="476" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">▶ Écouter (listen)</text>
+    <line x1="476" y1="64" x2="476" y2="75" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-31203)"/>
+    <rect x="327" y="76" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="96" text-anchor="middle">joue dans l'éditeur, réglages actuels</text>
+    <line x1="476" y1="106" x2="476" y2="117" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-31203)"/>
+    <rect x="327" y="118" width="299" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="476" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">■ Arrêter (stop_listening)</text>
+    <line x1="476" y1="148" x2="476" y2="159" stroke="currentColor" stroke-opacity="0.5" marker-end="url(#f-31203)"/>
+    <rect x="327" y="160" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="180" text-anchor="middle" fill-opacity="0.7">régler loop_start à l'oreille</text>
+  </g>
+</svg>

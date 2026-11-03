@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://pn4i8ld3j60e"
+path="res://.godot/imported/son_blip.wav-e751417a644e461a9e923ca404c7bf7c.sample"
+
+[deps]
+
+source_file="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/son_blip.wav"
+dest_files=["res://.godot/imported/son_blip.wav-e751417a644e461a9e923ca404c7bf7c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

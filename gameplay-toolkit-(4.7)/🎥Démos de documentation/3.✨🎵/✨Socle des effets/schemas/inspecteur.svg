@@ -1,0 +1,15 @@
+<svg viewBox="0 0 640 210" role="img" aria-label="Inspecteur d'un PlayerFX avec les boutons Jouer effet et Arrêter effet">
+  <g font-size="13" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <rect x="150" y="8" width="340" height="194" rx="8" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.3"/>
+    <text x="166" y="32" font-weight="700">Inspecteur · PlayerFX</text>
+    <line x1="150" y1="44" x2="490" y2="44" stroke="currentColor" stroke-opacity="0.2"/>
+    <text x="166" y="68" fill-opacity="0.75">Node To Play Effects</text><text x="474" y="68" text-anchor="end" fill-opacity="0.55">Assigner…</text>
+    <text x="166" y="96" fill-opacity="0.75">Special Effects</text><text x="474" y="96" text-anchor="end" fill-opacity="0.55">Array[Effect] (2)</text>
+    <text x="182" y="118" font-size="12" fill-opacity="0.6">0 : FXShake   ·   1 : FXFade</text>
+    <rect x="166" y="136" width="146" height="34" rx="6" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)"/>
+    <text x="239" y="158" text-anchor="middle" font-weight="600">▶ Jouer effet</text>
+    <rect x="328" y="136" width="146" height="34" rx="6" fill="currentColor" fill-opacity="0.06" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="401" y="158" text-anchor="middle" font-weight="600">■ Arrêter effet</text>
+    <text x="320" y="194" text-anchor="middle" font-size="11.5" fill-opacity="0.65">play_effect → play() · stop_effect → stop() (dans l'éditeur)</text>
+  </g>
+</svg>

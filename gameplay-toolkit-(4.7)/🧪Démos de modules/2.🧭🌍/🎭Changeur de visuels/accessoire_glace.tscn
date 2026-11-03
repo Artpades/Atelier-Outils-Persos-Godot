@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[node name="Cristaux" type="Node2D"]
+
+[node name="Forme0" type="Polygon2D" parent="."]
+color = Color(0.6, 0.9, 1, 0.9)
+polygon = PackedVector2Array(-28, 0, -20, -34, -12, 0)
+
+[node name="Forme1" type="Polygon2D" parent="."]
+color = Color(0.75, 0.95, 1, 0.95)
+polygon = PackedVector2Array(-10, 0, 0, -56, 10, 0)
+
+[node name="Forme2" type="Polygon2D" parent="."]
+color = Color(0.6, 0.9, 1, 0.9)
+polygon = PackedVector2Array(12, 0, 20, -34, 28, 0)

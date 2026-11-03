@@ -1,0 +1,7 @@
+[gd_resource type="AtlasTexture" format=3 uid="uid://cup2i3wxd00vk"]
+
+[ext_resource type="Texture2D" uid="uid://cnlefltg2vk0j" path="res://🍯Assets/Template Character Cutout/Illustration Template Personnage (256x256).png" id="1_hxiqk"]
+
+[resource]
+atlas = ExtResource("1_hxiqk")
+region = Rect2(77, 130, 108, 94)

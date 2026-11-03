@@ -1,0 +1,87 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🌿Démo Arbre/demo_arbre.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🌿Démo Arbre/recolteur.gd" id="2_recolteur"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🌿Démo Arbre/action_fuir.gd" id="3_fuir"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🌿Démo Arbre/action_repos.gd" id="4_repos"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🌿Démo Arbre/action_vers_piece.gd" id="5_piece"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🌿Démo Arbre/action_errer.gd" id="6_errer"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="7_panneau"]
+
+[sub_resource type="Blackboard" id="Tableau"]
+values = {
+"danger": 10000.0,
+"energie": 100.0,
+"piece_visible": false,
+"score": 0
+}
+
+[node name="DemoArbre" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Recolteur" type="Node2D" parent="."]
+position = Vector2(356, 125)
+script = ExtResource("2_recolteur")
+
+[node name="Arbre" type="BehaviorTree" parent="Recolteur"]
+blackboard = SubResource("Tableau")
+
+[node name="Choix" type="BTSelector" parent="Recolteur/Arbre"]
+reactive = true
+
+[node name="Fuir" type="BTSequence" parent="Recolteur/Arbre/Choix"]
+
+[node name="DangerProche" type="BTCondition" parent="Recolteur/Arbre/Choix/Fuir"]
+expression = "danger < 120"
+
+[node name="SEloigner" type="BTAction" parent="Recolteur/Arbre/Choix/Fuir"]
+script = ExtResource("3_fuir")
+
+[node name="SeReposer" type="BTSequence" parent="Recolteur/Arbre/Choix"]
+
+[node name="Fatigue" type="BTCondition" parent="Recolteur/Arbre/Choix/SeReposer"]
+expression = "energie < 20"
+
+[node name="Dormir" type="BTAction" parent="Recolteur/Arbre/Choix/SeReposer"]
+script = ExtResource("4_repos")
+
+[node name="Recolter" type="BTSequence" parent="Recolteur/Arbre/Choix"]
+
+[node name="PieceVisible" type="BTCondition" parent="Recolteur/Arbre/Choix/Recolter"]
+expression = "piece_visible"
+
+[node name="AllerALaPiece" type="BTAction" parent="Recolteur/Arbre/Choix/Recolter"]
+script = ExtResource("5_piece")
+
+[node name="Ramasser" type="BTCallMethod" parent="Recolteur/Arbre/Choix/Recolter"]
+method = &"ramasser"
+use_result_as_status = true
+
+[node name="CompterPoint" type="BTSetValue" parent="Recolteur/Arbre/Choix/Recolter"]
+key = "score"
+value_expression = "score + 1"
+
+[node name="Errer" type="BTSequence" parent="Recolteur/Arbre/Choix"]
+
+[node name="Limite4s" type="BTTimeLimit" parent="Recolteur/Arbre/Choix/Errer"]
+duration = 4.0
+
+[node name="AllerAuHasard" type="BTAction" parent="Recolteur/Arbre/Choix/Errer/Limite4s"]
+script = ExtResource("6_errer")
+
+[node name="Pause" type="BTWait" parent="Recolteur/Arbre/Choix/Errer"]
+duration = 0.6
+random_deviation = 0.4
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Graphe" type="BehaviorGraphView" parent="Interface"]
+offset_top = 250.0
+offset_right = 712.0
+offset_bottom = 648.0
+target_path = NodePath("../../Recolteur/Arbre")
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("7_panneau")
+titre = "🌿 Arbre de comportement"
+aide = "Le récolteur ramasse les pièces, fuit le curseur et se repose quand il est fatigué. Clic gauche dans la zone : poser une pièce. En bas : le graphe en direct (vert = SUCCESS, rouge = FAILURE, ambre = RUNNING ; estompé = pas exécuté au dernier tick)."

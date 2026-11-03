@@ -1,0 +1,33 @@
+<svg viewBox="0 0 640 338" role="img" aria-label="Arbre d'un personnage 2D complet">
+  <defs><marker id="f-90189" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="164" y="20" text-anchor="middle" font-weight="700">Arbre de scène</text>
+    <rect x="14" y="34" width="299" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="164" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">Heros (CharacterBody2D)</text>
+    <rect x="14" y="70" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="90" text-anchor="middle">├ CollisionShape2D</text>
+    <rect x="14" y="106" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="126" text-anchor="middle">├ Sprite2D</text>
+    <rect x="14" y="142" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="162" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">├ MovementDirector</text>
+    <rect x="14" y="178" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="198" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">├ GroundMovement2D</text>
+    <rect x="14" y="214" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="234" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">├ SwimMovement2D</text>
+    <rect x="14" y="250" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="270" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">├ WallMovement2D</text>
+    <rect x="14" y="286" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="164" y="306" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">└ Knockback2D</text>
+    <text x="476" y="20" text-anchor="middle" font-weight="700">En jeu, debug_mode</text>
+    <rect x="327" y="34" width="299" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="476" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">flèche verte : vitesse</text>
+    <rect x="327" y="70" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="90" text-anchor="middle">flèche jaune : intention</text>
+    <rect x="327" y="106" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="126" text-anchor="middle">texte : nom · classe · état</text>
+    <rect x="327" y="142" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="162" text-anchor="middle" fill-opacity="0.7">« au sol · sauts 0/1 »</text>
+    <rect x="327" y="178" width="299" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="476" y="198" text-anchor="middle" fill-opacity="0.7">🎬 contexte du directeur</text>
+  </g>
+</svg>

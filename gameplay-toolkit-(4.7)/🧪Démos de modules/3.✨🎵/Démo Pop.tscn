@@ -1,0 +1,181 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/3.✨🎵/demo_pop.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="Texture2D" path="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/piece.png" id="3_piece"]
+[ext_resource type="PackedScene" path="res://🧪Démos de modules/3.✨🎵/etoile_pop.tscn" id="4_etoile"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Red/texture_03.png" id="5_rouge"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Orange/texture_01.png" id="6_orange"]
+
+[sub_resource type="PopStyle" id="Style_degats"]
+speed_min = 220.0
+speed_max = 320.0
+spread_degrees = 50.0
+gravity = 900.0
+font_size = 36
+
+[sub_resource type="PopStyle" id="Style_paf"]
+lifetime = 0.7
+speed_min = 60.0
+speed_max = 90.0
+spread_degrees = 20.0
+gravity = 0.0
+damping = 3.0
+pop_scale = 1.8
+end_scale = 1.2
+font_size = 44
+text_color = Color(1, 0.85, 0.2, 1)
+outline_size = 10
+outline_color = Color(0.35, 0.05, 0, 1)
+
+[sub_resource type="FXPop" id="FX_paf"]
+style = SubResource("Style_paf")
+text = "PAF !"
+offset = Vector3(0, -95, 0)
+
+[sub_resource type="FXShake" id="FX_coup"]
+effects_on_play_fx = Array[Effect]([SubResource("FX_paf")])
+duration = 0.25
+frequency = 25.0
+max_amplitude = 8.0
+
+[sub_resource type="PopStyle" id="Style_pieces"]
+lifetime = 1.8
+speed_min = 300.0
+speed_max = 500.0
+spread_degrees = 100.0
+gravity = 1500.0
+spawn_radius = 6.0
+use_floor = true
+floor_offset = 67.0
+bounce = 0.55
+spin_min = -540.0
+spin_max = 540.0
+start_scale = 0.5
+pop_scale = 1.2
+icon_size = Vector2(26, 26)
+
+[sub_resource type="PopStyle" id="Style_total"]
+lifetime = 1.2
+speed_min = 120.0
+speed_max = 120.0
+spread_degrees = 0.0
+gravity = 0.0
+damping = 2.0
+font_size = 30
+text_color = Color(1, 0.85, 0.3, 1)
+icon_size = Vector2(30, 30)
+
+[sub_resource type="PopStyle" id="Style_etoiles"]
+lifetime = 1.4
+speed_min = 120.0
+speed_max = 380.0
+spread_degrees = 360.0
+gravity = 500.0
+damping = 0.5
+spin_min = -360.0
+spin_max = 360.0
+pop_scale = 1.6
+
+[sub_resource type="PopStyle" id="Style_interface"]
+lifetime = 0.9
+speed_min = 70.0
+speed_max = 70.0
+spread_degrees = 0.0
+gravity = 0.0
+damping = 1.5
+start_scale = 0.6
+pop_scale = 1.2
+font_size = 24
+icon_size = Vector2(22, 22)
+
+[node name="DémoPop" type="Node2D"]
+script = ExtResource("1_demo")
+piece = ExtResource("3_piece")
+etoile = ExtResource("4_etoile")
+
+[node name="Fond" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Couleur" type="ColorRect" parent="Fond"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.14, 0.15, 0.2, 1)
+
+[node name="Sol" type="Line2D" parent="."]
+points = PackedVector2Array(20, 480, 700, 480)
+width = 4.0
+default_color = Color(0.55, 0.55, 0.65, 1)
+
+[node name="Aide" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 700.0
+offset_bottom = 69.0
+text = "Clique sur le mannequin pour le frapper, sur le coffre pour l'ouvrir,
+ailleurs pour faire jaillir une étoile (scène instanciée)."
+
+[node name="Mannequin" type="Node2D" parent="."]
+position = Vector2(180, 420)
+
+[node name="Corps" type="Sprite2D" parent="Mannequin"]
+scale = Vector2(0.06, 0.11)
+texture = ExtResource("5_rouge")
+
+[node name="Degats" type="PopSpawner" parent="Mannequin"]
+style = SubResource("Style_degats")
+offset = Vector3(0, -60, 0)
+
+[node name="PlayerFX" type="PlayerFX" parent="Mannequin"]
+special_effects = Array[Effect]([SubResource("FX_coup")])
+
+[node name="Coffre" type="Node2D" parent="."]
+position = Vector2(450, 445)
+
+[node name="Corps" type="Sprite2D" parent="Coffre"]
+scale = Vector2(0.08, 0.06)
+texture = ExtResource("6_orange")
+
+[node name="Pieces" type="PopSpawner" parent="Coffre"]
+style = SubResource("Style_pieces")
+offset = Vector3(0, -45, 0)
+max_pops = 128
+
+[node name="Total" type="PopSpawner" parent="Coffre"]
+style = SubResource("Style_total")
+offset = Vector3(0, -80, 0)
+
+[node name="Clic" type="PopSpawner" parent="."]
+style = SubResource("Style_etoiles")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+
+[node name="Bourse" type="Label" parent="Hud"]
+offset_left = 20.0
+offset_top = 560.0
+offset_right = 220.0
+offset_bottom = 590.0
+theme_override_font_sizes/font_size = 22
+text = "Pièces : 0"
+
+[node name="Acheter" type="Button" parent="Hud"]
+offset_left = 240.0
+offset_top = 552.0
+offset_right = 420.0
+offset_bottom = 596.0
+focus_mode = 0
+text = "Acheter (10 pièces)"
+
+[node name="Pop" type="PopSpawner" parent="Hud/Acheter"]
+style = SubResource("Style_interface")
+offset = Vector3(0, -30, 0)
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "💥 Pop de texte, d'images et d'objets"
+aide = "Chaque PopSpawner a son PopStyle (sélectionne-les pour voir les réglages) : dégâts qui retombent, pièces qui rebondissent sur le sol en tournant, étoiles projetées dans toutes les directions. « PAF ! » est un FXPop enchaîné à la secousse du mannequin. Le bouton « Acheter » fait pop dans l'interface (CanvasLayer)."

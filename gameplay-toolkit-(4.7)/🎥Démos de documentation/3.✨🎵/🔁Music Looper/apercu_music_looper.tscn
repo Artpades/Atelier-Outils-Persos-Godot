@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://🎥Démos de documentation/3.✨🎵/🔁Music Looper/apercu_music_looper.gd" id="1"]
+
+[node name="ApercuMusicLooper" type="Node2D"]
+script = ExtResource("1")

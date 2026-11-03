@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/✏️Système de dessin/demo_dessin.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+
+[node name="DemoDessin" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="Atelier" type="DrawingStudio" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -440.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panneau" type="PanelContainer" parent="."]
+layout_mode = 0
+script = ExtResource("2_panneau")
+titre = "✏️ Système de dessin"
+aide = "Atelier inspiré de Clip Studio Paint. Molette : zoom ; Espace + glisser : déplacer ; Maj + Espace : tourner ; Alt + clic : pipette. B E G I M L W H : outils ; [ ] : taille ; Ctrl+Z / Ctrl+Y. Tablette : la pression et la vitesse pilotent taille et opacité selon les réglages du pinceau ; le bout gomme efface."

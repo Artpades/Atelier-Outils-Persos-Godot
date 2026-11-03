@@ -1,0 +1,213 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/3.✨🎵/demo_effets_2d.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="2_panneau"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Orange/texture_01.png" id="3_orange"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Green/texture_02.png" id="4_vert"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Red/texture_03.png" id="5_rouge"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Purple/texture_08.png" id="6_violet"]
+[ext_resource type="Texture2D" path="res://🍯Assets/Texture de prototypage/Light/texture_05.png" id="7_clair"]
+[ext_resource type="AudioStream" path="res://🧪Démos de modules/3.✨🎵/🍯Ressources démo/son_blip.wav" id="8_blip"]
+
+[sub_resource type="FXStretchAndSquash" id="FX_etirement"]
+max_speed = 1200.0
+max_stretch = 0.6
+max_impact_squash = 0.6
+
+[sub_resource type="FXAudio" id="FX_son"]
+stream = ExtResource("8_blip")
+randomize_pitch_scale = true
+
+[sub_resource type="FXChangeSize" id="FX_taille"]
+effects_on_play_fx = Array[Effect]([SubResource("FX_son")])
+final_scale = 1.6
+transition = 6
+
+[sub_resource type="FXFade" id="FX_flash"]
+color = Color(1, 0.25, 0.25, 1)
+duration = 0.05
+
+[sub_resource type="FXShake" id="FX_secousse"]
+effects_on_play_fx = Array[Effect]([SubResource("FX_flash")])
+duration = 0.6
+max_amplitude = 14.0
+
+[sub_resource type="FXTargeter" id="FX_ciblage"]
+nodes_to_target = Array[NodePath]([NodePath("../../../Ciblage/Viseur")])
+
+[sub_resource type="FXFade" id="FX_fondu_texture"]
+mode = 1
+texture = ExtResource("6_violet")
+duration = 0.8
+
+[sub_resource type="FXFollower" id="FX_suivi"]
+targets = Array[NodePath]([NodePath("../../../Etirement/Balle"), NodePath("../../../Ciblage/Viseur")])
+follow_speed = 3.0
+
+[sub_resource type="FXFollower" id="FX_camera"]
+targets = Array[NodePath]([NodePath("../../Etirement/Balle"), NodePath("../../Ciblage/Viseur")])
+follow_speed = 2.5
+min_zoom = Vector2(0.6, 0.6)
+max_zoom = Vector2(1.6, 1.6)
+zoom_margin = 140.0
+
+[node name="DémoEffets2D" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Fond" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Couleur" type="ColorRect" parent="Fond"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.13, 0.14, 0.18, 1)
+
+[node name="Etirement" type="Node2D" parent="."]
+position = Vector2(120, 40)
+
+[node name="Titre" type="Label" parent="Etirement"]
+offset_left = -100.0
+offset_right = 100.0
+offset_bottom = 23.0
+text = "🪗 Squash & Stretch"
+horizontal_alignment = 1
+
+[node name="Sol" type="Line2D" parent="Etirement"]
+points = PackedVector2Array(-90, 250, 90, 250)
+width = 3.0
+default_color = Color(0.6, 0.6, 0.7, 1)
+
+[node name="Balle" type="Node2D" parent="Etirement"]
+position = Vector2(0, 80)
+
+[node name="Sprite" type="Sprite2D" parent="Etirement/Balle"]
+scale = Vector2(0.04, 0.04)
+texture = ExtResource("3_orange")
+
+[node name="PlayerFX" type="PlayerFX" parent="Etirement/Balle"]
+special_effects = Array[Effect]([SubResource("FX_etirement")])
+
+[node name="Taille" type="Node2D" parent="."]
+position = Vector2(360, 40)
+
+[node name="Titre" type="Label" parent="Taille"]
+offset_left = -110.0
+offset_right = 110.0
+offset_bottom = 23.0
+text = "🦣🫘 Agrandissement + 🔊 son"
+horizontal_alignment = 1
+
+[node name="Caisse" type="Node2D" parent="Taille"]
+position = Vector2(0, 150)
+
+[node name="Sprite" type="Sprite2D" parent="Taille/Caisse"]
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("4_vert")
+
+[node name="PlayerFX" type="PlayerFX" parent="Taille/Caisse"]
+special_effects = Array[Effect]([SubResource("FX_taille")])
+
+[node name="Secousse" type="Node2D" parent="."]
+position = Vector2(590, 40)
+
+[node name="Titre" type="Label" parent="Secousse"]
+offset_left = -110.0
+offset_right = 110.0
+offset_bottom = 23.0
+text = "💥 Secousse + 🌈 flash"
+horizontal_alignment = 1
+
+[node name="Cible" type="Node2D" parent="Secousse"]
+position = Vector2(0, 150)
+
+[node name="Sprite" type="Sprite2D" parent="Secousse/Cible"]
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("7_clair")
+
+[node name="PlayerFX" type="PlayerFX" parent="Secousse/Cible"]
+special_effects = Array[Effect]([SubResource("FX_secousse")])
+
+[node name="Ciblage" type="Node2D" parent="."]
+position = Vector2(120, 340)
+
+[node name="Titre" type="Label" parent="Ciblage"]
+offset_left = -100.0
+offset_right = 100.0
+offset_bottom = 23.0
+text = "🌻 Ciblage"
+horizontal_alignment = 1
+
+[node name="Tourelle" type="Node2D" parent="Ciblage"]
+position = Vector2(0, 150)
+
+[node name="Canon" type="Polygon2D" parent="Ciblage/Tourelle"]
+color = Color(0.45, 0.75, 1, 1)
+polygon = PackedVector2Array(-18, -18, 18, -18, 18, -6, 46, -6, 46, 6, 18, 6, 18, 18, -18, 18)
+
+[node name="PlayerFX" type="PlayerFX" parent="Ciblage/Tourelle"]
+special_effects = Array[Effect]([SubResource("FX_ciblage")])
+
+[node name="Viseur" type="Node2D" parent="Ciblage"]
+position = Vector2(80, 150)
+
+[node name="Croix" type="Line2D" parent="Ciblage/Viseur"]
+points = PackedVector2Array(-10, 0, 10, 0, 0, 0, 0, -10, 0, 10)
+width = 3.0
+default_color = Color(1, 0.4, 0.4, 1)
+
+[node name="Fondu" type="Node2D" parent="."]
+position = Vector2(360, 340)
+
+[node name="Titre" type="Label" parent="Fondu"]
+offset_left = -110.0
+offset_right = 110.0
+offset_bottom = 23.0
+text = "🌈 Fondu de texture"
+horizontal_alignment = 1
+
+[node name="Panneau" type="Sprite2D" parent="Fondu"]
+position = Vector2(0, 150)
+scale = Vector2(0.11, 0.11)
+texture = ExtResource("5_rouge")
+
+[node name="PlayerFX" type="PlayerFX" parent="Fondu/Panneau"]
+special_effects = Array[Effect]([SubResource("FX_fondu_texture")])
+
+[node name="Suivi" type="Node2D" parent="."]
+position = Vector2(590, 340)
+
+[node name="Titre" type="Label" parent="Suivi"]
+offset_left = -110.0
+offset_right = 110.0
+offset_bottom = 23.0
+text = "〰️ Drone suiveur"
+horizontal_alignment = 1
+
+[node name="Drone" type="Node2D" parent="Suivi"]
+position = Vector2(0, 150)
+
+[node name="Corps" type="Polygon2D" parent="Suivi/Drone"]
+color = Color(1, 0.85, 0.3, 1)
+polygon = PackedVector2Array(0, -14, 14, 0, 0, 14, -14, 0)
+
+[node name="PlayerFX" type="PlayerFX" parent="Suivi/Drone"]
+special_effects = Array[Effect]([SubResource("FX_suivi")])
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+enabled = false
+
+[node name="PlayerFX" type="PlayerFX" parent="Camera"]
+special_effects = Array[Effect]([SubResource("FX_camera")])
+
+[node name="Temps" type="TimeManipulatorFX" parent="."]
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("2_panneau")
+titre = "✨ Effets 2D"
+aide = "Chaque cible a un PlayerFX dont les effets (special_effects) sont configurés dans la scène : sélectionne un PlayerFX pour les voir, ou utilise ses boutons « Jouer effet » / « Arrêter effet » dans l'éditeur. Effets enchaînés : l'agrandissement joue un son, la secousse un flash rouge."

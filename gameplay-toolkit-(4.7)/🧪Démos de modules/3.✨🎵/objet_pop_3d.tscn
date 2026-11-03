@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Materiau_gemme"]
+albedo_color = Color(0.55, 0.3, 1, 1)
+emission_enabled = true
+emission = Color(0.35, 0.15, 0.8, 1)
+
+[sub_resource type="PrismMesh" id="Mesh_gemme"]
+material = SubResource("Materiau_gemme")
+size = Vector3(0.3, 0.4, 0.3)
+
+[node name="Gemme" type="MeshInstance3D"]
+mesh = SubResource("Mesh_gemme")

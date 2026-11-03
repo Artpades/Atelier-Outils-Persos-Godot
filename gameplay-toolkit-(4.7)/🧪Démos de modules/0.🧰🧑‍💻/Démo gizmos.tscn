@@ -1,0 +1,156 @@
+[gd_scene format=3]
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_ngito"]
+source = 1
+constant = Vector2(0, 0)
+property_path = NodePath("global_position")
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "center",
+"type": 5,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_ddu1m"]
+constant = 40.0
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "radius",
+"type": 3,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_bt2k8"]
+constant = Color(0.2, 0.8, 1, 1)
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "color",
+"type": 20,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_i4a74"]
+constant = false
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "filled",
+"type": 1,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_7yxy8"]
+constant = 2.0
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "thickness",
+"type": 3,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_f6n6q"]
+constant = true
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "antialiasing",
+"type": 1,
+"usage": 6
+}
+
+[sub_resource type="GizmoEntry" id="GizmoEntry_vltvj"]
+function = "Gizmos2D.draw_2D_circle"
+arguments = Array[ArgumentBinding]([SubResource("ArgumentBinding_ngito"), SubResource("ArgumentBinding_ddu1m"), SubResource("ArgumentBinding_bt2k8"), SubResource("ArgumentBinding_i4a74"), SubResource("ArgumentBinding_7yxy8"), SubResource("ArgumentBinding_f6n6q")])
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_h1ru1"]
+constant = Vector2(0, 0)
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "from",
+"type": 5,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_024qb"]
+source = 1
+constant = Vector2(0, 0)
+property_path = NodePath("global_position")
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "to",
+"type": 5,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_vs4oa"]
+constant = 12.0
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "arrow_head_size",
+"type": 3,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_jhinf"]
+constant = 3.0
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "width",
+"type": 3,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_m4t7s"]
+constant = Color(1, 0.6, 0.1, 1)
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "color",
+"type": 20,
+"usage": 6
+}
+
+[sub_resource type="ArgumentBinding" id="ArgumentBinding_rvfba"]
+constant = true
+expected_info = {
+"class_name": &"",
+"hint": 0,
+"hint_string": "",
+"name": "antialiasing",
+"type": 1,
+"usage": 6
+}
+
+[sub_resource type="GizmoEntry" id="GizmoEntry_gt6cn"]
+function = "Gizmos2D.draw_2D_arrow"
+arguments = Array[ArgumentBinding]([SubResource("ArgumentBinding_h1ru1"), SubResource("ArgumentBinding_024qb"), SubResource("ArgumentBinding_vs4oa"), SubResource("ArgumentBinding_jhinf"), SubResource("ArgumentBinding_m4t7s"), SubResource("ArgumentBinding_rvfba")])
+
+[sub_resource type="GizmoRegistry" id="GizmoRegistry_k7re2"]
+entries = Array[GizmoEntry]([SubResource("GizmoEntry_vltvj"), SubResource("GizmoEntry_gt6cn")])
+
+[node name="DemoGizmos" type="Node2D" unique_id=1610024321]
+
+[node name="Cible" type="Node2D" parent="." unique_id=1558939640]
+position = Vector2(400, 300)
+
+[node name="GizmoHost" type="GizmoHost" parent="Cible" unique_id=1610333870]
+registry = SubResource("GizmoRegistry_k7re2")

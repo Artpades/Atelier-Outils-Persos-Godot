@@ -1,0 +1,26 @@
+<svg viewBox="0 0 640 164" role="img" aria-label="Conditions d'un MovementContext">
+  <defs><marker id="f-79107" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+  <g font-size="12.5" fill="currentColor" font-family="Inter, system-ui, sans-serif">
+    <text x="111" y="20" text-anchor="middle" font-weight="700">Toujours / manuel</text>
+    <rect x="14" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ALWAYS : toujours vrai</text>
+    <rect x="14" y="72" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">MANUAL : jamais seul</text>
+    <rect x="14" y="110" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="111" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">CUSTOM : expression</text>
+    <text x="320" y="20" text-anchor="middle" font-weight="700">Situation du corps</text>
+    <rect x="223" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ON_FLOOR / IN_AIR</text>
+    <rect x="223" y="72" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">IN_WATER (WaterArea)</text>
+    <rect x="223" y="110" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="320" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ON_WALL</text>
+    <text x="529" y="20" text-anchor="middle" font-weight="700">Autres composants</text>
+    <rect x="431" y="34" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">ON_ROPE (Rope2D/3D)</text>
+    <rect x="431" y="72" width="195" height="30" rx="6" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.35"/>
+    <text x="529" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">KNOCKED (Knockback)</text>
+    <rect x="431" y="110" width="195" height="30" rx="6" fill="var(--accent)" fill-opacity="0.16" stroke="var(--accent)"/>
+    <text x="529" y="130" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">is_condition_met(ctx)</text>
+  </g>
+</svg>

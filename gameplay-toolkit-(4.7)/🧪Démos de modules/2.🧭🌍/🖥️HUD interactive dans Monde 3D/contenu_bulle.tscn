@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[sub_resource type="StyleBoxFlat" id="Style_fond"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.1, 0.08, 0.08, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.55, 0.35, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="Style_vie"]
+bg_color = Color(0.35, 0.85, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Bulle" type="PanelContainer"]
+theme_override_styles/panel = SubResource("Style_fond")
+
+[node name="Lignes" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Nom" type="Label" parent="Lignes"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Cube"
+horizontal_alignment = 1
+
+[node name="Vie" type="ProgressBar" parent="Lignes"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/fill = SubResource("Style_vie")
+value = 100.0
+show_percentage = false
+
+[node name="Boutons" type="HBoxContainer" parent="Lignes"]
+layout_mode = 2
+
+[node name="Frapper" type="Button" parent="Lignes/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "⚔️ Frapper"
+
+[node name="Soigner" type="Button" parent="Lignes/Boutons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "💚 Soigner"

@@ -1,0 +1,86 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🤖Démo HFSM/demo_hfsm.gd" id="1_demo"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🤖Démo HFSM/garde.gd" id="2_garde"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🤖Démo HFSM/etat_patrouille.gd" id="3_patrouille"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🤖Démo HFSM/etat_poursuite.gd" id="4_poursuite"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🤖Démo HFSM/etat_attaque.gd" id="5_attaque"]
+[ext_resource type="Script" path="res://🧪Démos de modules/4.🧍🧠/🤾Système de Comportement/🤖Démo HFSM/etat_etourdi.gd" id="6_etourdi"]
+[ext_resource type="Script" path="res://🧪Démos de modules/2.🧭🌍/panneau_demo.gd" id="7_panneau"]
+
+[sub_resource type="Blackboard" id="Tableau"]
+values = {
+"coups": 0,
+"distance": 1000.0
+}
+
+[sub_resource type="StateTransition" id="Patrouille_Alerte"]
+target_state = NodePath("../Alerte")
+condition = "distance < 120"
+
+[sub_resource type="StateTransition" id="Patrouille_Etourdi"]
+target_state = NodePath("../Etourdi")
+event = &"etourdir"
+
+[sub_resource type="StateTransition" id="Alerte_Patrouille"]
+target_state = NodePath("../Patrouille")
+condition = "distance > 220"
+
+[sub_resource type="StateTransition" id="Alerte_Etourdi"]
+target_state = NodePath("../Etourdi")
+event = &"etourdir"
+
+[sub_resource type="StateTransition" id="Poursuite_Attaque"]
+target_state = NodePath("../Attaque")
+condition = "distance < 30"
+
+[sub_resource type="StateTransition" id="Attaque_Poursuite"]
+target_state = NodePath("../Poursuite")
+condition = "distance > 45"
+
+[sub_resource type="StateTransition" id="Etourdi_Patrouille"]
+target_state = NodePath("../Patrouille")
+min_time_in_state = 2.0
+
+[node name="DemoHFSM" type="Node2D"]
+script = ExtResource("1_demo")
+
+[node name="Garde" type="Node2D" parent="."]
+position = Vector2(120, 80)
+script = ExtResource("2_garde")
+
+[node name="Machine" type="StateMachine" parent="Garde"]
+blackboard = SubResource("Tableau")
+
+[node name="Patrouille" type="State" parent="Garde/Machine"]
+transitions = Array[StateTransition]([SubResource("Patrouille_Alerte"), SubResource("Patrouille_Etourdi")])
+script = ExtResource("3_patrouille")
+
+[node name="Alerte" type="State" parent="Garde/Machine"]
+transitions = Array[StateTransition]([SubResource("Alerte_Patrouille"), SubResource("Alerte_Etourdi")])
+remember_last_substate = true
+
+[node name="Poursuite" type="State" parent="Garde/Machine/Alerte"]
+transitions = Array[StateTransition]([SubResource("Poursuite_Attaque")])
+script = ExtResource("4_poursuite")
+
+[node name="Attaque" type="State" parent="Garde/Machine/Alerte"]
+transitions = Array[StateTransition]([SubResource("Attaque_Poursuite")])
+script = ExtResource("5_attaque")
+
+[node name="Etourdi" type="State" parent="Garde/Machine"]
+transitions = Array[StateTransition]([SubResource("Etourdi_Patrouille")])
+script = ExtResource("6_etourdi")
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Graphe" type="BehaviorGraphView" parent="Interface"]
+offset_top = 340.0
+offset_right = 712.0
+offset_bottom = 648.0
+target_path = NodePath("../../Garde/Machine")
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+script = ExtResource("7_panneau")
+titre = "🤖 Machine à états hiérarchique"
+aide = "Le garde patrouille, poursuit puis attaque l'intrus (le curseur). « Étourdir » envoie l'événement etourdir. En bas : le graphe en direct (molette = zoom, glisser = déplacer, pastille +/- = replier). Dans l'éditeur : sélectionner Machine puis « Éditeur de comportement » dans l'inspecteur."
