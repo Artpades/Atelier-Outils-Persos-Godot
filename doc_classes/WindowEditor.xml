@@ -1,20 +1,24 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<class name="WindowEditor" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="WindowEditor" inherits="Resource" api_type="extension"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		Une ressource qui permet de créer une [img]res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png[/img] [color=dim_gray]fenêtre personnalisée[/color] dans l'éditeur.
 	</brief_description>
 	<description>
+		Cette ressource permet de créer une [img]res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png[/img] [color=dim_gray]fenêtre personnalisée[/color] dans l'éditeur.[br]
+		 Elle peut être utilisée pour créer des fenêtres d'outils, des panneaux de configuration ou tout autre type d'interface utilisateur personnalisée pour l'éditeur.
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="add_control_to_window">
+		<method name="close_window">
 			<return type="void" />
-			<param index="0" name="control" type="Control" />
 			<description>
 			</description>
 		</method>
-		<method name="close_window">
-			<return type="void" />
+		<method name="get_window" qualifiers="const">
+			<return type="Window" />
 			<description>
 			</description>
 		</method>
@@ -23,9 +27,9 @@
 			<description>
 			</description>
 		</method>
-		<method name="remove_control_from_window">
+		<method name="set_window">
 			<return type="void" />
-			<param index="0" name="control" type="Control" />
+			<param index="0" name="value" type="Window" />
 			<description>
 			</description>
 		</method>
