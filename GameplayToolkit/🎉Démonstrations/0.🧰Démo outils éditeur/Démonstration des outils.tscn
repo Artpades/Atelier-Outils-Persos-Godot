@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bhw8jrrnsvqxi"]
+
+[ext_resource type="Script" uid="uid://c30457qev60jm" path="res://🎉Démonstrations/0.🧰Démo outils éditeur/démonstration_des_outils.gd" id="1_ryoor"]
+
+[sub_resource type="WindowEditor" id="WindowEditor_uugxp"]
+window_position = Vector2(100, 100)
+window_size = Vector2(500, 500)
+
+[node name="DémonstrationDesOutils" type="Node" unique_id=376418348]
+script = ExtResource("1_ryoor")
+window = SubResource("WindowEditor_uugxp")

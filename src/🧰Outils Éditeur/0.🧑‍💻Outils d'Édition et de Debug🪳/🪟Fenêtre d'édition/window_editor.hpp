@@ -4,6 +4,8 @@
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/callable.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 namespace godot
 {
@@ -15,6 +17,11 @@ class WindowEditor : public Resource
   private:
     // Fenêtre d'édition qui sera à créer et détruite à chaque ouverture/fermeture de la fenêtre d'édition
     Window *window;
+    String window_title;
+    Vector2 window_position;
+    Vector2 window_size;
+
+    Callable open_window_button;
 
   protected:
     static void _bind_methods();
@@ -25,6 +32,18 @@ class WindowEditor : public Resource
 
     Window *get_window() const;
     void set_window(Window *value);
+
+    String get_window_title() const;
+    void set_window_title(const String &value);
+
+    Vector2 get_window_position() const;
+    void set_window_position(const Vector2 &value);
+
+    Vector2 get_window_size() const;
+    void set_window_size(const Vector2 &value);
+
+    Callable get_open_window_button();
+    void set_open_window_button(const Callable &value);
 
     // Ouvre la fenêtre d'édition
     void open_window();

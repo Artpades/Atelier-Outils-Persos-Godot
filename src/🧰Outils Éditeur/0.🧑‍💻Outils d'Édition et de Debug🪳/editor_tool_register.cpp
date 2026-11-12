@@ -12,7 +12,7 @@ static void initialize(ModuleInitializationLevel p_level)
 
     GDREGISTER_CLASS(WindowEditor);
 
-    godot::print_line_rich(U"[color=dark_green]🛠️Module d'outils d'edition et de debug chargé avec succès ![/color]");
+    godot::print_line_rich(U"[color=dark_green]🛠️Module 🧑‍💻d'outils d'edition et de debug chargé avec succès ![/color]");
 }
 
 static void uninitialize(ModuleInitializationLevel p_level)
@@ -21,7 +21,7 @@ static void uninitialize(ModuleInitializationLevel p_level)
     {
         return;
     }
-    godot::print_line_rich(U"[color=dark_red]🛠️Module d'outils d'edition et de debug déchargé avec succès ![/color]");
+    godot::print_line_rich(U"[color=dark_red]🛠️Module 🧑‍💻d'outils d'edition et de debug déchargé avec succès ![/color]");
 }
 
 extern "C"

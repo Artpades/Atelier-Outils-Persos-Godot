@@ -15,22 +15,28 @@
 		<method name="close_window">
 			<return type="void" />
 			<description>
+				Ferme la [img]res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png[/img] [color=dim_gray]fenêtre[/color] dans l'éditeur.[br]
+				En appelant cette méthode, l'instance de la fenêtre sera supprimée et ne pourra plus être réutilisée.[br] 
+				Pour rouvrir la fenêtre, il faudra simplement appeler la méthode [method WindowEditor.open_window] à nouveau, ce qui créera une nouvelle instance de la fenêtre.
 			</description>
 		</method>
 		<method name="get_window" qualifiers="const">
 			<return type="Window" />
 			<description>
+				Renvoie l'instance de la [img]res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png[/img] [color=dim_gray]fenêtre[/color] dans l'éditeur.
 			</description>
 		</method>
 		<method name="open_window">
 			<return type="void" />
 			<description>
+				Ouvre une nouvelle instance de [img]res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png[/img] [color=dim_gray]fenêtre[/color] dans l'éditeur.[br]
 			</description>
 		</method>
 		<method name="set_window">
 			<return type="void" />
 			<param index="0" name="value" type="Window" />
 			<description>
+				 Définit l'instance de la [img]res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png[/img] [color=dim_gray]fenêtre[/color] dans l'éditeur.
 			</description>
 		</method>
 	</methods>
