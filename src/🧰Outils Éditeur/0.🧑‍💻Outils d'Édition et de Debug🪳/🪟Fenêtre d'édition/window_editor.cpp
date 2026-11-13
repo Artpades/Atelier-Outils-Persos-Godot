@@ -1,4 +1,5 @@
 #include "window_editor.hpp"
+#include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/print_string.hpp"
 #include "godot_cpp/variant/callable.hpp"
 #include <godot_cpp/classes/engine.hpp>
@@ -42,36 +43,41 @@ void WindowEditor::set_open_window_button(const Callable &value) { open_window_b
 
 #pragma endregion
 
+// Créer ou affiche une fenêtre, et l'ouvre
 void WindowEditor::open_window()
 {
+    // print_line(U"Ouverture de la fenêtre d'édition : " + window_title);
+
     if (window == nullptr)
     {
+        // Ajout dans l'arborescence de l'éditeur pour qu'elle soit visible
+        SceneTree *scene_tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+        if (scene_tree == nullptr || scene_tree->get_root() == nullptr)
+        {
+            print_line_rich(U"[color=red]Aucun SceneTree actif : fenêtre d'édition non créée[/color]", "WindowEditor", WINDOW_EDITOR);
+            return;
+        }
         // Création de la fenêtre avec ses paramètres
         window = memnew(Window());
         window->set_title(window_title);
         window->set_position(window_position);
         window->set_size(window_size);
         window->set_visible(true);
-        print_line(U"Fenêtre d'édition ouverte : " + window_title);
-        // Ajout dans l'arborescence de l'éditeur pour qu'elle soit visible
-        SceneTree *scene_tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
 
-        if (scene_tree == nullptr || scene_tree->get_root() == nullptr)
-        {
-            print_line_rich(U"[color=red]Aucun SceneTree actif : fenêtre d'édition non créée[/color]", "WindowEditor", WINDOW_EDITOR);
-            return;
-        }
-
-        print_line(U"Ajout de la fenêtre d'édition à l'arborescence de l'éditeur");
         // Connecter le signal close_requested à la méthode close_window pour fermer la fenêtre lorsque l'utilisateur clique sur le bouton de fermeture
         window->connect("close_requested", Callable(this, "close_window"));
         scene_tree->get_root()->add_child(window);
         window->popup_centered();
     }
-    else
+    else if (window != nullptr)
     {
         window->set_visible(true);
+        print_line(U"Fenêtre d'édition déjà ouverte : " + window_title);
     }
+
+    // Pour chaque cas d'effet à l'ouverture
+
+    emit_signal("window_opened");
 }
 
 void WindowEditor::close_window()
@@ -85,6 +91,15 @@ void WindowEditor::close_window()
 
 void WindowEditor::_bind_methods()
 {
+
+    BIND_ENUM_CONSTANT(WindowOpenningAnimationMode::O_NONE);
+    BIND_ENUM_CONSTANT(WindowOpenningAnimationMode::O_POPUP);
+    BIND_ENUM_CONSTANT(WindowOpenningAnimationMode::O_NUMERIC_LIKE);
+
+    BIND_ENUM_CONSTANT(WindowClosingAnimationMode::C_NONE);
+    BIND_ENUM_CONSTANT(WindowClosingAnimationMode::C_POPUP);
+    BIND_ENUM_CONSTANT(WindowClosingAnimationMode::C_NUMERIC_LIKE);
+
 #pragma region Getter/Setter
     ClassDB::bind_method(D_METHOD("get_window"), &WindowEditor::get_window);
     ClassDB::bind_method(D_METHOD("set_window", "value"), &WindowEditor::set_window);
@@ -114,4 +129,6 @@ void WindowEditor::_bind_methods()
 
     ADD_PROPERTY(PropertyInfo(Variant::CALLABLE, "open_window_button", PROPERTY_HINT_TOOL_BUTTON, U"Ouvrir la fenêtre", PROPERTY_USAGE_EDITOR), "", "get_open_window_button");
 #pragma endregion
+
+    ADD_SIGNAL(MethodInfo("window_opened"));
 }
