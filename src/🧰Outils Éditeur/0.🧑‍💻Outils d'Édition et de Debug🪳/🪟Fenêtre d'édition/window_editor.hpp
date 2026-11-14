@@ -44,8 +44,8 @@ class WindowEditor : public Resource
     // Fenêtre d'édition qui sera à créer et détruite à chaque ouverture/fermeture de la fenêtre d'édition
     Window *window = nullptr;
     String window_title = U"[Titre de la fenêtre]";
-    Vector2 window_position;
-    Vector2 window_size = Vector2(400, 300); // Taille par défaut de la fenêtre
+    Vector2i window_position;
+    Vector2i window_size = Vector2i(400, 300); // Taille par défaut de la fenêtre
 
     Callable open_window_button;
 
@@ -67,20 +67,20 @@ class WindowEditor : public Resource
     String get_window_title() const;
     void set_window_title(const String &value);
 
-    Vector2 get_window_position() const;
-    void set_window_position(const Vector2 &value);
+    Vector2i get_window_position() const;
+    void set_window_position(const Vector2i &value);
 
-    Vector2 get_window_size() const;
-    void set_window_size(const Vector2 &value);
+    Vector2i get_window_size() const;
+    void set_window_size(const Vector2i &value);
 
     Callable get_open_window_button();
     void set_open_window_button(const Callable &value);
 
     WindowOpenningAnimationMode get_anim_open_mode() const;
-    void set_anim_open_mode(const WindowOpenningAnimationMode &value);
+    void set_anim_open_mode(WindowOpenningAnimationMode value);
 
     WindowClosingAnimationMode get_anim_close_mode() const;
-    void set_anim_close_mode(const WindowClosingAnimationMode &value);
+    void set_anim_close_mode(WindowClosingAnimationMode value);
 
     // Ouvre la fenêtre d'édition
     void open_window();
