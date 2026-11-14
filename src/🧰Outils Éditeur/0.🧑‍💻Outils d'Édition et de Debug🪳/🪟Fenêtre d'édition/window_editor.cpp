@@ -149,7 +149,7 @@ void WindowEditor::close_window()
             close_tween->bind_node(window);
 
             Vector2i target_pos = window->get_position() + window_size / 2;
-            Vector2i target_size = Vector2i(10, 10);
+            Vector2i target_size = Vector2i(0, 0);
 
             // Utilisation de Vector2i complets (pas de :x / :y)
             close_tween->parallel()->tween_property(window, "position", target_pos, 0.5)->set_ease(Tween::EASE_IN)->set_trans(Tween::TRANS_BACK);
@@ -164,13 +164,10 @@ void WindowEditor::close_window()
             close_tween = scene_tree->create_tween();
             close_tween->bind_node(window);
 
-            Vector2i current_pos = window->get_position();
-            Vector2i target_pos = Vector2i(current_pos.x + window_size.x / 2, current_pos.y + window_size.y / 2);
-            Vector2i target_size = Vector2i(10, 10);
-
-            // Animation simultanée propre avec des Vector2i
-            close_tween->parallel()->tween_property(window, "position", target_pos, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
-            close_tween->parallel()->tween_property(window, "size", target_size, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->tween_property(window, "position:x", window->get_position().x + window_size.x / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->parallel()->tween_property(window, "size:x", 0, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->tween_property(window, "position:y", window->get_position().y + window_size.y / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->parallel()->tween_property(window, "size:y", 0, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
 
             close_tween->tween_callback(Callable(this, "free_window"));
             break;
