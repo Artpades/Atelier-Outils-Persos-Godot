@@ -54,6 +54,8 @@ class WindowEditor : public Resource
     // Mode d'animation de fermeture
     WindowClosingAnimationMode close_anim_mode = WindowClosingAnimationMode::C_NONE;
 
+    Ref<Tween> close_tween;
+
   protected:
     static void _bind_methods();
 
@@ -86,6 +88,8 @@ class WindowEditor : public Resource
     void open_window();
     // Ferme la fenêtre d'édition
     void close_window();
+    // Libère la fenêtre de la mémoire
+    void free_window();
 };
 
 } // namespace godot

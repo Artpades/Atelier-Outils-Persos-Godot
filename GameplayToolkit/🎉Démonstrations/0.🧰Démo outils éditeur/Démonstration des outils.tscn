@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://c30457qev60jm" path="res://🎉Démonstrations/0.🧰Démo outils éditeur/démonstration_des_outils.gd" id="1_ryoor"]
 
 [sub_resource type="WindowEditor" id="WindowEditor_0fy41"]
-open_anim_mode = 1
 
 [node name="DémonstrationDesOutils" type="Node" unique_id=376418348]
 script = ExtResource("1_ryoor")

@@ -2,6 +2,7 @@
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/print_string.hpp"
 #include "godot_cpp/variant/callable.hpp"
+#include <godot_cpp/classes/callback_tweener.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/main_loop.hpp>
@@ -9,6 +10,7 @@
 #include <godot_cpp/classes/property_tweener.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/tween.hpp>
+#include <godot_cpp/variant/vector2.hpp>
 using namespace godot;
 
 namespace
@@ -87,12 +89,29 @@ void WindowEditor::open_window()
     // Pour chaque cas d'effet à l'ouverture
     switch (open_anim_mode)
     {
+    case WindowOpenningAnimationMode::O_NONE:
+    {
+        window->set_size(Vector2(window_size));
+        break;
+    }
     case WindowOpenningAnimationMode::O_POPUP:
     {
         // Créer un twenning pour la taille et un pour la position
         Ref<Tween> window_popup_tween = scene_tree->create_tween();
         window_popup_tween->parallel()->tween_property(window, "position", window->get_position() - window_size / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_BACK);
         window_popup_tween->parallel()->tween_property(window, "size", window_size, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_BACK);
+        break;
+    }
+    case WindowOpenningAnimationMode::O_NUMERIC_LIKE:
+    {
+        // Créer un twenning pour la taille et un pour la position
+        Ref<Tween> window_popup_tween = scene_tree->create_tween();
+
+        window_popup_tween->tween_property(window, "position:x", window->get_position().x - window_size.x / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+        window_popup_tween->parallel()->tween_property(window, "size:x", window_size.x, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+        window_popup_tween->tween_property(window, "position:y", window->get_position().y - window_size.y / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+        window_popup_tween->parallel()->tween_property(window, "size:y", window_size.y, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+
         break;
     }
     default:
@@ -102,6 +121,68 @@ void WindowEditor::open_window()
 }
 
 void WindowEditor::close_window()
+{
+    SceneTree *scene_tree = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+    if (scene_tree == nullptr || scene_tree->get_root() == nullptr)
+    {
+        print_line_rich(U"[color=red]Aucun SceneTree actif : fenêtre d'édition non créée[/color]", "WindowEditor", WINDOW_EDITOR);
+        return;
+    }
+
+    if (window != nullptr)
+    {
+        if (close_tween.is_valid() && close_tween->is_running())
+        {
+            return;
+        }
+
+        switch (close_anim_mode)
+        {
+        case WindowClosingAnimationMode::C_NONE:
+        {
+            free_window();
+            break;
+        }
+        case WindowClosingAnimationMode::C_POPUP:
+        {
+            close_tween = scene_tree->create_tween();
+            close_tween->bind_node(window);
+
+            Vector2i target_pos = window->get_position() + window_size / 2;
+            Vector2i target_size = Vector2i(10, 10);
+
+            // Utilisation de Vector2i complets (pas de :x / :y)
+            close_tween->parallel()->tween_property(window, "position", target_pos, 0.5)->set_ease(Tween::EASE_IN)->set_trans(Tween::TRANS_BACK);
+            close_tween->parallel()->tween_property(window, "size", target_size, 0.5)->set_ease(Tween::EASE_IN)->set_trans(Tween::TRANS_BACK);
+
+            // Le callback s'exécutera exactement à la fin des 0.5 secondes
+            close_tween->tween_callback(Callable(this, "free_window"));
+            break;
+        }
+        case WindowClosingAnimationMode::C_NUMERIC_LIKE:
+        {
+            close_tween = scene_tree->create_tween();
+            close_tween->bind_node(window);
+
+            Vector2i current_pos = window->get_position();
+            Vector2i target_pos = Vector2i(current_pos.x + window_size.x / 2, current_pos.y + window_size.y / 2);
+            Vector2i target_size = Vector2i(10, 10);
+
+            // Animation simultanée propre avec des Vector2i
+            close_tween->parallel()->tween_property(window, "position", target_pos, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->parallel()->tween_property(window, "size", target_size, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+
+            close_tween->tween_callback(Callable(this, "free_window"));
+            break;
+        }
+        default:
+            free_window();
+            break;
+        }
+    }
+}
+
+void WindowEditor::free_window()
 {
     if (window != nullptr)
     {
@@ -146,6 +227,7 @@ void WindowEditor::_bind_methods()
 #pragma region Méthodes principales
     ClassDB::bind_method(D_METHOD("open_window"), &WindowEditor::open_window);
     ClassDB::bind_method(D_METHOD("close_window"), &WindowEditor::close_window);
+    ClassDB::bind_method(D_METHOD("free_window"), &WindowEditor::free_window);
 #pragma endregion
 
 #pragma region Propriétés
