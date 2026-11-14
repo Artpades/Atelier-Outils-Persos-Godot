@@ -36,9 +36,6 @@ void WindowEditor::set_window(Window *value) { window = value; }
 String WindowEditor::get_window_title() const { return window_title; }
 void WindowEditor::set_window_title(const String &value) { window_title = value; }
 
-Vector2i WindowEditor::get_window_position() const { return window_position; }
-void WindowEditor::set_window_position(const Vector2i &value) { window_position = value; }
-
 Vector2i WindowEditor::get_window_size() const { return window_size; }
 void WindowEditor::set_window_size(const Vector2i &value) { window_size = value; }
 
@@ -55,6 +52,8 @@ void WindowEditor::set_anim_close_mode(WindowClosingAnimationMode value) { close
 // Créer ou affiche une fenêtre, et l'ouvre
 void WindowEditor::open_window()
 {
+    if (window != nullptr && window->is_visible())
+        return;
     // print_line(U"Ouverture de la fenêtre d'édition : " + window_title);
 
     // Ajout dans l'arborescence de l'éditeur pour qu'elle soit visible
@@ -71,7 +70,6 @@ void WindowEditor::open_window()
         // Création de la fenêtre avec ses paramètres
         window = memnew(Window());
         window->set_title(window_title);
-        window->set_position(window_position);
         window->set_size(Vector2(10, 10));
         window->set_visible(true);
 
@@ -148,7 +146,7 @@ void WindowEditor::close_window()
             close_tween = scene_tree->create_tween();
             close_tween->bind_node(window);
 
-            Vector2i target_pos = window->get_position() + window_size / 2;
+            Vector2i target_pos = window->get_position() + window->get_size() / 2;
             Vector2i target_size = Vector2i(0, 0);
 
             // Utilisation de Vector2i complets (pas de :x / :y)
@@ -164,9 +162,9 @@ void WindowEditor::close_window()
             close_tween = scene_tree->create_tween();
             close_tween->bind_node(window);
 
-            close_tween->tween_property(window, "position:x", window->get_position().x + window_size.x / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->tween_property(window, "position:x", window->get_position().x + window->get_size().x / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
             close_tween->parallel()->tween_property(window, "size:x", 0, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
-            close_tween->tween_property(window, "position:y", window->get_position().y + window_size.y / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
+            close_tween->tween_property(window, "position:y", window->get_position().y + window->get_size().y / 2, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
             close_tween->parallel()->tween_property(window, "size:y", 0, 0.5)->set_ease(Tween::EASE_OUT)->set_trans(Tween::TRANS_CUBIC);
 
             close_tween->tween_callback(Callable(this, "free_window"));
@@ -206,9 +204,6 @@ void WindowEditor::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_window_title"), &WindowEditor::get_window_title);
     ClassDB::bind_method(D_METHOD("set_window_title", "value"), &WindowEditor::set_window_title);
 
-    ClassDB::bind_method(D_METHOD("get_window_position"), &WindowEditor::get_window_position);
-    ClassDB::bind_method(D_METHOD("set_window_position", "value"), &WindowEditor::set_window_position);
-
     ClassDB::bind_method(D_METHOD("get_window_size"), &WindowEditor::get_window_size);
     ClassDB::bind_method(D_METHOD("set_window_size", "value"), &WindowEditor::set_window_size);
 
@@ -229,7 +224,6 @@ void WindowEditor::_bind_methods()
 
 #pragma region Propriétés
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "window_title"), "set_window_title", "get_window_title");
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "window_position"), "set_window_position", "get_window_position");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "window_size"), "set_window_size", "get_window_size");
 
     ADD_PROPERTY(PropertyInfo(Variant::CALLABLE, "open_window_button", PROPERTY_HINT_TOOL_BUTTON, U"Ouvrir la fenêtre", PROPERTY_USAGE_EDITOR), "", "get_open_window_button");
