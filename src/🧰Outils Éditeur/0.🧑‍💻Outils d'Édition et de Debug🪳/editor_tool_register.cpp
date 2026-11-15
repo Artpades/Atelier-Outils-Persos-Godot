@@ -1,3 +1,5 @@
+#include "🧰Outils Éditeur/0.🧑‍💻Outils d'Édition et de Debug🪳/🐛Gizmos/gizmos_2d.hpp"
+#include "🧰Outils Éditeur/0.🧑‍💻Outils d'Édition et de Debug🪳/🐛Gizmos/gizmos_3d.hpp"
 #include "🪟Fenêtre d'édition/window_editor.hpp"
 
 using namespace godot;
@@ -11,6 +13,8 @@ static void initialize(ModuleInitializationLevel p_level)
     }
 
     GDREGISTER_CLASS(WindowEditor);
+    GDREGISTER_CLASS(Gizmos2D);
+    GDREGISTER_CLASS(Gizmos3D);
 
     godot::print_line_rich(U"[color=dark_green]🛠️Module 🧑‍💻d'outils d'edition et de debug chargé avec succès ![/color]");
 }

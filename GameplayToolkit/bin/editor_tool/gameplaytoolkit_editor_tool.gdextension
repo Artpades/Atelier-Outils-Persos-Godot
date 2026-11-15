@@ -9,7 +9,8 @@ reloadable = true
 [icons]
 
 WindowEditor = "res://🖼️Editor Icons/🧰🧑‍💻/WindowEditor icon.png"
-
+Gizmos2D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
+Gizmos3D = "res://🖼️Editor Icons/🧰🧑‍💻/Pix. Gizmos Icon.png"
 [libraries]
 
 macos.debug = "res://bin/editor_tool/libgameplaytoolkit_editor_tool.macos.template_debug.dylib"
